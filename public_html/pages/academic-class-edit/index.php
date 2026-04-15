@@ -48,7 +48,7 @@ $adminTitle = $editingClass ? 'Học vụ - Sửa lớp học' : 'Học vụ - T
                     </select>
                 </label>
                 <button class="<?= ui_btn_primary_classes(); ?>" type="submit">Lưu lớp học</button>
-                <a class="<?= ui_btn_secondary_classes(); ?>" href="/?page=academic-classes">Quay lại</a>
+                <a class="<?= ui_btn_secondary_classes(); ?>" href="<?= e(page_url('classes-academic')); ?>">Quay lại</a>
             </form>
         </article>
     </div>

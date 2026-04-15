@@ -184,6 +184,20 @@ final class AcademicModel
         return $this->lessonsTable->listForAssignmentLookup();
     }
 
+    public function studentLookups(): array
+    {
+        return $this->usersTable->listByRoleNames(['student']);
+    }
+
+    public function feedbackLookups(): array
+    {
+        return [
+            'students' => $this->usersTable->listByRoleNames(['student']),
+            'teachers' => $this->usersTable->listByRoleNames(['teacher']),
+            'classes' => $this->classesTable->listSimple(),
+        ];
+    }
+
     public function saveClass(array $data): void
     {
         $this->classesTable->save($data);

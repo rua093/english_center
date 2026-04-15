@@ -1,11 +1,6 @@
 <?php
 declare(strict_types=1);
 
-require_permission('materials.delete');
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-redirect('/?page=academic-materials');
-}
+require_once __DIR__ . '/../canonical/materials.php';
 
-(new AcademicModel())->deleteMaterial((int) ($_GET['id'] ?? 0));
-set_flash('success', 'Đã xóa tài liệu.');
-redirect('/?page=academic-materials');
+api_run_action('materials.delete', 'api_materials_delete_action', page_url('materials-academic'));

@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-redirect('/?page=manage-bank');
+redirect(page_url('bank-manage'));
 }
 
 $bankId = (int) ($_POST['id'] ?? 0);
@@ -14,4 +14,4 @@ require_permission('bank.create');
 (new AcademicModel())->saveBankAccount($_POST);
 set_flash('success', 'Đã lưu tài khoản ngân hàng thành công.');
 
-redirect('/?page=manage-bank');
+redirect(page_url('bank-manage'));

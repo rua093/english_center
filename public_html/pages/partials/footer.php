@@ -6,12 +6,12 @@
 			</div>
 			<div class="flex flex-wrap gap-3">
 				<?php if (!is_logged_in()): ?>
-					<a href="/?page=login">Đăng nhập</a>
+					<a href="<?= e(page_url('login')); ?>">Đăng nhập</a>
 				<?php endif; ?>
-				<?php if (can_access_page('student-dashboard')): ?>
-					<a href="/?page=student-dashboard">Cổng học viên</a>
+				<?php if (can_access_page('dashboard-student')): ?>
+					<a href="<?= e(page_url('dashboard-student')); ?>">Cổng học viên</a>
 				<?php endif; ?>
-				<?php if (can_access_page('admin-dashboard')): ?>
+				<?php if (can_access_page('dashboard-admin')): ?>
 					<a href="/admin">Quản trị</a>
 				<?php endif; ?>
 			</div>

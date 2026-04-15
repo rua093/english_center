@@ -1,11 +1,6 @@
 <?php
 declare(strict_types=1);
 
-require_permission('academic.assignments.delete');
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-redirect('/?page=academic-assignments');
-}
+require_once __DIR__ . '/../canonical/assignments.php';
 
-(new AcademicModel())->deleteAssignment((int) ($_GET['id'] ?? 0));
-set_flash('success', 'Đã xóa bài tập.');
-redirect('/?page=academic-assignments');
+api_run_action('assignments.delete', 'api_assignments_delete_action', page_url('assignments-academic'));

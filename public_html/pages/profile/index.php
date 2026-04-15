@@ -13,7 +13,7 @@ $teacherSchedules = $homeWidgets['teacher_schedules'] ?? [];
                 <h1>Hồ sơ cá nhân</h1>
                 <p>Xin chào <?= e((string) ($user['full_name'] ?? '')); ?>. Đây là khu vực theo dõi nhanh tiến độ và lịch cá nhân.</p>
             </div>
-            <a class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-blue-700 transition hover:-translate-y-0.5 hover:bg-slate-100" href="/?page=home">Về trang chủ</a>
+            <a class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-blue-700 transition hover:-translate-y-0.5 hover:bg-slate-100" href="<?= e(page_url('home')); ?>">Về trang chủ</a>
         </div>
 
         <?php if (($user['role'] ?? '') === 'student' && is_array($studentProgress)): ?>

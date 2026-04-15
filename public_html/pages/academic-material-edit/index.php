@@ -39,7 +39,7 @@ $adminTitle = $editingMaterial ? 'Học vụ - Sửa tài liệu' : 'Học vụ 
                 <label>Tải lên file<input type="file" name="material_file" accept=".pdf,.ppt,.pptx,.doc,.docx,.jpg,.jpeg,.png,.mp4,.mov,.webm"></label>
                 <label>Hoặc đường dẫn file<input type="text" name="file_path" value="<?= e((string) ($editingMaterial['file_path'] ?? '')); ?>"></label>
                 <button class="<?= ui_btn_primary_classes(); ?>" type="submit">Lưu tài liệu</button>
-                <a class="<?= ui_btn_secondary_classes(); ?>" href="/?page=academic-materials">Quay lại</a>
+                <a class="<?= ui_btn_secondary_classes(); ?>" href="<?= e(page_url('materials-academic')); ?>">Quay lại</a>
             </form>
 
             <?php if (!empty($editingMaterial['file_path'])): ?>

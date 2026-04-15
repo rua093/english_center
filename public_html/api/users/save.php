@@ -5,7 +5,7 @@ require_admin_or_staff();
 require_permission('admin.user.manage');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-redirect('/?page=admin-users');
+redirect(page_url('users-admin'));
 }
 
 $payload = [
@@ -21,7 +21,7 @@ $payload = [
 
 if ($payload['username'] === '' || $payload['full_name'] === '' || $payload['role_id'] <= 0) {
 set_flash('error', 'Vui lòng nhập đầy đủ thông tin người dùng bắt buộc.');
-redirect('/?page=admin-users');
+redirect(page_url('users-admin'));
 }
 
 try {
@@ -31,4 +31,4 @@ set_flash('success', 'Đã lưu thông tin người dùng.');
 set_flash('error', 'Lưu người dùng thất bại: ' . $exception->getMessage());
 }
 
-redirect('/?page=admin-users');
+redirect(page_url('users-admin'));

@@ -27,7 +27,7 @@ $teacherSchedules = $homeWidgets['teacher_schedules'] ?? [];
 					<p>Đã hoàn thành <strong><?= (int) ($studentProgress['completed_lessons'] ?? 0); ?></strong> / <strong><?= (int) ($studentProgress['total_lessons'] ?? 0); ?></strong> buổi học.</p>
 					<progress class="my-2 h-2.5 w-full appearance-none overflow-hidden rounded-full border-0 bg-slate-200" max="100" value="<?= (int) ($studentProgress['progress_percent'] ?? 0); ?>"></progress>
 					<p><strong><?= (int) ($studentProgress['progress_percent'] ?? 0); ?>%</strong> lộ trình đã hoàn thành.</p>
-					<a class="inline-flex items-center justify-center rounded-xl bg-blue-700 px-4 py-2.5 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-blue-800" href="/?page=profile">Xem hồ sơ học tập</a>
+					<a class="inline-flex items-center justify-center rounded-xl bg-blue-700 px-4 py-2.5 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-blue-800" href="<?= e(page_url('profile')); ?>">Xem hồ sơ học tập</a>
 				</div>
 			</div>
 		</section>
@@ -50,7 +50,7 @@ $teacherSchedules = $homeWidgets['teacher_schedules'] ?? [];
 							<?php endforeach; ?>
 						</ul>
 					<?php endif; ?>
-					<a class="inline-flex items-center justify-center rounded-xl bg-blue-700 px-4 py-2.5 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-blue-800" href="/?page=profile">Xem trang cá nhân</a>
+					<a class="inline-flex items-center justify-center rounded-xl bg-blue-700 px-4 py-2.5 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-blue-800" href="<?= e(page_url('profile')); ?>">Xem trang cá nhân</a>
 				</div>
 			</div>
 		</section>

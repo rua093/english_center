@@ -23,8 +23,8 @@ $error = get_flash('error');
             <h2>Tổng quan quản trị</h2>
             <p>Dữ liệu tổng hợp theo lớp, học viên, giáo viên, bài tập và doanh thu học phí.</p>
         </div>
-        <?php if (can_access_page('academic-classes')): ?>
-            <a class="<?= ui_btn_primary_classes(); ?>" href="/?page=academic-classes">Vào học vụ</a>
+        <?php if (can_access_page('classes-academic')): ?>
+            <a class="<?= ui_btn_primary_classes(); ?>" href="<?= e(page_url('classes-academic')); ?>">Vào học vụ</a>
         <?php endif; ?>
     </div>
 
@@ -37,10 +37,10 @@ $error = get_flash('error');
     <?php endif; ?>
 
     <div class="flex flex-wrap gap-2">
-        <a class="rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-bold text-blue-700" href="/?page=admin-dashboard">Tổng quan</a>
-        <a class="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-600" href="/?page=finance-tuition">Tài chính</a>
-        <a class="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-600" href="/?page=academic-classes">Học vụ</a>
-        <a class="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-600" href="/?page=manage-approvals">Phê duyệt</a>
+        <a class="rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-bold text-blue-700" href="<?= e(page_url('dashboard-admin')); ?>">Tổng quan</a>
+        <a class="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-600" href="<?= e(page_url('tuition-finance')); ?>">Tài chính</a>
+        <a class="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-600" href="<?= e(page_url('classes-academic')); ?>">Học vụ</a>
+        <a class="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-600" href="<?= e(page_url('approvals-manage')); ?>">Phê duyệt</a>
     </div>
 
     <div class="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">

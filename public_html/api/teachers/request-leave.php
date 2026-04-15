@@ -4,7 +4,7 @@ declare(strict_types=1);
 require_role(['teacher', 'admin']);
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-redirect('/?page=teacher-dashboard');
+redirect(page_url('dashboard-teacher'));
 }
 
 $scheduleId = (int) ($_POST['schedule_id'] ?? 0);
@@ -27,4 +27,4 @@ queue_approval_request('teacher_leave', $content, [
 set_flash('success', 'Yêu cầu nghỉ/dời lịch đã được gửi để phê duyệt.');
 }
 
-redirect('/?page=teacher-dashboard');
+redirect(page_url('dashboard-teacher'));

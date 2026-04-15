@@ -1,0 +1,79 @@
+Ban la senior PHP engineer. Hay refactor project PHP thuan nay theo huong de maintain tot hon nhung van giu toc do dev nhanh (vibe code nhanh), KHONG thay doi business logic hien tai, KHONG lam vo URL dang chay neu khong bat buoc.
+
+Boi canh project:
+- Deploy bang cach copy toan bo vao public_html cua shared hosting.
+- Cau truc hien tai co cac folder chinh: api/, core/, models/, pages/, assets/, config.php, index.php.
+- API dang chia theo nhieu file action nho (save/edit/delete/submit...).
+- Nhieu file noi bo dang nam cung webroot, co rui ro bi truy cap truc tiep neu hosting config khong chat.
+
+Muc tieu chinh:
+1) Tang an toan khi deploy tren shared hosting.
+2) Giam trung lap code trong API va core.
+3) Chuan hoa naming/cau truc de de tim file, de on-board.
+4) Van giu style PHP thuan, it phu thuoc framework.
+5) Uu tien thay doi nho, co the lam theo tung buoc (incremental), tranh dap di lam lai.
+
+Yeu cau refactor cu the:
+A. Security + deployment hardening
+- Bao ve file noi bo khong cho truy cap truc tiep: config.php, core/*, models/*, va cac file system-only khac.
+- Neu khong doi duoc document root tren hosting, tao rule .htaccess de deny cac thu muc noi bo va file nhay cam.
+- Chuan hoa diem vao app (front controller) de giam truy cap file truc tiep.
+- Kiem tra va bo sung CSRF (neu thieu) cho endpoint co thay doi du lieu.
+
+B. Chuan hoa API layer
+- Giam mo hinh moi action = 1 file roi rac.
+- Tao bo xu ly dung chung:
+  - Auth guard
+  - Input validation
+  - JSON response helper (status, message, data, error)
+  - Error handling/logging toi thieu
+- Refactor uu tien 2 module nhieu action nhat truoc: assignments va tuitions.
+- Van giu backward compatibility endpoint cu neu co the (co the de file cu goi vao handler moi).
+
+C. Chuan hoa pages naming
+- De xuat va ap dung 1 convention duy nhat (vi du: kebab-case theo feature).
+- Giam tinh trang folder ten khong dong nhat (manage-*, admin-*, academic-* dang tron lan).
+- Khong bat buoc rename tat ca ngay lap tuc: tao lo trinh migration an toan.
+
+D. Tach nho core
+- Tach core/functions.php, core/page_actions.php, core/table_model_utils.php thanh cac module ro trach nhiem hon:
+  - bootstrap
+  - auth
+  - response
+  - validation
+  - db helper
+- Giu API su dung don gian cho dev (goi ham nhanh, de nho).
+
+E. Toi uu model/tables
+- Tao BaseTableModel dung chung CRUD/pagination/common query helper.
+- Giam boilerplate trong models/tables/*.
+- Khong thay doi schema DB, khong doi ten cot neu khong bat buoc.
+
+F. Logging + observability nhe
+- Them logging toi thieu cho loi API quan trong (khong log thong tin nhay cam).
+- De debug nhanh tren hosting (log file theo ngay, dung luong vua phai).
+
+Rang buoc ky thuat:
+- Van la PHP thuan, khong dua framework lon vao.
+- Thay doi theo kieu incremental, moi buoc chay duoc ngay.
+- Khong pha vo cac tinh nang dang co.
+- Uu tien patch nho, de review nhanh.
+
+Dau ra mong muon tu ban:
+1) Dua ra plan refactor theo 3 giai doan:
+   - Giai doan 1: an toan + dung chung API skeleton
+   - Giai doan 2: naming + core split
+   - Giai doan 3: BaseTableModel + giam boilerplate
+2) Liet ke file can tao/sua cho tung giai doan.
+3) Thuc hien code patch theo tung giai doan, moi giai doan co:
+   - Tom tat thay doi
+   - Danh sach file da sua
+   - Cach test nhanh (smoke test)
+4) Neu co rui ro backward compatibility, phai note ro va dua fallback.
+
+Tieu chi chap nhan:
+- App van chay duoc tren shared hosting trong public_html.
+- Endpoint cu quan trong van hoat dong.
+- Code de tim hon, it trung lap hon.
+- Co co che bao ve file noi bo o muc can thiet.
+- Team co the tiep tuc them tinh nang nhanh hon sau refactor.

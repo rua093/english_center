@@ -1,11 +1,6 @@
 <?php
 declare(strict_types=1);
 
-require_permission('feedback.delete');
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-redirect('/?page=manage-feedbacks');
-}
+require_once __DIR__ . '/../canonical/feedbacks.php';
 
-(new AcademicModel())->deleteFeedback((int) ($_GET['id'] ?? 0));
-set_flash('success', 'Đã xóa feedback.');
-redirect('/?page=manage-feedbacks');
+api_run_action('feedbacks.delete', 'api_feedbacks_delete_action', page_url('feedbacks-manage'));

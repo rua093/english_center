@@ -101,7 +101,7 @@ $adminTitle = 'Quản lý hoạt động';
                                     <td>
                                         <span class="inline-flex flex-wrap items-center gap-2">
                                             <?php if ($canUpdateActivity): ?>
-                                                <a href="/?page=manage-activities&edit=<?= (int) $act['id']; ?>">Sửa</a>
+                                                <a href="<?= e(page_url('activities-manage', ['edit' => (int) $act['id']])); ?>">Sửa</a>
                                             <?php endif; ?>
                                             <?php if ($canDeleteActivity): ?>
                                                 <form class="inline-block" method="post" action="/api/activities/delete?id=<?= (int) $act['id']; ?>" onsubmit="return confirm('Có chắc không?')">

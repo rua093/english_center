@@ -17,8 +17,8 @@ $error = get_flash('error');
                 <h1>Bảng điều khiển giáo viên</h1>
                 <p>Quản lý các bài tập, bài nộp và lịch học của bạn.</p>
             </div>
-            <?php if (can_access_page('academic-assignments')): ?>
-                <a class="inline-flex items-center justify-center rounded-xl bg-blue-700 px-4 py-2.5 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-blue-800" href="/?page=academic-assignments">Quản lý bài tập</a>
+            <?php if (can_access_page('assignments-academic')): ?>
+                <a class="inline-flex items-center justify-center rounded-xl bg-blue-700 px-4 py-2.5 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-blue-800" href="<?= e(page_url('assignments-academic')); ?>">Quản lý bài tập</a>
             <?php endif; ?>
         </div>
 
@@ -30,14 +30,14 @@ $error = get_flash('error');
 
         <div class="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-3 md:flex-row md:items-center md:justify-between">
             <div class="flex flex-wrap gap-2">
-                <?php if (can_access_page('academic-assignments')): ?>
-                    <a href="/?page=academic-assignments"><span class="text-[10px] font-extrabold uppercase tracking-wide text-slate-400">Học vụ</span><span class="text-xs font-bold">Quản lý bài tập</span></a>
+                <?php if (can_access_page('assignments-academic')): ?>
+                    <a href="<?= e(page_url('assignments-academic')); ?>"><span class="text-[10px] font-extrabold uppercase tracking-wide text-slate-400">Học vụ</span><span class="text-xs font-bold">Quản lý bài tập</span></a>
                 <?php endif; ?>
-                <?php if (can_access_page('academic-submissions')): ?>
-                    <a href="/?page=academic-submissions"><span class="text-[10px] font-extrabold uppercase tracking-wide text-slate-400">Chấm điểm</span><span class="text-xs font-bold">Duyệt bài nộp</span></a>
+                <?php if (can_access_page('submissions-academic')): ?>
+                    <a href="<?= e(page_url('submissions-academic')); ?>"><span class="text-[10px] font-extrabold uppercase tracking-wide text-slate-400">Chấm điểm</span><span class="text-xs font-bold">Duyệt bài nộp</span></a>
                 <?php endif; ?>
-                <?php if (can_access_page('teacher-dashboard')): ?>
-                    <a href="/?page=teacher-dashboard"><span class="text-[10px] font-extrabold uppercase tracking-wide text-slate-400">Tổng quan</span><span class="text-xs font-bold">Bảng điều khiển giáo viên</span></a>
+                <?php if (can_access_page('dashboard-teacher')): ?>
+                    <a href="<?= e(page_url('dashboard-teacher')); ?>"><span class="text-[10px] font-extrabold uppercase tracking-wide text-slate-400">Tổng quan</span><span class="text-xs font-bold">Bảng điều khiển giáo viên</span></a>
                 <?php endif; ?>
             </div>
         </div>

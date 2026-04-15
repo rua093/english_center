@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
 
-require_permission('academic.assignments.update');
-redirect('/?page=academic-assignment-edit&id=' . (int) ($_GET['id'] ?? 0));
+require_once __DIR__ . '/../canonical/assignments.php';
+
+api_run_action('assignments.edit', 'api_assignments_edit_action', page_url('assignments-academic'));

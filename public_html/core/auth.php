@@ -172,6 +172,8 @@ function require_permission(string $slug): void
 
 function can_access_page(string $page): bool
 {
+	$page = resolve_page_slug($page);
+
 	if (!is_logged_in()) {
 		return in_array($page, ['home', 'login'], true);
 	}
@@ -180,43 +182,43 @@ function can_access_page(string $page): bool
 	$role = (string) ($user['role'] ?? '');
 
 	switch ($page) {
-		case 'student-dashboard':
+		case 'dashboard-student':
 			return in_array($role, ['student', 'admin'], true);
-		case 'teacher-dashboard':
+		case 'dashboard-teacher':
 			return in_array($role, ['teacher', 'admin'], true);
 		case 'profile':
-		case 'my-classes':
-		case 'assignments':
+		case 'classes-my':
+		case 'assignments-my':
 			return true;
 		case 'admin':
 			return in_array($role, ['admin', 'staff'], true);
-		case 'academic-portfolios':
+		case 'portfolios-academic':
 			return true;
-		case 'admin-dashboard':
+		case 'dashboard-admin':
 			return has_permission('admin.dashboard.view');
-		case 'admin-users':
+		case 'users-admin':
 			return has_permission('admin.user.manage');
-		case 'finance-tuition':
+		case 'tuition-finance':
 			return has_permission('finance.tuition.view');
-		case 'finance-payments':
+		case 'payments-finance':
 			return has_permission('finance.payment.view');
-		case 'manage-feedbacks':
+		case 'feedbacks-manage':
 			return has_permission('feedback.view');
-		case 'manage-approvals':
+		case 'approvals-manage':
 			return has_permission('approval.view');
-		case 'manage-activities':
+		case 'activities-manage':
 			return has_permission('activity.view');
-		case 'manage-bank':
+		case 'bank-manage':
 			return has_permission('bank.view');
-		case 'academic-classes':
+		case 'classes-academic':
 			return has_permission('academic.classes.view');
-		case 'academic-schedules':
+		case 'schedules-academic':
 			return has_permission('academic.schedules.view');
-		case 'academic-assignments':
+		case 'assignments-academic':
 			return has_permission('academic.assignments.view');
-		case 'academic-materials':
+		case 'materials-academic':
 			return has_permission('materials.view');
-		case 'academic-submissions':
+		case 'submissions-academic':
 			return has_permission('academic.submissions.view') || has_permission('academic.submissions.grade');
 		default:
 			return false;

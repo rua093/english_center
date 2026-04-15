@@ -97,7 +97,7 @@ $adminTitle = 'Quản lý ngân hàng';
                                     <td>
                                         <span class="inline-flex flex-wrap items-center gap-2">
                                             <?php if ($canUpdateBank): ?>
-                                                <a href="/?page=manage-bank&edit=<?= (int) $bank['id']; ?>">Sửa</a>
+                                                <a href="<?= e(page_url('bank-manage', ['edit' => (int) $bank['id']])); ?>">Sửa</a>
                                             <?php endif; ?>
                                             <?php if ($canDeleteBank): ?>
                                                 <form class="inline-block" method="post" action="/api/banks/delete?id=<?= (int) $bank['id']; ?>" onsubmit="return confirm('Có chắc không?')">

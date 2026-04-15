@@ -45,7 +45,7 @@ $adminTitle = $editingAssignment ? 'Học vụ - Sửa bài tập' : 'Học vụ
                 <label>File URL<input type="text" name="file_url" value="<?= e((string) ($editingAssignment['file_url'] ?? '')); ?>"></label>
                 <label>Tải lên file<input type="file" name="assignment_file" accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.png"></label>
                 <button class="<?= ui_btn_primary_classes(); ?>" type="submit">Lưu bài tập</button>
-                <a class="<?= ui_btn_secondary_classes(); ?>" href="/?page=academic-assignments">Quay lại</a>
+                <a class="<?= ui_btn_secondary_classes(); ?>" href="<?= e(page_url('assignments-academic')); ?>">Quay lại</a>
             </form>
         </article>
     </div>

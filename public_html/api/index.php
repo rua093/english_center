@@ -1,11 +1,7 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . '/../config.php';
-require_once __DIR__ . '/../core/functions.php';
-require_once __DIR__ . '/../core/get_version.php';
-require_once __DIR__ . '/../core/auth.php';
-require_once __DIR__ . '/../core/page_actions.php';
+require_once __DIR__ . '/../core/bootstrap.php';
 require_once __DIR__ . '/../models/UserModel.php';
 require_once __DIR__ . '/../models/AcademicModel.php';
 require_once __DIR__ . '/../models/AdminModel.php';
@@ -69,23 +65,47 @@ $_GET['resource'] = $resource;
 $_GET['method'] = $method;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $csrfToken = (string) ($_POST['_csrf'] ?? '');
+    $csrfToken = request_csrf_token();
     if (!validate_csrf_token($csrfToken)) {
-        set_flash('error', 'Yeu cau khong hop le. Vui long thu lai.');
-        $refererPath = safe_referer_path((string) ($_SERVER['HTTP_REFERER'] ?? ''));
-        if ($refererPath !== '') {
-            header('Location: ' . $refererPath);
-            exit;
-        }
-        redirect('/?page=home');
+        api_fail_invalid_csrf(page_url('home'));
     }
 }
 
-$handlerFile = __DIR__ . '/' . $resource . '/' . $method . '.php';
-if (!is_file($handlerFile)) {
+$canonicalModuleFile = __DIR__ . '/canonical/' . $resource . '.php';
+$canonicalFunction = 'api_' . $resource . '_' . str_replace('-', '_', $method) . '_action';
+
+if (is_file($canonicalModuleFile)) {
+    require_once $canonicalModuleFile;
+
+    if (function_exists($canonicalFunction)) {
+        api_run_action($resource . '.' . $method, $canonicalFunction, page_url('home'));
+    }
+}
+
+$legacyHandlerFile = __DIR__ . '/' . $resource . '/' . $method . '.php';
+if (!is_file($legacyHandlerFile)) {
     http_response_code(404);
     echo '404 Not Found';
     exit;
 }
 
-require $handlerFile;
+try {
+    require $legacyHandlerFile;
+} catch (Throwable $exception) {
+    app_log('error', 'Unhandled API dispatcher error', [
+        'resource' => $resource,
+        'method' => $method,
+        'request_uri' => (string) ($_SERVER['REQUEST_URI'] ?? ''),
+        'error' => $exception->getMessage(),
+        'file' => $exception->getFile(),
+        'line' => $exception->getLine(),
+        'user_id' => (int) ((auth_user()['id'] ?? 0)),
+    ]);
+
+    if (api_expects_json()) {
+        api_error('Internal server error.', ['code' => 'SERVER_ERROR'], 500);
+    }
+
+    set_flash('error', 'Co loi he thong. Vui long thu lai.');
+    redirect(page_url('home'));
+}

@@ -1,14 +1,13 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . '/../../core/table_model_utils.php';
+require_once __DIR__ . '/BaseTableModel.php';
 
-final class ClassesTableModel
+final class ClassesTableModel extends BaseTableModel
 {
-    use TableModelUtils;
     public function countAll(): int
     {
-        return (int) $this->fetchScalar('SELECT COUNT(*) AS count FROM classes', [], 'count', 0);
+        return $this->countAllFrom('classes');
     }
 
     public function listDetailedWithProgress(): array
@@ -37,10 +36,7 @@ final class ClassesTableModel
 
     public function findById(int $id): ?array
     {
-        return $this->fetchOne(
-            'SELECT id, course_id, class_name, teacher_id, start_date, end_date, status FROM classes WHERE id = :id LIMIT 1',
-            ['id' => $id]
-        );
+        return $this->findByIdFrom('classes', $id, 'id, course_id, class_name, teacher_id, start_date, end_date, status');
     }
 
     public function save(array $data): void
@@ -92,7 +88,7 @@ final class ClassesTableModel
 
     public function deleteById(int $id): void
     {
-        $this->executeStatement('DELETE FROM classes WHERE id = :id', ['id' => $id]);
+        $this->deleteByIdFrom('classes', $id);
     }
 
     public function listSimple(): array

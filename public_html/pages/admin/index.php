@@ -8,4 +8,4 @@ echo '403 Forbidden';
 exit;
 }
 
-redirect('/?page=admin-dashboard');
+redirect(page_url('dashboard-admin'));

@@ -1,14 +1,13 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . '/../../core/table_model_utils.php';
+require_once __DIR__ . '/BaseTableModel.php';
 
-final class MaterialsTableModel
+final class MaterialsTableModel extends BaseTableModel
 {
-    use TableModelUtils;
     public function countAll(): int
     {
-        return (int) $this->fetchScalar('SELECT COUNT(*) AS count FROM materials', [], 'count', 0);
+        return $this->countAllFrom('materials');
     }
 
     public function listDetailed(): array
@@ -22,10 +21,7 @@ final class MaterialsTableModel
 
     public function findById(int $id): ?array
     {
-        return $this->fetchOne(
-            'SELECT id, course_id, title, file_path, type FROM materials WHERE id = :id LIMIT 1',
-            ['id' => $id]
-        );
+        return $this->findByIdFrom('materials', $id, 'id, course_id, title, file_path, type');
     }
 
     public function save(array $data): void
@@ -66,7 +62,7 @@ final class MaterialsTableModel
 
     public function deleteById(int $id): void
     {
-        $this->executeStatement('DELETE FROM materials WHERE id = :id', ['id' => $id]);
+        $this->deleteByIdFrom('materials', $id);
     }
 
     public function listRecent(int $limit = 6): array

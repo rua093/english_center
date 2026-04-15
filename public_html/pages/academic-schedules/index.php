@@ -36,10 +36,10 @@ $canUpdateMaterial = has_permission('materials.update');
                 <h1>Quản lý học vụ</h1>
                 <p>CRUD lớp học, lịch học, bài tập và chấm điểm theo quyền.</p>
             </div>
-            <?php if (can_access_page('student-dashboard')): ?>
-                <a class="<?= ui_btn_secondary_classes(); ?>" href="/?page=student-dashboard">Bảng điều khiển học viên</a>
-            <?php elseif (can_access_page('teacher-dashboard')): ?>
-                <a class="<?= ui_btn_secondary_classes(); ?>" href="/?page=teacher-dashboard">Bảng điều khiển giáo viên</a>
+            <?php if (can_access_page('dashboard-student')): ?>
+                <a class="<?= ui_btn_secondary_classes(); ?>" href="<?= e(page_url('dashboard-student')); ?>">Bảng điều khiển học viên</a>
+            <?php elseif (can_access_page('dashboard-teacher')): ?>
+                <a class="<?= ui_btn_secondary_classes(); ?>" href="<?= e(page_url('dashboard-teacher')); ?>">Bảng điều khiển giáo viên</a>
             <?php endif; ?>
         </div>
 
@@ -51,16 +51,16 @@ $canUpdateMaterial = has_permission('materials.update');
             </div>
             <div class="flex flex-wrap gap-2">
                 <?php if ($canCreateClass || $canUpdateClass): ?>
-                    <a class="<?= ui_quick_action_link_classes(); ?>" href="/?page=academic-class-edit"><span class="text-[10px] font-extrabold uppercase tracking-wide text-slate-400">Create</span><span class="text-xs font-bold">Thêm lớp</span></a>
+                    <a class="<?= ui_quick_action_link_classes(); ?>" href="<?= e(page_url('classes-academic-edit')); ?>"><span class="text-[10px] font-extrabold uppercase tracking-wide text-slate-400">Create</span><span class="text-xs font-bold">Thêm lớp</span></a>
                 <?php endif; ?>
                 <?php if ($canCreateSchedule || $canUpdateSchedule): ?>
-                    <a class="<?= ui_quick_action_link_classes(); ?>" href="/?page=academic-schedule-edit"><span class="text-[10px] font-extrabold uppercase tracking-wide text-slate-400">Schedule</span><span class="text-xs font-bold">Thêm lịch</span></a>
+                    <a class="<?= ui_quick_action_link_classes(); ?>" href="<?= e(page_url('schedules-academic-edit')); ?>"><span class="text-[10px] font-extrabold uppercase tracking-wide text-slate-400">Schedule</span><span class="text-xs font-bold">Thêm lịch</span></a>
                 <?php endif; ?>
                 <?php if ($canCreateAssignment || $canUpdateAssignment): ?>
-                    <a class="<?= ui_quick_action_link_classes(); ?>" href="/?page=academic-assignment-edit"><span class="text-[10px] font-extrabold uppercase tracking-wide text-slate-400">Assignment</span><span class="text-xs font-bold">Thêm bài tập</span></a>
+                    <a class="<?= ui_quick_action_link_classes(); ?>" href="<?= e(page_url('assignments-academic-edit')); ?>"><span class="text-[10px] font-extrabold uppercase tracking-wide text-slate-400">Assignment</span><span class="text-xs font-bold">Thêm bài tập</span></a>
                 <?php endif; ?>
                 <?php if ($canCreateMaterial || $canUpdateMaterial): ?>
-                    <a class="<?= ui_quick_action_link_classes(); ?>" href="/?page=academic-material-edit"><span class="text-[10px] font-extrabold uppercase tracking-wide text-slate-400">Material</span><span class="text-xs font-bold">Thêm tài liệu</span></a>
+                    <a class="<?= ui_quick_action_link_classes(); ?>" href="<?= e(page_url('materials-academic-edit')); ?>"><span class="text-[10px] font-extrabold uppercase tracking-wide text-slate-400">Material</span><span class="text-xs font-bold">Thêm tài liệu</span></a>
                 <?php endif; ?>
             </div>
         </div>
@@ -74,23 +74,23 @@ $canUpdateMaterial = has_permission('materials.update');
         <?php endif; ?>
 
         <div class="mb-3 flex flex-wrap gap-2">
-            <?php if (can_access_page('academic-classes')): ?>
-                <a class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 <?= $module === 'classes' ? 'border-blue-200 bg-blue-50 text-blue-700' : ''; ?>" href="/?page=academic-classes">Lớp học</a>
+            <?php if (can_access_page('classes-academic')): ?>
+                <a class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 <?= $module === 'classes' ? 'border-blue-200 bg-blue-50 text-blue-700' : ''; ?>" href="<?= e(page_url('classes-academic')); ?>">Lớp học</a>
             <?php endif; ?>
-            <?php if (can_access_page('academic-schedules')): ?>
-                <a class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 <?= $module === 'schedules' ? 'border-blue-200 bg-blue-50 text-blue-700' : ''; ?>" href="/?page=academic-schedules">Lịch học</a>
+            <?php if (can_access_page('schedules-academic')): ?>
+                <a class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 <?= $module === 'schedules' ? 'border-blue-200 bg-blue-50 text-blue-700' : ''; ?>" href="<?= e(page_url('schedules-academic')); ?>">Lịch học</a>
             <?php endif; ?>
-            <?php if (can_access_page('academic-assignments')): ?>
-                <a class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 <?= $module === 'assignments' ? 'border-blue-200 bg-blue-50 text-blue-700' : ''; ?>" href="/?page=academic-assignments">Bài tập</a>
+            <?php if (can_access_page('assignments-academic')): ?>
+                <a class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 <?= $module === 'assignments' ? 'border-blue-200 bg-blue-50 text-blue-700' : ''; ?>" href="<?= e(page_url('assignments-academic')); ?>">Bài tập</a>
             <?php endif; ?>
-            <?php if (can_access_page('academic-materials')): ?>
-                <a class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 <?= $module === 'materials' ? 'border-blue-200 bg-blue-50 text-blue-700' : ''; ?>" href="/?page=academic-materials">Tài liệu</a>
+            <?php if (can_access_page('materials-academic')): ?>
+                <a class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 <?= $module === 'materials' ? 'border-blue-200 bg-blue-50 text-blue-700' : ''; ?>" href="<?= e(page_url('materials-academic')); ?>">Tài liệu</a>
             <?php endif; ?>
-            <?php if (can_access_page('academic-portfolios')): ?>
-                <a class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 <?= $module === 'portfolios' ? 'border-blue-200 bg-blue-50 text-blue-700' : ''; ?>" href="/?page=academic-portfolios">Portfolio</a>
+            <?php if (can_access_page('portfolios-academic')): ?>
+                <a class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 <?= $module === 'portfolios' ? 'border-blue-200 bg-blue-50 text-blue-700' : ''; ?>" href="<?= e(page_url('portfolios-academic')); ?>">Portfolio</a>
             <?php endif; ?>
-            <?php if (can_access_page('academic-submissions')): ?>
-                <a class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 <?= $module === 'submissions' ? 'border-blue-200 bg-blue-50 text-blue-700' : ''; ?>" href="/?page=academic-submissions">Chấm điểm</a>
+            <?php if (can_access_page('submissions-academic')): ?>
+                <a class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 <?= $module === 'submissions' ? 'border-blue-200 bg-blue-50 text-blue-700' : ''; ?>" href="<?= e(page_url('submissions-academic')); ?>">Chấm điểm</a>
             <?php endif; ?>
         </div>
 
@@ -160,7 +160,7 @@ $canUpdateMaterial = has_permission('materials.update');
                             <td>
                                 <span class="inline-flex flex-wrap items-center gap-2">
                                     <?php if ($canUpdateSchedule): ?>
-                                        <a href="/?page=academic-schedule-edit&id=<?= (int) $schedule['id']; ?>">Sửa</a>
+                                        <a href="<?= e(page_url('schedules-academic-edit', ['id' => (int) $schedule['id']])); ?>">Sửa</a>
                                     <?php endif; ?>
                                     <?php if ($canDeleteSchedule): ?>
                                         <form class="inline-block" method="post" action="/api/schedules/delete?id=<?= (int) $schedule['id']; ?>">

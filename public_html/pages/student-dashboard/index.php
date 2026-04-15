@@ -15,7 +15,7 @@ $error = get_flash('error');
                 <h1>Bảng điều khiển học viên</h1>
                 <p>Xin chào <?= e($user['full_name']); ?> | Theo dõi học tập và học phí theo thời gian thực.</p>
             </div>
-            <a class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-blue-700 transition hover:bg-slate-100" href="/?page=logout">Đăng xuất</a>
+            <a class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-blue-700 transition hover:bg-slate-100" href="<?= e(page_url('logout')); ?>">Đăng xuất</a>
         </div>
 
         <div class="flex flex-wrap gap-2">
@@ -26,11 +26,11 @@ $error = get_flash('error');
 
         <div class="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-3 md:flex-row md:items-center md:justify-between">
             <div class="flex flex-wrap gap-2">
-                <?php if (can_access_page('academic-portfolios')): ?>
-                    <a href="/?page=academic-portfolios"><span class="text-[10px] font-extrabold uppercase tracking-wide text-slate-400">Portfolio</span><span class="text-xs font-bold">Quản lý học liệu</span></a>
+                <?php if (can_access_page('portfolios-academic')): ?>
+                    <a href="<?= e(page_url('portfolios-academic')); ?>"><span class="text-[10px] font-extrabold uppercase tracking-wide text-slate-400">Portfolio</span><span class="text-xs font-bold">Quản lý học liệu</span></a>
                 <?php endif; ?>
-                <?php if (can_access_page('student-dashboard')): ?>
-                    <a href="/?page=student-dashboard"><span class="text-[10px] font-extrabold uppercase tracking-wide text-slate-400">Học tập</span><span class="text-xs font-bold">Tiến độ học tập</span></a>
+                <?php if (can_access_page('dashboard-student')): ?>
+                    <a href="<?= e(page_url('dashboard-student')); ?>"><span class="text-[10px] font-extrabold uppercase tracking-wide text-slate-400">Học tập</span><span class="text-xs font-bold">Tiến độ học tập</span></a>
                 <?php endif; ?>
             </div>
         </div>

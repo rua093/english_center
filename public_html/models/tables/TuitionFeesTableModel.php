@@ -1,11 +1,10 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . '/../../core/table_model_utils.php';
+require_once __DIR__ . '/BaseTableModel.php';
 
-final class TuitionFeesTableModel
+final class TuitionFeesTableModel extends BaseTableModel
 {
-    use TableModelUtils;
     public function sumTotalAmount(): float
     {
         return (float) $this->fetchScalar('SELECT COALESCE(SUM(total_amount),0) AS total FROM tuition_fees', [], 'total', 0);
@@ -40,7 +39,7 @@ final class TuitionFeesTableModel
 
     public function deleteById(int $id): void
     {
-        $this->executeStatement('DELETE FROM tuition_fees WHERE id = :id', ['id' => $id]);
+        $this->deleteByIdFrom('tuition_fees', $id);
     }
 
     public function incrementAmountPaid(int $tuitionId, float $amount): void
@@ -76,7 +75,7 @@ final class TuitionFeesTableModel
 
     public function findTotalById(int $tuitionId): ?float
     {
-        $row = $this->fetchOne('SELECT total_amount FROM tuition_fees WHERE id = :id LIMIT 1', ['id' => $tuitionId]);
+        $row = $this->findByIdFrom('tuition_fees', $tuitionId, 'total_amount');
         if (!$row) {
             return null;
         }

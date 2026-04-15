@@ -3,7 +3,7 @@ require_login();
 
 $academicModel = new AcademicModel();
 $portfolios = $academicModel->listPortfolios();
-$students = Database::connection()->query("SELECT u.id, u.full_name FROM users u INNER JOIN roles r ON r.id = u.role_id WHERE r.role_name = 'student' ORDER BY u.full_name ASC")->fetchAll();
+$students = $academicModel->studentLookups();
 $editingPortfolio = null;
 if (!empty($_GET['edit'])) {
     $editingPortfolio = $academicModel->findPortfolio((int) $_GET['edit']);
@@ -88,7 +88,7 @@ $viewer = auth_user();
                         $canManagePortfolio = ($viewer['role'] ?? '') !== 'student' || (int) ($viewer['id'] ?? 0) === (int) $portfolio['student_id'];
                         ?>
                         <?php if ($canManagePortfolio): ?>
-                            <a href="/?page=academic-portfolios&edit=<?= (int) $portfolio['id']; ?>">Sửa</a>
+                            <a href="<?= e(page_url('portfolios-academic', ['edit' => (int) $portfolio['id']])); ?>">Sửa</a>
                             |
                             <form class="inline-block" method="post" action="/api/portfolios/delete?id=<?= (int) $portfolio['id']; ?>">
                                 <?= csrf_input(); ?>

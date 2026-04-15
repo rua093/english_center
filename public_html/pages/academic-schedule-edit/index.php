@@ -47,7 +47,7 @@ $adminTitle = $editingSchedule ? 'Học vụ - Sửa lịch học' : 'Học vụ
                 <label>Giờ bắt đầu<input type="time" name="start_time" value="<?= e((string) ($editingSchedule['start_time'] ?? '')); ?>" required></label>
                 <label>Giờ kết thúc<input type="time" name="end_time" value="<?= e((string) ($editingSchedule['end_time'] ?? '')); ?>" required></label>
                 <button class="<?= ui_btn_primary_classes(); ?>" type="submit">Lưu lịch học</button>
-                <a class="<?= ui_btn_secondary_classes(); ?>" href="/?page=academic-schedules">Quay lại</a>
+                <a class="<?= ui_btn_secondary_classes(); ?>" href="<?= e(page_url('schedules-academic')); ?>">Quay lại</a>
             </form>
         </article>
     </div>

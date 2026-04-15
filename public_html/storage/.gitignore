@@ -1,0 +1,8 @@
+cache/*
+!cache/.gitkeep
+exports/*
+!exports/.gitkeep
+logs/*.log
+logs/*.log.1
+tmp/*
+!tmp/.gitkeep

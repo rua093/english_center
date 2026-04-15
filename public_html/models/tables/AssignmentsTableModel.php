@@ -1,14 +1,13 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . '/../../core/table_model_utils.php';
+require_once __DIR__ . '/BaseTableModel.php';
 
-final class AssignmentsTableModel
+final class AssignmentsTableModel extends BaseTableModel
 {
-    use TableModelUtils;
     public function countAll(): int
     {
-        return (int) $this->fetchScalar('SELECT COUNT(*) AS count FROM assignments', [], 'count', 0);
+        return $this->countAllFrom('assignments');
     }
 
     public function listDetailed(): array
@@ -24,10 +23,7 @@ final class AssignmentsTableModel
 
     public function findById(int $id): ?array
     {
-        return $this->fetchOne(
-            'SELECT id, lesson_id, title, description, deadline, file_url FROM assignments WHERE id = :id LIMIT 1',
-            ['id' => $id]
-        );
+        return $this->findByIdFrom('assignments', $id, 'id, lesson_id, title, description, deadline, file_url');
     }
 
     public function save(array $data): void
@@ -56,7 +52,7 @@ final class AssignmentsTableModel
 
     public function deleteById(int $id): void
     {
-        $this->executeStatement('DELETE FROM assignments WHERE id = :id', ['id' => $id]);
+        $this->deleteByIdFrom('assignments', $id);
     }
 
     public function listForStudentDashboard(int $studentId, int $limit = 6): array

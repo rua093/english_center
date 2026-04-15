@@ -5,10 +5,10 @@ require_login();
 
 $user = auth_user();
 if ($user && $user['role'] === 'student') {
-redirect('/?page=student-dashboard');
+redirect(page_url('dashboard-student'));
 }
 if ($user && $user['role'] === 'teacher') {
-redirect('/?page=academic-assignments');
+redirect(page_url('assignments-academic'));
 }
 
-redirect('/?page=academic-assignments');
+redirect(page_url('assignments-academic'));

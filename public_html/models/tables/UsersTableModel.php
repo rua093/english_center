@@ -1,11 +1,10 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . '/../../core/table_model_utils.php';
+require_once __DIR__ . '/BaseTableModel.php';
 
-final class UsersTableModel
+final class UsersTableModel extends BaseTableModel
 {
-    use TableModelUtils;
     public function listActiveWithRoles(): array
     {
         $sql = "SELECT u.id, u.username, u.full_name, u.phone, u.email, u.status, u.created_at, u.role_id,

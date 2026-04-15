@@ -1,11 +1,7 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . '/config.php';
-require_once __DIR__ . '/core/functions.php';
-require_once __DIR__ . '/core/get_version.php';
-require_once __DIR__ . '/core/auth.php';
-require_once __DIR__ . '/core/page_actions.php';
+require_once __DIR__ . '/core/bootstrap.php';
 require_once __DIR__ . '/models/UserModel.php';
 require_once __DIR__ . '/models/AcademicModel.php';
 require_once __DIR__ . '/models/AdminModel.php';
@@ -21,10 +17,12 @@ if (!preg_match('/^[a-z0-9-]+$/', $page)) {
 	exit;
 }
 
+$page = resolve_page_slug($page);
+
 $_GET['page'] = $page;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-	$csrfToken = (string) ($_POST['_csrf'] ?? '');
+	$csrfToken = request_csrf_token();
 	if (!validate_csrf_token($csrfToken)) {
 		set_flash('error', 'Yêu cầu không hợp lệ. Vui lòng thử lại.');
 		$refererPath = safe_referer_path((string) ($_SERVER['HTTP_REFERER'] ?? ''));
@@ -42,7 +40,8 @@ if (str_starts_with($page, 'do-')) {
 	exit;
 }
 
-$pageDir = __DIR__ . '/pages/' . $page;
+$pageDirSlug = page_directory_slug($page);
+$pageDir = __DIR__ . '/pages/' . $pageDirSlug;
 $indexFile = $pageDir . '/index.php';
 $wrapperFile = $pageDir . '/page.php';
 

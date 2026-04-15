@@ -1,11 +1,6 @@
 <?php
 declare(strict_types=1);
 
-require_permission('activity.delete');
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-redirect('/?page=manage-activities');
-}
+require_once __DIR__ . '/../canonical/activities.php';
 
-(new AcademicModel())->deleteActivity((int) ($_GET['id'] ?? 0));
-set_flash('success', 'Đã xóa hoạt động ngoại khóa.');
-redirect('/?page=manage-activities');
+api_run_action('activities.delete', 'api_activities_delete_action', page_url('activities-manage'));

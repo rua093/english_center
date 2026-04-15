@@ -2,10 +2,15 @@
 
 RewriteEngine On
 
+# Chặn truy cập trực tiếp tài nguyên nội bộ và file nhạy cảm
+
+RewriteRule ^(?:core|models|pages|storage|config|docs)(?:/|$) - [F,L,NC]
+RewriteRule ^(?:config\.php|abc\.txt|\.env(?:\..*)?|composer\.(?:json|lock))$ - [F,L,NC]
+
 # Chuẩn hóa các route truy cập chính về query param page
 
 RewriteRule ^$ index.php?page=home [QSA,L]
-RewriteRule ^admin/users/?$ index.php?page=admin-users [QSA,L]
+RewriteRule ^admin/users/?$ index.php?page=users-admin [QSA,L]
 
 # Route API actions: /api/users/save, /api/feedbacks/delete, ...
 

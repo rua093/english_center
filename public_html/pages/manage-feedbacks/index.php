@@ -4,9 +4,10 @@ require_permission('feedback.view');
 
 $academicModel = new AcademicModel();
 $feedbacks = $academicModel->listFeedbacks();
-$students = Database::connection()->query("SELECT u.id, u.full_name FROM users u INNER JOIN roles r ON r.id = u.role_id WHERE r.role_name = 'student' ORDER BY u.full_name")->fetchAll();
-$teachers = Database::connection()->query("SELECT u.id, u.full_name FROM users u INNER JOIN roles r ON r.id = u.role_id WHERE r.role_name = 'teacher' ORDER BY u.full_name")->fetchAll();
-$classes = Database::connection()->query("SELECT id, class_name FROM classes ORDER BY class_name")->fetchAll();
+$lookups = $academicModel->feedbackLookups();
+$students = $lookups['students'] ?? [];
+$teachers = $lookups['teachers'] ?? [];
+$classes = $lookups['classes'] ?? [];
 
 $module = 'feedbacks';
 $adminTitle = 'Quản lý phản hồi';

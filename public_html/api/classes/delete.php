@@ -1,11 +1,6 @@
 <?php
 declare(strict_types=1);
 
-require_permission('academic.classes.delete');
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-redirect('/?page=academic-classes');
-}
+require_once __DIR__ . '/../canonical/classes.php';
 
-(new AcademicModel())->deleteClass((int) ($_GET['id'] ?? 0));
-set_flash('success', 'Đã xóa lớp học.');
-redirect('/?page=academic-classes');
+api_run_action('classes.delete', 'api_classes_delete_action', page_url('classes-academic'));

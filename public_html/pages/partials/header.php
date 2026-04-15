@@ -39,62 +39,62 @@
 						<button class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700" type="button" aria-haspopup="true">Menu</button>
 						<div class="invisible absolute right-0 top-full z-50 mt-2 min-w-56 rounded-xl border border-slate-200 bg-white p-2 opacity-0 shadow-lg transition group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
 							<?php if (can_access_page('profile')): ?>
-								<a class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="/?page=profile">Trang cá nhân</a>
+								<a class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="<?= e(page_url('profile')); ?>">Trang cá nhân</a>
 							<?php endif; ?>
-							<?php if (can_access_page('student-dashboard')): ?>
-								<a class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="/?page=student-dashboard">Bảng điều khiển học viên</a>
+							<?php if (can_access_page('dashboard-student')): ?>
+								<a class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="<?= e(page_url('dashboard-student')); ?>">Bảng điều khiển học viên</a>
 							<?php endif; ?>
-							<?php if (can_access_page('teacher-dashboard')): ?>
-								<a class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="/?page=teacher-dashboard">Bảng điều khiển giáo viên</a>
+							<?php if (can_access_page('dashboard-teacher')): ?>
+								<a class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="<?= e(page_url('dashboard-teacher')); ?>">Bảng điều khiển giáo viên</a>
 							<?php endif; ?>
-							<?php if (can_access_page('academic-portfolios')): ?>
-								<a class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="/?page=academic-portfolios">Portfolio</a>
+							<?php if (can_access_page('portfolios-academic')): ?>
+								<a class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="<?= e(page_url('portfolios-academic')); ?>">Portfolio</a>
 							<?php endif; ?>
-							<?php if (can_access_page('admin-dashboard')): ?>
+							<?php if (can_access_page('dashboard-admin')): ?>
 								<a class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="/admin">Quản trị</a>
 							<?php endif; ?>
-							<?php if (can_access_page('admin-users')): ?>
+							<?php if (can_access_page('users-admin')): ?>
 								<a class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="/admin/users">Quản lý người dùng</a>
 							<?php endif; ?>
-							<?php if (can_access_page('finance-tuition')): ?>
-								<a class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="/?page=finance-tuition">Học phí</a>
+							<?php if (can_access_page('tuition-finance')): ?>
+								<a class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="<?= e(page_url('tuition-finance')); ?>">Học phí</a>
 							<?php endif; ?>
-							<?php if (can_access_page('finance-payments')): ?>
-								<a class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="/?page=finance-payments">Thanh toán</a>
+							<?php if (can_access_page('payments-finance')): ?>
+								<a class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="<?= e(page_url('payments-finance')); ?>">Thanh toán</a>
 							<?php endif; ?>
-							<?php if (can_access_page('manage-feedbacks')): ?>
-								<a class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="/?page=manage-feedbacks">Đánh giá</a>
+							<?php if (can_access_page('feedbacks-manage')): ?>
+								<a class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="<?= e(page_url('feedbacks-manage')); ?>">Đánh giá</a>
 							<?php endif; ?>
-							<?php if (can_access_page('manage-approvals')): ?>
-								<a class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="/?page=manage-approvals">Phê duyệt</a>
+							<?php if (can_access_page('approvals-manage')): ?>
+								<a class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="<?= e(page_url('approvals-manage')); ?>">Phê duyệt</a>
 							<?php endif; ?>
-							<?php if (can_access_page('manage-activities')): ?>
-								<a class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="/?page=manage-activities">Hoạt động</a>
+							<?php if (can_access_page('activities-manage')): ?>
+								<a class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="<?= e(page_url('activities-manage')); ?>">Hoạt động</a>
 							<?php endif; ?>
-							<?php if (can_access_page('manage-bank')): ?>
-								<a class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="/?page=manage-bank">Ngân hàng</a>
+							<?php if (can_access_page('bank-manage')): ?>
+								<a class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="<?= e(page_url('bank-manage')); ?>">Ngân hàng</a>
 							<?php endif; ?>
-							<?php if (can_access_page('academic-classes')): ?>
-								<a class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="/?page=academic-classes">Lớp học</a>
+							<?php if (can_access_page('classes-academic')): ?>
+								<a class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="<?= e(page_url('classes-academic')); ?>">Lớp học</a>
 							<?php endif; ?>
-							<?php if (can_access_page('academic-schedules')): ?>
-								<a class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="/?page=academic-schedules">Lịch học</a>
+							<?php if (can_access_page('schedules-academic')): ?>
+								<a class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="<?= e(page_url('schedules-academic')); ?>">Lịch học</a>
 							<?php endif; ?>
-							<?php if (can_access_page('academic-assignments')): ?>
-								<a class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="/?page=academic-assignments">Bài tập</a>
+							<?php if (can_access_page('assignments-academic')): ?>
+								<a class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="<?= e(page_url('assignments-academic')); ?>">Bài tập</a>
 							<?php endif; ?>
-							<?php if (can_access_page('academic-materials')): ?>
-								<a class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="/?page=academic-materials">Tài liệu</a>
+							<?php if (can_access_page('materials-academic')): ?>
+								<a class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="<?= e(page_url('materials-academic')); ?>">Tài liệu</a>
 							<?php endif; ?>
-							<?php if (can_access_page('academic-submissions')): ?>
-								<a class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="/?page=academic-submissions">Chấm điểm</a>
+							<?php if (can_access_page('submissions-academic')): ?>
+								<a class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="<?= e(page_url('submissions-academic')); ?>">Chấm điểm</a>
 							<?php endif; ?>
-							<a class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="/?page=logout">Đăng xuất</a>
+							<a class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="<?= e(page_url('logout')); ?>">Đăng xuất</a>
 						</div>
 					</div>
 					<a href="#lien-he" class="inline-flex items-center justify-center rounded-xl bg-blue-700 px-3 py-2 text-xs font-bold text-white transition hover:-translate-y-0.5 hover:bg-blue-800">Đăng ký kiểm tra</a>
 				<?php else: ?>
-					<a class="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="/?page=login">Đăng nhập</a>
+					<a class="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="<?= e(page_url('login')); ?>">Đăng nhập</a>
 					<a href="#lien-he" class="inline-flex items-center justify-center rounded-xl bg-blue-700 px-3 py-2 text-xs font-bold text-white transition hover:-translate-y-0.5 hover:bg-blue-800">Đăng ký kiểm tra</a>
 				<?php endif; ?>
 			</div>
@@ -111,53 +111,53 @@
 				<a class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="#portal">Cổng học tập</a>
 				<a class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="#quan-tri">Quản trị</a>
 				<?php if (is_logged_in()): ?>
-					<?php if (can_access_page('profile')): ?><a class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="/?page=profile">Trang cá nhân</a><?php endif; ?>
-					<?php if (can_access_page('student-dashboard')): ?><a class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="/?page=student-dashboard">Bảng điều khiển học viên</a><?php endif; ?>
-					<?php if (can_access_page('teacher-dashboard')): ?><a class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="/?page=teacher-dashboard">Bảng điều khiển giáo viên</a><?php endif; ?>
-					<?php if (can_access_page('academic-portfolios')): ?><a class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="/?page=academic-portfolios">Portfolio</a><?php endif; ?>
-					<?php if (can_access_page('admin-dashboard')): ?>
+					<?php if (can_access_page('profile')): ?><a class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="<?= e(page_url('profile')); ?>">Trang cá nhân</a><?php endif; ?>
+					<?php if (can_access_page('dashboard-student')): ?><a class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="<?= e(page_url('dashboard-student')); ?>">Bảng điều khiển học viên</a><?php endif; ?>
+					<?php if (can_access_page('dashboard-teacher')): ?><a class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="<?= e(page_url('dashboard-teacher')); ?>">Bảng điều khiển giáo viên</a><?php endif; ?>
+					<?php if (can_access_page('portfolios-academic')): ?><a class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="<?= e(page_url('portfolios-academic')); ?>">Portfolio</a><?php endif; ?>
+					<?php if (can_access_page('dashboard-admin')): ?>
 						<a class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="/admin">Quản trị</a>
 					<?php endif; ?>
-					<?php if (can_access_page('admin-users')): ?>
+					<?php if (can_access_page('users-admin')): ?>
 						<a class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="/admin/users">Quản lý người dùng</a>
 					<?php endif; ?>
-					<?php if (can_access_page('finance-tuition')): ?>
-						<a class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="/?page=finance-tuition">Học phí</a>
+					<?php if (can_access_page('tuition-finance')): ?>
+						<a class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="<?= e(page_url('tuition-finance')); ?>">Học phí</a>
 					<?php endif; ?>
-					<?php if (can_access_page('finance-payments')): ?>
-						<a class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="/?page=finance-payments">Thanh toán</a>
+					<?php if (can_access_page('payments-finance')): ?>
+						<a class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="<?= e(page_url('payments-finance')); ?>">Thanh toán</a>
 					<?php endif; ?>
-					<?php if (can_access_page('manage-feedbacks')): ?>
-						<a class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="/?page=manage-feedbacks">Đánh giá</a>
+					<?php if (can_access_page('feedbacks-manage')): ?>
+						<a class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="<?= e(page_url('feedbacks-manage')); ?>">Đánh giá</a>
 					<?php endif; ?>
-					<?php if (can_access_page('manage-approvals')): ?>
-						<a class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="/?page=manage-approvals">Phê duyệt</a>
+					<?php if (can_access_page('approvals-manage')): ?>
+						<a class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="<?= e(page_url('approvals-manage')); ?>">Phê duyệt</a>
 					<?php endif; ?>
-					<?php if (can_access_page('manage-activities')): ?>
-						<a class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="/?page=manage-activities">Hoạt động ngoại khóa</a>
+					<?php if (can_access_page('activities-manage')): ?>
+						<a class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="<?= e(page_url('activities-manage')); ?>">Hoạt động ngoại khóa</a>
 					<?php endif; ?>
-					<?php if (can_access_page('manage-bank')): ?>
-						<a class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="/?page=manage-bank">Tài khoản ngân hàng</a>
+					<?php if (can_access_page('bank-manage')): ?>
+						<a class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="<?= e(page_url('bank-manage')); ?>">Tài khoản ngân hàng</a>
 					<?php endif; ?>
-					<?php if (can_access_page('academic-classes')): ?>
-						<a class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="/?page=academic-classes">Lớp học</a>
+					<?php if (can_access_page('classes-academic')): ?>
+						<a class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="<?= e(page_url('classes-academic')); ?>">Lớp học</a>
 					<?php endif; ?>
-					<?php if (can_access_page('academic-schedules')): ?>
-						<a class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="/?page=academic-schedules">Lịch học</a>
+					<?php if (can_access_page('schedules-academic')): ?>
+						<a class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="<?= e(page_url('schedules-academic')); ?>">Lịch học</a>
 					<?php endif; ?>
-					<?php if (can_access_page('academic-assignments')): ?>
-						<a class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="/?page=academic-assignments">Bài tập</a>
+					<?php if (can_access_page('assignments-academic')): ?>
+						<a class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="<?= e(page_url('assignments-academic')); ?>">Bài tập</a>
 					<?php endif; ?>
-					<?php if (can_access_page('academic-materials')): ?>
-						<a class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="/?page=academic-materials">Tài liệu</a>
+					<?php if (can_access_page('materials-academic')): ?>
+						<a class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="<?= e(page_url('materials-academic')); ?>">Tài liệu</a>
 					<?php endif; ?>
-					<?php if (can_access_page('academic-submissions')): ?>
-						<a class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="/?page=academic-submissions">Chấm điểm</a>
+					<?php if (can_access_page('submissions-academic')): ?>
+						<a class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="<?= e(page_url('submissions-academic')); ?>">Chấm điểm</a>
 					<?php endif; ?>
-					<a href="/?page=logout" class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700">Đăng xuất</a>
+					<a href="<?= e(page_url('logout')); ?>" class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700">Đăng xuất</a>
 				<?php else: ?>
-					<a class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="/?page=login">Đăng nhập</a>
-					<a class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="/?page=login">Cổng học viên</a>
+					<a class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="<?= e(page_url('login')); ?>">Đăng nhập</a>
+					<a class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700" href="<?= e(page_url('login')); ?>">Cổng học viên</a>
 				<?php endif; ?>
 				<a href="#lien-he" class="inline-flex items-center justify-center rounded-xl bg-blue-700 px-3 py-2 text-xs font-bold text-white transition hover:-translate-y-0.5 hover:bg-blue-800">Đăng ký kiểm tra đầu vào</a>
 			</nav>
