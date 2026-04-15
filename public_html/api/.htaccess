@@ -1,0 +1,8 @@
+RewriteEngine On
+
+# Handler files are internal and must be executed via api/index.php.
+
+RewriteRule ^(?!index\.php$).+\.php$ - [F,L]
+
+RewriteRule ^([a-z0-9-]+)/([a-z0-9-]+)/?$ index.php?resource=$1&method=$2 [QSA,L]
+RewriteRule ^(do-[a-z0-9-]+)/?$ index.php?action=$1 [QSA,L]

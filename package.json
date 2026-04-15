@@ -1,0 +1,12 @@
+{
+  "name": "english_center",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test": "echo \"No frontend build pipeline configured\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "English center management platform with Tailwind CDN styling"
+}

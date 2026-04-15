@@ -1,0 +1,36 @@
+# Bật rewrite engine
+
+RewriteEngine On
+
+# Chuẩn hóa các route truy cập chính về query param page
+
+RewriteRule ^$ index.php?page=home [QSA,L]
+RewriteRule ^admin/users/?$ index.php?page=admin-users [QSA,L]
+
+# Route API actions: /api/users/save, /api/feedbacks/delete, ...
+
+RewriteRule ^api/?$ api/index.php [QSA,L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^api/([a-z0-9-]+)/([a-z0-9-]+)/?$ api/index.php?resource=$1&method=$2 [QSA,L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^api/(do-[a-z0-9-]+)/?$ api/index.php?action=$1 [QSA,L]
+
+# Route 1 cấp: /login, /admin, /profile, /academic-classes, ...
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^([a-z0-9-]+)/?$ index.php?page=$1 [QSA,L]
+
+# Nếu không phải file/thư mục thật thì vào front controller
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^.*$ index.php [QSA,L]
+
+# Chặn truy cập trực tiếp vào file ẩn
+
+<FilesMatch "^\.">
+Require all denied
+</FilesMatch>
