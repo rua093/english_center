@@ -3,46 +3,62 @@ require_admin_or_staff();
 require_permission('activity.view');
 
 $academicModel = new AcademicModel();
-$activities = $academicModel->listActivities();
 $editingActivity = null;
 if (!empty($_GET['edit'])) {
 	$editingActivity = $academicModel->findActivity((int) $_GET['edit']);
 }
 
+$activityPage = max(1, (int) ($_GET['activity_page'] ?? 1));
+$activityPerPage = 10;
+$activityTotal = $academicModel->countActivities();
+$activityTotalPages = max(1, (int) ceil($activityTotal / $activityPerPage));
+if ($activityPage > $activityTotalPages) {
+    $activityPage = $activityTotalPages;
+}
+$activities = $academicModel->listActivitiesPage($activityPage, $activityPerPage);
+
 $module = 'activities';
 $adminTitle = 'Quản lý hoạt động';
+
+$success = get_flash('success');
+$error = get_flash('error');
 ?>
-<section class="py-10 md:py-14">
-    <div class="mx-auto w-full max-w-6xl px-4 sm:px-6">
-        <?php
-        $canCreateActivity = has_permission('activity.create');
-        $canUpdateActivity = has_permission('activity.update');
-        $canDeleteActivity = has_permission('activity.delete');
-        ?>
-        <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-            <div>
-                <h1>Quản lý hoạt động ngoại khóa</h1>
-                <p>Tạo và quản lý các hoạt động, sự kiện ngoại khóa.</p>
-            </div>
-        </div>
+<div class="grid gap-4">
+    <?php
+    $canCreateActivity = has_permission('activity.create');
+    $canUpdateActivity = has_permission('activity.update');
+    $canDeleteActivity = has_permission('activity.delete');
+    ?>
+
+    <?php if ($success): ?>
+        <div class="rounded-xl border-l-4 border-emerald-500 bg-emerald-50 p-3 text-sm text-emerald-700"><?= e($success); ?></div>
+    <?php endif; ?>
+
+    <?php if ($error): ?>
+        <div class="rounded-xl border-l-4 border-rose-500 bg-rose-50 p-3 text-sm text-rose-700"><?= e($error); ?></div>
+    <?php endif; ?>
 
         <?php if ($canCreateActivity || $canUpdateActivity): ?>
             <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                 <h3><?= $editingActivity ? 'Sửa hoạt động' : 'Thêm hoạt động'; ?></h3>
-                <form class="grid gap-3" method="post" action="/api/activities/save">
+                <form class="grid gap-3 md:grid-cols-2" method="post" action="/api/activities/save">
                     <?= csrf_input(); ?>
                     <input type="hidden" name="id" value="<?= (int) ($editingActivity['id'] ?? 0); ?>">
                     <label>
                         Tên hoạt động
                         <input type="text" name="activity_name" value="<?= e((string) ($editingActivity['activity_name'] ?? '')); ?>" required>
                     </label>
-                    <label>
+                    <label class="md:col-span-2">
                         Mô tả
                         <textarea name="description" rows="4"><?= e((string) ($editingActivity['description'] ?? '')); ?></textarea>
                     </label>
-                    <label>
+                    <label class="md:col-span-2">
                         Nội dung chi tiết
                         <textarea name="content" rows="4"><?= e((string) ($editingActivity['content'] ?? '')); ?></textarea>
+                    </label>
+                    <label>
+                        Địa điểm
+                        <input type="text" name="location" value="<?= e((string) ($editingActivity['location'] ?? '')); ?>" placeholder="Vi du: Co so A - Phong 203">
                     </label>
                     <label>
                         Ngày bắt đầu
@@ -64,12 +80,14 @@ $adminTitle = 'Quản lý hoạt động';
                         Thumbnail URL
                         <input type="text" name="image_thumbnail" value="<?= e((string) ($editingActivity['image_thumbnail'] ?? '')); ?>">
                     </label>
-                    <button class="<?= ui_btn_primary_classes(); ?>" type="submit">Lưu hoạt động</button>
+                    <div class="md:col-span-2">
+                        <button class="<?= ui_btn_primary_classes(); ?>" type="submit">Lưu hoạt động</button>
+                    </div>
                 </form>
             </article>
         <?php endif; ?>
 
-        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm mt-6">
+        <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <h3>Danh sách hoạt động</h3>
             <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
                 <table class="min-w-full border-collapse text-sm">
@@ -79,8 +97,8 @@ $adminTitle = 'Quản lý hoạt động';
                             <th>Bắt đầu</th>
                             <th>Kết thúc</th>
                             <th>Địa điểm</th>
-                            <th>Tham gia / Tối đa</th>
-                            <th>Thao tác</th>
+                            <th>Số đăng ký</th>
+                            <th>Hành động</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -96,8 +114,8 @@ $adminTitle = 'Quản lý hoạt động';
                                     <td><?= e((string) $act['activity_name']); ?></td>
                                     <td><?= e((string) ($act['start_date'] ?? '')); ?></td>
                                     <td><?= e((string) ($act['end_date'] ?? '')); ?></td>
-                                    <td><?= e((string) ($act['location'] ?? '')); ?></td>
-                                    <td><?= (int) $act['registered']; ?> / <?= (int) $act['max_participants']; ?></td>
+                                    <td><?= e((string) ($act['location'] ?? '-')); ?></td>
+                                    <td><?= (int) $act['registered']; ?></td>
                                     <td>
                                         <span class="inline-flex flex-wrap items-center gap-2">
                                             <?php if ($canUpdateActivity): ?>
@@ -117,9 +135,26 @@ $adminTitle = 'Quản lý hoạt động';
                     </tbody>
                 </table>
             </div>
-        </div>
-    </div>
-</section>
+            <?php if ($activityTotalPages > 1): ?>
+                <div class="mt-3 flex flex-wrap items-center justify-between gap-2 text-sm text-slate-600">
+                    <span>Trang <?= (int) $activityPage; ?>/<?= (int) $activityTotalPages; ?> - Tổng <?= (int) $activityTotal; ?> hoạt động</span>
+                    <div class="inline-flex items-center gap-1">
+                        <?php if ($activityPage > 1): ?>
+                            <a class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('activities-manage', ['activity_page' => $activityPage - 1])); ?>">Trước</a>
+                        <?php else: ?>
+                            <span class="rounded-lg border border-slate-200 bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-400">Trước</span>
+                        <?php endif; ?>
+
+                        <?php if ($activityPage < $activityTotalPages): ?>
+                            <a class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('activities-manage', ['activity_page' => $activityPage + 1])); ?>">Sau</a>
+                        <?php else: ?>
+                            <span class="rounded-lg border border-slate-200 bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-400">Sau</span>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            <?php endif; ?>
+        </article>
+</div>
 
 
 

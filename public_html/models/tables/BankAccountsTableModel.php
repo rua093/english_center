@@ -6,6 +6,12 @@ require_once __DIR__ . '/../../core/table_model_utils.php';
 final class BankAccountsTableModel
 {
     use TableModelUtils;
+
+    public function countDetailed(): int
+    {
+        return (int) $this->fetchScalar('SELECT COUNT(*) AS total FROM bank_accounts', [], 'total', 0);
+    }
+
     public function listDetailed(): array
     {
         $sql = "SELECT id, bank_name, bank_name AS account_name, bin, account_number, account_holder,
@@ -13,6 +19,29 @@ final class BankAccountsTableModel
             FROM bank_accounts
             ORDER BY is_default DESC, bank_name ASC";
         return $this->fetchAll($sql);
+    }
+
+    public function listDetailedPage(int $page, int $perPage): array
+    {
+        $normalizedPage = max(1, $page);
+        $limit = $this->clampLimit($perPage, 10, 200);
+        $offset = ($normalizedPage - 1) * $limit;
+
+        $sql = "SELECT id, bank_name, bank_name AS account_name, bin, account_number, account_holder,
+                qr_code_static_url, is_default, is_default AS is_primary
+            FROM bank_accounts
+            ORDER BY is_default DESC, bank_name ASC
+            LIMIT {$limit} OFFSET {$offset}";
+        return $this->fetchAll($sql);
+    }
+
+    public function findById(int $id): ?array
+    {
+        return $this->fetchOne(
+            'SELECT id, bank_name, bank_name AS account_name, bin, account_number, account_holder, qr_code_static_url, is_default, is_default AS is_primary
+             FROM bank_accounts WHERE id = :id LIMIT 1',
+            ['id' => $id]
+        );
     }
 
     public function save(array $data): void

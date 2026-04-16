@@ -4,7 +4,91 @@ declare(strict_types=1);
 require_once __DIR__ . '/../../core/api_helpers.php';
 require_once __DIR__ . '/../../core/page_actions.php';
 require_once __DIR__ . '/../../models/AcademicModel.php';
-require_once __DIR__ . '/../../models/UserModel.php';
+
+function api_tuitions_is_admin(): bool
+{
+	$user = auth_user();
+	return is_array($user) && (string) ($user['role'] ?? '') === 'admin';
+}
+
+function api_tuitions_can_manage_directly(): bool
+{
+	if (api_tuitions_is_admin()) {
+		return true;
+	}
+
+	return has_any_permission([
+		'finance.tuition.manage',
+		'finance.tuition.create',
+		'finance.tuition.update',
+	]);
+}
+
+function api_tuitions_can_delete_directly(): bool
+{
+	if (api_tuitions_is_admin()) {
+		return true;
+	}
+
+	return has_any_permission([
+		'finance.tuition.manage',
+		'finance.tuition.delete',
+	]);
+}
+
+function api_tuitions_save_action(): void
+{
+	api_guard_admin_or_staff();
+	api_guard_permission('finance.tuition.view');
+	api_require_post(page_url('tuition-finance'));
+
+	if (!api_tuitions_can_manage_directly()) {
+		set_flash('error', 'Bạn không có quyền CRUD trực tiếp học phí. Vui lòng gửi yêu cầu phê duyệt.');
+		redirect(page_url('tuition-finance'));
+	}
+
+	$id = input_int($_POST, 'id');
+	$studentId = input_int($_POST, 'student_id');
+	$classId = input_int($_POST, 'class_id');
+	$totalAmount = input_float($_POST, 'total_amount');
+	$amountPaid = input_float($_POST, 'amount_paid');
+	$paymentPlan = input_string($_POST, 'payment_plan', 'full');
+	$requestedStatus = input_string($_POST, 'status', '');
+	$academicModel = new AcademicModel();
+
+	if ($studentId <= 0 || $classId <= 0 || $totalAmount < 0 || $amountPaid < 0) {
+		set_flash('error', 'Vui lòng nhập đầy đủ học viên, lớp học và số tiền hợp lệ.');
+		$query = $id > 0 ? ['edit' => $id] : [];
+		redirect(page_url('tuition-finance', $query));
+	}
+
+	if ($requestedStatus === 'paid' && $amountPaid < $totalAmount) {
+		set_flash('error', 'Không thể chuyển trạng thái paid khi số tiền đã thu chưa đủ tổng học phí.');
+		$query = $id > 0 ? ['edit' => $id] : [];
+		redirect(page_url('tuition-finance', $query));
+	}
+
+	if (!$academicModel->isStudentEnrolledInClass($studentId, $classId)) {
+		set_flash('error', 'Học viên không thuộc lớp đã chọn. Vui lòng chọn đúng học viên trong lớp.');
+		$query = $id > 0 ? ['edit' => $id] : [];
+		redirect(page_url('tuition-finance', $query));
+	}
+
+	$status = $amountPaid >= $totalAmount ? 'paid' : 'debt';
+
+	$academicModel->saveTuitionFee([
+		'id' => $id,
+		'student_id' => $studentId,
+		'class_id' => $classId,
+		'total_amount' => $totalAmount,
+		'amount_paid' => $amountPaid,
+		'payment_plan' => $paymentPlan,
+		'status' => $status,
+	]);
+
+	set_flash('success', $id > 0 ? 'Đã cập nhật học phí thành công.' : 'Đã tạo học phí thành công.');
+	redirect(page_url('tuition-finance'));
+}
 
 function api_tuitions_delete_action(): void
 {
@@ -14,7 +98,7 @@ function api_tuitions_delete_action(): void
 	$user = auth_user();
 	$tuitionId = input_int($_POST, 'tuition_id');
 
-	if ($user && (string) $user['role'] === 'staff') {
+	if (!api_tuitions_can_delete_directly() && $user && (string) $user['role'] === 'staff') {
 		if ($tuitionId > 0) {
 			$fee = (new AcademicModel())->findTuitionFee($tuitionId);
 			if ($fee) {
@@ -37,7 +121,7 @@ function api_tuitions_delete_action(): void
 		redirect(page_url('tuition-finance'));
 	}
 
-	if (!$user || (string) $user['role'] !== 'admin') {
+	if (!api_tuitions_can_delete_directly()) {
 		api_guard_permission('finance.tuition.delete');
 	}
 
@@ -59,8 +143,12 @@ function api_tuitions_update_action(): void
 	$user = auth_user();
 
 	if ($tuitionId > 0 && $amount > 0 && $user) {
-		(new UserModel())->updateTuitionPayment((int) $user['id'], $tuitionId, $amount);
-		set_flash('success', 'Đã cập nhật học phí thành công.');
+		$success = (new AcademicModel())->recordStudentWebPayment((int) $user['id'], $tuitionId, $amount, 'bank_transfer');
+		if ($success) {
+			set_flash('success', 'Đã ghi nhận thanh toán và tự động tạo biên lai thành công.');
+		} else {
+			set_flash('error', 'Không tìm thấy học phí hợp lệ để cập nhật thanh toán.');
+		}
 	}
 
 	redirect(page_url('dashboard-student'));

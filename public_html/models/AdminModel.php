@@ -26,9 +26,24 @@ final class AdminModel
         return $this->usersTable->listActiveWithRoles();
     }
 
+    public function countUsers(): int
+    {
+        return $this->usersTable->countActiveWithRoles();
+    }
+
+    public function listUsersPage(int $page, int $perPage): array
+    {
+        return $this->usersTable->listActiveWithRolesPage($page, $perPage);
+    }
+
     public function findUser(int $id): ?array
     {
         return $this->usersTable->findActiveById($id);
+    }
+
+    public function findRoleById(int $id): ?array
+    {
+        return $this->rolesTable->findById($id);
     }
 
     public function saveUser(array $data): void
@@ -36,10 +51,16 @@ final class AdminModel
         $id = (int) ($data['id'] ?? 0);
         $password = (string) ($data['password'] ?? '');
 
-        $this->usersTable->save($data);
+        $role = $this->findRoleById((int) ($data['role_id'] ?? 0));
+        if (!$role) {
+            throw new RuntimeException('Vai trò không hợp lệ.');
+        }
+
+        $savedUserId = $this->usersTable->save($data);
+        $this->usersTable->saveRoleProfile($savedUserId, (string) ($role['role_name'] ?? ''), $data);
 
         if ($id > 0 && $password !== '') {
-            $this->updateUserPassword($id, $password);
+            $this->updateUserPassword($savedUserId, $password);
         }
     }
 

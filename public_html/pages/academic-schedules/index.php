@@ -29,42 +29,7 @@ $canUpdateAssignment = has_permission('academic.assignments.update');
 $canCreateMaterial = has_permission('materials.create');
 $canUpdateMaterial = has_permission('materials.update');
 ?>
-<section class="py-10 md:py-14">
-    <div class="mx-auto w-full max-w-6xl px-4 sm:px-6 grid gap-4">
-        <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div>
-                <h1>Quản lý học vụ</h1>
-                <p>CRUD lớp học, lịch học, bài tập và chấm điểm theo quyền.</p>
-            </div>
-            <?php if (can_access_page('dashboard-student')): ?>
-                <a class="<?= ui_btn_secondary_classes(); ?>" href="<?= e(page_url('dashboard-student')); ?>">Bảng điều khiển học viên</a>
-            <?php elseif (can_access_page('dashboard-teacher')): ?>
-                <a class="<?= ui_btn_secondary_classes(); ?>" href="<?= e(page_url('dashboard-teacher')); ?>">Bảng điều khiển giáo viên</a>
-            <?php endif; ?>
-        </div>
-
-        <div class="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-3 md:flex-row md:items-center md:justify-between">
-            <div class="flex flex-wrap gap-2">
-                <span class="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold border-emerald-200 bg-emerald-50 text-emerald-700">Vận hành học vụ</span>
-                <span class="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold border-amber-200 bg-amber-50 text-amber-700">Chỉnh sửa nhanh</span>
-                <span class="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold border-rose-200 bg-rose-50 text-rose-700">Theo phân quyền</span>
-            </div>
-            <div class="flex flex-wrap gap-2">
-                <?php if ($canCreateClass || $canUpdateClass): ?>
-                    <a class="<?= ui_quick_action_link_classes(); ?>" href="<?= e(page_url('classes-academic-edit')); ?>"><span class="text-[10px] font-extrabold uppercase tracking-wide text-slate-400">Create</span><span class="text-xs font-bold">Thêm lớp</span></a>
-                <?php endif; ?>
-                <?php if ($canCreateSchedule || $canUpdateSchedule): ?>
-                    <a class="<?= ui_quick_action_link_classes(); ?>" href="<?= e(page_url('schedules-academic-edit')); ?>"><span class="text-[10px] font-extrabold uppercase tracking-wide text-slate-400">Schedule</span><span class="text-xs font-bold">Thêm lịch</span></a>
-                <?php endif; ?>
-                <?php if ($canCreateAssignment || $canUpdateAssignment): ?>
-                    <a class="<?= ui_quick_action_link_classes(); ?>" href="<?= e(page_url('assignments-academic-edit')); ?>"><span class="text-[10px] font-extrabold uppercase tracking-wide text-slate-400">Assignment</span><span class="text-xs font-bold">Thêm bài tập</span></a>
-                <?php endif; ?>
-                <?php if ($canCreateMaterial || $canUpdateMaterial): ?>
-                    <a class="<?= ui_quick_action_link_classes(); ?>" href="<?= e(page_url('materials-academic-edit')); ?>"><span class="text-[10px] font-extrabold uppercase tracking-wide text-slate-400">Material</span><span class="text-xs font-bold">Thêm tài liệu</span></a>
-                <?php endif; ?>
-            </div>
-        </div>
-
+<div class="grid gap-4">
         <?php if ($success): ?>
             <div class="rounded-xl border-l-4 p-3 text-sm border-emerald-500 bg-emerald-50 text-emerald-700"><?= e($success); ?></div>
         <?php endif; ?>
@@ -72,27 +37,6 @@ $canUpdateMaterial = has_permission('materials.update');
         <?php if ($error): ?>
             <div class="rounded-xl border-l-4 p-3 text-sm border-rose-500 bg-rose-50 text-rose-700"><?= e($error); ?></div>
         <?php endif; ?>
-
-        <div class="mb-3 flex flex-wrap gap-2">
-            <?php if (can_access_page('classes-academic')): ?>
-                <a class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 <?= $module === 'classes' ? 'border-blue-200 bg-blue-50 text-blue-700' : ''; ?>" href="<?= e(page_url('classes-academic')); ?>">Lớp học</a>
-            <?php endif; ?>
-            <?php if (can_access_page('schedules-academic')): ?>
-                <a class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 <?= $module === 'schedules' ? 'border-blue-200 bg-blue-50 text-blue-700' : ''; ?>" href="<?= e(page_url('schedules-academic')); ?>">Lịch học</a>
-            <?php endif; ?>
-            <?php if (can_access_page('assignments-academic')): ?>
-                <a class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 <?= $module === 'assignments' ? 'border-blue-200 bg-blue-50 text-blue-700' : ''; ?>" href="<?= e(page_url('assignments-academic')); ?>">Bài tập</a>
-            <?php endif; ?>
-            <?php if (can_access_page('materials-academic')): ?>
-                <a class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 <?= $module === 'materials' ? 'border-blue-200 bg-blue-50 text-blue-700' : ''; ?>" href="<?= e(page_url('materials-academic')); ?>">Tài liệu</a>
-            <?php endif; ?>
-            <?php if (can_access_page('portfolios-academic')): ?>
-                <a class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 <?= $module === 'portfolios' ? 'border-blue-200 bg-blue-50 text-blue-700' : ''; ?>" href="<?= e(page_url('portfolios-academic')); ?>">Portfolio</a>
-            <?php endif; ?>
-            <?php if (can_access_page('submissions-academic')): ?>
-                <a class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 <?= $module === 'submissions' ? 'border-blue-200 bg-blue-50 text-blue-700' : ''; ?>" href="<?= e(page_url('submissions-academic')); ?>">Chấm điểm</a>
-            <?php endif; ?>
-        </div>
 
         <?php if ($canCreateSchedule || $canUpdateSchedule): ?>
         <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -160,12 +104,36 @@ $canUpdateMaterial = has_permission('materials.update');
                             <td>
                                 <span class="inline-flex flex-wrap items-center gap-2">
                                     <?php if ($canUpdateSchedule): ?>
-                                        <a href="<?= e(page_url('schedules-academic-edit', ['id' => (int) $schedule['id']])); ?>">Sửa</a>
+                                        <a
+                                            href="<?= e(page_url('schedules-academic-edit', ['id' => (int) $schedule['id']])); ?>"
+                                            class="admin-action-icon-btn"
+                                            data-action-kind="edit"
+                                            data-skip-action-icon="1"
+                                            title="Sửa"
+                                            aria-label="Sửa"
+                                        >
+                                            <span class="admin-action-icon-label">Sửa</span>
+                                            <span class="admin-action-icon-glyph" aria-hidden="true">
+                                                <svg viewBox="0 0 24 24"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
+                                            </span>
+                                        </a>
                                     <?php endif; ?>
                                     <?php if ($canDeleteSchedule): ?>
                                         <form class="inline-block" method="post" action="/api/schedules/delete?id=<?= (int) $schedule['id']; ?>">
                                             <?= csrf_input(); ?>
-                                            <button class="<?= ui_btn_danger_classes('sm'); ?>" type="submit">Xóa</button>
+                                            <button
+                                                class="<?= ui_btn_danger_classes('sm'); ?> admin-action-icon-btn"
+                                                data-action-kind="delete"
+                                                data-skip-action-icon="1"
+                                                type="submit"
+                                                title="Xóa"
+                                                aria-label="Xóa"
+                                            >
+                                                <span class="admin-action-icon-label">Xóa</span>
+                                                <span class="admin-action-icon-glyph" aria-hidden="true">
+                                                    <svg viewBox="0 0 24 24"><path d="M3 6h18"></path><path d="M8 6V4h8v2"></path><path d="M19 6l-1 14H6L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>
+                                                </span>
+                                            </button>
                                         </form>
                                     <?php endif; ?>
                                 </span>
@@ -177,7 +145,6 @@ $canUpdateMaterial = has_permission('materials.update');
             </table>
         </div>
     </div>
-</section>
 
 
 

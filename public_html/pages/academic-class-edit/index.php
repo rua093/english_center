@@ -13,11 +13,10 @@ $lookups = $academicModel->classLookups();
 $module = 'classes';
 $adminTitle = $editingClass ? 'Học vụ - Sửa lớp học' : 'Học vụ - Thêm lớp học';
 ?>
-<section class="py-10 md:py-14">
-    <div class="mx-auto w-full max-w-3xl px-4 sm:px-6">
-        <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <h2><?= $editingClass ? 'Chỉnh sửa lớp học' : 'Thêm lớp học'; ?></h2>
-            <form class="grid gap-3" method="post" action="/api/classes/save">
+<div class="grid gap-4">
+    <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <h2><?= $editingClass ? 'Chỉnh sửa lớp học' : 'Thêm lớp học'; ?></h2>
+        <form class="grid gap-3" method="post" action="/api/classes/save">
                 <?= csrf_input(); ?>
                 <input type="hidden" name="id" value="<?= (int) ($editingClass['id'] ?? 0); ?>">
                 <label>Khóa học
@@ -47,11 +46,10 @@ $adminTitle = $editingClass ? 'Học vụ - Sửa lớp học' : 'Học vụ - T
                         <option value="cancelled" <?= (($editingClass['status'] ?? '') === 'cancelled') ? 'selected' : ''; ?>>Đã hủy</option>
                     </select>
                 </label>
-                <button class="<?= ui_btn_primary_classes(); ?>" type="submit">Lưu lớp học</button>
-                <a class="<?= ui_btn_secondary_classes(); ?>" href="<?= e(page_url('classes-academic')); ?>">Quay lại</a>
-            </form>
-        </article>
-    </div>
-</section>
+            <button class="<?= ui_btn_primary_classes(); ?>" type="submit">Lưu lớp học</button>
+            <a class="<?= ui_btn_secondary_classes(); ?>" href="<?= e(page_url('classes-academic')); ?>">Quay lại</a>
+        </form>
+    </article>
+</div>
 
 

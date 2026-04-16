@@ -13,11 +13,10 @@ $lookups = $academicModel->scheduleLookups();
 $module = 'schedules';
 $adminTitle = $editingSchedule ? 'Học vụ - Sửa lịch học' : 'Học vụ - Thêm lịch học';
 ?>
-<section class="py-10 md:py-14">
-    <div class="mx-auto w-full max-w-3xl px-4 sm:px-6">
-        <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <h2><?= $editingSchedule ? 'Chỉnh sửa lịch học' : 'Thêm lịch học'; ?></h2>
-            <form class="grid gap-3" method="post" action="/api/schedules/save">
+<div class="grid gap-4">
+    <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <h2><?= $editingSchedule ? 'Chỉnh sửa lịch học' : 'Thêm lịch học'; ?></h2>
+        <form class="grid gap-3" method="post" action="/api/schedules/save">
                 <?= csrf_input(); ?>
                 <input type="hidden" name="id" value="<?= (int) ($editingSchedule['id'] ?? 0); ?>">
                 <label>Lớp học
@@ -46,11 +45,10 @@ $adminTitle = $editingSchedule ? 'Học vụ - Sửa lịch học' : 'Học vụ
                 <label>Ngày học<input type="date" name="study_date" value="<?= e((string) ($editingSchedule['study_date'] ?? '')); ?>" required></label>
                 <label>Giờ bắt đầu<input type="time" name="start_time" value="<?= e((string) ($editingSchedule['start_time'] ?? '')); ?>" required></label>
                 <label>Giờ kết thúc<input type="time" name="end_time" value="<?= e((string) ($editingSchedule['end_time'] ?? '')); ?>" required></label>
-                <button class="<?= ui_btn_primary_classes(); ?>" type="submit">Lưu lịch học</button>
-                <a class="<?= ui_btn_secondary_classes(); ?>" href="<?= e(page_url('schedules-academic')); ?>">Quay lại</a>
-            </form>
-        </article>
-    </div>
-</section>
+            <button class="<?= ui_btn_primary_classes(); ?>" type="submit">Lưu lịch học</button>
+            <a class="<?= ui_btn_secondary_classes(); ?>" href="<?= e(page_url('schedules-academic')); ?>">Quay lại</a>
+        </form>
+    </article>
+</div>
 
 

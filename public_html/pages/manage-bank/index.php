@@ -3,35 +3,45 @@ require_admin_or_staff();
 require_permission('bank.view');
 
 $academicModel = new AcademicModel();
-$bankAccounts = $academicModel->listBankAccounts();
 $editingBank = null;
 if (!empty($_GET['edit'])) {
-	$stmt = Database::connection()->prepare("SELECT id, bank_name, bank_name AS account_name, bin, account_number, account_holder, qr_code_static_url, is_default, is_default AS is_primary FROM bank_accounts WHERE id = :id LIMIT 1");
-	$stmt->execute(['id' => (int) $_GET['edit']]);
-	$editingBank = $stmt->fetch();
+	$editingBank = $academicModel->findBankAccount((int) $_GET['edit']);
 }
+
+$bankPage = max(1, (int) ($_GET['bank_page'] ?? 1));
+$bankPerPage = 10;
+$bankTotal = $academicModel->countBankAccounts();
+$bankTotalPages = max(1, (int) ceil($bankTotal / $bankPerPage));
+if ($bankPage > $bankTotalPages) {
+    $bankPage = $bankTotalPages;
+}
+$bankAccounts = $academicModel->listBankAccountsPage($bankPage, $bankPerPage);
 
 $module = 'bank';
 $adminTitle = 'Quản lý ngân hàng';
+
+$success = get_flash('success');
+$error = get_flash('error');
 ?>
-<section class="py-10 md:py-14">
-    <div class="mx-auto w-full max-w-6xl px-4 sm:px-6">
-        <?php
-        $canCreateBank = has_permission('bank.create');
-        $canUpdateBank = has_permission('bank.update');
-        $canDeleteBank = has_permission('bank.delete');
-        ?>
-        <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-            <div>
-                <h1>Quản lý tài khoản ngân hàng</h1>
-                <p>Cấu hình các tài khoản ngân hàng nhận thanh toán.</p>
-            </div>
-        </div>
+<div class="grid gap-4">
+    <?php
+    $canCreateBank = has_permission('bank.create');
+    $canUpdateBank = has_permission('bank.update');
+    $canDeleteBank = has_permission('bank.delete');
+    ?>
+
+    <?php if ($success): ?>
+        <div class="rounded-xl border-l-4 border-emerald-500 bg-emerald-50 p-3 text-sm text-emerald-700"><?= e($success); ?></div>
+    <?php endif; ?>
+
+    <?php if ($error): ?>
+        <div class="rounded-xl border-l-4 border-rose-500 bg-rose-50 p-3 text-sm text-rose-700"><?= e($error); ?></div>
+    <?php endif; ?>
 
         <?php if ($canCreateBank || $canUpdateBank): ?>
             <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                 <h3><?= $editingBank ? 'Sửa tài khoản' : 'Thêm tài khoản'; ?></h3>
-                <form class="grid gap-3" method="post" action="/api/banks/save">
+                <form class="grid gap-3 md:grid-cols-2" method="post" action="/api/banks/save">
                     <?= csrf_input(); ?>
                     <input type="hidden" name="id" value="<?= (int) ($editingBank['id'] ?? 0); ?>">
                     <label>
@@ -50,20 +60,22 @@ $adminTitle = 'Quản lý ngân hàng';
                         Chủ tài khoản
                         <input type="text" name="account_holder" value="<?= e((string) ($editingBank['account_holder'] ?? '')); ?>" required>
                     </label>
-                    <label>
+                    <label class="md:col-span-2">
                         Liên kết QR tĩnh
                         <input type="text" name="qr_code_static_url" value="<?= e((string) ($editingBank['qr_code_static_url'] ?? '')); ?>">
                     </label>
-                    <label>
+                    <label class="md:col-span-2 inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-700">
                         <input type="checkbox" name="is_default" value="1" <?= (int) ($editingBank['is_default'] ?? $editingBank['is_primary'] ?? 0) === 1 ? 'checked' : ''; ?>>
                         Tài khoản chính
                     </label>
-                    <button class="<?= ui_btn_primary_classes(); ?>" type="submit">Lưu tài khoản</button>
+                    <div class="md:col-span-2">
+                        <button class="<?= ui_btn_primary_classes(); ?>" type="submit">Lưu tài khoản</button>
+                    </div>
                 </form>
             </article>
         <?php endif; ?>
 
-        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm mt-6">
+        <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <h3>Danh sách tài khoản</h3>
             <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
                 <table class="min-w-full border-collapse text-sm">
@@ -75,7 +87,7 @@ $adminTitle = 'Quản lý ngân hàng';
                             <th>BIN</th>
                             <th>Chủ tài khoản</th>
                             <th>Chính</th>
-                            <th>Thao tác</th>
+                            <th>Hành động</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -113,9 +125,26 @@ $adminTitle = 'Quản lý ngân hàng';
                     </tbody>
                 </table>
             </div>
-        </div>
-    </div>
-</section>
+            <?php if ($bankTotalPages > 1): ?>
+                <div class="mt-3 flex flex-wrap items-center justify-between gap-2 text-sm text-slate-600">
+                    <span>Trang <?= (int) $bankPage; ?>/<?= (int) $bankTotalPages; ?> - Tổng <?= (int) $bankTotal; ?> tài khoản</span>
+                    <div class="inline-flex items-center gap-1">
+                        <?php if ($bankPage > 1): ?>
+                            <a class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('bank-manage', ['bank_page' => $bankPage - 1])); ?>">Trước</a>
+                        <?php else: ?>
+                            <span class="rounded-lg border border-slate-200 bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-400">Trước</span>
+                        <?php endif; ?>
+
+                        <?php if ($bankPage < $bankTotalPages): ?>
+                            <a class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('bank-manage', ['bank_page' => $bankPage + 1])); ?>">Sau</a>
+                        <?php else: ?>
+                            <span class="rounded-lg border border-slate-200 bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-400">Sau</span>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            <?php endif; ?>
+        </article>
+</div>
 
 
 

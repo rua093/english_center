@@ -233,7 +233,7 @@ CREATE TABLE tuition_fees (
     total_amount DECIMAL(12,2) NOT NULL,
     amount_paid DECIMAL(12,2) NOT NULL DEFAULT 0,
     payment_plan ENUM('full', 'monthly') NOT NULL DEFAULT 'full',
-    status ENUM('paid', 'debt', 'pending') NOT NULL DEFAULT 'pending',
+    status ENUM('paid', 'debt') NOT NULL DEFAULT 'debt',
     CONSTRAINT fk_tuition_student FOREIGN KEY (student_id) REFERENCES users(id),
     CONSTRAINT fk_tuition_class FOREIGN KEY (class_id) REFERENCES classes(id),
     CONSTRAINT fk_tuition_package FOREIGN KEY (package_id) REFERENCES course_packages(id)
@@ -251,6 +251,43 @@ CREATE TABLE payment_transactions (
     CONSTRAINT fk_payment_tx_tuition FOREIGN KEY (tuition_fee_id) REFERENCES tuition_fees(id)
 ) ENGINE=InnoDB;
 
+DROP TRIGGER IF EXISTS trg_class_students_auto_tuition;
+CREATE TRIGGER trg_class_students_auto_tuition
+AFTER INSERT ON class_students
+FOR EACH ROW
+INSERT INTO tuition_fees (
+        student_id,
+        class_id,
+        package_id,
+        base_amount,
+        discount_type,
+        discount_amount,
+        total_amount,
+        amount_paid,
+        payment_plan,
+        status
+)
+SELECT
+        NEW.student_id,
+        NEW.class_id,
+        NULL,
+        COALESCE(c.base_price, 0),
+        NULL,
+        0,
+        COALESCE(c.base_price, 0),
+        0,
+        'full',
+        'debt'
+FROM classes cl
+INNER JOIN courses c ON c.id = cl.course_id
+WHERE cl.id = NEW.class_id
+    AND NOT EXISTS (
+            SELECT 1
+            FROM tuition_fees tf
+            WHERE tf.student_id = NEW.student_id
+                AND tf.class_id = NEW.class_id
+    );
+
 CREATE TABLE bank_accounts (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     bank_name VARCHAR(120) NOT NULL,
@@ -266,6 +303,7 @@ CREATE TABLE extracurricular_activities (
     title VARCHAR(180) NOT NULL,
     description VARCHAR(255) DEFAULT NULL,
     content TEXT,
+    location VARCHAR(180) DEFAULT NULL,
     image_thumbnail VARCHAR(255) DEFAULT NULL,
     fee DECIMAL(12,2) NOT NULL DEFAULT 0,
     start_date DATE,

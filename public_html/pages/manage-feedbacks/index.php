@@ -3,32 +3,44 @@ require_admin_or_staff();
 require_permission('feedback.view');
 
 $academicModel = new AcademicModel();
-$feedbacks = $academicModel->listFeedbacks();
 $lookups = $academicModel->feedbackLookups();
 $students = $lookups['students'] ?? [];
 $teachers = $lookups['teachers'] ?? [];
 $classes = $lookups['classes'] ?? [];
 
+$feedbackPage = max(1, (int) ($_GET['feedback_page'] ?? 1));
+$feedbackPerPage = 10;
+$feedbackTotal = $academicModel->countFeedbacks();
+$feedbackTotalPages = max(1, (int) ceil($feedbackTotal / $feedbackPerPage));
+if ($feedbackPage > $feedbackTotalPages) {
+    $feedbackPage = $feedbackTotalPages;
+}
+$feedbacks = $academicModel->listFeedbacksPage($feedbackPage, $feedbackPerPage);
+
 $module = 'feedbacks';
 $adminTitle = 'Quản lý phản hồi';
+
+$success = get_flash('success');
+$error = get_flash('error');
 ?>
-<section class="py-10 md:py-14">
-    <div class="mx-auto w-full max-w-6xl px-4 sm:px-6">
-        <?php
-        $canCreateFeedback = has_permission('feedback.create');
-        $canDeleteFeedback = has_permission('feedback.delete');
-        ?>
-        <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-            <div>
-                <h1>Quản lý đánh giá phản hồi</h1>
-                <p>Theo dõi và quản lý phản hồi từ học viên.</p>
-            </div>
-        </div>
+<div class="grid gap-4">
+    <?php
+    $canCreateFeedback = has_permission('feedback.create');
+    $canDeleteFeedback = has_permission('feedback.delete');
+    ?>
+
+    <?php if ($success): ?>
+        <div class="rounded-xl border-l-4 border-emerald-500 bg-emerald-50 p-3 text-sm text-emerald-700"><?= e($success); ?></div>
+    <?php endif; ?>
+
+    <?php if ($error): ?>
+        <div class="rounded-xl border-l-4 border-rose-500 bg-rose-50 p-3 text-sm text-rose-700"><?= e($error); ?></div>
+    <?php endif; ?>
 
         <?php if ($canCreateFeedback): ?>
             <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                 <h3>Thêm đánh giá</h3>
-                <form class="grid gap-3" method="post" action="/api/feedbacks/save">
+                <form class="grid gap-3 md:grid-cols-2" method="post" action="/api/feedbacks/save">
                     <?= csrf_input(); ?>
                     <input type="hidden" name="id" value="">
                     <label>
@@ -62,19 +74,21 @@ $adminTitle = 'Quản lý phản hồi';
                         Đánh giá (1-5)
                         <input type="number" name="rating" min="1" max="5" required>
                     </label>
-                    <label>
+                    <label class="md:col-span-2">
                         Nhận xét
                         <textarea name="comment" rows="4"></textarea>
                     </label>
-                    <button class="<?= ui_btn_primary_classes(); ?>" type="submit">Lưu đánh giá</button>
+                    <div class="md:col-span-2">
+                        <button class="<?= ui_btn_primary_classes(); ?>" type="submit">Lưu đánh giá</button>
+                    </div>
                 </form>
             </article>
         <?php endif; ?>
 
-        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm mt-6">
+        <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <h3>Danh sách đánh giá</h3>
             <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
-                <table class="min-w-full border-collapse text-sm">
+                <table class="min-w-full border-collapse text-sm" data-enable-row-detail="1">
                     <thead>
                         <tr>
                             <th>Học viên</th>
@@ -83,7 +97,7 @@ $adminTitle = 'Quản lý phản hồi';
                             <th>Đánh giá</th>
                             <th>Nhận xét</th>
                             <th>Trạng thái</th>
-                            <th>Thao tác</th>
+                            <th>Hành động</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -100,7 +114,10 @@ $adminTitle = 'Quản lý phản hồi';
                                     <td><?= $fb['teacher_name'] ? e((string) $fb['teacher_name']) : '-'; ?></td>
                                     <td><?= e((string) $fb['course_name']); ?></td>
                                     <td><?= (int) $fb['rating']; ?>/5</td>
-                                    <td><?= e((string) substr($fb['comment'] ?? '', 0, 50)); ?></td>
+                                    <td>
+                                        <?php $fullComment = (string) ($fb['comment'] ?? ''); ?>
+                                        <span data-full-value="<?= e($fullComment); ?>"><?= e((string) substr($fullComment, 0, 50)); ?></span>
+                                    </td>
                                     <td><span class="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-bold capitalize border-blue-200 bg-blue-50 text-blue-700"><?= e((string) ($fb['status'] ?? 'reviewed')); ?></span></td>
                                     <td>
                                         <?php if ($canDeleteFeedback): ?>
@@ -118,9 +135,26 @@ $adminTitle = 'Quản lý phản hồi';
                     </tbody>
                 </table>
             </div>
-        </div>
-    </div>
-</section>
+            <?php if ($feedbackTotalPages > 1): ?>
+                <div class="mt-3 flex flex-wrap items-center justify-between gap-2 text-sm text-slate-600">
+                    <span>Trang <?= (int) $feedbackPage; ?>/<?= (int) $feedbackTotalPages; ?> - Tổng <?= (int) $feedbackTotal; ?> đánh giá</span>
+                    <div class="inline-flex items-center gap-1">
+                        <?php if ($feedbackPage > 1): ?>
+                            <a class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('feedbacks-manage', ['feedback_page' => $feedbackPage - 1])); ?>">Trước</a>
+                        <?php else: ?>
+                            <span class="rounded-lg border border-slate-200 bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-400">Trước</span>
+                        <?php endif; ?>
+
+                        <?php if ($feedbackPage < $feedbackTotalPages): ?>
+                            <a class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('feedbacks-manage', ['feedback_page' => $feedbackPage + 1])); ?>">Sau</a>
+                        <?php else: ?>
+                            <span class="rounded-lg border border-slate-200 bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-400">Sau</span>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            <?php endif; ?>
+        </article>
+</div>
 
 
 

@@ -5,6 +5,7 @@ require_once __DIR__ . '/tables/ApprovalsTableModel.php';
 require_once __DIR__ . '/tables/AssignmentsTableModel.php';
 require_once __DIR__ . '/tables/AttendanceTableModel.php';
 require_once __DIR__ . '/tables/BankAccountsTableModel.php';
+require_once __DIR__ . '/tables/ClassStudentsTableModel.php';
 require_once __DIR__ . '/tables/ClassesTableModel.php';
 require_once __DIR__ . '/tables/CoursesTableModel.php';
 require_once __DIR__ . '/tables/ExtracurricularActivitiesTableModel.php';
@@ -40,6 +41,7 @@ final class AcademicModel
     private ApprovalsTableModel $approvalsTable;
     private ExtracurricularActivitiesTableModel $activitiesTable;
     private BankAccountsTableModel $bankAccountsTable;
+    private ClassStudentsTableModel $classStudentsTable;
 
     public function __construct()
     {
@@ -61,14 +63,32 @@ final class AcademicModel
         $this->approvalsTable = new ApprovalsTableModel();
         $this->activitiesTable = new ExtracurricularActivitiesTableModel();
         $this->bankAccountsTable = new BankAccountsTableModel();
+        $this->classStudentsTable = new ClassStudentsTableModel();
     }
 
     public function dashboardChartData(): array
     {
-        $months = $this->paymentTransactionsTable->monthlyCreatedCounts(6);
+        $monthRows = $this->paymentTransactionsTable->monthlyCreatedCounts(6);
+        $monthMap = [];
+        foreach ($monthRows as $row) {
+            $monthKey = (string) ($row['month'] ?? '');
+            if ($monthKey !== '') {
+                $monthMap[$monthKey] = (float) ($row['total'] ?? 0);
+            }
+        }
+
+        $months = [];
+        $currentMonth = new DateTimeImmutable('first day of this month');
+        for ($offset = 5; $offset >= 0; $offset--) {
+            $monthKey = $currentMonth->modify(sprintf('-%d month', $offset))->format('Y-m');
+            $months[] = [
+                'month' => $monthKey,
+                'total' => (float) ($monthMap[$monthKey] ?? 0),
+            ];
+        }
 
         return [
-            'months' => array_reverse($months),
+            'months' => $months,
             'attendance' => $this->attendanceTable->aggregateStatuses(),
         ];
     }
@@ -189,6 +209,20 @@ final class AcademicModel
         return $this->usersTable->listByRoleNames(['student']);
     }
 
+    public function tuitionStudentClassLookups(): array
+    {
+        return $this->classStudentsTable->listStudentsByClass();
+    }
+
+    public function isStudentEnrolledInClass(int $studentId, int $classId): bool
+    {
+        if ($studentId <= 0 || $classId <= 0) {
+            return false;
+        }
+
+        return $this->classStudentsTable->existsEnrollment($classId, $studentId);
+    }
+
     public function feedbackLookups(): array
     {
         return [
@@ -256,6 +290,16 @@ final class AcademicModel
         return $this->feedbacksTable->listDetailed();
     }
 
+    public function countFeedbacks(): int
+    {
+        return $this->feedbacksTable->countDetailed();
+    }
+
+    public function listFeedbacksPage(int $page, int $perPage): array
+    {
+        return $this->feedbacksTable->listDetailedPage($page, $perPage);
+    }
+
     public function saveFeedback(array $data): void
     {
         $this->feedbacksTable->save($data);
@@ -271,6 +315,16 @@ final class AcademicModel
         return $this->approvalsTable->listDetailed();
     }
 
+    public function countApprovals(): int
+    {
+        return $this->approvalsTable->countDetailed();
+    }
+
+    public function listApprovalsPage(int $page, int $perPage): array
+    {
+        return $this->approvalsTable->listDetailedPage($page, $perPage);
+    }
+
     public function findApproval(int $id): ?array
     {
         return $this->approvalsTable->findById($id);
@@ -279,6 +333,11 @@ final class AcademicModel
     public function saveApproval(array $data): void
     {
         $this->approvalsTable->save($data);
+    }
+
+    public function deleteApproval(int $id): void
+    {
+        $this->approvalsTable->deleteById($id);
     }
 
     public function decideApproval(int $approvalId, int $approverId, string $status, string $decisionNote = ''): void
@@ -304,7 +363,8 @@ final class AcademicModel
             }
         }
 
-        $this->approvalsTable->updateDecision($approvalId, $approverId, $status, $content);
+        $effectiveApproverId = $status === 'pending' ? 0 : $approverId;
+        $this->approvalsTable->updateDecision($approvalId, $effectiveApproverId, $status, $content);
 
         if ($status === 'approved' && (string) ($approval['status'] ?? '') !== 'approved') {
             $updatedApproval = $this->findApproval($approvalId);
@@ -378,12 +438,7 @@ final class AcademicModel
         }
 
         $amountPaid = max(0, $requestedPaid);
-        $status = 'pending';
-        if ($amountPaid >= $totalAmount && $totalAmount > 0) {
-            $status = 'paid';
-        } elseif ($amountPaid > 0) {
-            $status = 'debt';
-        }
+        $status = $amountPaid >= $totalAmount ? 'paid' : 'debt';
 
         $this->tuitionFeesTable->updateAmountPaidStatus($tuitionId, $amountPaid, $status);
     }
@@ -397,6 +452,16 @@ final class AcademicModel
     public function listActivities(): array
     {
         return $this->activitiesTable->listWithRegistrationCount();
+    }
+
+    public function countActivities(): int
+    {
+        return $this->activitiesTable->countDetailed();
+    }
+
+    public function listActivitiesPage(int $page, int $perPage): array
+    {
+        return $this->activitiesTable->listWithRegistrationCountPage($page, $perPage);
     }
 
     public function findActivity(int $id): ?array
@@ -419,6 +484,21 @@ final class AcademicModel
         return $this->bankAccountsTable->listDetailed();
     }
 
+    public function countBankAccounts(): int
+    {
+        return $this->bankAccountsTable->countDetailed();
+    }
+
+    public function listBankAccountsPage(int $page, int $perPage): array
+    {
+        return $this->bankAccountsTable->listDetailedPage($page, $perPage);
+    }
+
+    public function findBankAccount(int $id): ?array
+    {
+        return $this->bankAccountsTable->findById($id);
+    }
+
     public function saveBankAccount(array $data): void
     {
         $this->bankAccountsTable->save($data);
@@ -434,9 +514,29 @@ final class AcademicModel
         return $this->tuitionFeesTable->listDetailed();
     }
 
+    public function countTuitionFees(): int
+    {
+        return $this->tuitionFeesTable->countDetailed();
+    }
+
+    public function listTuitionFeesPage(int $page, int $perPage): array
+    {
+        return $this->tuitionFeesTable->listDetailedPage($page, $perPage);
+    }
+
     public function findTuitionFee(int $id): ?array
     {
         return $this->tuitionFeesTable->findDetailedById($id);
+    }
+
+    public function findTuitionFeeForEdit(int $id): ?array
+    {
+        return $this->tuitionFeesTable->findForEdit($id);
+    }
+
+    public function saveTuitionFee(array $data): void
+    {
+        $this->tuitionFeesTable->save($data);
     }
 
     public function deleteTuitionFee(int $id): void
@@ -444,18 +544,184 @@ final class AcademicModel
         $this->tuitionFeesTable->deleteById($id);
     }
 
+    private function generateTransactionNo(string $prefix, int $tuitionId): string
+    {
+        return sprintf('%s-%d-%s-%03d', $prefix, $tuitionId, date('YmdHis'), random_int(0, 999));
+    }
+
+    private function resolveTransactionNo(array $data, ?array $oldTransaction = null): string
+    {
+        $requestedNo = trim((string) ($data['transaction_no'] ?? ''));
+        if ($requestedNo !== '') {
+            return $requestedNo;
+        }
+
+        $existingNo = trim((string) ($oldTransaction['transaction_no'] ?? ''));
+        if ($existingNo !== '') {
+            return $existingNo;
+        }
+
+        $tuitionId = (int) ($data['tuition_fee_id'] ?? 0);
+        return $this->generateTransactionNo('CENTER', max(0, $tuitionId));
+    }
+
+    private function syncTuitionFromPayments(int $tuitionId): void
+    {
+        if ($tuitionId <= 0) {
+            return;
+        }
+
+        $fee = $this->tuitionFeesTable->findForEdit($tuitionId);
+        if (!$fee) {
+            return;
+        }
+
+        $paidAmount = $this->paymentTransactionsTable->sumSuccessAmountByTuitionId($tuitionId);
+        $totalAmount = (float) ($fee['total_amount'] ?? 0);
+        $status = $paidAmount >= $totalAmount ? 'paid' : 'debt';
+
+        $this->tuitionFeesTable->updateAmountPaidStatus($tuitionId, $paidAmount, $status);
+    }
+
+    private function bootstrapLegacyPaymentLedger(int $tuitionId): void
+    {
+        if ($tuitionId <= 0) {
+            return;
+        }
+
+        $fee = $this->tuitionFeesTable->findForEdit($tuitionId);
+        if (!$fee) {
+            return;
+        }
+
+        $successPaid = $this->paymentTransactionsTable->sumSuccessAmountByTuitionId($tuitionId);
+        $currentPaid = (float) ($fee['amount_paid'] ?? 0);
+
+        if ($successPaid > 0 || $currentPaid <= 0) {
+            return;
+        }
+
+        $this->paymentTransactionsTable->save([
+            'tuition_fee_id' => $tuitionId,
+            'transaction_no' => $this->generateTransactionNo('LEGACY', $tuitionId),
+            'payment_method' => 'cash',
+            'amount' => $currentPaid,
+            'transaction_status' => 'success',
+        ]);
+    }
+
+    public function recordStudentWebPayment(int $studentId, int $tuitionId, float $amount, string $method = 'bank_transfer'): bool
+    {
+        if ($studentId <= 0 || $tuitionId <= 0 || $amount <= 0) {
+            return false;
+        }
+
+        $fee = $this->tuitionFeesTable->findByIdAndStudent($tuitionId, $studentId);
+        if (!$fee) {
+            return false;
+        }
+
+        $this->tuitionFeesTable->executeInTransaction(function () use ($tuitionId, $amount, $method): void {
+            $this->bootstrapLegacyPaymentLedger($tuitionId);
+
+            $this->paymentTransactionsTable->save([
+                'tuition_fee_id' => $tuitionId,
+                'transaction_no' => $this->generateTransactionNo('WEB', $tuitionId),
+                'payment_method' => $method,
+                'amount' => $amount,
+                'transaction_status' => 'success',
+            ]);
+
+            $this->syncTuitionFromPayments($tuitionId);
+        });
+
+        return true;
+    }
+
     public function saveTuitionPayment(int $tuitionId, float $amount, string $method = 'bank_transfer'): void
     {
-        $this->tuitionFeesTable->executeInTransaction(function () use ($tuitionId, $amount, $method): void {
-            $this->tuitionFeesTable->incrementAmountPaid($tuitionId, $amount);
+        if ($tuitionId <= 0 || $amount <= 0) {
+            return;
+        }
 
-            $transactionNo = sprintf('TXN-%d-%d', $tuitionId, time());
-            $this->paymentTransactionsTable->insertSuccess($tuitionId, $transactionNo, $method, $amount);
+        $this->tuitionFeesTable->executeInTransaction(function () use ($tuitionId, $amount, $method): void {
+            $this->bootstrapLegacyPaymentLedger($tuitionId);
+
+            $this->paymentTransactionsTable->save([
+                'tuition_fee_id' => $tuitionId,
+                'transaction_no' => $this->generateTransactionNo('TXN', $tuitionId),
+                'payment_method' => $method,
+                'amount' => $amount,
+                'transaction_status' => 'success',
+            ]);
+
+            $this->syncTuitionFromPayments($tuitionId);
         });
     }
 
     public function listPaymentTransactions(): array
     {
         return $this->paymentTransactionsTable->listDetailed();
+    }
+
+    public function countPaymentTransactions(): int
+    {
+        return $this->paymentTransactionsTable->countDetailed();
+    }
+
+    public function listPaymentTransactionsPage(int $page, int $perPage): array
+    {
+        return $this->paymentTransactionsTable->listDetailedPage($page, $perPage);
+    }
+
+    public function findPaymentTransaction(int $id): ?array
+    {
+        return $this->paymentTransactionsTable->findById($id);
+    }
+
+    public function savePaymentTransaction(array $data): void
+    {
+        $id = (int) ($data['id'] ?? 0);
+        $old = $id > 0 ? $this->paymentTransactionsTable->findById($id) : null;
+        $newTuitionId = (int) ($data['tuition_fee_id'] ?? 0);
+        $data['transaction_no'] = $this->resolveTransactionNo($data, $old);
+
+        $this->tuitionFeesTable->executeInTransaction(function () use ($data, $old, $newTuitionId): void {
+            if ($newTuitionId > 0) {
+                $this->bootstrapLegacyPaymentLedger($newTuitionId);
+            }
+
+            $this->paymentTransactionsTable->save($data);
+
+            $tuitionIds = [];
+            if ($old) {
+                $oldTuitionId = (int) ($old['tuition_fee_id'] ?? 0);
+                if ($oldTuitionId > 0) {
+                    $tuitionIds[$oldTuitionId] = true;
+                }
+            }
+            if ($newTuitionId > 0) {
+                $tuitionIds[$newTuitionId] = true;
+            }
+
+            foreach (array_keys($tuitionIds) as $tuitionId) {
+                $this->syncTuitionFromPayments((int) $tuitionId);
+            }
+        });
+    }
+
+    public function deletePaymentTransaction(int $id): void
+    {
+        $existing = $this->paymentTransactionsTable->findById($id);
+        if (!$existing) {
+            return;
+        }
+
+        $tuitionId = (int) ($existing['tuition_fee_id'] ?? 0);
+
+        $this->tuitionFeesTable->executeInTransaction(function () use ($id, $tuitionId): void {
+            $this->paymentTransactionsTable->deleteById($id);
+            $this->syncTuitionFromPayments($tuitionId);
+        });
     }
 }

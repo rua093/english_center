@@ -25,11 +25,10 @@ $deadlineValue = !empty($editingAssignment['deadline']) ? date('Y-m-d\TH:i', str
 $module = 'assignments';
 $adminTitle = $editingAssignment ? 'Học vụ - Sửa bài tập' : 'Học vụ - Thêm bài tập';
 ?>
-<section class="py-10 md:py-14">
-    <div class="mx-auto w-full max-w-3xl px-4 sm:px-6">
-        <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <h2><?= $editingAssignment ? 'Chỉnh sửa bài tập' : 'Thêm bài tập'; ?></h2>
-            <form class="grid gap-3" method="post" action="/api/assignments/save" enctype="multipart/form-data">
+<div class="grid gap-4">
+    <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <h2><?= $editingAssignment ? 'Chỉnh sửa bài tập' : 'Thêm bài tập'; ?></h2>
+        <form class="grid gap-3" method="post" action="/api/assignments/save" enctype="multipart/form-data">
                 <?= csrf_input(); ?>
                 <input type="hidden" name="id" value="<?= (int) ($editingAssignment['id'] ?? 0); ?>">
                 <label>Lesson
@@ -44,11 +43,10 @@ $adminTitle = $editingAssignment ? 'Học vụ - Sửa bài tập' : 'Học vụ
                 <label>Hạn nộp<input type="datetime-local" name="deadline" value="<?= e($deadlineValue); ?>" required></label>
                 <label>File URL<input type="text" name="file_url" value="<?= e((string) ($editingAssignment['file_url'] ?? '')); ?>"></label>
                 <label>Tải lên file<input type="file" name="assignment_file" accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.png"></label>
-                <button class="<?= ui_btn_primary_classes(); ?>" type="submit">Lưu bài tập</button>
-                <a class="<?= ui_btn_secondary_classes(); ?>" href="<?= e(page_url('assignments-academic')); ?>">Quay lại</a>
-            </form>
-        </article>
-    </div>
-</section>
+            <button class="<?= ui_btn_primary_classes(); ?>" type="submit">Lưu bài tập</button>
+            <a class="<?= ui_btn_secondary_classes(); ?>" href="<?= e(page_url('assignments-academic')); ?>">Quay lại</a>
+        </form>
+    </article>
+</div>
 
 

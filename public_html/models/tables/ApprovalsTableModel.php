@@ -6,6 +6,12 @@ require_once __DIR__ . '/../../core/table_model_utils.php';
 final class ApprovalsTableModel
 {
     use TableModelUtils;
+
+    public function countDetailed(): int
+    {
+        return (int) $this->fetchScalar('SELECT COUNT(*) AS total FROM approvals', [], 'total', 0);
+    }
+
     public function listDetailed(): array
     {
         $sql = "SELECT a.id, a.requester_id, a.approver_id, a.type AS content_type, a.type, a.id AS content_id, a.content, a.status, a.created_at,
@@ -14,6 +20,22 @@ final class ApprovalsTableModel
             LEFT JOIN users u ON u.id = a.approver_id
             LEFT JOIN users req ON req.id = a.requester_id
             ORDER BY a.created_at DESC";
+        return $this->fetchAll($sql);
+    }
+
+    public function listDetailedPage(int $page, int $perPage): array
+    {
+        $normalizedPage = max(1, $page);
+        $limit = $this->clampLimit($perPage, 10, 200);
+        $offset = ($normalizedPage - 1) * $limit;
+
+        $sql = "SELECT a.id, a.requester_id, a.approver_id, a.type AS content_type, a.type, a.id AS content_id, a.content, a.status, a.created_at,
+                u.full_name AS approver_name, req.full_name AS requester_name
+            FROM approvals a
+            LEFT JOIN users u ON u.id = a.approver_id
+            LEFT JOIN users req ON req.id = a.requester_id
+            ORDER BY a.created_at DESC
+            LIMIT {$limit} OFFSET {$offset}";
         return $this->fetchAll($sql);
     }
 
@@ -57,5 +79,10 @@ final class ApprovalsTableModel
             'status' => $status,
             'content' => $content,
         ]);
+    }
+
+    public function deleteById(int $id): void
+    {
+        $this->executeStatement('DELETE FROM approvals WHERE id = :id', ['id' => $id]);
     }
 }

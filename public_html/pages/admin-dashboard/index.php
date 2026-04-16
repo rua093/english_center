@@ -10,23 +10,19 @@ $recentMaterials = $academicModel->listMaterials();
 $recentNotifications = $academicModel->listNotifications();
 
 $module = 'dashboard';
-$adminTitle = 'Bảng điều khiển quản trị';
+$adminTitle = 'Bảng điều khiển';
+$adminDescription = 'Theo dõi nhanh số liệu học viên, học vụ và doanh thu.';
 
 $success = get_flash('success');
 $error = get_flash('error');
 ?>
 
 <div class="grid gap-4">
-    <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div>
-            <p class="mb-1 text-xs font-extrabold uppercase tracking-wide text-slate-500">Khu vực điều hành</p>
-            <h2>Tổng quan quản trị</h2>
-            <p>Dữ liệu tổng hợp theo lớp, học viên, giáo viên, bài tập và doanh thu học phí.</p>
-        </div>
-        <?php if (can_access_page('classes-academic')): ?>
+    <?php if (can_access_page('classes-academic')): ?>
+        <div class="flex justify-end rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
             <a class="<?= ui_btn_primary_classes(); ?>" href="<?= e(page_url('classes-academic')); ?>">Vào học vụ</a>
-        <?php endif; ?>
-    </div>
+        </div>
+    <?php endif; ?>
 
     <?php if ($success): ?>
         <div class="rounded-xl border-l-4 p-3 text-sm border-emerald-500 bg-emerald-50 text-emerald-700"><?= e($success); ?></div>
@@ -35,13 +31,6 @@ $error = get_flash('error');
     <?php if ($error): ?>
         <div class="rounded-xl border-l-4 p-3 text-sm border-rose-500 bg-rose-50 text-rose-700"><?= e($error); ?></div>
     <?php endif; ?>
-
-    <div class="flex flex-wrap gap-2">
-        <a class="rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-bold text-blue-700" href="<?= e(page_url('dashboard-admin')); ?>">Tổng quan</a>
-        <a class="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-600" href="<?= e(page_url('tuition-finance')); ?>">Tài chính</a>
-        <a class="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-600" href="<?= e(page_url('classes-academic')); ?>">Học vụ</a>
-        <a class="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-600" href="<?= e(page_url('approvals-manage')); ?>">Phê duyệt</a>
-    </div>
 
     <div class="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
         <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><h3>Lớp học</h3><p class="text-2xl font-extrabold text-blue-700"><?= (int) $stats['class_count']; ?></p></article>
@@ -55,6 +44,7 @@ $error = get_flash('error');
             <h3>Biểu đồ doanh thu 6 tháng gần nhất</h3>
             <p>Tổng học phí: <strong><?= format_money((float) $stats['tuition_total']); ?></strong> | Đã thu: <strong><?= format_money((float) $stats['tuition_paid']); ?></strong></p>
             <canvas id="tuitionChart" height="220"></canvas>
+            <p id="tuitionChartFallback" class="mt-2 hidden rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-700">Không thể tải thư viện biểu đồ, vui lòng kiểm tra kết nối mạng.</p>
         </article>
         <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm xl:col-span-1">
             <h3>Thông báo mới nhất</h3>
@@ -111,11 +101,14 @@ $error = get_flash('error');
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
     const chartData = <?= json_encode($chartData, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
-    const monthLabels = chartData.months.map((item) => item.month);
-    const tuitionValues = chartData.months.map((item) => Number(item.total));
+    const months = Array.isArray(chartData.months) ? chartData.months : [];
+    const monthLabels = months.map((item) => item.month);
+    const tuitionValues = months.map((item) => Number(item.total || 0));
 
     const tuitionCanvas = document.getElementById('tuitionChart');
-    if (tuitionCanvas) {
+    const tuitionFallback = document.getElementById('tuitionChartFallback');
+
+    if (tuitionCanvas && typeof Chart !== 'undefined') {
         new Chart(tuitionCanvas, {
             type: 'line',
             data: {
@@ -131,11 +124,26 @@ $error = get_flash('error');
             },
             options: {
                 responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                    },
+                },
                 plugins: {
                     legend: {display: false},
+                    tooltip: {
+                        callbacks: {
+                            label(context) {
+                                const value = Number(context.parsed.y || 0);
+                                return 'Doanh thu: ' + value.toLocaleString('vi-VN') + ' đ';
+                            },
+                        },
+                    },
                 },
             },
         });
+    } else if (tuitionFallback) {
+        tuitionFallback.classList.remove('hidden');
     }
 </script>
 
