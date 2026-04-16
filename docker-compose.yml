@@ -22,7 +22,7 @@ services:
       MYSQL_ROOT_PASSWORD: root_password
       MYSQL_DATABASE: english_center_db
       MYSQL_USER: user
-      MYSQL_PASSWORD: user_password
+      MYSQL_PASSWORD: 123456
     ports:
       - "3308:3306"
     volumes:
