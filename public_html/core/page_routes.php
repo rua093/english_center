@@ -6,6 +6,7 @@ function page_route_definitions(): array
 	return [
 		'home' => ['directory' => 'home', 'aliases' => []],
 		'login' => ['directory' => 'login', 'aliases' => []],
+		'register' => ['directory' => 'register', 'aliases' => []],
 		'logout' => ['directory' => 'logout', 'aliases' => []],
 		'admin' => ['directory' => 'admin', 'aliases' => []],
 		'profile' => ['directory' => 'profile', 'aliases' => []],
@@ -58,7 +59,7 @@ function resolve_page_slug(string $page): string
 			return $canonicalSlug;
 		}
 	}
-
+	
 	return $normalized;
 }
 

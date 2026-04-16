@@ -10,115 +10,202 @@ $teacherSchedules = (new UserModel())->teacherUpcomingSchedules((int) ($user['id
 $success = get_flash('success');
 $error = get_flash('error');
 ?>
-<section class="py-10 md:py-14">
-    <div class="mx-auto w-full max-w-6xl px-4 sm:px-6 grid gap-4">
-        <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+
+<section class="py-10">
+    <div class="mx-auto w-full max-w-7xl px-4 sm:px-6">
+        
+        <header class="mb-10 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
             <div>
-                <h1>Bảng điều khiển giáo viên</h1>
-                <p>Quản lý bài tập, chấm điểm theo lớp và lịch dạy của bạn.</p>
+                <nav class="mb-2 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-blue-600">
+                    <span class="h-1.5 w-1.5 rounded-full bg-blue-600"></span>
+                    Hệ thống quản trị giáo viên
+                </nav>
+                <h1 class="text-3xl font-black text-slate-900 tracking-tight">
+                    Chào buổi sáng, <span class="text-blue-700">Thầy <?= e($user['full_name'] ?? 'Bảo'); ?></span>!
+                </h1>
+                <p class="mt-1 text-slate-500 font-medium">Hôm nay bạn có <span class="text-blue-600 font-bold"><?= count(array_filter($submissions, fn($s) => !isset($s['score']))); ?> bài nộp</span> đang chờ chấm điểm.</p>
             </div>
-            <?php if (can_access_page('assignments-academic')): ?>
-                <a class="inline-flex items-center justify-center rounded-xl bg-blue-700 px-4 py-2.5 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-blue-800" href="<?= e(page_url('assignments-academic')); ?>">Quản lý bài tập</a>
-            <?php endif; ?>
-        </div>
-
-        <div class="flex flex-wrap gap-2">
-            <span class="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold border-emerald-200 bg-emerald-50 text-emerald-700">Hàng chờ chấm điểm</span>
-            <span class="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold border-amber-200 bg-amber-50 text-amber-700">Điều phối bài tập</span>
-            <span class="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold border-rose-200 bg-rose-50 text-rose-700">Góc nhìn giáo viên</span>
-        </div>
-
-        <div class="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-3 md:flex-row md:items-center md:justify-between">
-            <div class="flex flex-wrap gap-2">
-                <?php if (can_access_page('classrooms-academic')): ?>
-                    <a href="<?= e(page_url('classrooms-academic')); ?>"><span class="text-[10px] font-extrabold uppercase tracking-wide text-slate-400">Lớp học</span><span class="text-xs font-bold">Điều phối buổi dạy</span></a>
-                <?php endif; ?>
+            
+            <div class="flex items-center gap-3">
                 <?php if (can_access_page('assignments-academic')): ?>
-                    <a href="<?= e(page_url('assignments-academic')); ?>"><span class="text-[10px] font-extrabold uppercase tracking-wide text-slate-400">Học vụ</span><span class="text-xs font-bold">Quản lý bài tập</span></a>
-                <?php endif; ?>
-                <?php if (can_access_page('dashboard-teacher')): ?>
-                    <a href="<?= e(page_url('dashboard-teacher')); ?>"><span class="text-[10px] font-extrabold uppercase tracking-wide text-slate-400">Tổng quan</span><span class="text-xs font-bold">Bảng điều khiển giáo viên</span></a>
+                    <a class="inline-flex items-center justify-center rounded-2xl bg-blue-700 px-6 py-3 text-sm font-black text-white shadow-lg shadow-blue-700/20 transition-all hover:bg-blue-800 hover:-translate-y-1 active:scale-95" href="<?= e(page_url('assignments-academic')); ?>">
+                        + TẠO BÀI TẬP MỚI
+                    </a>
                 <?php endif; ?>
             </div>
+        </header>
+
+        <div class="mb-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <article class="group relative overflow-hidden rounded-[2rem] border border-white bg-white p-6 shadow-xl shadow-slate-900/5 transition-all hover:shadow-blue-900/10">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-bold uppercase tracking-widest text-slate-400">Tổng bài tập</p>
+                        <h4 class="mt-2 text-4xl font-black text-slate-900"><?= count($assignments); ?></h4>
+                    </div>
+                    <div class="rounded-2xl bg-blue-50 p-4 text-blue-600 transition-transform group-hover:scale-110">
+                        <i class="fa-solid fa-file-signature text-2xl"></i>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center gap-2 text-xs font-bold text-blue-600">
+                    <span>Quản lý kho bài tập</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </div>
+            </article>
+
+            <article class="group relative overflow-hidden rounded-[2rem] border border-white bg-white p-6 shadow-xl shadow-slate-900/5 transition-all hover:shadow-rose-900/10">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-bold uppercase tracking-widest text-slate-400">Cần chấm điểm</p>
+                        <h4 class="mt-2 text-4xl font-black text-rose-600"><?= count(array_filter($submissions, fn($s) => !isset($s['score']))); ?></h4>
+                    </div>
+                    <div class="rounded-2xl bg-rose-50 p-4 text-rose-600 transition-transform group-hover:scale-110">
+                        <i class="fa-solid fa-clock-rotate-left text-2xl"></i>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center gap-2 text-xs font-bold text-rose-600">
+                    <span>Ưu tiên chấm ngay</span>
+                    <i class="fa-solid fa-fire-flame-curved"></i>
+                </div>
+            </article>
+
+            <article class="group relative overflow-hidden rounded-[2rem] border border-white bg-white p-6 shadow-xl shadow-slate-900/5 transition-all hover:shadow-emerald-900/10">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-bold uppercase tracking-widest text-slate-400">Đã hoàn thành</p>
+                        <h4 class="mt-2 text-4xl font-black text-emerald-600"><?= count(array_filter($submissions, fn($s) => isset($s['score']))); ?></h4>
+                    </div>
+                    <div class="rounded-2xl bg-emerald-50 p-4 text-emerald-600 transition-transform group-hover:scale-110">
+                        <i class="fa-solid fa-check-double text-2xl"></i>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center gap-2 text-xs font-bold text-emerald-600">
+                    <span>Tiến độ tuyệt vời!</span>
+                </div>
+            </article>
         </div>
 
-        <?php if ($success): ?>
-            <div class="rounded-xl border-l-4 p-3 text-sm border-emerald-500 bg-emerald-50 text-emerald-700"><?= e($success); ?></div>
+        <?php if ($success || $error): ?>
+            <div class="mb-8">
+                <?php if ($success): ?>
+                    <div class="flex items-center gap-3 rounded-2xl border border-emerald-100 bg-emerald-50 p-4 text-sm font-bold text-emerald-700 shadow-sm">
+                        <i class="fa-solid fa-circle-check"></i> <?= e($success); ?>
+                    </div>
+                <?php endif; ?>
+                <?php if ($error): ?>
+                    <div class="flex items-center gap-3 rounded-2xl border border-rose-100 bg-rose-50 p-4 text-sm font-bold text-rose-700 shadow-sm">
+                        <i class="fa-solid fa-circle-exclamation"></i> <?= e($error); ?>
+                    </div>
+                <?php endif; ?>
+            </div>
         <?php endif; ?>
 
-        <?php if ($error): ?>
-            <div class="rounded-xl border-l-4 p-3 text-sm border-rose-500 bg-rose-50 text-rose-700"><?= e($error); ?></div>
-        <?php endif; ?>
+        <div class="grid grid-cols-1 gap-8 lg:grid-cols-12">
+            
+            <div class="lg:col-span-8 space-y-8">
+                
+                <article class="rounded-[2rem] border border-white bg-white p-8 shadow-xl shadow-slate-900/5">
+                    <div class="mb-6 flex items-center justify-between">
+                        <h3 class="text-xl font-black text-slate-800 tracking-tight">Hàng chờ chấm điểm</h3>
+                        <a href="<?= e(page_url('submissions-academic')); ?>" class="text-xs font-bold text-blue-600 hover:underline">Xem tất cả</a>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr class="border-b border-slate-50">
+                                    <th class="pb-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Học viên</th>
+                                    <th class="pb-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Bài tập</th>
+                                    <th class="pb-4 text-right text-[10px] font-black uppercase tracking-widest text-slate-400">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-50">
+                                <?php $pending = array_values(array_filter($submissions, fn($s) => !isset($s['score']))); ?>
+                                <?php if (empty($pending)): ?>
+                                    <tr>
+                                        <td colspan="3" class="py-10 text-center text-sm font-medium text-slate-400 italic">Không có bài nộp nào đang chờ.</td>
+                                    </tr>
+                                <?php else: ?>
+                                    <?php foreach (array_slice($pending, 0, 5) as $sub): ?>
+                                        <tr class="group transition-colors hover:bg-slate-50/50">
+                                            <td class="py-4">
+                                                <span class="text-sm font-bold text-slate-700"><?= e((string) $sub['student_name']); ?></span>
+                                            </td>
+                                            <td class="py-4">
+                                                <span class="text-sm text-slate-500"><?= e((string) $sub['assignment_title']); ?></span>
+                                            </td>
+                                            <td class="py-4 text-right">
+                                                <a href="<?= e(page_url('submissions-academic')); ?>" class="rounded-xl bg-blue-50 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-blue-700 transition-all hover:bg-blue-700 hover:text-white">Chấm bài</a>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </article>
 
-        <div class="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
-            <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><h3>Bài tập</h3><p class="text-2xl font-extrabold text-blue-700"><?= count($assignments); ?></p></article>
-            <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><h3>Bài nộp cần chấm</h3><p class="text-2xl font-extrabold text-blue-700"><?= count($submissions); ?></p></article>
-            <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><h3>Bài nộp đã chấm</h3><p class="text-2xl font-extrabold text-blue-700"><?= count(array_filter($submissions, fn($s) => isset($s['score']) && $s['score'] !== null)); ?></p></article>
-        </div>
+                <article class="rounded-[2rem] border border-white bg-white p-8 shadow-xl shadow-slate-900/5">
+                    <h3 class="mb-6 text-xl font-black text-slate-800 tracking-tight">Bài tập vừa tạo</h3>
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <?php if (empty($assignments)): ?>
+                            <div class="col-span-2 py-8 text-center text-sm text-slate-400 italic">Chưa có bài tập nào.</div>
+                        <?php else: ?>
+                            <?php foreach (array_slice($assignments, 0, 4) as $a): ?>
+                                <div class="rounded-2xl border border-slate-50 bg-slate-50/50 p-4 transition hover:bg-white hover:shadow-md">
+                                    <h4 class="text-sm font-bold text-slate-700 truncate"><?= e((string) $a['title']); ?></h4>
+                                    <p class="mt-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Hạn chót: <?= e((string) $a['deadline']); ?></p>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </div>
+                </article>
+            </div>
 
-        <div class="grid gap-4 grid-cols-1 lg:grid-cols-2">
-            <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                <h3>Bài tập gần đây</h3>
-                <?php if (empty($assignments)): ?>
-                    <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">Chưa có bài tập nào.</div>
-                <?php else: ?>
-                    <ul class="m-0 grid list-none gap-2 p-0">
-                        <?php foreach (array_slice($assignments, 0, 5) as $a): ?>
-                            <li><?= e((string) $a['title']); ?> - <?= e((string) $a['deadline']); ?></li>
-                        <?php endforeach; ?>
-                    </ul>
-                <?php endif; ?>
-            </article>
-            <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                <h3>Bài nộp cần chấm</h3>
-                <?php $pendingSubmissions = array_values(array_filter($submissions, fn($s) => !isset($s['score']) || $s['score'] === null)); ?>
-                <?php if (empty($pendingSubmissions)): ?>
-                    <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">Không còn bài nộp cần chấm.</div>
-                <?php else: ?>
-                    <ul class="m-0 grid list-none gap-2 p-0">
-                        <?php foreach (array_slice($pendingSubmissions, 0, 5) as $sub): ?>
-                            <li><?= e((string) $sub['student_name']); ?> - <?= e((string) $sub['assignment_title']); ?></li>
-                        <?php endforeach; ?>
-                    </ul>
-                <?php endif; ?>
-            </article>
+            <div class="lg:col-span-4 space-y-8">
+                
+                <article class="rounded-[2rem] border border-white bg-blue-900 p-8 text-white shadow-xl shadow-blue-900/20">
+                    <h3 class="mb-6 text-lg font-black tracking-tight">Lịch dạy 7 ngày tới</h3>
+                    <div class="space-y-4">
+                        <?php if (empty($teacherSchedules)): ?>
+                            <p class="text-center text-xs text-blue-300 italic py-4">Bạn đang có thời gian nghỉ ngơi!</p>
+                        <?php else: ?>
+                            <?php foreach ($teacherSchedules as $schedule): ?>
+                                <div class="relative pl-4 before:absolute before:left-0 before:top-1 before:h-2 before:w-2 before:rounded-full before:bg-blue-400">
+                                    <h5 class="text-sm font-bold leading-tight"><?= e((string) $schedule['class_name']); ?></h5>
+                                    <div class="mt-1 flex flex-wrap gap-x-3 text-[10px] font-bold text-blue-300 uppercase">
+                                        <span><?= e((string) $schedule['study_date']); ?></span>
+                                        <span><?= e((string) $schedule['start_time']); ?> - <?= e((string) $schedule['end_time']); ?></span>
+                                    </div>
+                                    <p class="mt-1 text-[10px] font-medium text-blue-400">Phòng: <?= e((string) $schedule['room_name']); ?></p>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </div>
+                </article>
 
-            <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                <h3>Lịch dạy 7 ngày tới</h3>
-                <?php if (empty($teacherSchedules)): ?>
-                    <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">Chưa có lịch dạy trong 7 ngày tới.</div>
-                <?php else: ?>
-                    <ul class="m-0 grid list-none gap-2 p-0">
-                        <?php foreach ($teacherSchedules as $schedule): ?>
-                            <li>
-                                <strong><?= e((string) $schedule['class_name']); ?></strong>
-                                <small>#<?= (int) ($schedule['schedule_id'] ?? 0); ?> | <?= e((string) $schedule['study_date']); ?> | <?= e((string) $schedule['start_time']); ?> - <?= e((string) $schedule['end_time']); ?> | <?= e((string) $schedule['room_name']); ?></small>
-                            </li>
-                        <?php endforeach; ?>
-                    </ul>
-                <?php endif; ?>
+                <article class="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-xl shadow-slate-900/5">
+                    <h3 class="mb-4 text-base font-black text-slate-800 tracking-tight">Yêu cầu dời lịch dạy</h3>
+                    <p class="mb-6 text-xs font-medium text-slate-400 leading-relaxed">Admin sẽ xem xét và phản hồi yêu cầu của bạn trong vòng 24h.</p>
+                    
+                    <form class="space-y-4" method="post" action="/api/teachers/request-leave">
+                        <?= csrf_input(); ?>
+                        <div>
+                            <label class="mb-1.5 ml-1 block text-[10px] font-black uppercase tracking-widest text-slate-400">Chọn ID Lịch học</label>
+                            <input type="number" name="schedule_id" min="1" required class="w-full rounded-xl border-slate-200 bg-slate-50 px-4 py-2.5 text-sm transition-all focus:ring-4 focus:ring-blue-100 focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label class="mb-1.5 ml-1 block text-[10px] font-black uppercase tracking-widest text-slate-400">Ngày đề xuất mới</label>
+                            <input type="date" name="new_date" required class="w-full rounded-xl border-slate-200 bg-slate-50 px-4 py-2.5 text-sm transition-all focus:ring-4 focus:ring-blue-100 focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label class="mb-1.5 ml-1 block text-[10px] font-black uppercase tracking-widest text-slate-400">Lý do xin dời</label>
+                            <textarea name="reason" rows="2" placeholder="Ví dụ: Công tác đột xuất..." required class="w-full rounded-xl border-slate-200 bg-slate-50 px-4 py-2.5 text-sm transition-all focus:ring-4 focus:ring-blue-100 focus:border-blue-500"></textarea>
+                        </div>
+                        <button class="w-full rounded-xl bg-slate-900 py-3 text-xs font-black text-white shadow-lg shadow-slate-900/20 transition-all hover:bg-black hover:-translate-y-1" type="submit">GỬI PHÊ DUYỆT</button>
+                    </form>
+                </article>
 
-                <hr class="my-4 border-0 border-t border-slate-200">
-                <h4>Yêu cầu nghỉ/dời lịch dạy</h4>
-                <form class="grid gap-3" method="post" action="/api/teachers/request-leave">
-                    <?= csrf_input(); ?>
-                    <label>
-                        ID lịch dạy
-                        <input type="number" name="schedule_id" min="1" required>
-                    </label>
-                    <label>
-                        Ngày đề xuất dời lịch
-                        <input type="date" name="new_date" required>
-                    </label>
-                    <label>
-                        Lý do
-                        <input type="text" name="reason" placeholder="Ví dụ: Công tác đột xuất" required>
-                    </label>
-                    <button class="inline-flex items-center justify-center rounded-xl bg-blue-700 px-3 py-1.5 text-xs font-bold text-white transition hover:-translate-y-0.5 hover:bg-blue-800" type="submit">Gửi yêu cầu phê duyệt</button>
-                </form>
-            </article>
+            </div>
         </div>
     </div>
 </section>
-
-
