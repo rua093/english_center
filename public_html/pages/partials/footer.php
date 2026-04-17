@@ -1,127 +1,111 @@
 </main> 
-<footer class="bg-[#050814] text-slate-400 pt-24 pb-10 relative overflow-hidden border-t border-white/5 font-jakarta">
-    <div class="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-[#00d4ff]/40 to-transparent opacity-50"></div>
-    <div class="absolute -top-40 -left-40 w-96 h-96 bg-[#2e3192]/20 rounded-full blur-[120px] pointer-events-none"></div>
-    <div class="absolute -bottom-40 -right-40 w-96 h-96 bg-[#00d4ff]/10 rounded-full blur-[120px] pointer-events-none"></div>
+<footer class="bg-blue-950 text-blue-200/70 pt-16 pb-7 relative overflow-hidden font-jakarta">
+    
+    <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-blue-400 to-transparent opacity-60"></div>
+    
+    <div class="absolute -top-24 left-1/2 -translate-x-1/2 w-full h-64 bg-blue-600/10 blur-[120px] pointer-events-none"></div>
 
     <div class="mx-auto w-full max-w-7xl px-4 sm:px-6 relative z-10">
         
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 lg:gap-12 mb-20">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-12 mb-12">
             
-            <div class="lg:col-span-4 flex flex-col pr-0 lg:pr-6">
-                <a href="#top" class="inline-flex items-center gap-4 mb-6 group">
-                    <div class="h-14 w-14 rounded-2xl bg-gradient-to-br from-[#00d4ff] to-[#008fb3] flex items-center justify-center text-[#2e3192] font-black text-2xl shadow-[0_10px_20px_rgba(0,212,255,0.3)] group-hover:rotate-12 group-hover:scale-105 transition-all duration-300">
+            <div class="lg:col-span-4 flex flex-col pr-0 lg:pr-10">
+                <a href="#top" class="inline-flex items-center gap-3 mb-5 group">
+                    <div class="h-12 w-12 rounded-xl bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform">
                         NM
                     </div>
                     <div class="flex flex-col">
-                        <span class="text-2xl font-black text-white tracking-tight uppercase leading-none">Nhuệ Minh</span>
-                        <span class="text-[#00d4ff] font-bold text-sm tracking-widest uppercase mt-1">Education</span>
+                        <span class="text-xl font-black text-white tracking-tight uppercase leading-none">Nhuệ Minh</span>
+                        <span class="text-blue-400 font-bold text-[10px] tracking-widest uppercase mt-1">Language Center</span>
                     </div>
                 </a>
-                <p class="text-slate-400 text-sm leading-relaxed mb-8 font-medium">
-                    Chúng tôi không chỉ dạy tiếng Anh, chúng tôi xây dựng nền tảng tư duy toàn cầu, khơi nguồn tự tin và kiến tạo tương lai cho thế hệ trẻ Việt Nam.
+                <p class="text-sm leading-relaxed mb-6 font-medium">
+                    Hệ thống đào tạo Anh ngữ chuẩn quốc tế, giúp học viên bứt phá giới hạn và tự tin kết nối toàn cầu.
                 </p>
-                <div class="flex gap-4">
-                    <a href="#" class="w-11 h-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-300 hover:bg-[#2e3192] hover:text-white hover:border-[#2e3192] hover:-translate-y-1 transition-all duration-300 shadow-sm group">
-                        <i class="fa-brands fa-facebook-f text-lg group-hover:scale-110 transition-transform"></i>
+                <div class="flex gap-3">
+                    <a href="#" class="w-10 h-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-blue-300 hover:bg-blue-600 hover:text-white hover:border-blue-500 transition-all duration-300">
+                        <i class="fa-brands fa-facebook-f text-base"></i>
                     </a>
-                    <a href="#" class="w-11 h-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-300 hover:bg-gradient-to-tr hover:from-pink-500 hover:to-orange-500 hover:text-white hover:border-transparent hover:-translate-y-1 transition-all duration-300 shadow-sm group">
-                        <i class="fa-brands fa-instagram text-xl group-hover:scale-110 transition-transform"></i>
+                    <a href="#" class="w-10 h-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-blue-300 hover:bg-gradient-to-tr hover:from-pink-500 hover:to-orange-500 hover:text-white transition-all duration-300">
+                        <i class="fa-brands fa-instagram text-lg"></i>
                     </a>
-                    <a href="#" class="w-11 h-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-300 hover:bg-[#ff0000] hover:text-white hover:border-transparent hover:-translate-y-1 transition-all duration-300 shadow-sm group">
-                        <i class="fa-brands fa-youtube text-lg group-hover:scale-110 transition-transform"></i>
+                    <a href="#" class="w-10 h-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-blue-300 hover:bg-red-600 hover:text-white transition-all duration-300">
+                        <i class="fa-brands fa-youtube text-base"></i>
                     </a>
                 </div>
             </div>
 
-            <div class="lg:col-span-2 md:pt-4">
-                <h4 class="text-white font-black mb-6 text-sm uppercase tracking-widest relative inline-block">
+            <div class="lg:col-span-2">
+                <h4 class="text-white font-black mb-6 text-xs uppercase tracking-widest relative">
                     Khám phá
-                    <span class="absolute -bottom-2 left-0 w-1/2 h-1 bg-[#00d4ff] rounded-full"></span>
+                    <span class="absolute -bottom-2 left-0 w-6 h-0.5 bg-blue-400"></span>
                 </h4>
-                <ul class="space-y-4 text-sm font-medium mt-8">
-                    <li><a href="#" class="text-slate-400 hover:text-[#00d4ff] transition-all flex items-center gap-2 group"><i class="fa-solid fa-chevron-right text-[10px] opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-[#00d4ff]"></i>Về Nhuệ Minh</a></li>
-                    <li><a href="#" class="text-slate-400 hover:text-[#00d4ff] transition-all flex items-center gap-2 group"><i class="fa-solid fa-chevron-right text-[10px] opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-[#00d4ff]"></i>Đội ngũ giáo viên</a></li>
-                    <li><a href="#" class="text-slate-400 hover:text-[#00d4ff] transition-all flex items-center gap-2 group"><i class="fa-solid fa-chevron-right text-[10px] opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-[#00d4ff]"></i>Các khóa học</a></li>
-                    <li><a href="#" class="text-slate-400 hover:text-[#00d4ff] transition-all flex items-center gap-2 group"><i class="fa-solid fa-chevron-right text-[10px] opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-[#00d4ff]"></i>Thành tích học viên</a></li>
+                <ul class="space-y-3 text-xs font-bold mt-6">
+                    <li><a href="#" class="hover:text-blue-400 transition-all flex items-center gap-2 group"><i class="fa-solid fa-chevron-right text-[8px] opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all"></i>Về Nhuệ Minh</a></li>
+                    <li><a href="#" class="hover:text-blue-400 transition-all flex items-center gap-2 group"><i class="fa-solid fa-chevron-right text-[8px] opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all"></i>Các khóa học</a></li>
+                    <li><a href="#" class="hover:text-blue-400 transition-all flex items-center gap-2 group"><i class="fa-solid fa-chevron-right text-[8px] opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all"></i>Thành tích</a></li>
                 </ul>
             </div>
 
-            <div class="lg:col-span-3 md:pt-4">
-                <h4 class="text-white font-black mb-6 text-sm uppercase tracking-widest relative inline-block">
+            <div class="lg:col-span-3">
+                <h4 class="text-white font-black mb-6 text-xs uppercase tracking-widest relative">
                     Hệ thống
-                    <span class="absolute -bottom-2 left-0 w-1/2 h-1 bg-[#00d4ff] rounded-full"></span>
+                    <span class="absolute -bottom-2 left-0 w-6 h-0.5 bg-blue-400"></span>
                 </h4>
-                <ul class="space-y-4 text-sm font-medium mt-8">
+                <ul class="space-y-3 mt-6">
                     <?php if (!is_logged_in()): ?>
                         <li>
-                            <a href="<?= e(page_url('login')); ?>" class="group flex items-center gap-3 text-slate-400 hover:text-white transition-all">
-                                <div class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-[#00d4ff] group-hover:text-[#2e3192] transition-colors"><i class="fa-solid fa-user-graduate text-xs"></i></div>
-                                <span>Cổng học viên</span>
+                            <a href="<?= e(page_url('login')); ?>" class="group flex items-center gap-3 hover:text-white transition-all">
+                                <div class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-blue-400 group-hover:bg-blue-400 group-hover:text-blue-950 transition-all"><i class="fa-solid fa-graduation-cap text-xs"></i></div>
+                                <span class="text-xs font-bold">Cổng học viên</span>
                             </a>
                         </li>
                     <?php endif; ?>
                     <li>
-                        <a href="#" class="group flex items-center gap-3 text-slate-400 hover:text-white transition-all">
-                            <div class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-[#00d4ff] group-hover:text-[#2e3192] transition-colors"><i class="fa-regular fa-calendar-days text-xs"></i></div>
-                            <span>Lịch khai giảng</span>
+                        <a href="#" class="group flex items-center gap-3 hover:text-white transition-all">
+                            <div class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-blue-400 group-hover:bg-blue-400 group-hover:text-blue-950 transition-all"><i class="fa-solid fa-calendar-days text-xs"></i></div>
+                            <span class="text-xs font-bold">Lịch khai giảng</span>
                         </a>
                     </li>
-                    <?php if (can_access_page('dashboard-admin')): ?>
-                        <li>
-                            <a href="/admin" class="group flex items-center gap-3 text-[#00d4ff] hover:text-white transition-all">
-                                <div class="w-8 h-8 rounded-full bg-[#00d4ff]/20 flex items-center justify-center group-hover:bg-[#00d4ff] group-hover:text-[#2e3192] transition-colors"><i class="fa-solid fa-shield-halved text-xs"></i></div>
-                                <span class="font-bold">Khu vực quản trị</span>
-                            </a>
-                        </li>
-                    <?php endif; ?>
                 </ul>
             </div>
 
-            <div class="lg:col-span-3 md:pt-4">
-                <h4 class="text-white font-black mb-6 text-sm uppercase tracking-widest relative inline-block">
-                    Liên hệ
-                    <span class="absolute -bottom-2 left-0 w-1/2 h-1 bg-[#00d4ff] rounded-full"></span>
+            <div class="lg:col-span-3">
+                <h4 class="text-white font-black mb-6 text-xs uppercase tracking-tight relative">
+                    Liên hệ ngay
+                    <span class="absolute -bottom-2 left-0 w-6 h-0.5 bg-blue-400"></span>
                 </h4>
-                <div class="space-y-5 text-sm font-medium mt-8">
-                    <div class="flex gap-4 items-start group cursor-pointer">
-                        <div class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-[#00d4ff] flex-shrink-0 group-hover:bg-[#00d4ff] group-hover:text-[#2e3192] transition-all shadow-sm">
-                            <i class="fa-solid fa-location-dot"></i>
+                <div class="space-y-4 mt-6">
+                    <div class="flex gap-3 items-start group">
+                        <div class="w-9 h-9 rounded-lg bg-white/5 flex items-center justify-center text-blue-400 flex-shrink-0 group-hover:bg-blue-400 group-hover:text-blue-950 transition-all">
+                            <i class="fa-solid fa-location-dot text-sm"></i>
                         </div>
-                        <span class="leading-relaxed pt-1 text-slate-400 group-hover:text-white transition-colors">Thôn Phú Thạnh - Phường Quảng Phú, TP. Đà Nẵng</span>
+                        <span class="text-[13px] font-bold leading-relaxed pt-1">Thôn Phú Thạnh - Phường Quảng Phú, TP. Đà Nẵng</span>
                     </div>
-                    <div class="flex gap-4 items-start group cursor-pointer">
-                        <div class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-[#00d4ff] flex-shrink-0 group-hover:bg-[#00d4ff] group-hover:text-[#2e3192] transition-all shadow-sm">
-                            <i class="fa-solid fa-phone"></i>
+                    <div class="flex gap-3 items-center group">
+                        <div class="w-9 h-9 rounded-lg bg-white/5 flex items-center justify-center text-blue-400 flex-shrink-0 group-hover:bg-blue-400 group-hover:text-blue-950 transition-all">
+                            <i class="fa-solid fa-phone-volume text-sm"></i>
                         </div>
-                        <div class="flex flex-col pt-1">
-                            <a href="tel:02873083333" class="text-slate-400 hover:text-[#00d4ff] transition-all text-lg font-bold">028 7308 3333</a>
-                            <span class="text-xs text-slate-500">Miễn phí cước cuộc gọi</span>
-                        </div>
+                        <a href="tel:02873083333" class="text-lg font-black text-white hover:text-blue-400 transition-all">028 7308 3333</a>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-6 relative">
-            
-            <p class="text-xs font-bold text-slate-500 uppercase tracking-widest text-center md:text-left">
-                &copy; <?= date('Y'); ?> <span class="text-white">Nhuệ Minh Edu.</span> Crafted with <i class="fa-solid fa-heart text-red-500 mx-1"></i>
+        <div class="pt-6 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-4">
+            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">
+                &copy; <?= date('Y'); ?> <span class="text-blue-400">Nhuệ Minh Edu.</span>
             </p>
 
-            <div class="flex flex-wrap justify-center gap-x-8 gap-y-3 text-xs font-bold uppercase tracking-widest text-slate-500">
-                <a href="#" class="hover:text-[#00d4ff] transition-colors">Bảo mật</a>
-                <a href="#" class="hover:text-[#00d4ff] transition-colors">Điều khoản</a>
-                <a href="#" class="hover:text-[#00d4ff] transition-colors">Sitemap</a>
+            <div class="flex gap-6 text-[10px] font-black uppercase tracking-widest text-slate-500">
+                <a href="#" class="hover:text-white transition-colors">Bảo mật</a>
+                <a href="#" class="hover:text-white transition-colors">Điều khoản</a>
             </div>
             
-            <a href="#top" class="group flex items-center gap-3 px-5 py-2.5 bg-white/5 border border-white/10 rounded-full text-xs font-black tracking-widest hover:bg-[#00d4ff] hover:border-[#00d4ff] transition-all duration-300 shadow-sm absolute right-0 md:relative bottom-10 md:bottom-0">
-                <span class="text-slate-400 group-hover:text-[#2e3192] transition-colors hidden sm:block">LÊN ĐẦU TRANG</span>
-                <div class="w-8 h-8 rounded-full bg-[#2e3192] flex items-center justify-center text-white group-hover:bg-white group-hover:text-[#2e3192] transition-colors shadow-inner">
-                    <i class="fa-solid fa-arrow-up"></i>
-                </div>
+            <a href="#top" class="group flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-[10px] font-black text-blue-400 hover:bg-blue-400 hover:text-blue-950 transition-all duration-500">
+                <span>LÊN ĐẦU TRANG</span>
+                <i class="fa-solid fa-arrow-up transition-transform group-hover:-translate-y-1"></i>
             </a>
-            
         </div>
     </div>
 </footer>
