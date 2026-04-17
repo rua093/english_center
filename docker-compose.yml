@@ -4,7 +4,7 @@ services:
     build: . # Thay vì dùng image gốc, ta gọi Dockerfile vừa tạo
     container_name: php_app
     ports:
-      - "8080:80"
+      - "0.0.0.0:8080:80"
     volumes:
       - ./public_html:/var/www/html
       - ./src:/var/www/src
