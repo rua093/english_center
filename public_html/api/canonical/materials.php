@@ -11,38 +11,41 @@ function api_materials_save_action(): void
 
 	$materialId = input_int($_POST, 'id');
 	api_guard_permission($materialId > 0 ? 'materials.update' : 'materials.create');
+	$editPath = $materialId > 0 ? page_url('materials-academic-edit', ['id' => $materialId]) : page_url('materials-academic-edit');
 
 	$payload = $_POST;
 	if (empty($payload['course_id']) && !empty($payload['class_id'])) {
 		$payload['course_id'] = $payload['class_id'];
 	}
 
-	$uploadPath = input_string($payload, 'file_path');
+	$uploadPath = input_string($payload, 'existing_file_path');
+	$manualFilePath = input_string($payload, 'file_path');
+	if ($manualFilePath !== '') {
+		$uploadPath = $manualFilePath;
+	}
+
 	if (!empty($_FILES['material_file']['name'])) {
 		$fileUpload = store_uploaded_file($_FILES['material_file'], 'material');
 		if ($fileUpload === null) {
-			set_flash('error', 'Tải lên tài liệu thất bại.');
-			redirect(page_url('materials-academic'));
+			$uploadErrorCode = (int) ($_FILES['material_file']['error'] ?? UPLOAD_ERR_OK);
+			$uploadMessage = 'Tải lên tài liệu thất bại.';
+			if ($uploadErrorCode === UPLOAD_ERR_INI_SIZE || $uploadErrorCode === UPLOAD_ERR_FORM_SIZE) {
+				$uploadMessage = 'File tài liệu vượt quá giới hạn dung lượng cho phép.';
+			}
+
+			set_flash('error', $uploadMessage);
+			redirect($editPath);
 		}
 		$uploadPath = $fileUpload;
 	}
 
-	if (empty($payload['type'])) {
-		$extension = strtolower(pathinfo($uploadPath, PATHINFO_EXTENSION));
-		$payload['type'] = match ($extension) {
-			'mp3' => 'mp3',
-			'mp4', 'mov', 'webm', 'avi' => 'video',
-			default => 'pdf',
-		};
-	}
-
 	if (
 		input_int($payload, 'course_id') <= 0 ||
-		input_string($payload, 'title') === '' ||
-		!in_array((string) ($payload['type'] ?? ''), ['pdf', 'mp3', 'video'], true)
+		$uploadPath === '' ||
+		input_string($payload, 'title') === ''
 	) {
-		set_flash('error', 'Vui lòng nhập đầy đủ khóa học, tiêu đề và kiểu tài liệu.');
-		redirect($materialId > 0 ? page_url('materials-academic-edit', ['id' => $materialId]) : page_url('materials-academic-edit'));
+		set_flash('error', 'Vui lòng nhập đầy đủ khóa học, tiêu đề và tải lên file.');
+		redirect($editPath);
 	}
 
 	$payload['file_path'] = $uploadPath;

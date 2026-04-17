@@ -4,13 +4,14 @@ require_permission('finance.tuition.view');
 
 $academicModel = new AcademicModel();
 $tuitionPage = max(1, (int) ($_GET['tuition_page'] ?? 1));
-$tuitionPerPage = 10;
+$tuitionPerPage = ui_pagination_resolve_per_page('tuition_per_page', 10);
 $tuitionTotal = $academicModel->countTuitionFees();
 $tuitionTotalPages = max(1, (int) ceil($tuitionTotal / $tuitionPerPage));
 if ($tuitionPage > $tuitionTotalPages) {
     $tuitionPage = $tuitionTotalPages;
 }
 $tuitionFees = $academicModel->listTuitionFeesPage($tuitionPage, $tuitionPerPage);
+$tuitionPerPageOptions = ui_pagination_per_page_options();
 $tuitionOptions = $academicModel->listTuitionFeesPage(1, 200);
 
 $lookups = $academicModel->scheduleLookups();
@@ -199,7 +200,7 @@ $error = get_flash('error');
                                 <td>
                                     <div class="inline-flex flex-wrap items-center gap-2">
                                         <?php if ($canUpdateTuition): ?>
-                                            <a class="text-sm font-semibold text-blue-700 hover:underline" href="<?= e(page_url('tuition-finance', ['edit' => (int) $fee['id'], 'tuition_page' => $tuitionPage])); ?>">Sửa</a>
+                                            <a class="text-sm font-semibold text-blue-700 hover:underline" href="<?= e(page_url('tuition-finance', ['edit' => (int) $fee['id'], 'tuition_page' => $tuitionPage, 'tuition_per_page' => $tuitionPerPage])); ?>">Sửa</a>
                                         <?php endif; ?>
 
                                         <?php if ($canDeleteTuition): ?>
@@ -223,26 +224,36 @@ $error = get_flash('error');
                     <?php endif; ?>
                 </tbody>
             </table>
-        </div>
+            <?php if ($tuitionTotal > 0): ?>
+                <div class="border-t border-slate-200 bg-slate-50/80 px-3 py-2">
+                    <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600">
+                        <span class="font-medium">Trang <?= (int) $tuitionPage; ?>/<?= (int) $tuitionTotalPages; ?> - Tổng <?= (int) $tuitionTotal; ?> hóa đơn</span>
+                        <div class="inline-flex items-center gap-1.5">
+                            <form class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2 py-1" method="get" action="<?= e(page_url('tuition-finance')); ?>">
+                                <input type="hidden" name="page" value="tuition-finance">
+                                <label class="text-[11px] font-semibold text-slate-500" for="tuition-per-page">Số dòng</label>
+                                <select id="tuition-per-page" name="tuition_per_page" class="h-7 rounded-md border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700" onchange="this.form.submit()">
+                                    <?php foreach ($tuitionPerPageOptions as $option): ?>
+                                        <option value="<?= (int) $option; ?>" <?= $tuitionPerPage === (int) $option ? 'selected' : ''; ?>><?= (int) $option; ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </form>
+                            <?php if ($tuitionPage > 1): ?>
+                                <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('tuition-finance', ['tuition_page' => $tuitionPage - 1, 'tuition_per_page' => $tuitionPerPage])); ?>">Trước</a>
+                            <?php else: ?>
+                                <span class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 text-xs font-semibold text-slate-400">Trước</span>
+                            <?php endif; ?>
 
-        <?php if ($tuitionTotalPages > 1): ?>
-            <div class="mt-3 flex flex-wrap items-center justify-between gap-2 text-sm text-slate-600">
-                <span>Trang <?= (int) $tuitionPage; ?>/<?= (int) $tuitionTotalPages; ?> - Tổng <?= (int) $tuitionTotal; ?> hóa đơn</span>
-                <div class="inline-flex items-center gap-1">
-                    <?php if ($tuitionPage > 1): ?>
-                        <a class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('tuition-finance', ['tuition_page' => $tuitionPage - 1])); ?>">Trước</a>
-                    <?php else: ?>
-                        <span class="rounded-lg border border-slate-200 bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-400">Trước</span>
-                    <?php endif; ?>
-
-                    <?php if ($tuitionPage < $tuitionTotalPages): ?>
-                        <a class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('tuition-finance', ['tuition_page' => $tuitionPage + 1])); ?>">Sau</a>
-                    <?php else: ?>
-                        <span class="rounded-lg border border-slate-200 bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-400">Sau</span>
-                    <?php endif; ?>
+                            <?php if ($tuitionPage < $tuitionTotalPages): ?>
+                                <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('tuition-finance', ['tuition_page' => $tuitionPage + 1, 'tuition_per_page' => $tuitionPerPage])); ?>">Sau</a>
+                            <?php else: ?>
+                                <span class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 text-xs font-semibold text-slate-400">Sau</span>
+                            <?php endif; ?>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        <?php endif; ?>
+            <?php endif; ?>
+        </div>
     </article>
 
     <?php if ($isStaff): ?>

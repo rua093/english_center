@@ -10,6 +10,11 @@ final class ClassesTableModel extends BaseTableModel
         return $this->countAllFrom('classes');
     }
 
+    public function countDetailed(): int
+    {
+        return $this->countAllFrom('classes');
+    }
+
     public function listDetailedWithProgress(): array
     {
         $sql = "SELECT c.id, c.class_name, c.start_date, c.end_date, c.status,
@@ -26,11 +31,39 @@ final class ClassesTableModel extends BaseTableModel
             LEFT JOIN (
                 SELECT l.class_id,
                        COUNT(*) AS total_lessons,
-                       SUM(CASE WHEN l.lesson_date <= CURDATE() THEN 1 ELSE 0 END) AS completed_lessons
+                       SUM(CASE WHEN l.schedule_id IS NOT NULL AND s.study_date <= CURDATE() THEN 1 ELSE 0 END) AS completed_lessons
                 FROM lessons l
+                LEFT JOIN schedules s ON s.id = l.schedule_id
                 GROUP BY l.class_id
             ) lp ON lp.class_id = c.id
             ORDER BY c.id DESC";
+        return $this->fetchAll($sql);
+    }
+
+    public function listDetailedWithProgressPage(int $page, int $perPage): array
+    {
+        $pagination = $this->pagination($page, $perPage, 10, 200);
+        $sql = "SELECT c.id, c.class_name, c.start_date, c.end_date, c.status,
+                co.course_name, u.full_name AS teacher_name, c.course_id, c.teacher_id,
+                COALESCE(lp.total_lessons, 0) AS total_lessons,
+                COALESCE(lp.completed_lessons, 0) AS completed_lessons,
+                CASE
+                    WHEN COALESCE(lp.total_lessons, 0) = 0 THEN 0
+                    ELSE ROUND((COALESCE(lp.completed_lessons, 0) / lp.total_lessons) * 100)
+                END AS progress_percent
+            FROM classes c
+            INNER JOIN courses co ON co.id = c.course_id
+            INNER JOIN users u ON u.id = c.teacher_id
+            LEFT JOIN (
+                SELECT l.class_id,
+                       COUNT(*) AS total_lessons,
+                       SUM(CASE WHEN l.schedule_id IS NOT NULL AND s.study_date <= CURDATE() THEN 1 ELSE 0 END) AS completed_lessons
+                FROM lessons l
+                LEFT JOIN schedules s ON s.id = l.schedule_id
+                GROUP BY l.class_id
+            ) lp ON lp.class_id = c.id
+            ORDER BY c.id DESC
+            LIMIT {$pagination['limit']} OFFSET {$pagination['offset']}";
         return $this->fetchAll($sql);
     }
 
@@ -94,6 +127,16 @@ final class ClassesTableModel extends BaseTableModel
     public function listSimple(): array
     {
         return $this->fetchAll('SELECT id, class_name FROM classes ORDER BY class_name ASC');
+    }
+
+    public function listForRegistration(): array
+    {
+        $sql = "SELECT c.id, c.class_name, c.course_id, c.status, c.start_date, c.end_date,
+                co.course_name, co.base_price
+            FROM classes c
+            INNER JOIN courses co ON co.id = c.course_id
+            ORDER BY co.course_name ASC, c.class_name ASC";
+        return $this->fetchAll($sql);
     }
 
     public function listRecent(int $limit = 6): array

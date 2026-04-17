@@ -7,8 +7,11 @@ require_once __DIR__ . '/tables/AttendanceTableModel.php';
 require_once __DIR__ . '/tables/BankAccountsTableModel.php';
 require_once __DIR__ . '/tables/ClassStudentsTableModel.php';
 require_once __DIR__ . '/tables/ClassesTableModel.php';
+require_once __DIR__ . '/tables/CoursePackagesTableModel.php';
+require_once __DIR__ . '/tables/CourseRoadmapsTableModel.php';
 require_once __DIR__ . '/tables/CoursesTableModel.php';
 require_once __DIR__ . '/tables/ExtracurricularActivitiesTableModel.php';
+require_once __DIR__ . '/tables/ExamsTableModel.php';
 require_once __DIR__ . '/tables/FeedbacksTableModel.php';
 require_once __DIR__ . '/tables/LessonsTableModel.php';
 require_once __DIR__ . '/tables/MaterialsTableModel.php';
@@ -42,6 +45,9 @@ final class AcademicModel
     private ExtracurricularActivitiesTableModel $activitiesTable;
     private BankAccountsTableModel $bankAccountsTable;
     private ClassStudentsTableModel $classStudentsTable;
+    private CoursePackagesTableModel $coursePackagesTable;
+    private CourseRoadmapsTableModel $courseRoadmapsTable;
+    private ExamsTableModel $examsTable;
 
     public function __construct()
     {
@@ -64,6 +70,89 @@ final class AcademicModel
         $this->activitiesTable = new ExtracurricularActivitiesTableModel();
         $this->bankAccountsTable = new BankAccountsTableModel();
         $this->classStudentsTable = new ClassStudentsTableModel();
+        $this->coursePackagesTable = new CoursePackagesTableModel();
+        $this->courseRoadmapsTable = new CourseRoadmapsTableModel();
+        $this->examsTable = new ExamsTableModel();
+    }
+
+    public function listStudentsForClass(int $classId): array
+    {
+        return $this->classStudentsTable->listStudentsForClass($classId);
+    }
+
+    public function summarizeAttendanceRateByClass(int $classId): array
+    {
+        return $this->attendanceTable->summarizeAttendanceRateByClass($classId);
+    }
+
+    public function summarizeOnTimeSubmissionRateByClass(int $classId): array
+    {
+        return $this->submissionsTable->summarizeOnTimeSubmissionRateByClass($classId);
+    }
+
+    public function listExamColumnsByClass(int $classId): array
+    {
+        return $this->examsTable->listExamColumnsByClass($classId);
+    }
+
+    public function listExamRowsByClass(int $classId): array
+    {
+        return $this->examsTable->listExamRowsByClass($classId);
+    }
+
+    public function countExamRowsForColumn(int $classId, string $examName, string $examType, string $examDate): int
+    {
+        return $this->examsTable->countExamRowsForColumn($classId, $examName, $examType, $examDate);
+    }
+
+    public function createExamColumnForStudents(int $classId, array $studentIds, string $examName, string $examType, string $examDate): int
+    {
+        return $this->examsTable->createExamColumnForStudents($classId, $studentIds, $examName, $examType, $examDate);
+    }
+
+    public function findExamRowById(int $examId): ?array
+    {
+        return $this->examsTable->findExamRowById($examId);
+    }
+
+    public function findExamRowByMeta(int $classId, int $studentId, string $examName, string $examType, string $examDate): ?array
+    {
+        return $this->examsTable->findExamRowByMeta($classId, $studentId, $examName, $examType, $examDate);
+    }
+
+    public function createExamRow(int $classId, int $studentId, string $examName, string $examType, string $examDate): int
+    {
+        return $this->examsTable->createExamRow($classId, $studentId, $examName, $examType, $examDate);
+    }
+
+    public function updateExamResult(int $examId, ?string $result, ?string $teacherComment): void
+    {
+        $this->examsTable->updateExamResult($examId, $result, $teacherComment);
+    }
+
+    public function updateExamColumnMeta(
+        int $classId,
+        string $oldExamName,
+        string $oldExamType,
+        string $oldExamDate,
+        string $newExamName,
+        string $newExamType,
+        string $newExamDate
+    ): int {
+        return $this->examsTable->updateExamColumnMeta(
+            $classId,
+            $oldExamName,
+            $oldExamType,
+            $oldExamDate,
+            $newExamName,
+            $newExamType,
+            $newExamDate
+        );
+    }
+
+    public function deleteExamColumn(int $classId, string $examName, string $examType, string $examDate): int
+    {
+        return $this->examsTable->deleteExamColumn($classId, $examName, $examType, $examDate);
     }
 
     public function dashboardChartData(): array
@@ -112,6 +201,16 @@ final class AcademicModel
         return $this->materialsTable->listDetailed();
     }
 
+    public function countMaterials(): int
+    {
+        return $this->materialsTable->countDetailed();
+    }
+
+    public function listMaterialsPage(int $page, int $perPage): array
+    {
+        return $this->materialsTable->listDetailedPage($page, $perPage);
+    }
+
     public function findMaterial(int $id): ?array
     {
         return $this->materialsTable->findById($id);
@@ -130,6 +229,16 @@ final class AcademicModel
     public function listPortfolios(): array
     {
         return $this->portfoliosTable->listDetailed();
+    }
+
+    public function countPortfolios(): int
+    {
+        return $this->portfoliosTable->countDetailed();
+    }
+
+    public function listPortfoliosPage(int $page, int $perPage): array
+    {
+        return $this->portfoliosTable->listDetailedPage($page, $perPage);
     }
 
     public function findPortfolio(int $id): ?array
@@ -162,9 +271,24 @@ final class AcademicModel
         return $this->assignmentsTable->findById($id);
     }
 
+    public function findLesson(int $id): ?array
+    {
+        return $this->lessonsTable->findById($id);
+    }
+
     public function listClasses(): array
     {
         return $this->classesTable->listDetailedWithProgress();
+    }
+
+    public function countClasses(): int
+    {
+        return $this->classesTable->countDetailed();
+    }
+
+    public function listClassesPage(int $page, int $perPage): array
+    {
+        return $this->classesTable->listDetailedWithProgressPage($page, $perPage);
     }
 
     public function listSchedules(): array
@@ -172,14 +296,69 @@ final class AcademicModel
         return $this->schedulesTable->listDetailed();
     }
 
+    public function countCourses(): int
+    {
+        return $this->coursesTable->countDetailed();
+    }
+
+    public function listCoursesPage(int $page, int $perPage): array
+    {
+        return $this->coursesTable->listDetailedPage($page, $perPage);
+    }
+
+    public function saveCourse(array $data): void
+    {
+        $this->coursesTable->save($data);
+    }
+
+    public function deleteCourse(int $id): void
+    {
+        $this->coursesTable->deleteById($id);
+    }
+
+    public function countSchedules(): int
+    {
+        return $this->schedulesTable->countDetailed();
+    }
+
+    public function listSchedulesPage(int $page, int $perPage): array
+    {
+        return $this->schedulesTable->listDetailedPage($page, $perPage);
+    }
+
     public function listAssignments(): array
     {
         return $this->assignmentsTable->listDetailed();
     }
 
+    public function countAssignments(): int
+    {
+        return $this->assignmentsTable->countDetailed();
+    }
+
+    public function listAssignmentsPage(int $page, int $perPage): array
+    {
+        return $this->assignmentsTable->listDetailedPage($page, $perPage);
+    }
+
     public function listSubmissionsForGrading(): array
     {
         return $this->submissionsTable->listForGrading();
+    }
+
+    public function countSubmissionsForGrading(): int
+    {
+        return $this->submissionsTable->countForGrading();
+    }
+
+    public function listSubmissionsForGradingPage(int $page, int $perPage): array
+    {
+        return $this->submissionsTable->listForGradingPage($page, $perPage);
+    }
+
+    public function listSubmissionRosterByClassAndAssignment(int $classId, int $assignmentId): array
+    {
+        return $this->submissionsTable->listRosterByClassAndAssignment($classId, $assignmentId);
     }
 
     public function classLookups(): array
@@ -204,9 +383,127 @@ final class AcademicModel
         return $this->lessonsTable->listForAssignmentLookup();
     }
 
+    public function classroomLookups(): array
+    {
+        return [
+            'courses' => $this->coursesTable->listSimple(),
+            'classes' => $this->classesTable->listForRegistration(),
+        ];
+    }
+
+    public function listLessonsByClass(int $classId): array
+    {
+        return $this->lessonsTable->listByClass($classId);
+    }
+
+    public function listRoadmapsByClass(int $classId): array
+    {
+        return $this->lessonsTable->listRoadmapsByClass($classId);
+    }
+
+    public function countRoadmapsByCourse(int $courseId): int
+    {
+        return $this->courseRoadmapsTable->countByCourse($courseId);
+    }
+
+    public function listRoadmapsByCoursePage(int $courseId, int $page, int $perPage): array
+    {
+        return $this->courseRoadmapsTable->listByCoursePage($courseId, $page, $perPage);
+    }
+
+    public function findRoadmap(int $id): ?array
+    {
+        return $this->courseRoadmapsTable->findById($id);
+    }
+
+    public function saveRoadmap(array $data): void
+    {
+        $this->courseRoadmapsTable->save($data);
+    }
+
+    public function deleteRoadmap(int $id): void
+    {
+        $this->courseRoadmapsTable->deleteById($id);
+    }
+
+    public function listSchedulesByClass(int $classId): array
+    {
+        return $this->schedulesTable->listByClass($classId);
+    }
+
+    public function saveLesson(array $data): void
+    {
+        $this->lessonsTable->save($data);
+    }
+
+    public function listAttendanceRosterBySchedule(int $scheduleId): array
+    {
+        return $this->attendanceTable->listRosterBySchedule($scheduleId);
+    }
+
+    public function saveAttendanceRosterBySchedule(int $scheduleId, array $entries): int
+    {
+        return $this->attendanceTable->saveRosterBySchedule($scheduleId, $entries);
+    }
+
     public function studentLookups(): array
     {
         return $this->usersTable->listByRoleNames(['student']);
+    }
+
+    public function registrationLookups(): array
+    {
+        return [
+            'students' => $this->usersTable->listActiveByRoleNames(['student']),
+            'courses' => $this->coursesTable->listForRegistration(),
+            'classes' => $this->classesTable->listForRegistration(),
+            'promotions' => $this->coursePackagesTable->listActiveForRegistration(),
+        ];
+    }
+
+    public function findActiveUser(int $userId): ?array
+    {
+        return $this->usersTable->findActiveById($userId);
+    }
+
+    public function findCourse(int $id): ?array
+    {
+        return $this->coursesTable->findById($id);
+    }
+
+    public function findCoursePackage(int $id): ?array
+    {
+        return $this->coursePackagesTable->findById($id);
+    }
+
+    public function usesPromotionSchema(): bool
+    {
+        return $this->coursePackagesTable->usesPromotionSchema();
+    }
+
+    public function countPromotions(): int
+    {
+        return $this->coursePackagesTable->countDetailed();
+    }
+
+    public function listPromotionsPage(int $page, int $perPage): array
+    {
+        return $this->coursePackagesTable->listDetailedPage($page, $perPage);
+    }
+
+    public function findPromotion(int $id): ?array
+    {
+        return $this->coursePackagesTable->findDetailedById($id);
+    }
+
+    public function savePromotion(array $data): void
+    {
+        $this->coursePackagesTable->save($data);
+    }
+
+    public function deletePromotion(int $id): void
+    {
+        $this->coursePackagesTable->deleteById($id);
     }
 
     public function tuitionStudentClassLookups(): array
@@ -221,6 +518,86 @@ final class AcademicModel
         }
 
         return $this->classStudentsTable->existsEnrollment($classId, $studentId);
+    }
+
+    public function hasTuitionFeeForStudentClass(int $studentId, int $classId): bool
+    {
+        if ($studentId <= 0 || $classId <= 0) {
+            return false;
+        }
+
+        return $this->tuitionFeesTable->findByStudentAndClass($studentId, $classId) !== null;
+    }
+
+    public function registerCourseAndCreateDebtTuition(array $data): array
+    {
+        $studentId = (int) ($data['student_id'] ?? 0);
+        $classId = (int) ($data['class_id'] ?? 0);
+        $packageId = max(0, (int) ($data['package_id'] ?? 0));
+        $baseAmount = max(0, (float) ($data['base_amount'] ?? 0));
+        $discountType = (string) ($data['discount_type'] ?? 'none');
+        $discountAmount = max(0, (float) ($data['discount_amount'] ?? 0));
+        $paymentPlan = (string) ($data['payment_plan'] ?? 'full');
+        $learningStatus = (string) ($data['learning_status'] ?? 'official');
+        $enrollmentDate = trim((string) ($data['enrollment_date'] ?? ''));
+
+        if ($studentId <= 0 || $classId <= 0) {
+            throw new InvalidArgumentException('Dữ liệu đăng ký không hợp lệ.');
+        }
+
+        $normalizedLearningStatus = in_array($learningStatus, ['trial', 'official', 'suspended'], true)
+            ? $learningStatus
+            : 'official';
+
+        if ($enrollmentDate === '') {
+            $enrollmentDate = date('Y-m-d');
+        }
+
+        $alreadyEnrolled = false;
+        $tuitionId = 0;
+
+        $this->tuitionFeesTable->executeInTransaction(function () use (
+            $studentId,
+            $classId,
+            $packageId,
+            $baseAmount,
+            $discountType,
+            $discountAmount,
+            $paymentPlan,
+            $normalizedLearningStatus,
+            $enrollmentDate,
+            &$alreadyEnrolled,
+            &$tuitionId
+        ): void {
+            $existingTuition = $this->tuitionFeesTable->findByStudentAndClass($studentId, $classId);
+            if ($existingTuition) {
+                throw new RuntimeException('Học viên đã có học phí cho lớp này. Vui lòng kiểm tra lại trước khi đăng ký.');
+            }
+
+            $alreadyEnrolled = $this->classStudentsTable->existsEnrollment($classId, $studentId);
+            if (!$alreadyEnrolled) {
+                $this->classStudentsTable->enrollStudent($classId, $studentId, $normalizedLearningStatus, $enrollmentDate);
+            }
+
+            if (!$this->classStudentsTable->existsEnrollment($classId, $studentId)) {
+                throw new RuntimeException('Không thể thêm học viên vào lớp đã chọn. Vui lòng thử lại.');
+            }
+
+            $tuitionId = $this->tuitionFeesTable->createDebtForRegistration([
+                'student_id' => $studentId,
+                'class_id' => $classId,
+                'package_id' => $packageId,
+                'base_amount' => $baseAmount,
+                'discount_type' => $discountType,
+                'discount_amount' => $discountAmount,
+                'payment_plan' => $paymentPlan,
+            ]);
+        });
+
+        return [
+            'tuition_id' => $tuitionId,
+            'already_enrolled' => $alreadyEnrolled,
+        ];
     }
 
     public function feedbackLookups(): array

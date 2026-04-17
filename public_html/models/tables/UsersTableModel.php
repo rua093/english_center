@@ -174,6 +174,30 @@ final class UsersTableModel extends BaseTableModel
         return $this->fetchAll($sql, $params);
     }
 
+    public function listActiveByRoleNames(array $roleNames): array
+    {
+        if (empty($roleNames)) {
+            return [];
+        }
+
+        $placeholders = [];
+        $params = [];
+        foreach (array_values($roleNames) as $idx => $roleName) {
+            $key = ':active_role_' . $idx;
+            $placeholders[] = $key;
+            $params['active_role_' . $idx] = (string) $roleName;
+        }
+
+        $sql = 'SELECT u.id, u.full_name
+            FROM users u
+            INNER JOIN roles r ON r.id = u.role_id
+            WHERE r.role_name IN (' . implode(',', $placeholders) . ')
+              AND u.deleted_at IS NULL
+              AND u.status = "active"
+            ORDER BY u.full_name ASC';
+        return $this->fetchAll($sql, $params);
+    }
+
     private function findRoleProfile(int $userId, string $roleName): array
     {
         if ($userId <= 0) {

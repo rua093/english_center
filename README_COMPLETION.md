@@ -18,7 +18,7 @@ Hệ thống quản lý trung tâm tiếng Anh được hoàn thành toàn bộ,
 | `role_permissions`           | ✓          | Full RBAC mapping                              |
 | `courses`                    | ✓          | IELTS Foundation demo                          |
 | `course_roadmaps`            | ✓          | Lesson structure                               |
-| `course_packages`            | ✓          | Package pricing                                |
+| `promotions`                 | ✓          | Package pricing                                |
 | `classes`                    | ✓          | CRUD + dedicated edit page                     |
 | `schedules`                  | ✓          | CRUD + dedicated edit page                     |
 | `lessons`                    | ✓          | Pre-populated                                  |

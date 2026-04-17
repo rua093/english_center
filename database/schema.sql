@@ -25,6 +25,7 @@ DROP TABLE IF EXISTS lessons;
 DROP TABLE IF EXISTS class_students;
 DROP TABLE IF EXISTS classes;
 DROP TABLE IF EXISTS rooms;
+DROP TABLE IF EXISTS promotions;
 DROP TABLE IF EXISTS course_packages;
 DROP TABLE IF EXISTS course_roadmaps;
 DROP TABLE IF EXISTS courses;
@@ -93,13 +94,19 @@ CREATE TABLE course_roadmaps (
     CONSTRAINT fk_roadmap_course FOREIGN KEY (course_id) REFERENCES courses(id)
 ) ENGINE=InnoDB;
 
-CREATE TABLE course_packages (
+CREATE TABLE promotions (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    course_id BIGINT UNSIGNED NOT NULL,
-    package_name VARCHAR(100) NOT NULL,
-    number_of_weeks INT NOT NULL,
-    discount_rate DECIMAL(5,2) NOT NULL DEFAULT 0,
-    CONSTRAINT fk_packages_course FOREIGN KEY (course_id) REFERENCES courses(id)
+    course_id BIGINT UNSIGNED DEFAULT NULL,
+    name VARCHAR(150) NOT NULL,
+    promo_type ENUM('DURATION', 'SOCIAL', 'EVENT', 'GROUP') NOT NULL,
+    discount_value DECIMAL(5,2) NOT NULL DEFAULT 0,
+    start_date DATE DEFAULT NULL,
+    end_date DATE DEFAULT NULL,
+    CONSTRAINT ck_promotions_discount_value CHECK (discount_value >= 0 AND discount_value <= 100),
+    CONSTRAINT ck_promotions_date_range CHECK (start_date IS NULL OR end_date IS NULL OR start_date <= end_date),
+    CONSTRAINT fk_promotions_course FOREIGN KEY (course_id) REFERENCES courses(id),
+    KEY idx_promotions_scope_dates (course_id, start_date, end_date),
+    KEY idx_promotions_promo_type (promo_type)
 ) ENGINE=InnoDB;
 
 CREATE TABLE rooms (
@@ -136,9 +143,10 @@ CREATE TABLE lessons (
     roadmap_id BIGINT UNSIGNED DEFAULT NULL,
     actual_title VARCHAR(200) NOT NULL,
     actual_content TEXT,
-    lesson_date DATE NOT NULL,
+    schedule_id BIGINT UNSIGNED DEFAULT NULL,
     CONSTRAINT fk_lessons_class FOREIGN KEY (class_id) REFERENCES classes(id),
-    CONSTRAINT fk_lessons_roadmap FOREIGN KEY (roadmap_id) REFERENCES course_roadmaps(id)
+    CONSTRAINT fk_lessons_roadmap FOREIGN KEY (roadmap_id) REFERENCES course_roadmaps(id),
+    KEY idx_lessons_class_schedule (class_id, schedule_id)
 ) ENGINE=InnoDB;
 
 CREATE TABLE schedules (
@@ -149,10 +157,122 @@ CREATE TABLE schedules (
     study_date DATE NOT NULL,
     start_time TIME NOT NULL,
     end_time TIME NOT NULL,
+    CONSTRAINT ck_schedules_time_range CHECK (start_time < end_time),
     CONSTRAINT fk_schedules_class FOREIGN KEY (class_id) REFERENCES classes(id),
     CONSTRAINT fk_schedules_room FOREIGN KEY (room_id) REFERENCES rooms(id),
-    CONSTRAINT fk_schedules_teacher FOREIGN KEY (teacher_id) REFERENCES users(id)
+    CONSTRAINT fk_schedules_teacher FOREIGN KEY (teacher_id) REFERENCES users(id),
+    KEY idx_schedules_class_date_time (class_id, study_date, start_time, end_time),
+    KEY idx_schedules_teacher_date_time (teacher_id, study_date, start_time, end_time),
+    KEY idx_schedules_room_date_time (room_id, study_date, start_time, end_time)
 ) ENGINE=InnoDB;
+
+ALTER TABLE lessons
+    ADD CONSTRAINT fk_lessons_schedule FOREIGN KEY (schedule_id) REFERENCES schedules(id) ON DELETE SET NULL;
+
+DELIMITER $$
+
+CREATE TRIGGER trg_schedules_prevent_overlap_insert
+BEFORE INSERT ON schedules
+FOR EACH ROW
+BEGIN
+    DECLARE v_conflict_count INT DEFAULT 0;
+
+    IF NEW.start_time >= NEW.end_time THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Khung gio khong hop le: gio ket thuc phai sau gio bat dau.';
+    END IF;
+
+    SELECT COUNT(*)
+    INTO v_conflict_count
+    FROM schedules s
+    WHERE s.study_date = NEW.study_date
+      AND s.class_id = NEW.class_id
+      AND s.start_time < NEW.end_time
+      AND s.end_time > NEW.start_time;
+
+    IF v_conflict_count > 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Lop hoc da co lich trung gio.';
+    END IF;
+
+    SELECT COUNT(*)
+    INTO v_conflict_count
+    FROM schedules s
+    WHERE s.study_date = NEW.study_date
+      AND s.teacher_id = NEW.teacher_id
+      AND s.start_time < NEW.end_time
+      AND s.end_time > NEW.start_time;
+
+    IF v_conflict_count > 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Giao vien da co lich trung gio.';
+    END IF;
+
+    IF NEW.room_id IS NOT NULL THEN
+        SELECT COUNT(*)
+        INTO v_conflict_count
+        FROM schedules s
+        WHERE s.study_date = NEW.study_date
+          AND s.room_id = NEW.room_id
+          AND s.start_time < NEW.end_time
+          AND s.end_time > NEW.start_time;
+
+        IF v_conflict_count > 0 THEN
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Phong hoc da co lich trung gio.';
+        END IF;
+    END IF;
+END$$
+
+CREATE TRIGGER trg_schedules_prevent_overlap_update
+BEFORE UPDATE ON schedules
+FOR EACH ROW
+BEGIN
+    DECLARE v_conflict_count INT DEFAULT 0;
+
+    IF NEW.start_time >= NEW.end_time THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Khung gio khong hop le: gio ket thuc phai sau gio bat dau.';
+    END IF;
+
+    SELECT COUNT(*)
+    INTO v_conflict_count
+    FROM schedules s
+    WHERE s.id <> NEW.id
+      AND s.study_date = NEW.study_date
+      AND s.class_id = NEW.class_id
+      AND s.start_time < NEW.end_time
+      AND s.end_time > NEW.start_time;
+
+    IF v_conflict_count > 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Lop hoc da co lich trung gio.';
+    END IF;
+
+    SELECT COUNT(*)
+    INTO v_conflict_count
+    FROM schedules s
+    WHERE s.id <> NEW.id
+      AND s.study_date = NEW.study_date
+      AND s.teacher_id = NEW.teacher_id
+      AND s.start_time < NEW.end_time
+      AND s.end_time > NEW.start_time;
+
+    IF v_conflict_count > 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Giao vien da co lich trung gio.';
+    END IF;
+
+    IF NEW.room_id IS NOT NULL THEN
+        SELECT COUNT(*)
+        INTO v_conflict_count
+        FROM schedules s
+        WHERE s.id <> NEW.id
+          AND s.study_date = NEW.study_date
+          AND s.room_id = NEW.room_id
+          AND s.start_time < NEW.end_time
+          AND s.end_time > NEW.start_time;
+
+        IF v_conflict_count > 0 THEN
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Phong hoc da co lich trung gio.';
+        END IF;
+    END IF;
+END$$
+
+DELIMITER ;
 
 CREATE TABLE attendance (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -236,7 +356,7 @@ CREATE TABLE tuition_fees (
     status ENUM('paid', 'debt') NOT NULL DEFAULT 'debt',
     CONSTRAINT fk_tuition_student FOREIGN KEY (student_id) REFERENCES users(id),
     CONSTRAINT fk_tuition_class FOREIGN KEY (class_id) REFERENCES classes(id),
-    CONSTRAINT fk_tuition_package FOREIGN KEY (package_id) REFERENCES course_packages(id)
+    CONSTRAINT fk_tuition_package FOREIGN KEY (package_id) REFERENCES promotions(id)
 ) ENGINE=InnoDB;
 
 CREATE TABLE payment_transactions (
@@ -252,41 +372,7 @@ CREATE TABLE payment_transactions (
 ) ENGINE=InnoDB;
 
 DROP TRIGGER IF EXISTS trg_class_students_auto_tuition;
-CREATE TRIGGER trg_class_students_auto_tuition
-AFTER INSERT ON class_students
-FOR EACH ROW
-INSERT INTO tuition_fees (
-        student_id,
-        class_id,
-        package_id,
-        base_amount,
-        discount_type,
-        discount_amount,
-        total_amount,
-        amount_paid,
-        payment_plan,
-        status
-)
-SELECT
-        NEW.student_id,
-        NEW.class_id,
-        NULL,
-        COALESCE(c.base_price, 0),
-        NULL,
-        0,
-        COALESCE(c.base_price, 0),
-        0,
-        'full',
-        'debt'
-FROM classes cl
-INNER JOIN courses c ON c.id = cl.course_id
-WHERE cl.id = NEW.class_id
-    AND NOT EXISTS (
-            SELECT 1
-            FROM tuition_fees tf
-            WHERE tf.student_id = NEW.student_id
-                AND tf.class_id = NEW.class_id
-    );
+-- Tuition is now created explicitly via course-registration workflow.
 
 CREATE TABLE bank_accounts (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -359,8 +445,8 @@ CREATE TABLE materials (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     course_id BIGINT UNSIGNED NOT NULL,
     title VARCHAR(180) NOT NULL,
+    description TEXT NULL,
     file_path VARCHAR(255) NOT NULL,
-    type ENUM('pdf', 'mp3', 'video') NOT NULL,
     CONSTRAINT fk_materials_course FOREIGN KEY (course_id) REFERENCES courses(id)
 ) ENGINE=InnoDB;
 

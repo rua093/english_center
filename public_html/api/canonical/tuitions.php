@@ -90,6 +90,157 @@ function api_tuitions_save_action(): void
 	redirect(page_url('tuition-finance'));
 }
 
+function api_tuitions_register_course_action(): void
+{
+	api_guard_admin_or_staff();
+	api_guard_permission('finance.tuition.view');
+	api_require_post(page_url('registration-finance'));
+
+	if (!api_tuitions_can_manage_directly()) {
+		set_flash('error', 'Bạn không có quyền đăng ký khóa học và tạo học phí trực tiếp.');
+		redirect(page_url('registration-finance'));
+	}
+
+	$studentId = input_int($_POST, 'student_id');
+	$courseId = input_int($_POST, 'course_id');
+	$classId = input_int($_POST, 'class_id');
+	$packageId = input_int($_POST, 'package_id');
+	$paymentPlan = input_string($_POST, 'payment_plan', 'full');
+	$learningStatus = input_string($_POST, 'learning_status', 'official');
+	$registrationFormPayload = [
+		'student_id' => $studentId,
+		'course_id' => $courseId,
+		'class_id' => $classId,
+		'package_id' => $packageId,
+		'payment_plan' => $paymentPlan,
+		'learning_status' => $learningStatus,
+	];
+
+	$redirectWithError = static function (string $message, array $payload): void {
+		set_flash('error', $message);
+		set_flash('registration_form_old', (string) json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+		redirect(page_url('registration-finance'));
+	};
+
+	$academicModel = new AcademicModel();
+
+	if ($studentId <= 0 || $courseId <= 0 || $classId <= 0) {
+		$redirectWithError('Vui lòng chọn đầy đủ học viên, khóa học và lớp học hợp lệ.', $registrationFormPayload);
+	}
+
+	if (!in_array($paymentPlan, ['full', 'monthly'], true)) {
+		$paymentPlan = 'full';
+	}
+
+	if (!in_array($learningStatus, ['trial', 'official', 'suspended'], true)) {
+		$learningStatus = 'official';
+	}
+
+	$student = $academicModel->findActiveUser($studentId);
+	if (!$student || (string) ($student['role_name'] ?? '') !== 'student') {
+		$redirectWithError('Học viên không hợp lệ hoặc đang không hoạt động.', $registrationFormPayload);
+	}
+
+	$course = $academicModel->findCourse($courseId);
+	if (!$course) {
+		$redirectWithError('Khóa học không tồn tại.', $registrationFormPayload);
+	}
+
+	$class = $academicModel->findClass($classId);
+	if (!$class) {
+		$redirectWithError('Lớp học không tồn tại.', $registrationFormPayload);
+	}
+
+	if ((int) ($class['course_id'] ?? 0) !== $courseId) {
+		$redirectWithError('Lớp học đã chọn không thuộc khóa học tương ứng.', $registrationFormPayload);
+	}
+
+	$classStatus = (string) ($class['status'] ?? '');
+	if (in_array($classStatus, ['cancelled', 'graduated'], true)) {
+		$redirectWithError('Không thể đăng ký vào lớp đã kết thúc hoặc đã hủy.', $registrationFormPayload);
+	}
+
+	if ($academicModel->hasTuitionFeeForStudentClass($studentId, $classId)) {
+		$redirectWithError('Học viên đã có hóa đơn học phí cho lớp này. Vui lòng kiểm tra danh sách học phí.', $registrationFormPayload);
+	}
+
+	$discountType = 'none';
+	$discountPercent = 0.0;
+	$discountLabel = '';
+
+	if ($packageId > 0) {
+		$selectedPackage = $academicModel->findCoursePackage($packageId);
+		if (!$selectedPackage) {
+			$redirectWithError('Ưu đãi đã chọn không tồn tại hoặc đã bị xóa.', $registrationFormPayload);
+		}
+
+		$packageCourseId = (int) ($selectedPackage['course_id'] ?? 0);
+		if ($packageCourseId > 0 && $packageCourseId !== $courseId) {
+			$redirectWithError('Ưu đãi đã chọn không áp dụng cho khóa học này.', $registrationFormPayload);
+		}
+
+		$today = date('Y-m-d');
+		$startDate = trim((string) ($selectedPackage['start_date'] ?? ''));
+		$endDate = trim((string) ($selectedPackage['end_date'] ?? ''));
+
+		if ($startDate !== '' && $today < $startDate) {
+			$redirectWithError('Ưu đãi đã chọn chưa đến ngày áp dụng.', $registrationFormPayload);
+		}
+
+		if ($endDate !== '' && $today > $endDate) {
+			$redirectWithError('Ưu đãi đã chọn đã hết hạn áp dụng.', $registrationFormPayload);
+		}
+
+		$promoType = strtoupper(trim((string) ($selectedPackage['promo_type'] ?? '')));
+		if (!in_array($promoType, ['DURATION', 'SOCIAL', 'EVENT', 'GROUP'], true)) {
+			$redirectWithError('Loại ưu đãi không hợp lệ.', $registrationFormPayload);
+		}
+
+		$discountType = $promoType;
+		$discountPercent = max(0, min(100, (float) ($selectedPackage['discount_value'] ?? 0)));
+		$discountLabel = trim((string) ($selectedPackage['name'] ?? ''));
+	}
+
+	$baseAmount = max(0, (float) ($course['base_price'] ?? 0));
+	$discountApplied = round(($baseAmount * $discountPercent) / 100, 2);
+	$totalAmount = max(0, $baseAmount - $discountApplied);
+
+	try {
+		$result = $academicModel->registerCourseAndCreateDebtTuition([
+			'student_id' => $studentId,
+			'class_id' => $classId,
+			'package_id' => $packageId,
+			'base_amount' => $baseAmount,
+			'discount_type' => $discountType,
+			'discount_amount' => $discountPercent,
+			'payment_plan' => $paymentPlan,
+			'learning_status' => $learningStatus,
+			'enrollment_date' => date('Y-m-d'),
+		]);
+	} catch (RuntimeException $exception) {
+		$redirectWithError($exception->getMessage(), $registrationFormPayload);
+	}
+
+	$tuitionId = (int) ($result['tuition_id'] ?? 0);
+	$alreadyEnrolled = (bool) ($result['already_enrolled'] ?? false);
+
+	$successMessage = $alreadyEnrolled
+		? 'Đăng ký thành công và đã tạo khoản học phí mới ở trạng thái debt cho học viên đã có trong lớp.'
+		: 'Đăng ký thành công: đã thêm học viên vào lớp và tạo khoản học phí trạng thái debt.';
+
+	if ($tuitionId > 0) {
+		$successMessage .= ' Mã học phí #' . $tuitionId . ' | Tổng cần thu: ' . format_money($totalAmount) . '.';
+	}
+
+	if ($packageId > 0) {
+		$discountPercentText = rtrim(rtrim(number_format($discountPercent, 2, '.', ''), '0'), '.');
+		$successMessage .= ' Ưu đãi áp dụng: ' . ($discountLabel !== '' ? $discountLabel : ('#' . $packageId)) . ' (-' . $discountPercentText . '%).';
+	}
+
+	set_flash('success', $successMessage);
+	redirect(page_url('registration-finance'));
+}
+
 function api_tuitions_delete_action(): void
 {
 	api_guard_admin_or_staff();

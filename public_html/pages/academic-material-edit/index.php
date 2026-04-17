@@ -17,26 +17,33 @@ $adminTitle = $editingMaterial ? 'Học vụ - Sửa tài liệu' : 'Học vụ 
     <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <h2><?= $editingMaterial ? 'Chỉnh sửa tài liệu' : 'Thêm tài liệu'; ?></h2>
         <form class="grid gap-3" method="post" action="/api/materials/save" enctype="multipart/form-data">
-                <?= csrf_input(); ?>
-                <input type="hidden" name="id" value="<?= (int) ($editingMaterial['id'] ?? 0); ?>">
-                <label>Khóa học
-                    <select name="course_id" required>
-                        <option value="">-- Chọn khóa học --</option>
-                        <?php foreach ($materialCourses as $course): ?>
-                            <option value="<?= (int) $course['id']; ?>" <?= (int) ($editingMaterial['course_id'] ?? 0) === (int) $course['id'] ? 'selected' : ''; ?>><?= e((string) $course['course_name']); ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </label>
-                <label>Tiêu đề<input type="text" name="title" value="<?= e((string) ($editingMaterial['title'] ?? '')); ?>" required></label>
-                <label>Kiểu tài liệu
-                    <select name="type" required>
-                        <option value="pdf" <?= (($editingMaterial['type'] ?? 'pdf') === 'pdf') ? 'selected' : ''; ?>>PDF</option>
-                        <option value="mp3" <?= (($editingMaterial['type'] ?? '') === 'mp3') ? 'selected' : ''; ?>>MP3</option>
-                        <option value="video" <?= (($editingMaterial['type'] ?? '') === 'video') ? 'selected' : ''; ?>>Video</option>
-                    </select>
-                </label>
-                <label>Tải lên file<input type="file" name="material_file" accept=".pdf,.ppt,.pptx,.doc,.docx,.jpg,.jpeg,.png,.mp4,.mov,.webm"></label>
-                <label>Hoặc đường dẫn file<input type="text" name="file_path" value="<?= e((string) ($editingMaterial['file_path'] ?? '')); ?>"></label>
+            <?= csrf_input(); ?>
+            <input type="hidden" name="id" value="<?= (int) ($editingMaterial['id'] ?? 0); ?>">
+            <input type="hidden" name="existing_file_path" value="<?= e((string) ($editingMaterial['file_path'] ?? '')); ?>">
+            <label>
+                Khóa học
+                <select name="course_id" required>
+                    <option value="">-- Chọn khóa học --</option>
+                    <?php foreach ($materialCourses as $course): ?>
+                        <option value="<?= (int) $course['id']; ?>" <?= (int) ($editingMaterial['course_id'] ?? 0) === (int) $course['id'] ? 'selected' : ''; ?>><?= e((string) $course['course_name']); ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </label>
+            <label>
+                Tiêu đề tài liệu
+                <input type="text" name="title" value="<?= e((string) ($editingMaterial['title'] ?? '')); ?>" required>
+            </label>
+            <label>
+                Mô tả tài liệu
+                <textarea name="description" rows="3" placeholder="Mô tả ngắn về nội dung tài liệu"><?= e((string) ($editingMaterial['description'] ?? '')); ?></textarea>
+            </label>
+            <label>
+                Tải lên file đính kèm
+                <input type="file" name="material_file" accept=".pdf,.ppt,.pptx,.doc,.docx,.jpg,.jpeg,.png,.mp4,.mov,.webm,.mp3,.avi">
+            </label>
+            <?php if (!empty($editingMaterial['file_path'])): ?>
+                <p class="text-xs text-slate-500">File hiện tại: <a class="font-semibold text-blue-700 hover:underline" href="<?= e((string) $editingMaterial['file_path']); ?>" target="_blank" rel="noopener noreferrer">Mở file</a>. Chọn file mới để thay thế.</p>
+            <?php endif; ?>
             <button class="<?= ui_btn_primary_classes(); ?>" type="submit">Lưu tài liệu</button>
             <a class="<?= ui_btn_secondary_classes(); ?>" href="<?= e(page_url('materials-academic')); ?>">Quay lại</a>
         </form>
@@ -49,11 +56,9 @@ $adminTitle = $editingMaterial ? 'Học vụ - Sửa tài liệu' : 'Học vụ 
                 <?php elseif (preg_match('/\.(mp4|mov|webm)$/i', (string) $editingMaterial['file_path'])): ?>
                     <video class="w-full rounded-xl" controls><source src="<?= e((string) $editingMaterial['file_path']); ?>"></video>
                 <?php else: ?>
-                    <a href="<?= e((string) $editingMaterial['file_path']); ?>" target="_blank">Mở file</a>
+                    <a href="<?= e((string) $editingMaterial['file_path']); ?>" target="_blank" rel="noopener noreferrer">Mở file</a>
                 <?php endif; ?>
             </div>
         <?php endif; ?>
     </article>
 </div>
-
-

@@ -53,43 +53,346 @@ PREPARE stmt FROM @sql;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
 
--- Auto-create tuition row when a student enrolls into a class.
+-- Migrate legacy course_packages to promotions schema.
+SET @has_promotions := (
+    SELECT COUNT(*)
+    FROM information_schema.tables
+    WHERE table_schema = DATABASE()
+      AND table_name = 'promotions'
+);
+
+SET @has_course_packages := (
+    SELECT COUNT(*)
+    FROM information_schema.tables
+    WHERE table_schema = DATABASE()
+      AND table_name = 'course_packages'
+);
+
+SET @sql := IF(
+    @has_promotions = 0 AND @has_course_packages = 1,
+    "RENAME TABLE course_packages TO promotions",
+    "SELECT 'Skip: rename course_packages -> promotions not required' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @has_promotions := (
+    SELECT COUNT(*)
+    FROM information_schema.tables
+    WHERE table_schema = DATABASE()
+      AND table_name = 'promotions'
+);
+
+SET @sql := IF(
+    @has_promotions = 0,
+    "CREATE TABLE promotions (id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, course_id BIGINT UNSIGNED NULL, name VARCHAR(150) NOT NULL, promo_type ENUM('DURATION', 'SOCIAL', 'EVENT', 'GROUP') NOT NULL DEFAULT 'DURATION', discount_value DECIMAL(5,2) NOT NULL DEFAULT 0, start_date DATE NULL, end_date DATE NULL, CONSTRAINT ck_promotions_discount_value CHECK (discount_value >= 0 AND discount_value <= 100), CONSTRAINT ck_promotions_date_range CHECK (start_date IS NULL OR end_date IS NULL OR start_date <= end_date), CONSTRAINT fk_promotions_course FOREIGN KEY (course_id) REFERENCES courses(id), KEY idx_promotions_scope_dates (course_id, start_date, end_date), KEY idx_promotions_promo_type (promo_type)) ENGINE=InnoDB",
+    "SELECT 'Skip: promotions table exists' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @has_pr_course_id := (
+    SELECT COUNT(*)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'promotions'
+      AND column_name = 'course_id'
+);
+
+SET @pr_course_id_nullable := (
+    SELECT COALESCE(MAX(CASE WHEN is_nullable = 'YES' THEN 1 ELSE 0 END), 0)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'promotions'
+      AND column_name = 'course_id'
+);
+
+SET @sql := IF(
+    @has_promotions = 1 AND @has_pr_course_id = 1 AND @pr_course_id_nullable = 0,
+    "ALTER TABLE promotions MODIFY COLUMN course_id BIGINT UNSIGNED NULL",
+    "SELECT 'Skip: promotions.course_id already nullable or table missing' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @has_pr_name := (
+    SELECT COUNT(*)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'promotions'
+      AND column_name = 'name'
+);
+SET @sql := IF(
+    @has_promotions = 1 AND @has_pr_name = 0,
+    "ALTER TABLE promotions ADD COLUMN name VARCHAR(150) NOT NULL DEFAULT '' AFTER course_id",
+    "SELECT 'Skip: promotions.name exists or table missing' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @has_pr_promo_type := (
+    SELECT COUNT(*)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'promotions'
+      AND column_name = 'promo_type'
+);
+SET @sql := IF(
+    @has_promotions = 1 AND @has_pr_promo_type = 0,
+    "ALTER TABLE promotions ADD COLUMN promo_type ENUM('DURATION', 'SOCIAL', 'EVENT', 'GROUP') NOT NULL DEFAULT 'DURATION' AFTER name",
+    "SELECT 'Skip: promotions.promo_type exists or table missing' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @has_pr_discount_value := (
+    SELECT COUNT(*)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'promotions'
+      AND column_name = 'discount_value'
+);
+SET @sql := IF(
+    @has_promotions = 1 AND @has_pr_discount_value = 0,
+    "ALTER TABLE promotions ADD COLUMN discount_value DECIMAL(5,2) NOT NULL DEFAULT 0 AFTER promo_type",
+    "SELECT 'Skip: promotions.discount_value exists or table missing' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @has_pr_start_date := (
+    SELECT COUNT(*)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'promotions'
+      AND column_name = 'start_date'
+);
+SET @sql := IF(
+    @has_promotions = 1 AND @has_pr_start_date = 0,
+    "ALTER TABLE promotions ADD COLUMN start_date DATE NULL AFTER discount_value",
+    "SELECT 'Skip: promotions.start_date exists or table missing' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @has_pr_end_date := (
+    SELECT COUNT(*)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'promotions'
+      AND column_name = 'end_date'
+);
+SET @sql := IF(
+    @has_promotions = 1 AND @has_pr_end_date = 0,
+    "ALTER TABLE promotions ADD COLUMN end_date DATE NULL AFTER start_date",
+    "SELECT 'Skip: promotions.end_date exists or table missing' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @has_pr_package_name := (
+    SELECT COUNT(*)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'promotions'
+      AND column_name = 'package_name'
+);
+SET @has_pr_number_of_weeks := (
+    SELECT COUNT(*)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'promotions'
+      AND column_name = 'number_of_weeks'
+);
+SET @has_pr_discount_rate := (
+    SELECT COUNT(*)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'promotions'
+      AND column_name = 'discount_rate'
+);
+
+SET @sql := IF(
+    @has_promotions = 1 AND @has_pr_package_name = 1,
+    "UPDATE promotions SET name = package_name WHERE TRIM(name) = ''",
+    "SELECT 'Skip: promotions.name backfill not required' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @sql := IF(
+    @has_promotions = 1 AND @has_pr_discount_rate = 1,
+    "UPDATE promotions SET discount_value = LEAST(100, GREATEST(0, discount_rate))",
+    "SELECT 'Skip: promotions.discount_value backfill not required' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @sql := IF(
+    @has_promotions = 1 AND @has_pr_number_of_weeks = 1,
+    "UPDATE promotions SET promo_type = CASE WHEN number_of_weeks >= 12 THEN 'GROUP' WHEN number_of_weeks >= 8 THEN 'DURATION' WHEN number_of_weeks >= 4 THEN 'EVENT' ELSE 'SOCIAL' END",
+    "SELECT 'Skip: promotions.promo_type backfill not required' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @sql := IF(
+    @has_promotions = 1,
+    "UPDATE promotions SET name = CONCAT('Promo #', id) WHERE TRIM(name) = ''",
+    "SELECT 'Skip: promotions table not found' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @sql := IF(
+    @has_promotions = 1,
+    "UPDATE promotions SET discount_value = LEAST(100, GREATEST(0, discount_value))",
+    "SELECT 'Skip: promotions table not found' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @sql := IF(
+    @has_promotions = 1,
+    "ALTER TABLE promotions MODIFY COLUMN name VARCHAR(150) NOT NULL, MODIFY COLUMN promo_type ENUM('DURATION', 'SOCIAL', 'EVENT', 'GROUP') NOT NULL, MODIFY COLUMN discount_value DECIMAL(5,2) NOT NULL DEFAULT 0, MODIFY COLUMN start_date DATE NULL, MODIFY COLUMN end_date DATE NULL",
+    "SELECT 'Skip: promotions table not found' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @sql := IF(
+    @has_promotions = 1 AND @has_pr_package_name = 1,
+    "ALTER TABLE promotions DROP COLUMN package_name",
+    "SELECT 'Skip: promotions.package_name missing or table missing' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @sql := IF(
+    @has_promotions = 1 AND @has_pr_number_of_weeks = 1,
+    "ALTER TABLE promotions DROP COLUMN number_of_weeks",
+    "SELECT 'Skip: promotions.number_of_weeks missing or table missing' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @sql := IF(
+    @has_promotions = 1 AND @has_pr_discount_rate = 1,
+    "ALTER TABLE promotions DROP COLUMN discount_rate",
+    "SELECT 'Skip: promotions.discount_rate missing or table missing' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @has_idx_pr_scope_dates := (
+    SELECT COUNT(*)
+    FROM information_schema.statistics
+    WHERE table_schema = DATABASE()
+      AND table_name = 'promotions'
+      AND index_name = 'idx_promotions_scope_dates'
+);
+SET @sql := IF(
+    @has_promotions = 1 AND @has_idx_pr_scope_dates = 0,
+    "ALTER TABLE promotions ADD INDEX idx_promotions_scope_dates (course_id, start_date, end_date)",
+    "SELECT 'Skip: idx_promotions_scope_dates exists or table missing' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @has_idx_pr_promo_type := (
+    SELECT COUNT(*)
+    FROM information_schema.statistics
+    WHERE table_schema = DATABASE()
+      AND table_name = 'promotions'
+      AND index_name = 'idx_promotions_promo_type'
+);
+SET @sql := IF(
+    @has_promotions = 1 AND @has_idx_pr_promo_type = 0,
+    "ALTER TABLE promotions ADD INDEX idx_promotions_promo_type (promo_type)",
+    "SELECT 'Skip: idx_promotions_promo_type exists or table missing' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @has_fk_tuition_package := (
+    SELECT COUNT(*)
+    FROM information_schema.table_constraints
+    WHERE table_schema = DATABASE()
+      AND table_name = 'tuition_fees'
+      AND constraint_name = 'fk_tuition_package'
+      AND constraint_type = 'FOREIGN KEY'
+);
+
+SET @tuition_fk_target := (
+    SELECT COALESCE(MAX(referenced_table_name), '')
+    FROM information_schema.key_column_usage
+    WHERE table_schema = DATABASE()
+      AND table_name = 'tuition_fees'
+      AND constraint_name = 'fk_tuition_package'
+);
+
+SET @sql := IF(
+    @has_tuition = 1 AND @has_promotions = 1 AND @has_fk_tuition_package = 1 AND @tuition_fk_target <> 'promotions',
+    "ALTER TABLE tuition_fees DROP FOREIGN KEY fk_tuition_package, ADD CONSTRAINT fk_tuition_package FOREIGN KEY (package_id) REFERENCES promotions(id)",
+    "SELECT 'Skip: tuition_fees.fk_tuition_package already points to promotions or missing' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @sql := IF(
+    @has_tuition = 1 AND @has_promotions = 1 AND @has_fk_tuition_package = 0,
+    "ALTER TABLE tuition_fees ADD CONSTRAINT fk_tuition_package FOREIGN KEY (package_id) REFERENCES promotions(id)",
+    "SELECT 'Skip: tuition_fees.fk_tuition_package already exists' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @has_course_packages := (
+    SELECT COUNT(*)
+    FROM information_schema.tables
+    WHERE table_schema = DATABASE()
+      AND table_name = 'course_packages'
+);
+
+SET @course_packages_ref_count := (
+    SELECT COUNT(*)
+    FROM information_schema.referential_constraints
+    WHERE constraint_schema = DATABASE()
+      AND referenced_table_name = 'course_packages'
+);
+
+SET @sql := IF(
+    @has_course_packages = 1 AND @course_packages_ref_count = 0,
+    "DROP TABLE course_packages",
+    "SELECT 'Skip: legacy course_packages cleanup not required' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+-- Disable legacy auto tuition trigger; tuition is now created from explicit registration flow.
 DROP TRIGGER IF EXISTS trg_class_students_auto_tuition;
-CREATE TRIGGER trg_class_students_auto_tuition
-AFTER INSERT ON class_students
-FOR EACH ROW
-INSERT INTO tuition_fees (
-        student_id,
-        class_id,
-        package_id,
-        base_amount,
-        discount_type,
-        discount_amount,
-        total_amount,
-        amount_paid,
-        payment_plan,
-        status
-)
-SELECT
-        NEW.student_id,
-        NEW.class_id,
-        NULL,
-        COALESCE(c.base_price, 0),
-        NULL,
-        0,
-        COALESCE(c.base_price, 0),
-        0,
-        'full',
-        'debt'
-FROM classes cl
-INNER JOIN courses c ON c.id = cl.course_id
-WHERE cl.id = NEW.class_id
-    AND NOT EXISTS (
-            SELECT 1
-            FROM tuition_fees tf
-            WHERE tf.student_id = NEW.student_id
-                AND tf.class_id = NEW.class_id
-    );
 
 -- Ensure approvals.content exists and can store JSON payload text.
 SET @has_content := (
@@ -132,3 +435,384 @@ SET @sql := IF(
 PREPARE stmt FROM @sql;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
+
+-- Ensure materials.description exists.
+SET @has_materials := (
+    SELECT COUNT(*)
+    FROM information_schema.tables
+    WHERE table_schema = DATABASE()
+      AND table_name = 'materials'
+);
+
+SET @has_material_description := (
+    SELECT COUNT(*)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'materials'
+      AND column_name = 'description'
+);
+
+SET @sql := IF(
+    @has_materials = 1 AND @has_material_description = 0,
+    "ALTER TABLE materials ADD COLUMN description TEXT NULL AFTER title",
+    "SELECT 'Skip: materials.description exists or table missing' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @has_material_type := (
+    SELECT COUNT(*)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'materials'
+      AND column_name = 'type'
+);
+
+SET @sql := IF(
+    @has_materials = 1 AND @has_material_type = 1,
+    "UPDATE materials SET description = CONCAT('Tai lieu ', type) WHERE description IS NULL OR TRIM(description) = ''",
+    "SELECT 'Skip: materials.description backfill not required' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @sql := IF(
+    @has_materials = 1 AND @has_material_type = 1,
+    "ALTER TABLE materials DROP COLUMN type",
+    "SELECT 'Skip: materials.type missing or table missing' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+-- Ensure schedules has overlap-prevention constraints and triggers.
+SET @has_schedules := (
+    SELECT COUNT(*)
+    FROM information_schema.tables
+    WHERE table_schema = DATABASE()
+      AND table_name = 'schedules'
+);
+
+-- Migrate lessons.lesson_date to nullable lessons.schedule_id (plan first, attach schedule later).
+SET @has_lessons := (
+    SELECT COUNT(*)
+    FROM information_schema.tables
+    WHERE table_schema = DATABASE()
+      AND table_name = 'lessons'
+);
+
+SET @has_lessons_schedule_id := (
+    SELECT COUNT(*)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'lessons'
+      AND column_name = 'schedule_id'
+);
+
+SET @sql := IF(
+    @has_lessons = 1 AND @has_lessons_schedule_id = 0,
+    "ALTER TABLE lessons ADD COLUMN schedule_id BIGINT UNSIGNED NULL AFTER actual_content",
+    "SELECT 'Skip: lessons.schedule_id exists or lessons table missing' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @has_lessons_schedule_id := (
+    SELECT COUNT(*)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'lessons'
+      AND column_name = 'schedule_id'
+);
+
+SET @has_lessons_lesson_date := (
+    SELECT COUNT(*)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'lessons'
+      AND column_name = 'lesson_date'
+);
+
+SET @sql := IF(
+    @has_lessons = 1 AND @has_schedules = 1 AND @has_lessons_schedule_id = 1 AND @has_lessons_lesson_date = 1,
+    "UPDATE lessons l LEFT JOIN (SELECT s.class_id, s.study_date, MIN(s.id) AS schedule_id FROM schedules s GROUP BY s.class_id, s.study_date) sm ON sm.class_id = l.class_id AND sm.study_date = l.lesson_date SET l.schedule_id = sm.schedule_id WHERE l.schedule_id IS NULL",
+    "SELECT 'Skip: lessons.schedule_id backfill not required' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @sql := IF(
+    @has_lessons = 1 AND @has_schedules = 1 AND @has_lessons_schedule_id = 1,
+    "UPDATE lessons l INNER JOIN schedules s ON s.id = l.schedule_id SET l.schedule_id = NULL WHERE s.class_id <> l.class_id",
+    "SELECT 'Skip: lessons.class/schedule alignment cleanup not required' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @sql := IF(
+    @has_lessons = 1 AND @has_schedules = 1 AND @has_lessons_schedule_id = 1,
+    "UPDATE lessons l LEFT JOIN schedules s ON s.id = l.schedule_id SET l.schedule_id = NULL WHERE l.schedule_id IS NOT NULL AND s.id IS NULL",
+    "SELECT 'Skip: lessons orphan schedule cleanup not required' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @sql := IF(
+    @has_lessons = 1 AND @has_lessons_schedule_id = 1,
+    "ALTER TABLE lessons MODIFY COLUMN schedule_id BIGINT UNSIGNED NULL",
+    "SELECT 'Skip: lessons.schedule_id normalize type not required' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @has_idx_lessons_class_schedule := (
+    SELECT COUNT(*)
+    FROM information_schema.statistics
+    WHERE table_schema = DATABASE()
+      AND table_name = 'lessons'
+      AND index_name = 'idx_lessons_class_schedule'
+);
+
+SET @sql := IF(
+    @has_lessons = 1 AND @has_lessons_schedule_id = 1 AND @has_idx_lessons_class_schedule = 0,
+    "ALTER TABLE lessons ADD INDEX idx_lessons_class_schedule (class_id, schedule_id)",
+    "SELECT 'Skip: idx_lessons_class_schedule exists or lessons table missing' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @has_fk_lessons_schedule := (
+    SELECT COUNT(*)
+    FROM information_schema.table_constraints
+    WHERE table_schema = DATABASE()
+      AND table_name = 'lessons'
+      AND constraint_name = 'fk_lessons_schedule'
+      AND constraint_type = 'FOREIGN KEY'
+);
+
+SET @lessons_schedule_fk_target := (
+    SELECT COALESCE(MAX(referenced_table_name), '')
+    FROM information_schema.key_column_usage
+    WHERE table_schema = DATABASE()
+      AND table_name = 'lessons'
+      AND constraint_name = 'fk_lessons_schedule'
+);
+
+SET @sql := IF(
+    @has_lessons = 1 AND @has_schedules = 1 AND @has_lessons_schedule_id = 1 AND @has_fk_lessons_schedule = 1 AND @lessons_schedule_fk_target <> 'schedules',
+    "ALTER TABLE lessons DROP FOREIGN KEY fk_lessons_schedule, ADD CONSTRAINT fk_lessons_schedule FOREIGN KEY (schedule_id) REFERENCES schedules(id) ON DELETE SET NULL",
+    "SELECT 'Skip: lessons.fk_lessons_schedule retarget not required' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @sql := IF(
+    @has_lessons = 1 AND @has_schedules = 1 AND @has_lessons_schedule_id = 1 AND @has_fk_lessons_schedule = 0,
+    "ALTER TABLE lessons ADD CONSTRAINT fk_lessons_schedule FOREIGN KEY (schedule_id) REFERENCES schedules(id) ON DELETE SET NULL",
+    "SELECT 'Skip: lessons.fk_lessons_schedule exists or lessons/schedules missing' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @sql := IF(
+    @has_lessons = 1 AND @has_lessons_lesson_date = 1,
+    "ALTER TABLE lessons DROP COLUMN lesson_date",
+    "SELECT 'Skip: lessons.lesson_date missing or lessons table not found' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @has_schedule_time_check := (
+    SELECT COUNT(*)
+    FROM information_schema.table_constraints
+    WHERE table_schema = DATABASE()
+      AND table_name = 'schedules'
+      AND constraint_name = 'ck_schedules_time_range'
+      AND constraint_type = 'CHECK'
+);
+
+SET @invalid_schedule_ranges := 0;
+SET @sql := IF(
+    @has_schedules = 1,
+    "SELECT COUNT(*) INTO @invalid_schedule_ranges FROM schedules WHERE start_time >= end_time",
+    "SELECT 0 INTO @invalid_schedule_ranges"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @sql := IF(
+    @has_schedules = 1 AND @has_schedule_time_check = 0 AND @invalid_schedule_ranges = 0,
+    "ALTER TABLE schedules ADD CONSTRAINT ck_schedules_time_range CHECK (start_time < end_time)",
+    "SELECT 'Skip: schedules time-range CHECK exists, invalid data found, or table missing' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @has_idx_schedule_class := (
+    SELECT COUNT(*)
+    FROM information_schema.statistics
+    WHERE table_schema = DATABASE()
+      AND table_name = 'schedules'
+      AND index_name = 'idx_schedules_class_date_time'
+);
+SET @sql := IF(
+    @has_schedules = 1 AND @has_idx_schedule_class = 0,
+    "ALTER TABLE schedules ADD INDEX idx_schedules_class_date_time (class_id, study_date, start_time, end_time)",
+    "SELECT 'Skip: idx_schedules_class_date_time exists or schedules table missing' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @has_idx_schedule_teacher := (
+    SELECT COUNT(*)
+    FROM information_schema.statistics
+    WHERE table_schema = DATABASE()
+      AND table_name = 'schedules'
+      AND index_name = 'idx_schedules_teacher_date_time'
+);
+SET @sql := IF(
+    @has_schedules = 1 AND @has_idx_schedule_teacher = 0,
+    "ALTER TABLE schedules ADD INDEX idx_schedules_teacher_date_time (teacher_id, study_date, start_time, end_time)",
+    "SELECT 'Skip: idx_schedules_teacher_date_time exists or schedules table missing' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @has_idx_schedule_room := (
+    SELECT COUNT(*)
+    FROM information_schema.statistics
+    WHERE table_schema = DATABASE()
+      AND table_name = 'schedules'
+      AND index_name = 'idx_schedules_room_date_time'
+);
+SET @sql := IF(
+    @has_schedules = 1 AND @has_idx_schedule_room = 0,
+    "ALTER TABLE schedules ADD INDEX idx_schedules_room_date_time (room_id, study_date, start_time, end_time)",
+    "SELECT 'Skip: idx_schedules_room_date_time exists or schedules table missing' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+DROP TRIGGER IF EXISTS trg_schedules_prevent_overlap_insert;
+DROP TRIGGER IF EXISTS trg_schedules_prevent_overlap_update;
+
+DELIMITER $$
+
+CREATE TRIGGER trg_schedules_prevent_overlap_insert
+BEFORE INSERT ON schedules
+FOR EACH ROW
+BEGIN
+    DECLARE v_conflict_count INT DEFAULT 0;
+
+    IF NEW.start_time >= NEW.end_time THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Khung gio khong hop le: gio ket thuc phai sau gio bat dau.';
+    END IF;
+
+    SELECT COUNT(*)
+    INTO v_conflict_count
+    FROM schedules s
+    WHERE s.study_date = NEW.study_date
+      AND s.class_id = NEW.class_id
+      AND s.start_time < NEW.end_time
+      AND s.end_time > NEW.start_time;
+
+    IF v_conflict_count > 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Lop hoc da co lich trung gio.';
+    END IF;
+
+    SELECT COUNT(*)
+    INTO v_conflict_count
+    FROM schedules s
+    WHERE s.study_date = NEW.study_date
+      AND s.teacher_id = NEW.teacher_id
+      AND s.start_time < NEW.end_time
+      AND s.end_time > NEW.start_time;
+
+    IF v_conflict_count > 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Giao vien da co lich trung gio.';
+    END IF;
+
+    IF NEW.room_id IS NOT NULL THEN
+        SELECT COUNT(*)
+        INTO v_conflict_count
+        FROM schedules s
+        WHERE s.study_date = NEW.study_date
+          AND s.room_id = NEW.room_id
+          AND s.start_time < NEW.end_time
+          AND s.end_time > NEW.start_time;
+
+        IF v_conflict_count > 0 THEN
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Phong hoc da co lich trung gio.';
+        END IF;
+    END IF;
+END$$
+
+CREATE TRIGGER trg_schedules_prevent_overlap_update
+BEFORE UPDATE ON schedules
+FOR EACH ROW
+BEGIN
+    DECLARE v_conflict_count INT DEFAULT 0;
+
+    IF NEW.start_time >= NEW.end_time THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Khung gio khong hop le: gio ket thuc phai sau gio bat dau.';
+    END IF;
+
+    SELECT COUNT(*)
+    INTO v_conflict_count
+    FROM schedules s
+    WHERE s.id <> NEW.id
+      AND s.study_date = NEW.study_date
+      AND s.class_id = NEW.class_id
+      AND s.start_time < NEW.end_time
+      AND s.end_time > NEW.start_time;
+
+    IF v_conflict_count > 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Lop hoc da co lich trung gio.';
+    END IF;
+
+    SELECT COUNT(*)
+    INTO v_conflict_count
+    FROM schedules s
+    WHERE s.id <> NEW.id
+      AND s.study_date = NEW.study_date
+      AND s.teacher_id = NEW.teacher_id
+      AND s.start_time < NEW.end_time
+      AND s.end_time > NEW.start_time;
+
+    IF v_conflict_count > 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Giao vien da co lich trung gio.';
+    END IF;
+
+    IF NEW.room_id IS NOT NULL THEN
+        SELECT COUNT(*)
+        INTO v_conflict_count
+        FROM schedules s
+        WHERE s.id <> NEW.id
+          AND s.study_date = NEW.study_date
+          AND s.room_id = NEW.room_id
+          AND s.start_time < NEW.end_time
+          AND s.end_time > NEW.start_time;
+
+        IF v_conflict_count > 0 THEN
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Phong hoc da co lich trung gio.';
+        END IF;
+    END IF;
+END$$
+
+DELIMITER ;

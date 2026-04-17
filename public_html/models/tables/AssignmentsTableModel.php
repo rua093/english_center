@@ -10,6 +10,11 @@ final class AssignmentsTableModel extends BaseTableModel
         return $this->countAllFrom('assignments');
     }
 
+    public function countDetailed(): int
+    {
+        return $this->countAllFrom('assignments');
+    }
+
     public function listDetailed(): array
     {
         $sql = "SELECT a.id, a.lesson_id, a.title, a.description, a.deadline, a.file_url,
@@ -18,6 +23,19 @@ final class AssignmentsTableModel extends BaseTableModel
             INNER JOIN lessons l ON l.id = a.lesson_id
             INNER JOIN classes c ON c.id = l.class_id
             ORDER BY a.deadline DESC";
+        return $this->fetchAll($sql);
+    }
+
+    public function listDetailedPage(int $page, int $perPage): array
+    {
+        $pagination = $this->pagination($page, $perPage, 10, 200);
+        $sql = "SELECT a.id, a.lesson_id, a.title, a.description, a.deadline, a.file_url,
+                l.actual_title AS lesson_title, c.class_name
+            FROM assignments a
+            INNER JOIN lessons l ON l.id = a.lesson_id
+            INNER JOIN classes c ON c.id = l.class_id
+            ORDER BY a.deadline DESC
+            LIMIT {$pagination['limit']} OFFSET {$pagination['offset']}";
         return $this->fetchAll($sql);
     }
 

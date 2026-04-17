@@ -6,24 +6,106 @@ require_once __DIR__ . '/../../core/page_actions.php';
 require_once __DIR__ . '/../../models/AcademicModel.php';
 require_once __DIR__ . '/../../models/UserModel.php';
 
+function assignments_manage_redirect_query(array $source): array
+{
+	$query = [];
+
+	$courseId = input_int($source, 'course_id');
+	if ($courseId > 0) {
+		$query['course_id'] = $courseId;
+	}
+
+	$classId = input_int($source, 'class_id');
+	if ($classId > 0) {
+		$query['class_id'] = $classId;
+	}
+
+	$lessonId = input_int($source, 'lesson_id');
+	if ($lessonId > 0) {
+		$query['lesson_id'] = $lessonId;
+	}
+
+	$scheduleId = input_int($source, 'schedule_id');
+	if ($scheduleId > 0) {
+		$query['schedule_id'] = $scheduleId;
+	}
+
+	$focusScheduleId = input_int($source, 'focus_schedule_id');
+	if ($focusScheduleId <= 0) {
+		$focusScheduleId = $scheduleId;
+	}
+	if ($focusScheduleId > 0) {
+		$query['focus_schedule_id'] = $focusScheduleId;
+	}
+
+	$weekStart = input_string($source, 'week_start');
+	if ($weekStart !== '' && preg_match('/^\d{4}-\d{2}-\d{2}$/', $weekStart) === 1) {
+		$query['week_start'] = $weekStart;
+	}
+
+	$weekRef = input_string($source, 'week_ref');
+	if ($weekRef !== '' && preg_match('/^\d{4}-W\d{2}$/', $weekRef) === 1) {
+		$query['week_ref'] = $weekRef;
+	}
+
+	return $query;
+}
+
+function assignments_manage_redirect_page(array $source, string $fallback): string
+{
+	$requestedPage = resolve_page_slug(input_string($source, 'redirect_page'));
+	$allowedPages = ['assignments-academic', 'classrooms-academic'];
+
+	if (in_array($requestedPage, $allowedPages, true)) {
+		return $requestedPage;
+	}
+
+	return $fallback;
+}
+
 function api_assignments_save_action(): void
 {
 	api_require_post(page_url('assignments-academic'));
 
 	$assignmentId = input_int($_POST, 'id');
 	api_guard_permission($assignmentId > 0 ? 'academic.assignments.update' : 'academic.assignments.create');
+	$redirectPage = assignments_manage_redirect_page($_POST, 'assignments-academic');
+	$redirectQuery = assignments_manage_redirect_query($_POST);
+	$listPath = page_url($redirectPage, $redirectQuery);
+
+	$editPath = $listPath;
+	if ($redirectPage === 'assignments-academic') {
+		$editQuery = $redirectQuery;
+		if ($assignmentId > 0) {
+			$editQuery['id'] = $assignmentId;
+		}
+		$editPath = page_url('assignments-academic-edit', $editQuery);
+	}
 
 	$payload = $_POST;
 	if (input_string($payload, 'deadline') === '' && input_string($payload, 'due_date') !== '') {
 		$payload['deadline'] = (string) $payload['due_date'];
 	}
 
-	$uploadPath = input_string($payload, 'file_url');
+	$academicModel = new AcademicModel();
+
+	$uploadPath = input_string($payload, 'existing_file_url');
+	$manualFileUrl = input_string($payload, 'file_url');
+	if ($manualFileUrl !== '') {
+		$uploadPath = $manualFileUrl;
+	}
+
 	if (!empty($_FILES['assignment_file']['name'])) {
 		$fileUpload = store_uploaded_file($_FILES['assignment_file'], 'assignment');
 		if ($fileUpload === null) {
-			set_flash('error', 'Tải lên file bài tập thất bại.');
-			redirect(page_url('assignments-academic'));
+			$uploadErrorCode = (int) ($_FILES['assignment_file']['error'] ?? UPLOAD_ERR_OK);
+			$uploadMessage = 'Tải lên file bài tập thất bại.';
+			if ($uploadErrorCode === UPLOAD_ERR_INI_SIZE || $uploadErrorCode === UPLOAD_ERR_FORM_SIZE) {
+				$uploadMessage = 'File tải lên vượt quá giới hạn dung lượng cho phép.';
+			}
+
+			set_flash('error', $uploadMessage);
+			redirect($editPath);
 		}
 		$uploadPath = $fileUpload;
 	}
@@ -32,20 +114,41 @@ function api_assignments_save_action(): void
 		'title' => 'Tiêu đề',
 		'deadline' => 'Hạn nộp',
 	]);
+
+	$classId = input_int($payload, 'class_id');
+	$lessonId = input_int($payload, 'lesson_id');
+	if ($classId <= 0) {
+		$requiredErrors['class_id'] = 'Lớp học';
+	}
 	if (input_int($payload, 'lesson_id') <= 0) {
 		$requiredErrors['lesson_id'] = 'Buổi học';
 	}
 
 	if (!empty($requiredErrors)) {
-		set_flash('error', 'Vui lòng nhập đầy đủ buổi học, tiêu đề và hạn nộp.');
-		redirect($assignmentId > 0 ? page_url('assignments-academic-edit', ['id' => $assignmentId]) : page_url('assignments-academic-edit'));
+		set_flash('error', 'Vui lòng chọn lớp, buổi học và nhập đầy đủ tiêu đề, hạn nộp.');
+		redirect($editPath);
+	}
+
+	$lessonBelongsToClass = false;
+	foreach ($academicModel->assignmentLookups() as $lessonRow) {
+		if ((int) ($lessonRow['id'] ?? 0) !== $lessonId) {
+			continue;
+		}
+
+		$lessonBelongsToClass = (int) ($lessonRow['class_id'] ?? 0) === $classId;
+		break;
+	}
+
+	if (!$lessonBelongsToClass) {
+		set_flash('error', 'Buổi học không thuộc lớp đã chọn. Vui lòng chọn lại.');
+		redirect($editPath);
 	}
 
 	$payload['file_url'] = $uploadPath;
-	(new AcademicModel())->saveAssignment($payload);
+	$academicModel->saveAssignment($payload);
 
 	set_flash('success', 'Đã lưu bài tập thành công.');
-	redirect(page_url('assignments-academic'));
+	redirect($listPath);
 }
 
 function api_assignments_delete_action(): void
@@ -59,7 +162,8 @@ function api_assignments_delete_action(): void
 		set_flash('success', 'Đã xóa bài tập.');
 	}
 
-	redirect(page_url('assignments-academic'));
+	$redirectPage = assignments_manage_redirect_page($_GET, 'assignments-academic');
+	redirect(page_url($redirectPage, assignments_manage_redirect_query($_GET)));
 }
 
 function api_assignments_submit_action(): void
