@@ -928,12 +928,18 @@ if ($activeModule === '') {
         'dashboard-admin' => 'dashboard',
         'users-admin' => 'users',
         'tuition-finance' => 'tuition',
+        'registration-finance' => 'registration',
+        'promotions-manage' => 'promotions',
         'payments-finance' => 'payments',
         'approvals-manage' => 'approvals',
         'feedbacks-manage' => 'feedbacks',
         'activities-manage' => 'activities',
         'bank-manage' => 'bank',
+        'courses-academic' => 'courses',
+        'roadmaps-academic' => 'roadmaps',
         'classes-academic' => 'classes',
+        'classrooms-academic' => 'classrooms',
+        'attendance-academic' => 'attendance',
         'classes-academic-edit' => 'classes',
         'schedules-academic' => 'schedules',
         'schedules-academic-edit' => 'schedules',
@@ -950,13 +956,19 @@ if ($activeModule === '') {
 $adminPageTitleMap = [
     'dashboard' => 'Toàn cảnh vận hành',
     'tuition' => 'Học phí và công nợ',
+    'registration' => 'Đăng ký khóa học',
+    'promotions' => 'Ưu đãi giảm giá',
     'payments' => 'Giao dịch thanh toán',
     'users' => 'Người dùng và phân quyền',
     'approvals' => 'Yêu cầu phê duyệt',
     'feedbacks' => 'Phản hồi học viên',
     'activities' => 'Hoạt động ngoại khóa',
     'bank' => 'Tài khoản ngân hàng',
-    'classes' => 'Quản lý lớp học',
+    'courses' => 'Danh mục khóa học',
+    'roadmaps' => 'Roadmap theo khóa học',
+    'classes' => 'Danh mục lớp học',
+    'classrooms' => 'Quản lý lớp học',
+    'attendance' => 'Điểm danh lớp học',
     'schedules' => 'Kế hoạch lịch học',
     'assignments' => 'Hệ thống bài tập',
     'materials' => 'Kho tài liệu',
@@ -967,13 +979,19 @@ $adminPageTitleMap = [
 $adminPageDescriptionMap = [
     'dashboard' => 'Theo dõi doanh thu, biến động lớp học và thông báo quan trọng để nắm nhanh tình hình vận hành mỗi ngày.',
     'tuition' => 'Tạo hóa đơn, cập nhật số tiền đã thu và kiểm soát công nợ còn lại theo từng học viên trong từng lớp.',
+    'registration' => 'Đăng ký học viên vào khóa/lớp, áp giảm giá và tự động tạo công nợ học phí để theo dõi thu tiền chuẩn nghiệp vụ.',
+    'promotions' => 'Thiết lập các chương trình ưu đãi theo khóa học hoặc toàn trung tâm để áp dụng giảm giá tự động khi đăng ký.',
     'payments' => 'Quản lý mã giao dịch, đối soát trạng thái thanh toán và rà soát lịch sử thu học phí một cách tập trung.',
     'users' => 'Quản lý tài khoản, vai trò và hồ sơ theo từng nhóm người dùng để kiểm soát truy cập hệ thống an toàn.',
     'approvals' => 'Tạo yêu cầu, cập nhật trạng thái duyệt và theo dõi người xử lý cho từng quy trình nội bộ của trung tâm.',
     'feedbacks' => 'Thu thập nhận xét học viên, theo dõi điểm đánh giá và xử lý phản hồi theo lớp hoặc giáo viên phụ trách.',
     'activities' => 'Lên kế hoạch hoạt động ngoại khóa, theo dõi trạng thái tổ chức và số lượng học viên đăng ký tham gia.',
     'bank' => 'Cấu hình tài khoản nhận tiền, quản lý thông tin QR và thiết lập tài khoản mặc định cho thanh toán học phí.',
+    'courses' => 'Quản lý danh mục khóa học, mức học phí cơ bản và số buổi chuẩn để đồng bộ toàn bộ vận hành học vụ.',
+    'roadmaps' => 'Thiết kế lộ trình kiến thức theo từng khóa học, làm chuẩn cho giáo án buổi học và kế hoạch giảng dạy.',
     'classes' => 'Theo dõi danh sách lớp, giáo viên phụ trách và trạng thái vận hành để điều phối học vụ chính xác hơn.',
+    'classrooms' => 'Lập kế hoạch tiết học theo từng lớp, gắn buổi vào lịch học theo thời khóa biểu tuần và thao tác nhanh theo từng buổi.',
+    'attendance' => 'Điểm danh theo quy trình khóa học -> lớp học -> buổi đã gắn lịch, lưu tập trung và theo dõi trạng thái học viên.',
     'schedules' => 'Sắp xếp lịch học, phòng học và khung giờ giảng dạy nhằm hạn chế trùng lịch và tối ưu nguồn lực.',
     'assignments' => 'Tạo bài tập, quản lý hạn nộp và kiểm soát tài nguyên đính kèm theo từng buổi học hoặc khóa học.',
     'materials' => 'Quản lý kho tài liệu theo khóa học, cập nhật tệp nhanh và giữ cấu trúc nội dung học tập nhất quán.',
@@ -1031,6 +1049,24 @@ if ($displayAdminDescription === '') {
                 </a>
             <?php endif; ?>
 
+            <?php if (can_access_page('registration-finance')): ?>
+                <a class="admin-sidebar-link<?= $activeModule === 'registration' ? ' is-active' : ''; ?>" href="<?= e(page_url('registration-finance')); ?>" title="Đăng ký khóa học">
+                    <span class="admin-sidebar-link-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24"><path d="M4 5h16"></path><path d="M4 10h10"></path><path d="M4 15h8"></path><path d="m14 14 2 2 4-4"></path><circle cx="18" cy="16" r="5"></circle></svg>
+                    </span>
+                    <span class="admin-sidebar-link-label">Đăng ký khóa học</span>
+                </a>
+            <?php endif; ?>
+
+            <?php if (can_access_page('promotions-manage')): ?>
+                <a class="admin-sidebar-link<?= $activeModule === 'promotions' ? ' is-active' : ''; ?>" href="<?= e(page_url('promotions-manage')); ?>" title="Ưu đãi giảm giá">
+                    <span class="admin-sidebar-link-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24"><path d="M20.59 13.41 12 22l-8.59-8.59a2 2 0 0 1 0-2.82L12 2l8.59 8.59a2 2 0 0 1 0 2.82z"></path><circle cx="9" cy="9" r="1.5"></circle></svg>
+                    </span>
+                    <span class="admin-sidebar-link-label">Ưu đãi giảm giá</span>
+                </a>
+            <?php endif; ?>
+
             <?php if (can_access_page('payments-finance')): ?>
                 <a class="admin-sidebar-link<?= $activeModule === 'payments' ? ' is-active' : ''; ?>" href="<?= e(page_url('payments-finance')); ?>" title="Thanh toán">
                     <span class="admin-sidebar-link-icon" aria-hidden="true">
@@ -1085,12 +1121,48 @@ if ($displayAdminDescription === '') {
                 </a>
             <?php endif; ?>
 
+            <?php if (can_access_page('courses-academic')): ?>
+                <a class="admin-sidebar-link<?= $activeModule === 'courses' ? ' is-active' : ''; ?>" href="<?= e(page_url('courses-academic')); ?>" title="Khóa học">
+                    <span class="admin-sidebar-link-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24"><path d="M4 4h16v14H4z"></path><path d="M8 8h8"></path><path d="M8 12h5"></path><path d="M4 20h16"></path></svg>
+                    </span>
+                    <span class="admin-sidebar-link-label">Danh mục khóa học</span>
+                </a>
+            <?php endif; ?>
+
+            <?php if (can_access_page('roadmaps-academic')): ?>
+                <a class="admin-sidebar-link<?= $activeModule === 'roadmaps' ? ' is-active' : ''; ?>" href="<?= e(page_url('roadmaps-academic')); ?>" title="Roadmap khóa học">
+                    <span class="admin-sidebar-link-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24"><path d="M3 7h4v4H3z"></path><path d="M10 7h11"></path><path d="M3 13h4v4H3z"></path><path d="M10 15h11"></path></svg>
+                    </span>
+                    <span class="admin-sidebar-link-label">Roadmap khóa học</span>
+                </a>
+            <?php endif; ?>
+
             <?php if (can_access_page('classes-academic')): ?>
                 <a class="admin-sidebar-link<?= $activeModule === 'classes' ? ' is-active' : ''; ?>" href="<?= e(page_url('classes-academic')); ?>" title="Lớp học">
                     <span class="admin-sidebar-link-icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24"><path d="M3 5a3 3 0 0 1 3-3h6v18H6a3 3 0 0 0-3 3z"></path><path d="M21 5a3 3 0 0 0-3-3h-6v18h6a3 3 0 0 1 3 3z"></path></svg>
                     </span>
-                    <span class="admin-sidebar-link-label">Lớp học</span>
+                    <span class="admin-sidebar-link-label">Danh mục lớp</span>
+                </a>
+            <?php endif; ?>
+
+            <?php if (can_access_page('classrooms-academic')): ?>
+                <a class="admin-sidebar-link<?= $activeModule === 'classrooms' ? ' is-active' : ''; ?>" href="<?= e(page_url('classrooms-academic')); ?>" title="Quản lý lớp học">
+                    <span class="admin-sidebar-link-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"></rect><path d="M3 10h18"></path><path d="M8 14h8"></path><path d="M8 17h5"></path></svg>
+                    </span>
+                    <span class="admin-sidebar-link-label">Quản lý lớp học</span>
+                </a>
+            <?php endif; ?>
+
+            <?php if (can_access_page('attendance-academic')): ?>
+                <a class="admin-sidebar-link<?= $activeModule === 'attendance' ? ' is-active' : ''; ?>" href="<?= e(page_url('attendance-academic')); ?>" title="Điểm danh">
+                    <span class="admin-sidebar-link-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="m8.5 12 2 2 5-5"></path></svg>
+                    </span>
+                    <span class="admin-sidebar-link-label">Điểm danh</span>
                 </a>
             <?php endif; ?>
 

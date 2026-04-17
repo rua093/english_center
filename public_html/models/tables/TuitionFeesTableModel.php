@@ -161,6 +161,71 @@ final class TuitionFeesTableModel extends BaseTableModel
         );
     }
 
+    public function findByStudentAndClass(int $studentId, int $classId): ?array
+    {
+        return $this->fetchOne(
+            'SELECT id, base_amount, discount_type, discount_amount, total_amount, amount_paid, status, payment_plan
+             FROM tuition_fees
+             WHERE student_id = :student_id AND class_id = :class_id
+             ORDER BY id DESC
+             LIMIT 1',
+            [
+                'student_id' => $studentId,
+                'class_id' => $classId,
+            ]
+        );
+    }
+
+    public function createDebtForRegistration(array $data): int
+    {
+        $studentId = (int) ($data['student_id'] ?? 0);
+        $classId = (int) ($data['class_id'] ?? 0);
+        $packageId = max(0, (int) ($data['package_id'] ?? 0));
+        $baseAmount = max(0, (float) ($data['base_amount'] ?? 0));
+        $discountType = trim((string) ($data['discount_type'] ?? 'none'));
+        $discountPercent = max(0, min(100, (float) ($data['discount_amount'] ?? 0)));
+        $paymentPlan = (string) ($data['payment_plan'] ?? 'full');
+
+        if (!in_array($paymentPlan, ['full', 'monthly'], true)) {
+            $paymentPlan = 'full';
+        }
+
+        $storedDiscountType = null;
+        $storedDiscountAmount = 0.0;
+
+        if ($discountType !== '' && strtolower($discountType) !== 'none' && $discountPercent > 0) {
+            $storedDiscountType = strtoupper($discountType);
+            $storedDiscountAmount = $discountPercent;
+        }
+
+        $appliedDiscount = round(($baseAmount * $storedDiscountAmount) / 100, 2);
+        $totalAmount = max(0, round($baseAmount - $appliedDiscount, 2));
+
+        $this->executeStatement(
+            'INSERT INTO tuition_fees (
+                student_id, class_id, package_id, base_amount, discount_type, discount_amount,
+                total_amount, amount_paid, payment_plan, status
+            ) VALUES (
+                :student_id, :class_id, :package_id, :base_amount, :discount_type, :discount_amount,
+                :total_amount, :amount_paid, :payment_plan, :status
+            )',
+            [
+                'student_id' => $studentId,
+                'class_id' => $classId,
+                'package_id' => $packageId > 0 ? $packageId : null,
+                'base_amount' => round($baseAmount, 2),
+                'discount_type' => $storedDiscountType,
+                'discount_amount' => round($storedDiscountAmount, 2),
+                'total_amount' => $totalAmount,
+                'amount_paid' => 0,
+                'payment_plan' => $paymentPlan,
+                'status' => 'debt',
+            ]
+        );
+
+        return (int) $this->pdo->lastInsertId();
+    }
+
     public function findLatestByStudent(int $studentId): ?array
     {
         return $this->fetchOne(

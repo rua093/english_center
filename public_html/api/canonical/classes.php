@@ -48,3 +48,43 @@ function api_classes_delete_action(): void
 	set_flash('success', 'Đã xóa lớp học.');
 	redirect(page_url('classes-academic'));
 }
+
+function api_classes_student_profile_action(): void
+{
+	api_guard_permission('academic.classes.view');
+
+	if (strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET')) !== 'GET') {
+		api_error('Method not allowed.', ['code' => 'METHOD_NOT_ALLOWED'], 405);
+	}
+
+	$classId = (int) ($_GET['class_id'] ?? 0);
+	$studentId = (int) ($_GET['student_id'] ?? 0);
+	if ($classId <= 0 || $studentId <= 0) {
+		api_error('Dữ liệu không hợp lệ.', ['code' => 'INVALID_PAYLOAD'], 422);
+	}
+
+	$academicModel = new AcademicModel();
+	if (!$academicModel->isStudentEnrolledInClass($studentId, $classId)) {
+		api_error('Học viên không thuộc lớp học.', ['code' => 'STUDENT_NOT_IN_CLASS'], 403);
+	}
+
+	$user = $academicModel->findActiveUser($studentId);
+	if (!is_array($user)) {
+		api_error('Không tìm thấy học viên.', ['code' => 'STUDENT_NOT_FOUND'], 404);
+	}
+
+	$roleName = strtolower((string) ($user['role_name'] ?? ''));
+	if ($roleName !== 'student') {
+		api_error('Tài khoản không phải học viên.', ['code' => 'NOT_STUDENT'], 422);
+	}
+
+	api_success('OK', [
+		'user' => [
+			'id' => (int) ($user['id'] ?? 0),
+			'full_name' => (string) ($user['full_name'] ?? ''),
+			'phone' => (string) ($user['phone'] ?? ''),
+			'email' => (string) ($user['email'] ?? ''),
+			'role_profile' => is_array($user['role_profile'] ?? null) ? $user['role_profile'] : [],
+		],
+	]);
+}

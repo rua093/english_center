@@ -7,6 +7,22 @@ final class ClassStudentsTableModel
 {
     use TableModelUtils;
 
+    public function listStudentsForClass(int $classId): array
+    {
+        if ($classId <= 0) {
+            return [];
+        }
+
+        $sql = "SELECT DISTINCT cs.class_id, cs.student_id, u.full_name AS student_name
+            FROM class_students cs
+            INNER JOIN users u ON u.id = cs.student_id
+            WHERE cs.class_id = :class_id
+              AND u.deleted_at IS NULL
+            ORDER BY u.full_name ASC";
+
+        return $this->fetchAll($sql, ['class_id' => $classId]);
+    }
+
     public function listStudentsByClass(): array
     {
         $sql = "SELECT DISTINCT cs.class_id, cs.student_id, c.class_name, u.full_name AS student_name
@@ -30,6 +46,33 @@ final class ClassStudentsTableModel
             'total',
             0
         ) > 0;
+    }
+
+    public function enrollStudent(int $classId, int $studentId, string $learningStatus = 'official', ?string $enrollmentDate = null): void
+    {
+        if ($classId <= 0 || $studentId <= 0) {
+            return;
+        }
+
+        $normalizedStatus = in_array($learningStatus, ['trial', 'official', 'suspended'], true)
+            ? $learningStatus
+            : 'official';
+
+        $normalizedDate = $enrollmentDate !== null && trim($enrollmentDate) !== ''
+            ? trim($enrollmentDate)
+            : date('Y-m-d');
+
+        $this->executeStatement(
+            'INSERT INTO class_students (class_id, student_id, learning_status, enrollment_date)
+             VALUES (:class_id, :student_id, :learning_status, :enrollment_date)
+             ON DUPLICATE KEY UPDATE student_id = student_id',
+            [
+                'class_id' => $classId,
+                'student_id' => $studentId,
+                'learning_status' => $normalizedStatus,
+                'enrollment_date' => $normalizedDate,
+            ]
+        );
     }
 
     public function listRecentClassNamesForStudent(int $studentId, int $limit = 3): array

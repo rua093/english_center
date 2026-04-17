@@ -4,13 +4,14 @@ require_permission('approval.view');
 
 $academicModel = new AcademicModel();
 $approvalPage = max(1, (int) ($_GET['approval_page'] ?? 1));
-$approvalPerPage = 10;
+$approvalPerPage = ui_pagination_resolve_per_page('approval_per_page', 10);
 $approvalTotal = $academicModel->countApprovals();
 $approvalTotalPages = max(1, (int) ceil($approvalTotal / $approvalPerPage));
 if ($approvalPage > $approvalTotalPages) {
     $approvalPage = $approvalTotalPages;
 }
 $approvals = $academicModel->listApprovalsPage($approvalPage, $approvalPerPage);
+$approvalPerPageOptions = ui_pagination_per_page_options();
 
 $editingApproval = null;
 if (!empty($_GET['edit'])) {
@@ -158,7 +159,7 @@ $error = get_flash('error');
                                         <div class="inline-flex flex-wrap items-center gap-2">
                                             <?php if ($canUpdateApproval): ?>
                                                 <a
-                                                    href="<?= e(page_url('approvals-manage', ['edit' => (int) $app['id'], 'approval_page' => $approvalPage])); ?>"
+                                                    href="<?= e(page_url('approvals-manage', ['edit' => (int) $app['id'], 'approval_page' => $approvalPage, 'approval_per_page' => $approvalPerPage])); ?>"
                                                     class="admin-action-icon-btn"
                                                     data-action-kind="edit"
                                                     data-skip-action-icon="1"
@@ -201,26 +202,36 @@ $error = get_flash('error');
                     <?php endif; ?>
                 </tbody>
             </table>
-        </div>
+            <?php if ($approvalTotal > 0): ?>
+                <div class="border-t border-slate-200 bg-slate-50/80 px-3 py-2">
+                    <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600">
+                        <span class="font-medium">Trang <?= (int) $approvalPage; ?>/<?= (int) $approvalTotalPages; ?> - Tổng <?= (int) $approvalTotal; ?> yêu cầu</span>
+                        <div class="inline-flex items-center gap-1.5">
+                            <form class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2 py-1" method="get" action="<?= e(page_url('approvals-manage')); ?>">
+                                <input type="hidden" name="page" value="approvals-manage">
+                                <label class="text-[11px] font-semibold text-slate-500" for="approval-per-page">Số dòng</label>
+                                <select id="approval-per-page" name="approval_per_page" class="h-7 rounded-md border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700" onchange="this.form.submit()">
+                                    <?php foreach ($approvalPerPageOptions as $option): ?>
+                                        <option value="<?= (int) $option; ?>" <?= $approvalPerPage === (int) $option ? 'selected' : ''; ?>><?= (int) $option; ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </form>
+                            <?php if ($approvalPage > 1): ?>
+                                <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('approvals-manage', ['approval_page' => $approvalPage - 1, 'approval_per_page' => $approvalPerPage])); ?>">Trước</a>
+                            <?php else: ?>
+                                <span class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 text-xs font-semibold text-slate-400">Trước</span>
+                            <?php endif; ?>
 
-        <?php if ($approvalTotalPages > 1): ?>
-            <div class="mt-3 flex flex-wrap items-center justify-between gap-2 text-sm text-slate-600">
-                <span>Trang <?= (int) $approvalPage; ?>/<?= (int) $approvalTotalPages; ?> - Tổng <?= (int) $approvalTotal; ?> yêu cầu</span>
-                <div class="inline-flex items-center gap-1">
-                    <?php if ($approvalPage > 1): ?>
-                        <a class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('approvals-manage', ['approval_page' => $approvalPage - 1])); ?>">Trước</a>
-                    <?php else: ?>
-                        <span class="rounded-lg border border-slate-200 bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-400">Trước</span>
-                    <?php endif; ?>
-
-                    <?php if ($approvalPage < $approvalTotalPages): ?>
-                        <a class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('approvals-manage', ['approval_page' => $approvalPage + 1])); ?>">Sau</a>
-                    <?php else: ?>
-                        <span class="rounded-lg border border-slate-200 bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-400">Sau</span>
-                    <?php endif; ?>
+                            <?php if ($approvalPage < $approvalTotalPages): ?>
+                                <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('approvals-manage', ['approval_page' => $approvalPage + 1, 'approval_per_page' => $approvalPerPage])); ?>">Sau</a>
+                            <?php else: ?>
+                                <span class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 text-xs font-semibold text-slate-400">Sau</span>
+                            <?php endif; ?>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        <?php endif; ?>
+            <?php endif; ?>
+        </div>
     </article>
 </div>
 

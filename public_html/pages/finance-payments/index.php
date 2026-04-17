@@ -4,13 +4,14 @@ require_permission('finance.payment.view');
 
 $academicModel = new AcademicModel();
 $paymentsPage = max(1, (int) ($_GET['payments_page'] ?? 1));
-$paymentsPerPage = 10;
+$paymentsPerPage = ui_pagination_resolve_per_page('payments_per_page', 10);
 $paymentsTotal = $academicModel->countPaymentTransactions();
 $paymentsTotalPages = max(1, (int) ceil($paymentsTotal / $paymentsPerPage));
 if ($paymentsPage > $paymentsTotalPages) {
     $paymentsPage = $paymentsTotalPages;
 }
 $transactions = $academicModel->listPaymentTransactionsPage($paymentsPage, $paymentsPerPage);
+$paymentsPerPageOptions = ui_pagination_per_page_options();
 $tuitionOptions = $academicModel->listTuitionFeesPage(1, 200);
 
 $editingPayment = null;
@@ -139,7 +140,7 @@ $error = get_flash('error');
                                 <td>
                                     <div class="inline-flex flex-wrap items-center gap-2">
                                         <?php if ($canUpdatePayment): ?>
-                                            <a class="text-sm font-semibold text-blue-700 hover:underline" href="<?= e(page_url('payments-finance', ['edit' => (int) $txn['id'], 'payments_page' => $paymentsPage])); ?>">Sửa</a>
+                                            <a class="text-sm font-semibold text-blue-700 hover:underline" href="<?= e(page_url('payments-finance', ['edit' => (int) $txn['id'], 'payments_page' => $paymentsPage, 'payments_per_page' => $paymentsPerPage])); ?>">Sửa</a>
                                         <?php endif; ?>
                                         <?php if ($canDeletePayment): ?>
                                             <form method="post" action="/api/payments/delete" onsubmit="return confirm('Bạn chắc chắn muốn xóa giao dịch này?');">
@@ -155,26 +156,36 @@ $error = get_flash('error');
                     <?php endif; ?>
                 </tbody>
             </table>
-        </div>
+            <?php if ($paymentsTotal > 0): ?>
+                <div class="border-t border-slate-200 bg-slate-50/80 px-3 py-2">
+                    <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600">
+                        <span class="font-medium">Trang <?= (int) $paymentsPage; ?>/<?= (int) $paymentsTotalPages; ?> - Tổng <?= (int) $paymentsTotal; ?> giao dịch</span>
+                        <div class="inline-flex items-center gap-1.5">
+                            <form class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2 py-1" method="get" action="<?= e(page_url('payments-finance')); ?>">
+                                <input type="hidden" name="page" value="payments-finance">
+                                <label class="text-[11px] font-semibold text-slate-500" for="payments-per-page">Số dòng</label>
+                                <select id="payments-per-page" name="payments_per_page" class="h-7 rounded-md border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700" onchange="this.form.submit()">
+                                    <?php foreach ($paymentsPerPageOptions as $option): ?>
+                                        <option value="<?= (int) $option; ?>" <?= $paymentsPerPage === (int) $option ? 'selected' : ''; ?>><?= (int) $option; ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </form>
+                            <?php if ($paymentsPage > 1): ?>
+                                <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('payments-finance', ['payments_page' => $paymentsPage - 1, 'payments_per_page' => $paymentsPerPage])); ?>">Trước</a>
+                            <?php else: ?>
+                                <span class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 text-xs font-semibold text-slate-400">Trước</span>
+                            <?php endif; ?>
 
-        <?php if ($paymentsTotalPages > 1): ?>
-            <div class="mt-3 flex flex-wrap items-center justify-between gap-2 text-sm text-slate-600">
-                <span>Trang <?= (int) $paymentsPage; ?>/<?= (int) $paymentsTotalPages; ?> - Tổng <?= (int) $paymentsTotal; ?> giao dịch</span>
-                <div class="inline-flex items-center gap-1">
-                    <?php if ($paymentsPage > 1): ?>
-                        <a class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('payments-finance', ['payments_page' => $paymentsPage - 1])); ?>">Trước</a>
-                    <?php else: ?>
-                        <span class="rounded-lg border border-slate-200 bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-400">Trước</span>
-                    <?php endif; ?>
-
-                    <?php if ($paymentsPage < $paymentsTotalPages): ?>
-                        <a class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('payments-finance', ['payments_page' => $paymentsPage + 1])); ?>">Sau</a>
-                    <?php else: ?>
-                        <span class="rounded-lg border border-slate-200 bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-400">Sau</span>
-                    <?php endif; ?>
+                            <?php if ($paymentsPage < $paymentsTotalPages): ?>
+                                <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('payments-finance', ['payments_page' => $paymentsPage + 1, 'payments_per_page' => $paymentsPerPage])); ?>">Sau</a>
+                            <?php else: ?>
+                                <span class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 text-xs font-semibold text-slate-400">Sau</span>
+                            <?php endif; ?>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        <?php endif; ?>
+            <?php endif; ?>
+        </div>
     </article>
 </div>
 

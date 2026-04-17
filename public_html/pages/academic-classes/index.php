@@ -2,7 +2,15 @@
 require_permission('academic.classes.view');
 
 $academicModel = new AcademicModel();
-$classes = $academicModel->listClasses();
+$classPage = max(1, (int) ($_GET['class_page'] ?? 1));
+$classPerPage = ui_pagination_resolve_per_page('class_per_page', 10);
+$classTotal = $academicModel->countClasses();
+$classTotalPages = max(1, (int) ceil($classTotal / $classPerPage));
+if ($classPage > $classTotalPages) {
+    $classPage = $classTotalPages;
+}
+$classes = $academicModel->listClassesPage($classPage, $classPerPage);
+$classPerPageOptions = ui_pagination_per_page_options();
 $lookups = $academicModel->classLookups();
 
 $editingClass = null;
@@ -86,8 +94,10 @@ $canUpdateMaterial = has_permission('materials.update');
             </article>
         <?php endif; ?>
 
-        <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
-            <table class="min-w-full border-collapse text-sm">
+        <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <h3>Danh sách lớp học</h3>
+            <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+                <table class="min-w-full border-collapse text-sm">
                 <thead>
                     <tr><th>Tên lớp</th><th>Khóa học</th><th>Giáo viên</th><th>Trạng thái</th><th>Hành động</th></tr>
                 </thead>
@@ -105,7 +115,7 @@ $canUpdateMaterial = has_permission('materials.update');
                                 <span class="inline-flex flex-wrap items-center gap-2">
                                     <?php if ($canUpdateClass): ?>
                                         <a
-                                            href="<?= e(page_url('classes-academic-edit', ['id' => (int) $class['id']])); ?>"
+                                            href="<?= e(page_url('classes-academic-edit', ['id' => (int) $class['id'], 'class_page' => $classPage, 'class_per_page' => $classPerPage])); ?>"
                                             class="admin-action-icon-btn"
                                             data-action-kind="edit"
                                             data-skip-action-icon="1"
@@ -142,8 +152,38 @@ $canUpdateMaterial = has_permission('materials.update');
                     <?php endforeach; ?>
                     <?php endif; ?>
                 </tbody>
-            </table>
-        </div>
+                </table>
+                <?php if ($classTotal > 0): ?>
+                    <div class="border-t border-slate-200 bg-slate-50/80 px-3 py-2">
+                        <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600">
+                            <span class="font-medium">Trang <?= (int) $classPage; ?>/<?= (int) $classTotalPages; ?> - Tổng <?= (int) $classTotal; ?> lớp học</span>
+                            <div class="inline-flex items-center gap-1.5">
+                                <form class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2 py-1" method="get" action="<?= e(page_url('classes-academic')); ?>">
+                                    <input type="hidden" name="page" value="classes-academic">
+                                    <label class="text-[11px] font-semibold text-slate-500" for="class-per-page">Số dòng</label>
+                                    <select id="class-per-page" name="class_per_page" class="h-7 rounded-md border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700" onchange="this.form.submit()">
+                                        <?php foreach ($classPerPageOptions as $option): ?>
+                                            <option value="<?= (int) $option; ?>" <?= $classPerPage === (int) $option ? 'selected' : ''; ?>><?= (int) $option; ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </form>
+                                <?php if ($classPage > 1): ?>
+                                    <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('classes-academic', ['class_page' => $classPage - 1, 'class_per_page' => $classPerPage])); ?>">Trước</a>
+                                <?php else: ?>
+                                    <span class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 text-xs font-semibold text-slate-400">Trước</span>
+                                <?php endif; ?>
+
+                                <?php if ($classPage < $classTotalPages): ?>
+                                    <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('classes-academic', ['class_page' => $classPage + 1, 'class_per_page' => $classPerPage])); ?>">Sau</a>
+                                <?php else: ?>
+                                    <span class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 text-xs font-semibold text-slate-400">Sau</span>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </article>
     </div>
 
 

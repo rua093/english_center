@@ -8,13 +8,14 @@ $permissions = $adminModel->listPermissions();
 $rolePermissionMap = $adminModel->rolePermissionMap();
 
 $usersPage = max(1, (int) ($_GET['users_page'] ?? 1));
-$usersPerPage = 10;
+$usersPerPage = ui_pagination_resolve_per_page('users_per_page', 10);
 $usersTotal = $adminModel->countUsers();
 $usersTotalPages = max(1, (int) ceil($usersTotal / $usersPerPage));
 if ($usersPage > $usersTotalPages) {
     $usersPage = $usersTotalPages;
 }
 $users = $adminModel->listUsersPage($usersPage, $usersPerPage);
+$usersPerPageOptions = ui_pagination_per_page_options();
 
 $editingUser = null;
 if (!empty($_GET['edit'])) {
@@ -194,7 +195,7 @@ $isEditingStudent = $editingRoleName === 'student';
                                             data-action-kind="detail"
                                             data-admin-row-detail="1"
                                             data-skip-action-icon="1"
-                                            data-detail-url="<?= e(page_url('users-admin', ['edit' => (int) $item['id'], 'users_page' => $usersPage])); ?>"
+                                            data-detail-url="<?= e(page_url('users-admin', ['edit' => (int) $item['id'], 'users_page' => $usersPage, 'users_per_page' => $usersPerPage])); ?>"
                                             title="Xem chi tiết"
                                             aria-label="Xem chi tiết"
                                         >
@@ -204,7 +205,7 @@ $isEditingStudent = $editingRoleName === 'student';
                                             </span>
                                         </button>
                                         <a
-                                            href="/admin/users?edit=<?= (int) $item['id']; ?>"
+                                            href="<?= e(page_url('users-admin', ['edit' => (int) $item['id'], 'users_page' => $usersPage, 'users_per_page' => $usersPerPage])); ?>"
                                             class="admin-action-icon-btn"
                                             data-action-kind="edit"
                                             data-skip-action-icon="1"
@@ -240,25 +241,36 @@ $isEditingStudent = $editingRoleName === 'student';
                     <?php endif; ?>
                 </tbody>
             </table>
-        </div>
-        <?php if ($usersTotalPages > 1): ?>
-            <div class="mt-3 flex flex-wrap items-center justify-between gap-2 text-sm text-slate-600">
-                <span>Trang <?= (int) $usersPage; ?>/<?= (int) $usersTotalPages; ?> - Tổng <?= (int) $usersTotal; ?> tài khoản</span>
-                <div class="inline-flex items-center gap-1">
-                    <?php if ($usersPage > 1): ?>
-                        <a class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('users-admin', ['users_page' => $usersPage - 1])); ?>">Trước</a>
-                    <?php else: ?>
-                        <span class="rounded-lg border border-slate-200 bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-400">Trước</span>
-                    <?php endif; ?>
+            <?php if ($usersTotal > 0): ?>
+                <div class="border-t border-slate-200 bg-slate-50/80 px-3 py-2">
+                    <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600">
+                        <span class="font-medium">Trang <?= (int) $usersPage; ?>/<?= (int) $usersTotalPages; ?> - Tổng <?= (int) $usersTotal; ?> tài khoản</span>
+                        <div class="inline-flex items-center gap-1.5">
+                            <form class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2 py-1" method="get" action="<?= e(page_url('users-admin')); ?>">
+                                <input type="hidden" name="page" value="users-admin">
+                                <label class="text-[11px] font-semibold text-slate-500" for="users-per-page">Số dòng</label>
+                                <select id="users-per-page" name="users_per_page" class="h-7 rounded-md border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700" onchange="this.form.submit()">
+                                    <?php foreach ($usersPerPageOptions as $option): ?>
+                                        <option value="<?= (int) $option; ?>" <?= $usersPerPage === (int) $option ? 'selected' : ''; ?>><?= (int) $option; ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </form>
+                            <?php if ($usersPage > 1): ?>
+                                <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('users-admin', ['users_page' => $usersPage - 1, 'users_per_page' => $usersPerPage])); ?>">Trước</a>
+                            <?php else: ?>
+                                <span class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 text-xs font-semibold text-slate-400">Trước</span>
+                            <?php endif; ?>
 
-                    <?php if ($usersPage < $usersTotalPages): ?>
-                        <a class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('users-admin', ['users_page' => $usersPage + 1])); ?>">Sau</a>
-                    <?php else: ?>
-                        <span class="rounded-lg border border-slate-200 bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-400">Sau</span>
-                    <?php endif; ?>
+                            <?php if ($usersPage < $usersTotalPages): ?>
+                                <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('users-admin', ['users_page' => $usersPage + 1, 'users_per_page' => $usersPerPage])); ?>">Sau</a>
+                            <?php else: ?>
+                                <span class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 text-xs font-semibold text-slate-400">Sau</span>
+                            <?php endif; ?>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        <?php endif; ?>
+            <?php endif; ?>
+        </div>
     </article>
 
     <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">

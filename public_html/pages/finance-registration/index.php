@@ -1,0 +1,404 @@
+<?php
+require_admin_or_staff();
+require_permission('finance.tuition.view');
+
+$academicModel = new AcademicModel();
+$lookups = $academicModel->registrationLookups();
+$students = is_array($lookups['students'] ?? null) ? $lookups['students'] : [];
+$courses = is_array($lookups['courses'] ?? null) ? $lookups['courses'] : [];
+$classes = is_array($lookups['classes'] ?? null) ? $lookups['classes'] : [];
+$promotions = is_array($lookups['promotions'] ?? null) ? $lookups['promotions'] : [];
+
+$viewer = auth_user();
+$isAdmin = (($viewer['role'] ?? '') === 'admin');
+$canCreateRegistration = $isAdmin || has_any_permission(['finance.tuition.manage', 'finance.tuition.create', 'finance.tuition.update']);
+
+$success = get_flash('success');
+$error = get_flash('error');
+
+$formState = [
+    'student_id' => 0,
+    'course_id' => 0,
+    'class_id' => 0,
+    'package_id' => 0,
+    'payment_plan' => 'full',
+    'learning_status' => 'official',
+];
+
+$oldFormPayloadRaw = get_flash('registration_form_old');
+if (is_string($oldFormPayloadRaw) && $oldFormPayloadRaw !== '') {
+    $decoded = json_decode($oldFormPayloadRaw, true);
+    if (is_array($decoded)) {
+        $formState['student_id'] = max(0, (int) ($decoded['student_id'] ?? 0));
+        $formState['course_id'] = max(0, (int) ($decoded['course_id'] ?? 0));
+        $formState['class_id'] = max(0, (int) ($decoded['class_id'] ?? 0));
+        $formState['package_id'] = max(0, (int) ($decoded['package_id'] ?? 0));
+
+        $paymentPlan = (string) ($decoded['payment_plan'] ?? 'full');
+        $formState['payment_plan'] = in_array($paymentPlan, ['full', 'monthly'], true)
+            ? $paymentPlan
+            : 'full';
+
+        $learningStatus = (string) ($decoded['learning_status'] ?? 'official');
+        $formState['learning_status'] = in_array($learningStatus, ['trial', 'official', 'suspended'], true)
+            ? $learningStatus
+            : 'official';
+    }
+}
+
+$courseMapForJs = [];
+$courseNameById = [];
+foreach ($courses as $course) {
+    $courseId = (int) ($course['id'] ?? 0);
+    if ($courseId <= 0) {
+        continue;
+    }
+
+    $courseName = (string) ($course['course_name'] ?? '');
+    $courseNameById[$courseId] = $courseName;
+    $courseMapForJs[(string) $courseId] = [
+        'id' => $courseId,
+        'course_name' => $courseName,
+        'base_price' => (float) ($course['base_price'] ?? 0),
+        'total_sessions' => (int) ($course['total_sessions'] ?? 0),
+    ];
+}
+
+$classStatusLabels = [
+    'upcoming' => 'Sắp mở',
+    'active' => 'Đang học',
+    'graduated' => 'Đã kết thúc',
+    'cancelled' => 'Đã hủy',
+];
+
+$promoTypeLabels = [
+    'DURATION' => 'Ưu đãi thời lượng',
+    'SOCIAL' => 'Ưu đãi truyền thông',
+    'EVENT' => 'Ưu đãi sự kiện',
+    'GROUP' => 'Ưu đãi nhóm',
+];
+
+$module = 'registration';
+$adminTitle = 'Đăng ký khóa học';
+?>
+<div class="grid gap-4">
+    <?php if ($success): ?>
+        <div class="rounded-xl border-l-4 border-emerald-500 bg-emerald-50 p-3 text-sm text-emerald-700"><?= e($success); ?></div>
+    <?php endif; ?>
+
+    <?php if ($error): ?>
+        <div class="rounded-xl border-l-4 border-rose-500 bg-rose-50 p-3 text-sm text-rose-700"><?= e($error); ?></div>
+    <?php endif; ?>
+
+    <?php if ($canCreateRegistration): ?>
+        <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <h3>Form đăng ký khóa học</h3>
+            <form id="registration-form" class="grid gap-3 lg:grid-cols-2" method="post" action="/api/tuitions/register-course">
+                <?= csrf_input(); ?>
+
+                <label>
+                    Học viên
+                    <select id="registration-student" name="student_id" required>
+                        <option value="">-- Chọn học viên --</option>
+                        <?php foreach ($students as $student): ?>
+                            <option value="<?= (int) ($student['id'] ?? 0); ?>" <?= $formState['student_id'] === (int) ($student['id'] ?? 0) ? 'selected' : ''; ?>>
+                                <?= e((string) ($student['full_name'] ?? '')); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </label>
+
+                <label>
+                    Khóa học
+                    <select id="registration-course" name="course_id" required>
+                        <option value="">-- Chọn khóa học --</option>
+                        <?php foreach ($courses as $course): ?>
+                            <option value="<?= (int) ($course['id'] ?? 0); ?>" <?= $formState['course_id'] === (int) ($course['id'] ?? 0) ? 'selected' : ''; ?>>
+                                <?= e((string) ($course['course_name'] ?? '')); ?> - <?= format_money((float) ($course['base_price'] ?? 0)); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </label>
+
+                <label>
+                    Lớp học
+                    <select id="registration-class" name="class_id" required>
+                        <option value="">-- Chọn lớp học --</option>
+                        <?php foreach ($classes as $class): ?>
+                            <?php
+                            $classStatus = (string) ($class['status'] ?? 'upcoming');
+                            $classStatusLabel = (string) ($classStatusLabels[$classStatus] ?? $classStatus);
+                            $classLabel = (string) ($class['class_name'] ?? 'Lớp chưa đặt tên') . ' (' . $classStatusLabel . ')';
+                            ?>
+                            <option
+                                value="<?= (int) ($class['id'] ?? 0); ?>"
+                                data-course-id="<?= (int) ($class['course_id'] ?? 0); ?>"
+                                data-status="<?= e($classStatus); ?>"
+                                <?= $formState['class_id'] === (int) ($class['id'] ?? 0) ? 'selected' : ''; ?>
+                            >
+                                <?= e($classLabel); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                    <small id="registration-class-hint" class="mt-1 block text-xs text-slate-500">Vui lòng chọn khóa học trước để lọc lớp phù hợp.</small>
+                </label>
+
+                <label>
+                    Chế độ đóng tiền
+                    <select id="registration-payment-plan" name="payment_plan" required>
+                        <option value="full" <?= $formState['payment_plan'] === 'full' ? 'selected' : ''; ?>>Đóng một lần (full)</option>
+                        <option value="monthly" <?= $formState['payment_plan'] === 'monthly' ? 'selected' : ''; ?>>Đóng theo tháng (monthly)</option>
+                    </select>
+                </label>
+
+                <label>
+                    Ưu đãi giảm giá
+                    <select id="registration-package" name="package_id">
+                        <option value="0" <?= $formState['package_id'] === 0 ? 'selected' : ''; ?>>Không áp dụng ưu đãi</option>
+                        <?php foreach ($promotions as $promo): ?>
+                            <?php
+                            $promoId = (int) ($promo['id'] ?? 0);
+                            if ($promoId <= 0) {
+                                continue;
+                            }
+
+                            $promoCourseId = (int) ($promo['course_id'] ?? 0);
+                            $promoType = strtoupper(trim((string) ($promo['promo_type'] ?? '')));
+                            $promoTypeLabel = (string) ($promoTypeLabels[$promoType] ?? $promoType);
+                            $discountPercent = max(0, min(100, (float) ($promo['discount_value'] ?? 0)));
+                            $discountPercentText = rtrim(rtrim(number_format($discountPercent, 2, '.', ''), '0'), '.');
+                            $promoName = trim((string) ($promo['name'] ?? ('Ưu đãi #' . $promoId)));
+                            $scopeLabel = $promoCourseId > 0
+                                ? ('Khóa: ' . (string) ($courseNameById[$promoCourseId] ?? ('#' . $promoCourseId)))
+                                : 'Toàn trung tâm';
+                            ?>
+                            <option
+                                value="<?= $promoId; ?>"
+                                data-course-id="<?= $promoCourseId; ?>"
+                                data-discount-value="<?= e((string) $discountPercent); ?>"
+                                <?= $formState['package_id'] === $promoId ? 'selected' : ''; ?>
+                            >
+                                <?= e($promoName . ' - ' . $discountPercentText . '% | ' . $promoTypeLabel . ' | ' . $scopeLabel); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                    <small id="registration-promo-hint" class="mt-1 block text-xs text-slate-500">Chọn khóa học để lọc ưu đãi áp dụng tương ứng.</small>
+                </label>
+
+                <label>
+                    Trạng thái học khi ghi danh
+                    <select name="learning_status">
+                        <option value="official" <?= $formState['learning_status'] === 'official' ? 'selected' : ''; ?>>official</option>
+                        <option value="trial" <?= $formState['learning_status'] === 'trial' ? 'selected' : ''; ?>>trial</option>
+                    </select>
+                </label>
+
+                <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 lg:col-span-2">
+                    <h4 class="mb-3 text-sm font-extrabold uppercase tracking-wide text-slate-600">Xem trước hóa đơn sẽ tạo</h4>
+                    <div class="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+                        <div class="rounded-lg border border-slate-200 bg-white p-3">
+                            <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Học phí gốc</p>
+                            <p id="preview-base-amount" class="mt-1 text-base font-extrabold text-slate-800">0 đ</p>
+                        </div>
+                        <div class="rounded-lg border border-slate-200 bg-white p-3">
+                            <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Giảm giá áp dụng</p>
+                            <p id="preview-discount-amount" class="mt-1 text-base font-extrabold text-amber-700">0 đ</p>
+                        </div>
+                        <div class="rounded-lg border border-slate-200 bg-white p-3">
+                            <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Tổng cần thu</p>
+                            <p id="preview-total-amount" class="mt-1 text-base font-extrabold text-emerald-700">0 đ</p>
+                        </div>
+                        <div class="rounded-lg border border-slate-200 bg-white p-3">
+                            <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Trạng thái sau khi tạo</p>
+                            <p class="mt-1 inline-flex items-center rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-rose-700">debt | đã thu 0 đ</p>
+                        </div>
+                    </div>
+                    <p class="mt-3 text-xs text-slate-500">Ghi chú: hệ thống sẽ kiểm tra đúng học viên, đúng khóa - lớp và ngăn tạo trùng học phí.</p>
+                </div>
+
+                <div class="inline-flex flex-wrap items-center gap-2 lg:col-span-2">
+                    <button class="<?= ui_btn_primary_classes(); ?>" type="submit">Đăng ký và tạo học phí nợ</button>
+                    <a class="<?= ui_btn_secondary_classes(); ?>" href="<?= e(page_url('tuition-finance')); ?>">Xem danh sách học phí</a>
+                </div>
+            </form>
+        </article>
+    <?php else: ?>
+        <article class="rounded-2xl border border-amber-200 bg-amber-50 p-5 shadow-sm">
+            <h3>Bạn chưa có quyền tạo đăng ký</h3>
+            <p class="text-sm text-amber-800">Tài khoản hiện tại chưa có quyền tạo học phí trực tiếp. Vui lòng liên hệ Admin để cấp quyền <strong>finance.tuition.create</strong> hoặc <strong>finance.tuition.manage</strong>.</p>
+        </article>
+    <?php endif; ?>
+</div>
+
+<?php if ($canCreateRegistration): ?>
+<script>
+    (function () {
+        const courseSelect = document.getElementById('registration-course');
+        const classSelect = document.getElementById('registration-class');
+        const classHint = document.getElementById('registration-class-hint');
+        const packageSelect = document.getElementById('registration-package');
+        const promoHint = document.getElementById('registration-promo-hint');
+        const previewBaseAmount = document.getElementById('preview-base-amount');
+        const previewDiscountAmount = document.getElementById('preview-discount-amount');
+        const previewTotalAmount = document.getElementById('preview-total-amount');
+
+        const courseMap = <?= json_encode($courseMapForJs, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
+
+        if (!courseSelect || !classSelect || !packageSelect) {
+            return;
+        }
+
+        function toMoney(value) {
+            const amount = Number.isFinite(value) ? value : 0;
+            return new Intl.NumberFormat('vi-VN').format(Math.max(0, Math.round(amount))) + ' đ';
+        }
+
+        function syncClassOptions() {
+            const selectedCourseId = Number(courseSelect.value || 0);
+            const options = Array.from(classSelect.options || []);
+            let visibleCount = 0;
+
+            options.forEach(function (option) {
+                if (!option.value) {
+                    option.hidden = false;
+                    return;
+                }
+
+                const optionCourseId = Number(option.dataset.courseId || 0);
+                const show = selectedCourseId > 0 && optionCourseId === selectedCourseId;
+                option.hidden = !show;
+                if (show) {
+                    visibleCount += 1;
+                }
+            });
+
+            if (selectedCourseId <= 0) {
+                classSelect.value = '';
+                classSelect.disabled = true;
+                if (classHint) {
+                    classHint.textContent = 'Vui lòng chọn khóa học trước để lọc lớp phù hợp.';
+                }
+                return;
+            }
+
+            if (visibleCount <= 0) {
+                classSelect.value = '';
+                classSelect.disabled = true;
+                if (classHint) {
+                    classHint.textContent = 'Khóa học này chưa có lớp khả dụng để đăng ký.';
+                }
+                return;
+            }
+
+            const selectedOption = classSelect.selectedOptions && classSelect.selectedOptions[0]
+                ? classSelect.selectedOptions[0]
+                : null;
+            if (selectedOption && selectedOption.hidden) {
+                classSelect.value = '';
+            }
+
+            classSelect.disabled = false;
+            if (classHint) {
+                classHint.textContent = 'Chỉ hiển thị lớp thuộc khóa học đã chọn.';
+            }
+        }
+
+        function syncPackageOptions() {
+            const selectedCourseId = Number(courseSelect.value || 0);
+            const options = Array.from(packageSelect.options || []);
+            let visibleCount = 0;
+
+            options.forEach(function (option) {
+                if (!option.value || Number(option.value) === 0) {
+                    option.hidden = false;
+                    return;
+                }
+
+                const optionCourseId = Number(option.dataset.courseId || 0);
+                const show = selectedCourseId > 0 && (optionCourseId === 0 || optionCourseId === selectedCourseId);
+                option.hidden = !show;
+                if (show) {
+                    visibleCount += 1;
+                }
+            });
+
+            if (selectedCourseId <= 0) {
+                packageSelect.value = '0';
+                packageSelect.disabled = true;
+                if (promoHint) {
+                    promoHint.textContent = 'Vui lòng chọn khóa học trước khi chọn ưu đãi.';
+                }
+                return;
+            }
+
+            const selectedOption = packageSelect.selectedOptions && packageSelect.selectedOptions[0]
+                ? packageSelect.selectedOptions[0]
+                : null;
+            if (selectedOption && selectedOption.hidden) {
+                packageSelect.value = '0';
+            }
+
+            packageSelect.disabled = false;
+            if (promoHint) {
+                promoHint.textContent = visibleCount > 0
+                    ? 'Đang hiển thị ưu đãi toàn trung tâm và ưu đãi theo khóa học đã chọn.'
+                    : 'Khóa học này chưa có ưu đãi riêng. Bạn vẫn có thể tiếp tục với tùy chọn không ưu đãi.';
+            }
+        }
+
+        function getSelectedDiscountPercent() {
+            const selectedOption = packageSelect.selectedOptions && packageSelect.selectedOptions[0]
+                ? packageSelect.selectedOptions[0]
+                : null;
+            if (!selectedOption || !selectedOption.value || Number(selectedOption.value) === 0) {
+                return 0;
+            }
+
+            const discountValue = Number(selectedOption.dataset.discountValue || 0);
+            if (!Number.isFinite(discountValue)) {
+                return 0;
+            }
+
+            return Math.max(0, Math.min(100, discountValue));
+        }
+
+        function updatePreview() {
+            const selectedCourseId = String(Number(courseSelect.value || 0));
+            const selectedCourse = courseMap[selectedCourseId] || null;
+            const baseAmount = selectedCourse ? Number(selectedCourse.base_price || 0) : 0;
+
+            const discountPercent = getSelectedDiscountPercent();
+            const discountApplied = (baseAmount * discountPercent) / 100;
+            const totalAmount = Math.max(0, baseAmount - discountApplied);
+
+            if (previewBaseAmount) {
+                previewBaseAmount.textContent = toMoney(baseAmount);
+            }
+            if (previewDiscountAmount) {
+                previewDiscountAmount.textContent = toMoney(discountApplied);
+            }
+            if (previewTotalAmount) {
+                previewTotalAmount.textContent = toMoney(totalAmount);
+            }
+        }
+
+        courseSelect.addEventListener('change', function () {
+            syncClassOptions();
+            syncPackageOptions();
+            updatePreview();
+        });
+
+        classSelect.addEventListener('change', function () {
+            updatePreview();
+        });
+
+        packageSelect.addEventListener('change', function () {
+            updatePreview();
+        });
+
+        syncClassOptions();
+        syncPackageOptions();
+        updatePreview();
+    })();
+</script>
+<?php endif; ?>

@@ -13,6 +13,9 @@ function api_schedules_save_action(): void
 
 	$payload = $_POST;
 	$payload['room_id'] = (string) ($payload['room_id'] ?? '');
+	$editPath = $scheduleId > 0
+		? page_url('schedules-academic-edit', ['id' => $scheduleId])
+		: page_url('schedules-academic-edit');
 
 	if (
 		input_int($payload, 'class_id') <= 0 ||
@@ -22,10 +25,20 @@ function api_schedules_save_action(): void
 		input_string($payload, 'end_time') === ''
 	) {
 		set_flash('error', 'Vui lòng nhập đầy đủ lớp học, giáo viên, ngày học và giờ học.');
-		redirect($scheduleId > 0 ? page_url('schedules-academic-edit', ['id' => $scheduleId]) : page_url('schedules-academic-edit'));
+		redirect($editPath);
 	}
 
-	(new AcademicModel())->saveSchedule($payload);
+	try {
+		(new AcademicModel())->saveSchedule($payload);
+	} catch (DomainException $exception) {
+		if (api_expects_json()) {
+			api_error($exception->getMessage(), ['code' => 'SCHEDULE_VALIDATION_FAILED'], 422);
+		}
+
+		set_flash('error', $exception->getMessage());
+		redirect($editPath);
+	}
+
 	set_flash('success', 'Đã lưu lịch học thành công.');
 
 	redirect(page_url('schedules-academic'));

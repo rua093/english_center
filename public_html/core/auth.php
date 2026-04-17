@@ -200,6 +200,10 @@ function can_access_page(string $page): bool
 			return has_permission('admin.user.manage');
 		case 'tuition-finance':
 			return has_permission('finance.tuition.view');
+		case 'registration-finance':
+			return has_permission('finance.tuition.view');
+		case 'promotions-manage':
+			return has_permission('finance.tuition.view');
 		case 'payments-finance':
 			return has_permission('finance.payment.view');
 		case 'feedbacks-manage':
@@ -210,8 +214,15 @@ function can_access_page(string $page): bool
 			return has_permission('activity.view');
 		case 'bank-manage':
 			return has_permission('bank.view');
+		case 'courses-academic':
+		case 'roadmaps-academic':
+			return has_permission('academic.classes.view');
 		case 'classes-academic':
 			return has_permission('academic.classes.view');
+		case 'classrooms-academic':
+			return has_permission('academic.classes.view');
+		case 'attendance-academic':
+			return has_permission('academic.schedules.view');
 		case 'schedules-academic':
 			return has_permission('academic.schedules.view');
 		case 'assignments-academic':
