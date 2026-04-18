@@ -11,102 +11,98 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <?php require_once __DIR__ . '/tailwind_cdn.php'; ?>
     <style>
-        /* Nâng cấp style active cho menu đồng bộ với thiết kế mới */
-        .nav-link-active { @apply text-blue-600 bg-white shadow-[0_2px_15px_-3px_rgba(14,165,233,0.15)]; }
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #bae6fd; border-radius: 10px; } /* Đổi thanh cuộn sang màu xanh nhạt */
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #bae6fd; border-radius: 10px; } 
     </style>
 </head>
 <body class="min-h-screen bg-slate-50 font-sans leading-relaxed text-slate-800 antialiased flex flex-col">
-    <header class="sticky top-0 z-50 border-b border-white/40 bg-gradient-to-r from-blue-200/100 via-sky-200/100 to-blue-300/100 backdrop-blur-2xl shadow-[0_10px_30px_-10px_rgba(14,165,233,0.25)] transition-all duration-500" id="top">    
-        <div class="mx-auto w-full max-w-7xl px-4 sm:px-6 flex min-h-[85px] items-center justify-between gap-4">
+    
+    <header class="sticky top-0 z-50 w-full border-b-4 border-blue-300 bg-gradient-to-r from-blue-100 via-sky-100 to-blue-200 backdrop-blur-xl shadow-[0_10px_20px_rgba(30,58,138,0.1)] transition-all duration-500" id="top">    
+        <div class="mx-auto w-full max-w-7xl px-4 sm:px-6 flex min-h-[90px] items-center justify-between gap-4">
             
-            <div class="flex-none">
-                <a class="inline-flex items-center gap-3.5 group" href="#top">
-                    <div class="relative">
-                        <span class="inline-flex h-12 w-12 items-center justify-center rounded-[1.2rem] bg-gradient-to-br from-sky-400 to-blue-600 text-lg font-display font-black text-white shadow-lg shadow-sky-500/30 transition-all duration-300 group-hover:scale-110 group-hover:-rotate-3">EC</span>
-                        <div class="absolute -bottom-1 -right-1 h-4 w-4 rounded-full bg-emerald-400 border-2 border-white shadow-sm"></div>
-                    </div>
-                    <div class="flex flex-col">
-                        <span class="text-lg font-display font-black text-slate-800 leading-none tracking-tight group-hover:text-blue-600 transition-colors duration-300">NHUỆ MINH</span>
-                        <span class="text-[10px] font-extrabold text-sky-500 tracking-[0.15em] uppercase mt-1">Language Center</span>
+            <div class="flex-none pb-1">
+                <a class="inline-flex items-center group" href="#top">
+                    <div class="relative flex items-center justify-center bg-white/90 backdrop-blur-sm rounded-2xl px-4 py-2 shadow-[0_5px_0_#93c5fd] border border-white transition-all duration-200 group-hover:-translate-y-1 group-hover:shadow-[0_8px_0_#93c5fd] active:translate-y-1 active:shadow-none">
+                        
+                        <img src="assets/images/logo_remove.png" alt="Nhuệ Minh Logo" class="h-14 w-auto object-contain">
+                        
                     </div>
                 </a>
             </div>
 
-            <nav class="hidden flex-1 items-center justify-center gap-2 lg:flex" aria-label="Menu chính">
-                <a class="relative rounded-full px-5 py-2.5 text-base font-bold text-slate-600 transition-all duration-300 hover:bg-white hover:text-blue-600 hover:shadow-[0_2px_15px_-3px_rgba(14,165,233,0.15)]" href="/">
+            <nav class="hidden flex-1 items-center justify-evenly px-4 lg:px-12 xl:px-20 lg:flex pb-1" aria-label="Menu chính">
+                <a class="relative rounded-xl px-6 py-2.5 text-base font-black text-blue-900 bg-white/70 border border-white shadow-[0_4px_0_#93c5fd] transition-all duration-150 hover:-translate-y-1 hover:shadow-[0_6px_0_#93c5fd] hover:bg-white active:translate-y-1 active:shadow-none" href="/">
                     Trang chủ
                 </a>
-                <a class="relative rounded-full px-5 py-2.5 text-base font-bold text-slate-600 transition-all duration-300 hover:bg-white hover:text-blue-600 hover:shadow-[0_2px_15px_-3px_rgba(14,165,233,0.15)]" href="#khoa-hoc">
+                <a class="relative rounded-xl px-6 py-2.5 text-base font-black text-blue-900 bg-white/70 border border-white shadow-[0_4px_0_#93c5fd] transition-all duration-150 hover:-translate-y-1 hover:shadow-[0_6px_0_#93c5fd] hover:bg-white active:translate-y-1 active:shadow-none" href="#khoa-hoc">
                     Khóa học
                 </a>
-                <a class="relative rounded-full px-5 py-2.5 text-base font-bold text-slate-600 transition-all duration-300 hover:bg-white hover:text-blue-600 hover:shadow-[0_2px_15px_-3px_rgba(14,165,233,0.15)]" href="#giao-vien">
+                <a class="relative rounded-xl px-6 py-2.5 text-base font-black text-blue-900 bg-white/70 border border-white shadow-[0_4px_0_#93c5fd] transition-all duration-150 hover:-translate-y-1 hover:shadow-[0_6px_0_#93c5fd] hover:bg-white active:translate-y-1 active:shadow-none" href="#giao-vien">
                     Giáo viên
                 </a>
                 
                 <div class="relative group">
-                    <button class="inline-flex items-center gap-1.5 rounded-full px-5 py-2.5 text-base font-bold text-slate-600 transition-all duration-300 group-hover:bg-white group-hover:text-blue-600 group-hover:shadow-[0_2px_15px_-3px_rgba(14,165,233,0.15)]" type="button">
+                    <button class="inline-flex items-center gap-2 rounded-xl px-6 py-2.5 text-base font-black text-blue-900 bg-white/70 border border-white shadow-[0_4px_0_#93c5fd] transition-all duration-150 group-hover:-translate-y-1 group-hover:shadow-[0_6px_0_#93c5fd] group-hover:bg-white active:translate-y-1 active:shadow-none" type="button">
                         Hệ thống
-                        <svg class="w-4 h-4 text-sky-400 group-hover:rotate-180 transition-all duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" /></svg>
+                        <svg class="w-5 h-5 text-blue-500 group-hover:rotate-180 transition-all duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7" /></svg>
                     </button>
-                    <div class="absolute left-1/2 -translate-x-1/2 top-full pt-3 z-50 w-64 opacity-0 invisible translate-y-3 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 transition-all duration-300">
-                        <div class="rounded-[2rem] border border-white bg-white/95 backdrop-blur-xl p-3 shadow-[0_20px_40px_-15px_rgba(14,165,233,0.2)]">
-                            <a class="flex items-center gap-3 rounded-[1.2rem] px-4 py-3 text-base font-bold text-slate-600 hover:bg-sky-50 hover:text-blue-600 transition-all duration-300" href="#portal">
-                                <span class="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100/50 text-blue-500">🎓</span> Cổng học tập
+                    <div class="absolute left-1/2 -translate-x-1/2 top-full pt-5 z-50 w-64 opacity-0 invisible translate-y-3 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 transition-all duration-300">
+                        <div class="rounded-[2rem] border-2 border-blue-200 bg-white/95 backdrop-blur-xl p-3 shadow-[0_10px_30px_rgba(30,58,138,0.2)]">
+                            <a class="flex items-center gap-3 rounded-2xl px-4 py-3 text-base font-bold text-slate-600 hover:bg-blue-50 hover:text-blue-600 transition-all" href="#portal">
+                                <span class="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-500">🎓</span> Cổng học tập
                             </a>
-                            <a class="flex items-center gap-3 rounded-[1.2rem] px-4 py-3 text-base font-bold text-slate-600 hover:bg-sky-50 hover:text-blue-600 transition-all duration-300" href="#quan-tri">
-                                <span class="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100/50 text-blue-500">⚙️</span> Quản trị vận hành
+                            <a class="flex items-center gap-3 rounded-2xl px-4 py-3 text-base font-bold text-slate-600 hover:bg-blue-50 hover:text-blue-600 transition-all" href="#quan-tri">
+                                <span class="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-500">⚙️</span> Quản trị vận hành
                             </a>
                         </div>
                     </div>
                 </div>
             </nav>
 
-            <div class="hidden items-center gap-4 lg:flex">
+            <div class="hidden items-center gap-5 lg:flex pb-1">
                 <?php if (is_logged_in()): ?>
                     <div class="relative group">
-                        <button class="inline-flex items-center gap-3 rounded-full border border-white bg-white/60 p-1.5 pr-4 text-base font-bold text-slate-700 hover:border-sky-200 hover:bg-white hover:shadow-[0_4px_20px_-5px_rgba(14,165,233,0.2)] transition-all duration-300">
-                            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-sky-400 to-blue-600 text-white flex items-center justify-center text-xs font-black shadow-inner">
+                        <button class="inline-flex items-center gap-3 rounded-xl border border-white bg-white/70 p-2 pr-5 text-base font-black text-blue-900 shadow-[0_4px_0_#93c5fd] hover:-translate-y-1 hover:shadow-[0_6px_0_#93c5fd] hover:bg-white active:translate-y-1 active:shadow-none transition-all duration-150">
+                            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-sky-400 to-blue-600 text-white flex items-center justify-center text-sm font-black shadow-inner">
                                 <?= substr($user['full_name'] ?? 'U', 0, 1) ?>
                             </div>
                             <span class="max-w-[100px] truncate">Tài khoản</span>
                         </button>
-                        <div class="absolute right-0 top-full pt-3 z-50 w-72 opacity-0 invisible translate-y-3 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 transition-all duration-300">
-                            <div class="rounded-[2.5rem] border border-white bg-white/95 backdrop-blur-xl p-3 shadow-[0_20px_40px_-15px_rgba(14,165,233,0.2)] max-h-[75vh] overflow-y-auto custom-scrollbar">
-                                <div class="px-5 py-3 border-b border-sky-50 mb-2 bg-sky-50/50 rounded-2xl">
-                                    <p class="text-[10px] font-black text-sky-500 uppercase tracking-[0.2em]">Xin chào,</p>
-                                    <p class="text-base font-black text-blue-950 truncate"><?= e($user['full_name'] ?? 'Học viên') ?></p>
+                        <div class="absolute right-0 top-full pt-5 z-50 w-72 opacity-0 invisible translate-y-3 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 transition-all duration-300">
+                            <div class="rounded-[2rem] border-2 border-blue-200 bg-white/95 backdrop-blur-xl p-4 shadow-[0_15px_40px_rgba(30,58,138,0.25)]">
+                                <div class="px-2 py-3 border-b border-blue-50 mb-3">
+                                    <p class="text-[10px] font-black text-blue-400 uppercase tracking-widest">Học viên</p>
+                                    <p class="text-lg font-black text-blue-950 truncate"><?= e($user['full_name'] ?? 'Guest') ?></p>
                                 </div>
                                 <div class="space-y-1">
-                                    <?php if (can_access_page('profile')): ?><a class="flex items-center gap-3 rounded-[1.2rem] px-4 py-2.5 text-base font-bold text-slate-600 hover:bg-sky-50 hover:text-blue-600 transition-colors" href="<?= e(page_url('profile')); ?>">👤 Trang cá nhân</a><?php endif; ?>
-                                    <?php if (can_access_page('dashboard-student')): ?><a class="flex items-center gap-3 rounded-[1.2rem] px-4 py-2.5 text-base font-bold text-slate-600 hover:bg-sky-50 hover:text-blue-600 transition-colors" href="<?= e(page_url('dashboard-student')); ?>">👨‍🎓 Dashboard Học viên</a><?php endif; ?>
-                                    <?php if (can_access_page('dashboard-teacher')): ?><a class="flex items-center gap-3 rounded-[1.2rem] px-4 py-2.5 text-base font-bold text-slate-600 hover:bg-sky-50 hover:text-blue-600 transition-colors" href="<?= e(page_url('dashboard-teacher')); ?>">👨‍🏫 Dashboard Giáo viên</a><?php endif; ?>
-                                    <?php if (can_access_page('portfolios-academic')): ?><a class="flex items-center gap-3 rounded-[1.2rem] px-4 py-2.5 text-base font-bold text-slate-600 hover:bg-sky-50 hover:text-blue-600 transition-colors" href="<?= e(page_url('portfolios-academic')); ?>">🎨 Portfolio</a><?php endif; ?>
-                                    <?php if (can_access_page('dashboard-admin')): ?><a class="flex items-center gap-3 rounded-[1.2rem] px-4 py-2.5 text-base font-bold text-blue-600 bg-sky-50/80 hover:bg-sky-100 transition-colors" href="/admin">🛡️ Quản trị hệ thống</a><?php endif; ?>
+                                    <?php if (can_access_page('profile')): ?><a class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-bold text-slate-600 hover:bg-blue-50 hover:text-blue-600 transition-colors" href="<?= e(page_url('profile')); ?>">👤 Trang cá nhân</a><?php endif; ?>
+                                    <?php if (can_access_page('dashboard-student')): ?><a class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-bold text-slate-600 hover:bg-blue-50 hover:text-blue-600 transition-colors" href="<?= e(page_url('dashboard-student')); ?>">👨‍🎓 Dashboard Học viên</a><?php endif; ?>
+                                    <?php if (can_access_page('dashboard-teacher')): ?><a class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-bold text-slate-600 hover:bg-blue-50 hover:text-blue-600 transition-colors" href="<?= e(page_url('dashboard-teacher')); ?>">👨‍🏫 Dashboard Giáo viên</a><?php endif; ?>
+                                    <?php if (can_access_page('portfolios-academic')): ?><a class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-bold text-slate-600 hover:bg-blue-50 hover:text-blue-600 transition-colors" href="<?= e(page_url('portfolios-academic')); ?>">🎨 Portfolio</a><?php endif; ?>
+                                    <?php if (can_access_page('dashboard-admin')): ?><a class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 transition-colors" href="/admin">🛡️ Quản trị hệ thống</a><?php endif; ?>
                                     <div class="h-px bg-slate-100 my-2"></div>
-                                    <a class="flex items-center gap-3 rounded-[1.2rem] px-4 py-2.5 text-base font-black text-rose-500 hover:bg-rose-50 hover:text-rose-600 transition-colors" href="<?= e(page_url('logout')); ?>">🚪 Đăng xuất</a>
+                                    <a class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-black text-rose-500 hover:bg-rose-50 hover:text-rose-600 transition-colors" href="<?= e(page_url('logout')); ?>">🚪 Đăng xuất</a>
                                 </div>
                             </div>
                         </div>
                     </div>
                 <?php else: ?>
-                    <a class="relative rounded-full px-5 py-2.5 text-base font-bold text-slate-600 transition-all duration-300 hover:bg-white hover:text-blue-600 hover:shadow-[0_2px_15px_-3px_rgba(14,165,233,0.15)]" href="<?= e(page_url('login')); ?>">Đăng nhập</a>
+                    <a class="relative rounded-xl px-6 py-2.5 text-base font-black text-blue-900 bg-white/70 border border-white shadow-[0_4px_0_#93c5fd] hover:-translate-y-1 hover:shadow-[0_6px_0_#93c5fd] hover:bg-white active:translate-y-1 active:shadow-none transition-all duration-150" href="<?= e(page_url('login')); ?>">Đăng nhập</a>
                 <?php endif; ?>
                 
-                <a href="#lien-he" class="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-sky-400 to-blue-600 px-7 py-3 text-base font-black text-white shadow-[0_10px_20px_rgba(14,165,233,0.2)] transition-all duration-300 hover:scale-105 hover:shadow-[0_15px_25px_rgba(14,165,233,0.4)] active:scale-95">
+                <a href="#lien-he" class="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-blue-600 to-sky-500 px-8 py-3.5 text-base font-black text-white shadow-[0_4px_0_#1e3a8a] border-t border-sky-300 hover:-translate-y-1 hover:shadow-[0_6px_0_#1e3a8a] active:translate-y-1 active:shadow-none transition-all duration-150">
                     ĐĂNG KÝ NGAY
                 </a>
             </div>
 
-            <button id="mobile-menu-toggle" class="inline-flex h-12 w-12 flex-col items-center justify-center gap-1.5 rounded-[1.2rem] border border-white bg-white/60 text-blue-600 hover:bg-white hover:shadow-[0_4px_20px_-5px_rgba(14,165,233,0.2)] transition-all duration-300 lg:hidden shadow-sm" type="button">
-                <span class="block h-0.5 w-6 bg-current rounded-full transition-all"></span>
-                <span class="block h-0.5 w-4 bg-current rounded-full transition-all self-end"></span>
-                <span class="block h-0.5 w-6 bg-current rounded-full transition-all"></span>
+            <button id="mobile-menu-toggle" class="inline-flex h-12 w-12 flex-col items-center justify-center gap-1.5 rounded-xl border border-white bg-white/80 text-blue-600 shadow-[0_4px_0_#93c5fd] hover:-translate-y-1 hover:shadow-[0_6px_0_#93c5fd] active:translate-y-1 active:shadow-none transition-all duration-150 lg:hidden mb-1" type="button">
+                <span class="block h-1 w-6 bg-current rounded-full transition-all"></span>
+                <span class="block h-1 w-4 bg-current rounded-full transition-all self-end"></span>
+                <span class="block h-1 w-6 bg-current rounded-full transition-all"></span>
             </button>
 
-            <nav id="main-nav" class="absolute right-4 left-4 top-[95px] z-50 hidden flex-col gap-1 rounded-[2.5rem] border border-white bg-gradient-to-b from-white/95 to-sky-50/95 backdrop-blur-2xl p-6 shadow-[0_20px_50px_-15px_rgba(14,165,233,0.3)] lg:hidden" aria-label="Menu mobile">
+            <nav id="main-nav" class="absolute right-0 left-0 top-full mt-4 z-50 hidden flex-col gap-1 rounded-b-[2rem] border-t-4 border-blue-300 bg-gradient-to-b from-white/95 to-sky-50/95 backdrop-blur-2xl p-6 shadow-[0_20px_50px_-15px_rgba(30,58,138,0.3)] lg:hidden" aria-label="Menu mobile">
                 <a class="rounded-2xl px-5 py-4 text-base font-bold text-slate-700 hover:bg-sky-50 hover:text-blue-600 transition-all" href="/">Trang chủ</a>
                 <a class="rounded-2xl px-5 py-4 text-base font-bold text-slate-700 hover:bg-sky-50 hover:text-blue-600 transition-all" href="#khoa-hoc">Khóa học</a>
                 <a class="rounded-2xl px-5 py-4 text-base font-bold text-slate-700 hover:bg-sky-50 hover:text-blue-600 transition-all" href="#giao-vien">Giáo viên</a>
@@ -117,7 +113,7 @@
                 <?php else: ?>
                     <a class="rounded-2xl px-5 py-4 text-base font-bold text-slate-700 hover:bg-sky-50 hover:text-blue-600 transition-all" href="<?= e(page_url('login')); ?>">Đăng nhập hệ thống</a>
                 <?php endif; ?>
-                <a href="#lien-he" class="mt-6 inline-flex items-center justify-center rounded-full bg-gradient-to-r from-sky-400 to-blue-600 px-6 py-4 text-base font-black text-white shadow-[0_10px_20px_rgba(14,165,233,0.2)]">Đăng ký kiểm tra đầu vào</a>
+                <a href="#lien-he" class="mt-6 inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-sky-400 to-blue-600 px-6 py-4 text-base font-black text-white shadow-[0_4px_0_#0284c7] active:translate-y-1 active:shadow-none transition-all">Đăng ký kiểm tra đầu vào</a>
             </nav>
         </div>
     </header>
