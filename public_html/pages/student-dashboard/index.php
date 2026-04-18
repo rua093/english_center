@@ -1,225 +1,229 @@
 <?php
 require_role(['student', 'admin']);
-
 $user = auth_user();
-$model = new UserModel();
-$dashboard = $model->studentDashboard((int) ($user['id'] ?? 0));
-$submissionNotice = get_flash('submission_notice');
-$success = get_flash('success');
-$error = get_flash('error');
+$studentDashboardActiveTab = 'dashboard-student';
+
+// 3. Dữ liệu mẫu (Giả lập có lịch cho hôm nay và ngày mai)
+$today = date('Y-m-d');
+$tomorrow = date('Y-m-d', strtotime('+1 day'));
+
+$dbEvents = [
+    ['id' => 1, 'date' => $today, 'title' => 'Java Web (Spring Boot)', 'time' => '18:00 - 20:30', 'teacher' => 'Thầy Nguyễn Văn A', 'room' => 'Lab 01', 'type' => 'blue'],
+    ['id' => 2, 'date' => $tomorrow, 'title' => 'Cấu trúc dữ liệu', 'time' => '08:00 - 11:00', 'teacher' => 'Cô Trần Thị B', 'room' => 'P.202', 'type' => 'emerald'],
+    ['id' => 3, 'date' => '2026-04-25', 'title' => 'Tiếng Nhật N5', 'time' => '18:00 - 19:30', 'teacher' => 'Sensei Tanaka', 'room' => 'Online', 'type' => 'rose'],
+    ['id' => 4, 'date' => '2026-05-02', 'title' => 'Thiết kế hệ thống', 'time' => '13:00 - 15:00', 'teacher' => 'Thầy Lê C', 'room' => 'Hội trường B', 'type' => 'amber']
+];
+
+$upcomingAssignments = [
+    [
+        'title' => 'Security with JWT',
+        'class' => 'Java Spring Boot Advanced',
+        'deadline' => '20/05/2026',
+        'left' => '2 ngày nữa',
+        'progress' => 35,
+        'tone' => 'rose',
+        'icon' => 'fa-triangle-exclamation',
+    ],
+    [
+        'title' => 'Design REST API',
+        'class' => 'Java Spring Boot Advanced',
+        'deadline' => '22/05/2026',
+        'left' => '4 ngày nữa',
+        'progress' => 68,
+        'tone' => 'amber',
+        'icon' => 'fa-bolt',
+    ],
+    [
+        'title' => 'Cấu trúc dữ liệu - Bài luyện tập',
+        'class' => 'Data Structures',
+        'deadline' => '23/05/2026',
+        'left' => '5 ngày nữa',
+        'progress' => 52,
+        'tone' => 'blue',
+        'icon' => 'fa-pen-to-square',
+    ],
+];
 ?>
-<section class="min-h-screen bg-[#f8fafc] py-8 px-4 sm:px-6 lg:px-8">
-    <div class="mx-auto max-w-7xl">
-        
-        <header class="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div>
-                <h1 class="text-3xl font-extrabold text-blue-900 tracking-tight">
-                    Bảng điều khiển <span class="text-blue-600">Học viên</span>
-                </h1>
-                <p class="mt-1 text-slate-500 font-medium">
-                    Chào mừng trở lại, <span class="text-blue-700 font-bold"><?= e($user['full_name']); ?></span>! 👋
-                </p>
-            </div>
-            <div class="flex items-center gap-3">
-                <a class="flex items-center gap-2 rounded-xl bg-white border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200" href="<?= e(page_url('logout')); ?>">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
-                    Đăng xuất
-                </a>
-            </div>
-        </header>
 
-        <div class="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <div class="group relative overflow-hidden rounded-2xl bg-white p-6 shadow-sm border border-slate-100 transition-all hover:shadow-md">
-                <div class="flex items-center justify-between">
+<section class="relative min-h-screen overflow-hidden bg-[#f8fafc] py-8 px-2 sm:px-4 lg:px-6 xl:px-8">
+    <div class="absolute inset-0 z-0 opacity-[0.08] pointer-events-none" style="background-image: radial-gradient(#1e3a8a 2px, transparent 2px); background-size: 30px 30px;"></div>
+    <div class="absolute inset-x-0 top-0 z-0 h-80 bg-gradient-to-b from-blue-100/50 via-cyan-50/20 to-transparent pointer-events-none"></div>
+    <div class="absolute -right-24 top-32 z-0 h-72 w-72 rounded-full bg-blue-200/30 blur-3xl pointer-events-none"></div>
+    <div class="absolute -left-28 bottom-20 z-0 h-80 w-80 rounded-full bg-cyan-200/30 blur-3xl pointer-events-none"></div>
+
+    <div class="mx-auto w-full max-w-[1800px]">
+        <div class="grid grid-cols-1 gap-8 lg:grid-cols-[16rem_minmax(0,1fr)] xl:grid-cols-[17rem_minmax(0,1fr)] lg:items-start">
+            <aside class="lg:sticky lg:top-24">
+                <?php require __DIR__ . '/partials/nav.php'; ?>
+            </aside>
+
+            <div class="min-w-0 space-y-8">
+                <header class="flex flex-col gap-2">
                     <div>
-                        <p class="text-sm font-medium text-slate-500 uppercase tracking-wider">Đi học</p>
-                        <h4 class="text-3xl font-bold text-emerald-600"><?= (int) ($dashboard['attendance_summary']['present_count'] ?? 0); ?></h4>
+                        <h1 class="text-3xl font-extrabold text-blue-900 tracking-tight">
+                            Hệ thống <span class="text-blue-600">Quản lý Học tập</span>
+                        </h1>
+                        <p class="mt-1 text-slate-500 font-medium tracking-tight">Chào mừng trở lại, <span class="text-blue-700 font-bold"><?= e($user['full_name']); ?></span></p>
                     </div>
-                    <div class="rounded-full bg-emerald-50 p-3 text-emerald-600 group-hover:scale-110 transition-transform">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <p class="text-sm font-medium text-slate-400">Lịch học, bài tập và các thông báo quan trọng của bạn được gom ở một nơi.</p>
+                </header>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-2">
+                <article class="relative overflow-hidden rounded-[2rem] border border-blue-100 bg-gradient-to-br from-white via-blue-50 to-cyan-50 p-5 shadow-2xl transition-all md:p-6">
+                    <div class="pointer-events-none absolute -top-24 -right-24 h-64 w-64 rounded-full bg-blue-200/40 blur-3xl"></div>
+                    <div class="pointer-events-none absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-cyan-200/35 blur-3xl"></div>
+
+                    <div class="relative z-10 flex w-full flex-col gap-6">
+                    <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
+                        <div class="flex items-center gap-4">
+                            <div>
+                                <p class="text-[10px] font-black uppercase tracking-[0.35em] text-blue-400">Lịch học</p>
+                                <h3 id="calendar-title" class="mt-1 text-2xl md:text-3xl font-black text-slate-800 tracking-tight"></h3>
+                            </div>
+                            <div class="flex gap-1 rounded-2xl border border-white/70 bg-white/85 p-1.5 shadow-sm backdrop-blur">
+                                <button onclick="changeDate(-1)" class="rounded-xl bg-white px-3 py-2 text-slate-600 transition hover:bg-blue-50 hover:text-blue-700">&larr;</button>
+                                <button onclick="resetToToday()" class="rounded-xl bg-white px-4 py-2 text-[11px] font-black uppercase tracking-widest text-slate-700 transition hover:bg-blue-50 hover:text-blue-700">Hôm nay</button>
+                                <button onclick="changeDate(1)" class="rounded-xl bg-white px-3 py-2 text-slate-600 transition hover:bg-blue-50 hover:text-blue-700">&rarr;</button>
+                            </div>
+                        </div>
+                        <div class="flex rounded-2xl border border-white/70 bg-white/85 p-1.5 shadow-sm backdrop-blur">
+                            <button id="btn-view-month" onclick="setView('month')" class="px-5 py-2 text-xs font-black uppercase rounded-xl transition-all duration-300">Tháng</button>
+                            <button id="btn-view-week" onclick="setView('week')" class="px-5 py-2 text-xs font-black uppercase rounded-xl transition-all duration-300">Tuần</button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-7 gap-px rounded-[1.75rem] border border-blue-100 bg-white/80 overflow-hidden shadow-[0_10px_30px_rgba(37,99,235,0.08)] backdrop-blur-sm">
+                        <?php 
+                        $weekdays = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
+                        foreach ($weekdays as $day): ?>
+                            <div class="bg-gradient-to-b from-blue-100 via-white to-cyan-100 py-5 text-center text-xs md:text-sm font-black text-blue-700 uppercase tracking-[0.28em] border-b border-blue-200/80 shadow-[inset_0_-1px_0_rgba(255,255,255,0.95)]">
+                                <span class="inline-flex items-center justify-center rounded-full bg-white/90 px-3 py-1.5 shadow-sm ring-1 ring-blue-200/90 ring-offset-1 ring-offset-blue-50"><?= $day ?></span>
+                            </div>
+                        <?php endforeach; ?>
+                        <div id="calendar-grid" class="contents"></div>
+                    </div>
+                    </div>
+                </article>
+                    </div>
+
+                    <div class="space-y-6">
+                <article class="bg-white rounded-3xl p-6 border border-slate-200 shadow-xl">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-sm font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
+                            <span class="w-2 h-2 bg-rose-500 rounded-full animate-pulse"></span>
+                            Sắp diễn ra (48h)
+                        </h3>
+                        <span class="text-[10px] font-bold bg-slate-100 text-slate-500 px-2 py-1 rounded-full uppercase"><?= date('d/m') ?></span>
+                    </div>
+                    
+                    <div id="upcoming-list" class="space-y-4">
+                        </div>
+                </article>
+
+                <article class="relative overflow-hidden rounded-3xl border border-rose-100 bg-gradient-to-br from-rose-50 via-white to-amber-50 p-6 shadow-2xl shadow-rose-100/50">
+                    <div class="pointer-events-none absolute -top-16 right-0 h-40 w-40 rounded-full bg-rose-200/40 blur-3xl"></div>
+                    <div class="pointer-events-none absolute -bottom-12 left-10 h-32 w-32 rounded-full bg-amber-200/40 blur-3xl"></div>
+
+                    <div class="relative z-10 mb-5 flex items-start justify-between gap-4">
+                        <div>
+                            <p class="text-[10px] font-black uppercase tracking-[0.35em] text-rose-500">Nhắc nhở gấp</p>
+                            <h3 class="mt-2 text-xl font-black text-slate-900">Bài tập sắp đến hạn nộp</h3>
+                            <p class="mt-1 text-sm text-slate-500">Đừng để quá hạn, các bài dưới đây cần xử lý sớm.</p>
+                        </div>
+                        <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-600 text-white shadow-lg shadow-rose-200 animate-pulse">
+                            <i class="fa-solid fa-clock text-lg"></i>
+                        </div>
+                    </div>
+
+                    <div class="relative z-10 space-y-4">
+                        <div class="rounded-2xl bg-slate-950 px-4 py-4 text-white shadow-lg shadow-slate-900/10">
+                            <div class="flex items-center justify-between gap-3">
+                                <div>
+                                    <p class="text-[10px] font-black uppercase tracking-[0.3em] text-rose-300">Còn lại</p>
+                                    <p class="mt-1 text-2xl font-black leading-none">3 bài tập</p>
+                                </div>
+                                <span class="rounded-full bg-white/10 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-rose-200">48h tới</span>
+                            </div>
+                            <div class="mt-4 h-2 overflow-hidden rounded-full bg-white/10">
+                                <div class="h-2 w-2/3 rounded-full bg-gradient-to-r from-rose-400 via-amber-300 to-cyan-300 animate-pulse"></div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-3">
+                            <?php foreach ($upcomingAssignments as $index => $assignment): ?>
+                                <div class="group relative overflow-hidden rounded-2xl border border-white/70 bg-white/90 p-4 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+                                    <div class="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100" style="background: linear-gradient(135deg, rgba(255,255,255,0.65), rgba(255,255,255,0));"></div>
+                                    <div class="relative z-10 flex items-start gap-4">
+                                        <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-<?= $assignment['tone'] === 'rose' ? 'rose' : ($assignment['tone'] === 'amber' ? 'amber' : 'blue') ?>-100 text-<?= $assignment['tone'] === 'rose' ? 'rose' : ($assignment['tone'] === 'amber' ? 'amber' : 'blue') ?>-600 shadow-inner">
+                                            <i class="fa-solid <?= e($assignment['icon']); ?>"></i>
+                                        </div>
+                                        <div class="min-w-0 flex-1">
+                                            <div class="flex items-start justify-between gap-3">
+                                                <div>
+                                                    <h4 class="truncate text-sm font-black text-slate-800"><?= e($assignment['title']); ?></h4>
+                                                    <p class="mt-1 text-xs font-medium text-slate-500"><?= e($assignment['class']); ?></p>
+                                                </div>
+                                                <span class="shrink-0 rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-widest <?= $assignment['tone'] === 'rose' ? 'bg-rose-100 text-rose-700' : ($assignment['tone'] === 'amber' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700') ?>"><?= e($assignment['left']); ?></span>
+                                            </div>
+
+                                            <div class="mt-3">
+                                                <div class="mb-1 flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                                                    <span>Hoàn thành</span>
+                                                    <span><?= (int) $assignment['progress']; ?>%</span>
+                                                </div>
+                                                <div class="h-2 rounded-full bg-slate-100">
+                                                    <div class="h-2 rounded-full bg-gradient-to-r from-<?= e($assignment['tone']); ?>-500 to-amber-400 shadow-[0_0_20px_rgba(251,146,60,0.25)]" style="width: <?= (int) $assignment['progress']; ?>%"></div>
+                                                </div>
+                                            </div>
+
+                                            <div class="mt-3 flex items-center justify-between gap-3 text-[11px] font-semibold text-slate-500">
+                                                <span>Deadline: <strong class="text-slate-700"><?= e($assignment['deadline']); ?></strong></span>
+                                                <span class="inline-flex items-center gap-1 rounded-full bg-slate-50 px-2.5 py-1 text-slate-500">
+                                                    <span class="h-2 w-2 rounded-full bg-<?= $assignment['tone'] === 'rose' ? 'rose' : ($assignment['tone'] === 'amber' ? 'amber' : 'blue') ?>-500 animate-pulse"></span>
+                                                    <?= $index === 0 ? 'Ưu tiên cao' : 'Đang theo dõi'; ?>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                </article>
+
+                <div class="bg-blue-600 rounded-3xl p-6 text-white shadow-lg shadow-blue-200 overflow-hidden relative group">
+                    <div class="relative z-10">
+                        <p class="text-blue-100 text-xs font-bold uppercase tracking-widest mb-1">Trạng thái học phí</p>
+                        <h4 class="text-xl font-black mb-4">Đã hoàn tất 100%</h4>
+                        <div class="w-full bg-blue-500 rounded-full h-1.5 mb-2"><div class="bg-white h-1.5 rounded-full" style="width: 100%"></div></div>
+                        <p class="text-[10px] text-blue-100 font-medium italic">* Tuyệt vời! Bạn không có nợ đọng học phí.</p>
+                    </div>
+                    <svg class="absolute -bottom-4 -right-4 w-24 h-24 text-blue-500 opacity-50 transform rotate-12 group-hover:scale-110 transition" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                </div>
                     </div>
                 </div>
-                <div class="absolute bottom-0 left-0 h-1 w-full bg-emerald-500 opacity-20"></div>
-            </div>
-
-            <div class="group relative overflow-hidden rounded-2xl bg-white p-6 shadow-sm border border-slate-100 transition-all hover:shadow-md">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm font-medium text-slate-500 uppercase tracking-wider">Đi muộn</p>
-                        <h4 class="text-3xl font-bold text-amber-600"><?= (int) ($dashboard['attendance_summary']['late_count'] ?? 0); ?></h4>
-                    </div>
-                    <div class="rounded-full bg-amber-50 p-3 text-amber-600 group-hover:scale-110 transition-transform">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                    </div>
-                </div>
-                <div class="absolute bottom-0 left-0 h-1 w-full bg-amber-500 opacity-20"></div>
-            </div>
-
-            <div class="group relative overflow-hidden rounded-2xl bg-white p-6 shadow-sm border border-slate-100 transition-all hover:shadow-md">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm font-medium text-slate-500 uppercase tracking-wider">Vắng mặt</p>
-                        <h4 class="text-3xl font-bold text-rose-600"><?= (int) ($dashboard['attendance_summary']['absent_count'] ?? 0); ?></h4>
-                    </div>
-                    <div class="rounded-full bg-rose-50 p-3 text-rose-600 group-hover:scale-110 transition-transform">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                    </div>
-                </div>
-                <div class="absolute bottom-0 left-0 h-1 w-full bg-rose-500 opacity-20"></div>
             </div>
         </div>
+    </div>
 
-        <div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
-            
-            <div class="lg:col-span-2 space-y-8">
-                
-                <article class="rounded-3xl bg-white p-6 shadow-sm border border-slate-100">
-                    <div class="mb-6 flex items-center justify-between">
-                        <h3 class="flex items-center gap-2 text-lg font-bold text-slate-800">
-                            <span class="h-2 w-2 rounded-full bg-blue-600"></span>
-                            Lịch học sắp tới
-                        </h3>
-                    </div>
-                    
-                    <?php if (empty($dashboard['upcoming_schedules'])): ?>
-                        <div class="flex flex-col items-center py-10 text-slate-400 border-2 border-dashed border-slate-100 rounded-2xl">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mb-2 opacity-20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                            <p class="text-sm">Hiện tại bạn chưa có lịch học mới.</p>
-                        </div>
-                    <?php else: ?>
-                        <div class="space-y-4">
-                            <?php foreach ($dashboard['upcoming_schedules'] as $schedule): ?>
-                                <div class="group flex items-center justify-between rounded-2xl border border-slate-50 bg-slate-50/50 p-4 transition hover:bg-blue-50/50 hover:border-blue-100">
-                                    <div class="flex gap-4">
-                                        <div class="flex flex-col items-center justify-center rounded-xl bg-blue-600 px-3 py-1 text-white shadow-blue-200 shadow-lg">
-                                            <span class="text-xs font-medium uppercase"><?= date('M', strtotime($schedule['study_date'])); ?></span>
-                                            <span class="text-lg font-bold leading-none"><?= date('d', strtotime($schedule['study_date'])); ?></span>
-                                        </div>
-                                        <div>
-                                            <h4 class="font-bold text-slate-800"><?= e($schedule['class_name']); ?></h4>
-                                            <p class="text-xs font-medium text-slate-500">
-                                                <span class="inline-flex items-center gap-1 text-blue-600 font-semibold"><?= e($schedule['start_time']); ?> - <?= e($schedule['end_time']); ?></span>
-                                                <span class="mx-2">•</span>
-                                                Phòng: <?= e($schedule['room_name'] ?? 'N/A'); ?>
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div class="text-right hidden sm:block">
-                                        <p class="text-xs text-slate-400">Giảng viên</p>
-                                        <p class="text-sm font-semibold text-slate-700"><?= e($schedule['teacher_name']); ?></p>
-                                    </div>
-                                </div>
-                            <?php endforeach; ?>
-                        </div>
-                    <?php endif; ?>
-                </article>
-
-                <article class="rounded-3xl bg-white p-6 shadow-sm border border-slate-100">
-                    <h3 class="mb-6 flex items-center gap-2 text-lg font-bold text-slate-800">
-                        <span class="h-2 w-2 rounded-full bg-blue-600"></span>
-                        Bài tập & Nộp bài
-                    </h3>
-                    
-                    <div class="grid gap-6 md:grid-cols-2">
-                        <div class="space-y-3">
-                            <?php if (empty($dashboard['assignments'])): ?>
-                                <p class="text-sm text-slate-400">Chưa có bài tập.</p>
-                            <?php else: ?>
-                                <?php foreach ($dashboard['assignments'] as $assignment): ?>
-                                    <div class="rounded-xl border border-slate-100 p-3 text-sm transition hover:bg-slate-50">
-                                        <div class="flex justify-between font-bold text-slate-700">
-                                            <span><?= e($assignment['title']); ?></span>
-                                            <span class="<?= !empty($assignment['score']) ? 'text-emerald-600' : 'text-blue-500' ?>">
-                                                <?= !empty($assignment['score']) ? $assignment['score'] . 'đ' : '---' ?>
-                                            </span>
-                                        </div>
-                                        <div class="mt-1 flex justify-between text-[11px] text-slate-400">
-                                            <span>DL: <?= e($assignment['deadline']); ?></span>
-                                            <span class="italic font-medium uppercase text-blue-400"><?= !empty($assignment['submitted_at']) ? 'Đã nộp' : 'Chưa nộp' ?></span>
-                                        </div>
-                                    </div>
-                                <?php endforeach; ?>
-                            <?php endif; ?>
-                        </div>
-
-                        <form action="/api/assignments/submit" method="post" enctype="multipart/form-data" class="rounded-2xl bg-blue-50/50 p-5 border border-blue-100/50">
-                            <?= csrf_input(); ?>
-                            <div class="space-y-3">
-                                <div class="grid grid-cols-2 gap-2">
-                                    <div class="col-span-2">
-                                        <label class="text-[11px] font-bold text-blue-900/50 uppercase ml-1">ID Bài tập</label>
-                                        <input type="number" name="assignment_id" class="w-full rounded-xl border-0 bg-white px-3 py-2 text-sm shadow-sm focus:ring-2 focus:ring-blue-500" placeholder="Ví dụ: 101" required>
-                                    </div>
-                                </div>
-                                <div>
-                                    <label class="text-[11px] font-bold text-blue-900/50 uppercase ml-1">Upload File</label>
-                                    <input type="file" name="submission_file" class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer">
-                                </div>
-                                <button type="submit" class="w-full rounded-xl bg-blue-600 py-2.5 text-sm font-bold text-white shadow-lg shadow-blue-200 transition hover:bg-blue-700 hover:-translate-y-0.5 active:scale-95">Gửi bài ngay</button>
-                            </div>
-                        </form>
-                    </div>
-                </article>
+    <div id="event-tooltip" class="fixed hidden z-[9999] w-72 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-slate-200 p-5 pointer-events-none transition-all duration-200 opacity-0 scale-95 translate-y-2">
+        <div class="flex items-start gap-3 mb-3">
+            <div id="tooltip-color" class="w-1.5 h-10 rounded-full"></div>
+            <div>
+                <h4 id="tooltip-title" class="font-black text-slate-800 text-base leading-tight"></h4>
+                <p id="tooltip-time" class="text-blue-600 text-xs font-bold mt-1"></p>
             </div>
-
-            <div class="space-y-8">
-                
-                <article class="overflow-hidden rounded-3xl bg-blue-900 text-white shadow-xl shadow-blue-200">
-                    <div class="p-6">
-                        <div class="mb-4 flex items-center justify-between">
-                            <span class="text-sm font-medium text-blue-200">Học phí hiện tại</span>
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>
-                        </div>
-                        
-                        <?php if (!empty($dashboard['tuition'])): ?>
-                            <div class="mb-6">
-                                <p class="text-xs text-blue-300">Tổng số tiền cần đóng</p>
-                                <h2 class="text-2xl font-black italic"><?= format_money((float) $dashboard['tuition']['total_amount']); ?></h2>
-                            </div>
-                            
-                            <div class="space-y-2 border-t border-blue-800 pt-4">
-                                <div class="flex justify-between text-xs font-medium">
-                                    <span class="text-blue-300">Đã thanh toán:</span>
-                                    <span><?= format_money((float) $dashboard['tuition']['amount_paid']); ?></span>
-                                </div>
-                                <div class="flex justify-between text-xs font-medium">
-                                    <span class="text-blue-300">Trạng thái:</span>
-                                    <span class="px-2 py-0.5 rounded-full bg-blue-800 text-[10px] uppercase tracking-wider text-blue-200"><?= e($dashboard['tuition']['status']); ?></span>
-                                </div>
-                            </div>
-
-                            <form action="/api/tuitions/update" method="post" class="mt-6 flex flex-col gap-2">
-                                <?= csrf_input(); ?>
-                                <input type="hidden" name="tuition_id" value="<?= (int) $dashboard['tuition']['id']; ?>">
-                                <input type="number" name="amount" placeholder="Số tiền đóng thêm..." class="w-full rounded-xl border-0 bg-blue-800/50 px-3 py-2 text-xs text-white placeholder:text-blue-400 focus:ring-1 focus:ring-blue-400">
-                                <button type="submit" class="w-full rounded-xl bg-white py-2 text-sm font-bold text-blue-900 transition hover:bg-blue-50">Cập nhật phí</button>
-                            </form>
-                        <?php else: ?>
-                            <p class="py-10 text-center text-sm text-blue-400 italic">Chưa có thông tin hóa đơn.</p>
-                        <?php endif; ?>
-                    </div>
-                </article>
-
-                <article class="rounded-3xl bg-white p-6 shadow-sm border border-slate-100">
-                    <h3 class="mb-4 text-lg font-bold text-slate-800">Thông báo mới</h3>
-                    <div class="space-y-4">
-                        <?php if (empty($dashboard['notifications'])): ?>
-                            <p class="text-center text-sm text-slate-400 py-4">Hết thông báo rồi!</p>
-                        <?php else: ?>
-                            <?php foreach ($dashboard['notifications'] as $notif): ?>
-                                <div class="relative pl-5 before:absolute before:left-0 before:top-2 before:h-2 before:w-2 before:rounded-full before:bg-blue-500">
-                                    <h5 class="text-sm font-bold text-slate-700"><?= e($notif['title']); ?></h5>
-                                    <p class="text-xs text-slate-500 line-clamp-2"><?= e($notif['message']); ?></p>
-                                    <span class="text-[10px] text-slate-300"><?= e($notif['created_at']); ?></span>
-                                </div>
-                            <?php endforeach; ?>
-                        <?php endif; ?>
-                    </div>
-                </article>
-
+        </div>
+        <div class="grid grid-cols-2 gap-3 pt-3 border-t border-slate-100">
+            <div>
+                <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Giảng viên</p>
+                <p id="tooltip-teacher" class="text-xs font-bold text-slate-700"></p>
+            </div>
+            <div>
+                <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Vị trí</p>
+                <p id="tooltip-room" class="text-xs font-bold text-slate-700"></p>
             </div>
         </div>
     </div>
 </section>
-
-
