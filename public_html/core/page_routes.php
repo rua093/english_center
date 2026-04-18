@@ -38,6 +38,9 @@ function page_route_definitions(): array
 		'materials-academic' => ['directory' => 'academic-materials', 'aliases' => ['academic-materials']],
 		'materials-academic-edit' => ['directory' => 'academic-material-edit', 'aliases' => ['academic-material-edit']],
 		'portfolios-academic' => ['directory' => 'academic-portfolios', 'aliases' => ['academic-portfolios']],
+		'submissions-academic' => ['directory' => 'academic-submissions', 'aliases' => ['academic-submissions']],
+		'activities-student' => ['directory' => 'student-activities', 'aliases' => ['activities']],
+		'activities-details' => ['directory' => 'student-activities/activites-details', 'aliases' => ['activities-details']],
 	];
 }
 
