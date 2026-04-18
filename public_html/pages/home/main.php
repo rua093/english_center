@@ -5,78 +5,100 @@ $teacherSchedules = $homeWidgets['teacher_schedules'] ?? [];
 ?>
 
 <main class="font-jakarta bg-slate-50">
-  <section id="trang-chu" class="relative bg-gradient-to-br from-white via-blue-50 to-cyan-50 pt-16 lg:pt-20 lg:pb-0 overflow-hidden border-b border-blue-100/50">
+    <section id="trang-chu" class="relative bg-gradient-to-br from-blue-100/80 via-sky-50/80 to-white pt-16 lg:pt-24 lg:pb-12 overflow-hidden border-b border-blue-100/50">
+
+        <div class="absolute inset-0 z-0 opacity-[0.08]" 
+            style="background-image: radial-gradient(#1e3a8a 2px, transparent 2px); background-size: 30px 30px;"></div>
 
         <div class="absolute inset-0 z-0 pointer-events-none">
             <div class="absolute w-[600px] h-[600px] bg-blue-400/20 blur-[120px] rounded-full -top-40 -left-40"></div>
             <div class="absolute w-[500px] h-[500px] bg-cyan-400/20 blur-[120px] rounded-full bottom-[-150px] right-[-150px]"></div>
         </div>
 
-        <div class="relative z-10 max-w-[1450px] mx-auto px-4 sm:px-6 flex flex-col lg:flex-row gap-8 lg:gap-12">
+        <div class="relative z-10 max-w-[1450px] mx-auto px-4 sm:px-6 flex flex-col lg:flex-row gap-10 lg:gap-14 items-center lg:items-stretch">
 
             <div class="hidden lg:flex lg:w-5/12 relative items-end justify-center pt-10" data-aos="fade-right" data-aos-duration="1200">
-                <div class="absolute bottom-10 left-1/2 -translate-x-1/2 w-[90%] h-[70%] bg-gradient-to-t from-[#00d4ff]/40 to-transparent rounded-full blur-[80px] -z-10"></div>
-                <img src="assets/images/student2.jpg" alt="Học sinh tiêu biểu" class="w-full max-w-[550px] object-contain relative z-10 drop-shadow-[0_20px_40px_rgba(0,0,0,0.3)]">
+                <div class="absolute bottom-10 left-1/2 -translate-x-1/2 w-[90%] h-[80%] bg-gradient-to-t from-blue-300/40 to-transparent rounded-[3rem] blur-[60px] -z-10"></div>
+                
+                <img src="assets/images/student2.jpg" alt="Học sinh tiêu biểu" class="w-full max-w-[550px] object-contain relative z-10 drop-shadow-[0_20px_40px_rgba(30,58,138,0.25)]">
+                
+                <div class="absolute top-1/4 -left-4 bg-white/95 backdrop-blur-md px-5 py-4 rounded-2xl shadow-xl border border-blue-50 z-20 animate-bounce" style="animation-duration: 3s;">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-yellow-100 text-yellow-500 flex items-center justify-center text-xl shadow-inner">
+                            <i class="fa-solid fa-star"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-black text-blue-950 uppercase">Chất lượng</h4>
+                            <p class="text-[11px] font-bold text-slate-500">Chuẩn quốc tế</p>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <div class="w-full lg:w-7/12 flex flex-col gap-5 md:gap-6 pb-16 lg:py-16 z-20">
+            <div class="w-full lg:w-7/12 flex flex-col gap-5 md:gap-6 pb-16 lg:py-6 z-20">
 
-                <div class="grid sm:grid-cols-2 gap-5 md:gap-6">
-                    <div class="group relative rounded-[2rem] p-8 md:p-10 bg-gradient-to-br from-[#00d4ff] to-[#00b4d8] text-white shadow-[0_15px_30px_rgba(0,212,255,0.3)] overflow-hidden" data-aos="fade-up">
+                <div class="grid sm:grid-cols-2 gap-5 md:gap-6 h-full min-h-[180px]">
+                    <div class="group relative rounded-[2rem] p-8 md:p-10 bg-gradient-to-br from-sky-400 to-blue-500 text-white shadow-[0_15px_30px_rgba(14,165,233,0.3)] overflow-hidden flex flex-col justify-center" data-aos="fade-up">
                         <div class="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition duration-500"></div>
-                        <h1 class="text-3xl md:text-4xl lg:text-4xl xl:text-5xl font-black leading-[1.15] text-[#2e3192] relative z-10 drop-shadow-sm text-left">
+                        <i class="fa-solid fa-rocket absolute -right-4 -bottom-4 text-[8rem] opacity-20 group-hover:scale-110 transition-transform duration-700"></i>
+                        <h1 class="text-3xl md:text-4xl lg:text-4xl xl:text-5xl font-black leading-[1.15] text-blue-950 relative z-10 drop-shadow-sm text-left">
                             Khát Vọng<br>Là Khởi Đầu
                         </h1>
                     </div>
 
-                    <div class="group relative rounded-[2rem] p-8 md:p-10 bg-gradient-to-bl from-[#2e3192] to-[#1a1c6b] text-white shadow-[0_15px_30px_rgba(46,49,146,0.3)] overflow-hidden" data-aos="fade-up" data-aos-delay="100">
+                    <div class="group relative rounded-[2rem] p-8 md:p-10 bg-gradient-to-bl from-blue-900 to-blue-800 text-white shadow-[0_15px_30px_rgba(30,58,138,0.3)] overflow-hidden flex flex-col justify-center" data-aos="fade-up" data-aos-delay="100">
                         <div class="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition duration-500"></div>
-                        <h2 class="text-3xl md:text-4xl lg:text-4xl xl:text-5xl font-black leading-[1.15] relative z-10 drop-shadow-sm text-left">
+                        <i class="fa-solid fa-trophy absolute -right-4 -bottom-4 text-[8rem] opacity-10 group-hover:scale-110 transition-transform duration-700"></i>
+                        <h2 class="text-3xl md:text-4xl lg:text-4xl xl:text-5xl font-black leading-[1.15] relative z-10 drop-shadow-sm text-left text-blue-50">
                             Của Mọi<br>Thành Tựu
                         </h2>
                     </div>
                 </div>
 
                 <div class="grid sm:grid-cols-2 gap-5 md:gap-6">
-                    <a href="#thi-thu" class="group relative rounded-[2rem] p-8 md:p-10 bg-gradient-to-br from-[#e62129] to-[#c11017] text-white shadow-[0_15px_30px_rgba(230,33,41,0.3)] overflow-hidden transition-all hover:-translate-y-2 h-48 md:h-56 flex flex-col justify-end" data-aos="fade-up" data-aos-delay="200">
-                        <div class="absolute top-6 left-6 bg-white text-[#e62129] text-[10px] sm:text-xs font-black px-4 py-1.5 rounded-full uppercase tracking-widest shadow-md">NEW</div>
+                    <a href="#thi-thu" class="group relative rounded-[2rem] p-8 md:p-10 bg-gradient-to-br from-rose-600 to-red-500 text-white shadow-[0_15px_30px_rgba(225,29,72,0.3)] overflow-hidden transition-all hover:-translate-y-2 h-48 md:h-56 flex flex-col justify-end" data-aos="fade-up" data-aos-delay="200">
+                        <div class="absolute top-6 left-6 bg-white text-red-600 text-[10px] sm:text-xs font-black px-4 py-1.5 rounded-full uppercase tracking-widest shadow-md">NEW</div>
                         <i class="fa-solid fa-chalkboard-user absolute -right-6 -top-6 text-[10rem] opacity-15 group-hover:scale-110 group-hover:rotate-6 transition-transform duration-700"></i>
-                        <h3 class="text-2xl md:text-3xl font-black relative z-10 leading-[1.2] w-11/12">Thi Thử Nhận Ngay Kết Quả</h3>
+                        <h3 class="text-2xl md:text-3xl font-black relative z-10 leading-[1.2] w-11/12 drop-shadow-md">Thi Thử Nhận Kết Quả Ngay</h3>
                     </a>
 
-                    <a href="#tai-lieu" class="group relative rounded-[2rem] p-8 md:p-10 bg-gradient-to-br from-blue-700 to-blue-500 text-white shadow-[0_15px_30px_rgba(37,99,235,0.3)] overflow-hidden transition-all hover:-translate-y-2 h-48 md:h-56 flex flex-col justify-end" data-aos="fade-up" data-aos-delay="300">
-                        <i class="fa-solid fa-book absolute -right-6 -bottom-6 text-[10rem] opacity-15 group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-700"></i>
-                        <h3 class="text-2xl md:text-3xl font-black relative z-10 leading-[1.2] w-11/12">Tài Liệu Học Tiếng Anh</h3>
+                    <a href="#tai-lieu" class="group relative rounded-[2rem] p-8 md:p-10 bg-gradient-to-br from-blue-600 to-sky-500 text-white shadow-[0_15px_30px_rgba(37,99,235,0.3)] overflow-hidden transition-all hover:-translate-y-2 h-48 md:h-56 flex flex-col justify-end" data-aos="fade-up" data-aos-delay="300">
+                        <i class="fa-solid fa-book-open absolute -right-6 -bottom-6 text-[10rem] opacity-15 group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-700"></i>
+                        <h3 class="text-2xl md:text-3xl font-black relative z-10 leading-[1.2] w-11/12 drop-shadow-md">Tài Liệu Học Tiếng Anh</h3>
                     </a>
                 </div>
 
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 md:gap-5" data-aos="fade-up" data-aos-delay="400">
-                    <a href="#ovi" class="group relative rounded-2xl p-5 bg-white/80 backdrop-blur-xl border border-white shadow-lg transition-all hover:-translate-y-2 hover:shadow-xl hover:border-blue-300">
-                        <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mb-3 group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white transition-all">
-                            <i class="fa-solid fa-users text-lg"></i>
+                    <a href="#ovi" class="group relative rounded-2xl p-5 bg-white/90 backdrop-blur-xl border border-blue-100 shadow-[0_10px_20px_rgba(30,58,138,0.05)] transition-all hover:-translate-y-2 hover:shadow-xl hover:border-blue-400 flex flex-col items-center text-center">
+                        <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-3 group-hover:bg-blue-600 group-hover:text-white transition-colors shadow-sm">
+                            <i class="fa-solid fa-laptop-code text-xl"></i>
                         </div>
-                        <h4 class="font-bold text-[#2e3192] text-sm leading-tight">Đăng Nhập OVI</h4>
+                        <h4 class="font-extrabold text-blue-950 text-sm leading-tight">Cổng OVI</h4>
+                        <span class="text-[10px] font-semibold text-slate-500 mt-1 block">Hệ thống học tập</span>
                     </a>
 
-                    <a href="#he" class="group relative rounded-2xl p-5 bg-white/80 backdrop-blur-xl border border-white shadow-lg transition-all hover:-translate-y-2 hover:shadow-xl hover:border-cyan-300">
-                        <div class="w-10 h-10 rounded-full bg-cyan-50 text-cyan-500 flex items-center justify-center mb-3 group-hover:scale-110 group-hover:bg-cyan-500 group-hover:text-white transition-all">
-                            <i class="fa-solid fa-sparkles text-lg animate-pulse"></i>
+                    <a href="#he" class="group relative rounded-2xl p-5 bg-white/90 backdrop-blur-xl border border-teal-100 shadow-[0_10px_20px_rgba(20,184,166,0.05)] transition-all hover:-translate-y-2 hover:shadow-xl hover:border-teal-400 flex flex-col items-center text-center">
+                        <div class="w-12 h-12 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center mb-3 group-hover:bg-teal-600 group-hover:text-white transition-colors shadow-sm">
+                            <i class="fa-solid fa-sun text-xl animate-[spin_10s_linear_infinite]"></i>
                         </div>
-                        <h4 class="font-bold text-[#2e3192] text-sm leading-tight">Tiếng Anh Hè 2026</h4>
+                        <h4 class="font-extrabold text-blue-950 text-sm leading-tight">Tiếng Anh Hè</h4>
+                        <span class="text-[10px] font-semibold text-slate-500 mt-1 block">Chương trình 2026</span>
                     </a>
 
-                    <a href="#doanh-nghiep" class="group relative rounded-2xl p-5 bg-white/80 backdrop-blur-xl border border-white shadow-lg transition-all hover:-translate-y-2 hover:shadow-xl hover:border-amber-300">
-                        <div class="w-10 h-10 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center mb-3 group-hover:scale-110 group-hover:bg-amber-500 group-hover:text-white transition-all">
-                            <i class="fa-solid fa-briefcase text-lg"></i>
+                    <a href="#doanh-nghiep" class="group relative rounded-2xl p-5 bg-white/90 backdrop-blur-xl border border-amber-100 shadow-[0_10px_20px_rgba(245,158,11,0.05)] transition-all hover:-translate-y-2 hover:shadow-xl hover:border-amber-400 flex flex-col items-center text-center">
+                        <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center mb-3 group-hover:bg-amber-500 group-hover:text-white transition-colors shadow-sm">
+                            <i class="fa-solid fa-briefcase text-xl"></i>
                         </div>
-                        <h4 class="font-bold text-[#2e3192] text-sm leading-tight">Doanh Nghiệp</h4>
+                        <h4 class="font-extrabold text-blue-950 text-sm leading-tight">Doanh Nghiệp</h4>
+                        <span class="text-[10px] font-semibold text-slate-500 mt-1 block">Giải pháp đào tạo</span>
                     </a>
 
-                    <a href="#thanh-tich" class="group relative rounded-2xl p-5 bg-white/80 backdrop-blur-xl border border-white shadow-lg transition-all hover:-translate-y-2 hover:shadow-xl hover:border-emerald-300">
-                        <div class="w-10 h-10 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center mb-3 group-hover:scale-110 group-hover:bg-emerald-500 group-hover:text-white transition-all">
-                            <i class="fa-solid fa-plane-departure text-lg"></i>
+                    <a href="#thanh-tich" class="group relative rounded-2xl p-5 bg-white/90 backdrop-blur-xl border border-emerald-100 shadow-[0_10px_20px_rgba(16,185,129,0.05)] transition-all hover:-translate-y-2 hover:shadow-xl hover:border-emerald-400 flex flex-col items-center text-center">
+                        <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-3 group-hover:bg-emerald-500 group-hover:text-white transition-colors shadow-sm">
+                            <i class="fa-solid fa-medal text-xl"></i>
                         </div>
-                        <h4 class="font-bold text-[#2e3192] text-sm leading-tight">Thành Tích</h4>
+                        <h4 class="font-extrabold text-blue-950 text-sm leading-tight">Thành Tích</h4>
+                        <span class="text-[10px] font-semibold text-slate-500 mt-1 block">Học viên xuất sắc</span>
                     </a>
                 </div>
 
@@ -127,9 +149,11 @@ $teacherSchedules = $homeWidgets['teacher_schedules'] ?? [];
 	</section> -->
 
 	<section id="gioi-thieu" class="relative py-28 overflow-hidden bg-gradient-to-br from-white via-sky-50 to-blue-100">
-        <div class="absolute inset-0 opacity-[0.03]" 
-            style="background-image: radial-gradient(#0284c7 2px, transparent 2px); background-size: 30px 30px;"></div>
-
+        <!-- <div class="absolute inset-0 opacity-[0.1]" 
+            style="background-image: radial-gradient(#0284c7 2px, transparent 2px); background-size: 30px 30px;"></div> -->
+        <div class="absolute inset-0 z-0 opacity-[0.08]" 
+            style="background-image: radial-gradient(#1e3a8a 2px, transparent 2px); background-size: 30px 30px;"></div>  
+                                
         <div class="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-gradient-to-br from-blue-300/40 to-sky-200/40 rounded-full blur-3xl mix-blend-multiply pointer-events-none"></div>
         <div class="absolute bottom-[-10%] left-[-10%] w-[400px] h-[400px] bg-gradient-to-tr from-cyan-200/40 to-blue-200/40 rounded-full blur-3xl mix-blend-multiply pointer-events-none"></div>
 
@@ -245,6 +269,8 @@ $teacherSchedules = $homeWidgets['teacher_schedules'] ?? [];
     </section>
 
     <section id="su-menh" class="py-24 relative overflow-hidden bg-gradient-to-b from-sky-100 via-white to-white">
+        <div class="absolute inset-0 z-0 opacity-[0.08]" 
+            style="background-image: radial-gradient(#1e3a8a 2px, transparent 2px); background-size: 30px 30px;"></div>
 		<div class="mx-auto max-w-7xl px-4 sm:px-6 relative z-10">
 			<div class="text-center mb-16" data-aos="fade-up">
 				<h2 class="text-4xl md:text-5xl font-black uppercase tracking-tight text-[#2e3192]">Sứ Mệnh <span class="text-red-600">Toàn Cầu</span></h2>
@@ -281,7 +307,10 @@ $teacherSchedules = $homeWidgets['teacher_schedules'] ?? [];
 								
 	<!-- <section id="khoa-hoc" class="py-20 md:py-28 relative overflow-hidden bg-white"> -->
 	<section id="khoa-hoc" class="py-20 md:py-28 relative overflow-hidden bg-sky-100">
-    <div class="absolute inset-0 bg-gradient-to-b from-white via-slate-50 to-white pointer-events-none"></div>
+    <div class="absolute inset-0 z-0 opacity-[0.08]" 
+        style="background-image: radial-gradient(#1e3a8a 2px, transparent 2px); background-size: 30px 30px;"></div>
+
+    <!-- <div class="absolute inset-0 bg-gradient-to-b from-white via-slate-50 to-white pointer-events-none"></div> -->
 
     <div class="mx-auto w-full max-w-7xl px-4 sm:px-6 relative z-10">
         
@@ -387,6 +416,9 @@ $teacherSchedules = $homeWidgets['teacher_schedules'] ?? [];
 </section>
 	
     <section id="giao-vien" class="py-20 md:py-28 relative overflow-hidden bg-slate-50 border-t border-slate-200">
+        <div class="absolute inset-0 z-0 opacity-[0.08]" 
+        style="background-image: radial-gradient(#1e3a8a 2px, transparent 2px); background-size: 30px 30px;"></div>
+
     <div class="mx-auto w-full max-w-7xl px-4 sm:px-6 relative z-10">
         
         <div class="text-center mb-16" data-aos="fade-up">
