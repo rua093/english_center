@@ -52,25 +52,13 @@ $upcomingAssignments = [
     <div class="absolute -left-28 bottom-20 z-0 h-80 w-80 rounded-full bg-cyan-200/30 blur-3xl pointer-events-none"></div>
 
     <div class="mx-auto w-full max-w-[1800px]">
-        <div class="grid grid-cols-1 gap-8 lg:grid-cols-[16rem_minmax(0,1fr)] xl:grid-cols-[17rem_minmax(0,1fr)] lg:items-start">
-            <aside class="lg:sticky lg:top-24">
+        <div class="grid grid-cols-1 gap-8 md:grid-cols-[16rem_minmax(0,1fr)] xl:grid-cols-[17rem_minmax(0,1fr)] md:items-start">
+            <aside class="self-start md:sticky md:top-24">
                 <?php require __DIR__ . '/partials/nav.php'; ?>
             </aside>
-
-            <div class="min-w-0 space-y-8">
-                <header class="flex flex-col gap-2">
-                    <div>
-                        <h1 class="text-3xl font-extrabold text-blue-900 tracking-tight">
-                            Hệ thống <span class="text-blue-600">Quản lý Học tập</span>
-                        </h1>
-                        <p class="mt-1 text-slate-500 font-medium tracking-tight">Chào mừng trở lại, <span class="text-blue-700 font-bold"><?= e($user['full_name']); ?></span></p>
-                    </div>
-                    <p class="text-sm font-medium text-slate-400">Lịch học, bài tập và các thông báo quan trọng của bạn được gom ở một nơi.</p>
-                </header>
-
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <div class="lg:col-span-2">
-                <article class="relative overflow-hidden rounded-[2rem] border border-blue-100 bg-gradient-to-br from-white via-blue-50 to-cyan-50 p-5 shadow-2xl transition-all md:p-6">
+            <div class="min-w-0">
+                <div class="grid grid-cols-1 gap-8 md:grid-cols-[minmax(0,1.45fr)_minmax(360px,0.9fr)] 2xl:grid-cols-[minmax(0,1.55fr)_minmax(380px,0.92fr)] md:items-start">
+                    <article class="relative overflow-hidden rounded-[2rem] border border-blue-100 bg-gradient-to-br from-white via-blue-50 to-cyan-50 p-5 shadow-2xl transition-all md:p-6">
                     <div class="pointer-events-none absolute -top-24 -right-24 h-64 w-64 rounded-full bg-blue-200/40 blur-3xl"></div>
                     <div class="pointer-events-none absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-cyan-200/35 blur-3xl"></div>
 
@@ -81,19 +69,19 @@ $upcomingAssignments = [
                                 <p class="text-[10px] font-black uppercase tracking-[0.35em] text-blue-400">Lịch học</p>
                                 <h3 id="calendar-title" class="mt-1 text-2xl md:text-3xl font-black text-slate-800 tracking-tight"></h3>
                             </div>
-                            <div class="flex gap-1 rounded-2xl border border-white/70 bg-white/85 p-1.5 shadow-sm backdrop-blur">
+                            <div class="flex gap-1 rounded-2xl border border-white/70 bg-white p-1.5 shadow-sm">
                                 <button onclick="changeDate(-1)" class="rounded-xl bg-white px-3 py-2 text-slate-600 transition hover:bg-blue-50 hover:text-blue-700">&larr;</button>
                                 <button onclick="resetToToday()" class="rounded-xl bg-white px-4 py-2 text-[11px] font-black uppercase tracking-widest text-slate-700 transition hover:bg-blue-50 hover:text-blue-700">Hôm nay</button>
                                 <button onclick="changeDate(1)" class="rounded-xl bg-white px-3 py-2 text-slate-600 transition hover:bg-blue-50 hover:text-blue-700">&rarr;</button>
                             </div>
                         </div>
-                        <div class="flex rounded-2xl border border-white/70 bg-white/85 p-1.5 shadow-sm backdrop-blur">
+                        <div class="flex rounded-2xl border border-white/70 bg-white p-1.5 shadow-sm">
                             <button id="btn-view-month" onclick="setView('month')" class="px-5 py-2 text-xs font-black uppercase rounded-xl transition-all duration-300">Tháng</button>
                             <button id="btn-view-week" onclick="setView('week')" class="px-5 py-2 text-xs font-black uppercase rounded-xl transition-all duration-300">Tuần</button>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-7 gap-px rounded-[1.75rem] border border-blue-100 bg-white/80 overflow-hidden shadow-[0_10px_30px_rgba(37,99,235,0.08)] backdrop-blur-sm">
+                    <div class="grid grid-cols-7 gap-px rounded-[1.75rem] border border-blue-100 bg-white/90 overflow-hidden shadow-[0_10px_30px_rgba(37,99,235,0.08)]">
                         <?php 
                         $weekdays = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
                         foreach ($weekdays as $day): ?>
@@ -104,11 +92,10 @@ $upcomingAssignments = [
                         <div id="calendar-grid" class="contents"></div>
                     </div>
                     </div>
-                </article>
-                    </div>
+                    </article>
 
-                    <div class="space-y-6">
-                <article class="bg-white rounded-3xl p-6 border border-slate-200 shadow-xl">
+                    <aside class="space-y-6 self-start md:sticky md:top-24">
+                        <article class="bg-white rounded-3xl p-6 border border-slate-200 shadow-xl">
                     <div class="flex items-center justify-between mb-6">
                         <h3 class="text-sm font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
                             <span class="w-2 h-2 bg-rose-500 rounded-full animate-pulse"></span>
@@ -121,7 +108,7 @@ $upcomingAssignments = [
                         </div>
                 </article>
 
-                <article class="relative overflow-hidden rounded-3xl border border-rose-100 bg-gradient-to-br from-rose-50 via-white to-amber-50 p-6 shadow-2xl shadow-rose-100/50">
+                        <article class="relative overflow-hidden rounded-3xl border border-rose-100 bg-gradient-to-br from-rose-50 via-white to-amber-50 p-6 shadow-2xl shadow-rose-100/50">
                     <div class="pointer-events-none absolute -top-16 right-0 h-40 w-40 rounded-full bg-rose-200/40 blur-3xl"></div>
                     <div class="pointer-events-none absolute -bottom-12 left-10 h-32 w-32 rounded-full bg-amber-200/40 blur-3xl"></div>
 
@@ -190,9 +177,9 @@ $upcomingAssignments = [
                             <?php endforeach; ?>
                         </div>
                     </div>
-                </article>
+                        </article>
 
-                <div class="bg-blue-600 rounded-3xl p-6 text-white shadow-lg shadow-blue-200 overflow-hidden relative group">
+                        <div class="bg-blue-600 rounded-3xl p-6 text-white shadow-lg shadow-blue-200 overflow-hidden relative group">
                     <div class="relative z-10">
                         <p class="text-blue-100 text-xs font-bold uppercase tracking-widest mb-1">Trạng thái học phí</p>
                         <h4 class="text-xl font-black mb-4">Đã hoàn tất 100%</h4>
@@ -200,8 +187,8 @@ $upcomingAssignments = [
                         <p class="text-[10px] text-blue-100 font-medium italic">* Tuyệt vời! Bạn không có nợ đọng học phí.</p>
                     </div>
                     <svg class="absolute -bottom-4 -right-4 w-24 h-24 text-blue-500 opacity-50 transform rotate-12 group-hover:scale-110 transition" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
-                </div>
-                    </div>
+                        </div>
+                    </aside>
                 </div>
             </div>
         </div>
