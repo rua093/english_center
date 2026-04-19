@@ -240,7 +240,7 @@
                     <a class="relative rounded-xl px-6 py-2.5 text-base font-black text-blue-900 bg-white/70 border border-white shadow-[0_4px_0_#93c5fd] hover:-translate-y-1 hover:shadow-[0_6px_0_#93c5fd] hover:bg-white active:translate-y-1 active:shadow-none transition-all duration-150" href="<?= e(page_url('login')); ?>">Đăng nhập</a>
                 <?php endif; ?>
                 
-                <a href="#lien-he" class="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-blue-600 to-sky-500 px-8 py-3.5 text-base font-black text-white shadow-[0_4px_0_#1e3a8a] border-t border-sky-300 hover:-translate-y-1 hover:shadow-[0_6px_0_#1e3a8a] active:translate-y-1 active:shadow-none transition-all duration-150">
+                <a href="<?= e(page_url('register')); ?>" class="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-blue-600 to-sky-500 px-8 py-3.5 text-base font-black text-white shadow-[0_4px_0_#1e3a8a] border-t border-sky-300 hover:-translate-y-1 hover:shadow-[0_6px_0_#1e3a8a] active:translate-y-1 active:shadow-none transition-all duration-150">
                     ĐĂNG KÝ NGAY
                 </a>
             </div>
@@ -262,7 +262,7 @@
                 <?php else: ?>
                     <a class="rounded-2xl px-5 py-4 text-base font-bold text-slate-700 hover:bg-sky-50 hover:text-blue-600 transition-all" href="<?= e(page_url('login')); ?>">Đăng nhập hệ thống</a>
                 <?php endif; ?>
-                <a href="#lien-he" class="mt-6 inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-sky-400 to-blue-600 px-6 py-4 text-base font-black text-white shadow-[0_4px_0_#0284c7] active:translate-y-1 active:shadow-none transition-all">Đăng ký kiểm tra đầu vào</a>
+                <a href="<?= e(page_url('register')); ?>" class="mt-6 inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-sky-400 to-blue-600 px-6 py-4 text-base font-black text-white shadow-[0_4px_0_#0284c7] active:translate-y-1 active:shadow-none transition-all">Đăng ký kiểm tra đầu vào</a>
             </nav>
         </div>
     </header>

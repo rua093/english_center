@@ -5,107 +5,208 @@ $user = auth_user();
 $homeWidgets = (new UserModel())->homeWidgetData((int) ($user['id'] ?? 0), (string) ($user['role'] ?? ''));
 $studentProgress = $homeWidgets['student_progress'] ?? null;
 $teacherSchedules = $homeWidgets['teacher_schedules'] ?? [];
+
+// Chuẩn bị dữ liệu hiển thị (Có fallback nếu DB chưa có)
+$fullName = (string) ($user['full_name'] ?? 'Nguyễn Duy Bảo');
+$role = (string) ($user['role'] ?? 'student');
+$email = (string) ($user['email'] ?? 'contact@example.com');
+$phone = (string) ($user['phone'] ?? '+84 123 456 789');
+$address = (string) ($user['address'] ?? 'Dĩ An, Bình Dương');
+
+// Dịch Role sang tiếng Việt
+$roleDisplay = match($role) {
+    'teacher' => 'Giảng viên',
+    'admin' => 'Quản trị viên',
+    default => 'Học viên IT',
+};
+
+// Tạo Avatar mặc định từ tên nếu user chưa upload ảnh
+$avatarUrl = $user['avatar'] ?? 'https://ui-avatars.com/api/?name=' . urlencode($fullName) . '&background=0D8ABC&color=fff&size=256&bold=true';
 ?>
 
-<section class="min-h-screen bg-[#f8fafc] py-12 px-4 sm:px-6 lg:px-8">
-    <div class="mx-auto max-w-5xl">
+<section class="min-h-screen bg-[#f1f5f9] pb-12">
+    <div class="h-64 w-full bg-gradient-to-r from-blue-900 via-indigo-800 to-blue-900 relative overflow-hidden">
+        <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(#fff 1px, transparent 1px); background-size: 20px 20px;"></div>
         
-        <header class="mb-10 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-            <div>
-                <nav class="mb-2 text-xs font-bold uppercase tracking-widest text-blue-500">Hệ thống quản lý học tập</nav>
-                <h1 class="text-4xl font-black text-slate-900 tracking-tight">
-                    Hồ sơ <span class="text-blue-600">cá nhân</span>
-                </h1>
-                <p class="mt-2 text-slate-500 font-medium">
-                    Chào mừng trở lại, <span class="text-slate-800 font-bold"><?= e((string) ($user['full_name'] ?? 'Bảo')); ?></span>.
-                </p>
-            </div>
-            <div class="flex items-center gap-3">
-                <a class="group flex items-center gap-2 rounded-2xl bg-white border border-slate-200 px-6 py-3 text-sm font-bold text-slate-600 shadow-sm transition-all hover:bg-blue-600 hover:text-white hover:border-blue-600" href="<?= e(page_url('home')); ?>">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transition-transform group-hover:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
-                    Về trang chủ
-                </a>
-            </div>
-        </header>
-
-        <div class="grid gap-8">
-            
-            <?php if (($user['role'] ?? '') === 'student' && is_array($studentProgress)): ?>
-                <article class="relative overflow-hidden rounded-[2rem] border border-blue-100 bg-white p-8 shadow-2xl shadow-blue-900/5">
-                    <div class="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-blue-50 opacity-50"></div>
-                    
-                    <div class="relative flex flex-col md:flex-row md:items-center justify-between gap-6">
-                        <div class="flex-1">
-                            <h3 class="flex items-center gap-2 text-xl font-bold text-slate-800">
-                                <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10.394 2.827a1 1 0 00-.788 0l-7 3a1 1 0 000 1.846l7 3a1 1 0 00.788 0l7-3a1 1 0 000-1.846l-7-3z" /><path d="M6.75 6.75C6.75 7.07 6.48 7.33 6.16 7.33H4.83C4.51 7.33 4.25 7.07 4.25 6.75V5.42C4.25 5.1 4.51 4.84 4.83 4.84H6.16C6.48 4.84 6.75 5.1 6.75 5.42V6.75Z" /></svg>
-                                </span>
-                                Tiến độ học tập
-                            </h3>
-                            <p class="mt-4 text-slate-500">Bạn đã đi được một quãng đường tuyệt vời!</p>
-                            <div class="mt-2 text-3xl font-black text-blue-600">
-                                <?= (int) ($studentProgress['completed_lessons'] ?? 0); ?> <span class="text-sm font-medium text-slate-400">/ <?= (int) ($studentProgress['total_lessons'] ?? 0); ?> buổi học</span>
-                            </div>
-                        </div>
-
-                        <div class="w-full md:w-64">
-                            <div class="mb-2 flex items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-400">
-                                <span>Hoàn thành</span>
-                                <span class="text-blue-600"><?= (int) ($studentProgress['progress_percent'] ?? 0); ?>%</span>
-                            </div>
-                            <div class="h-4 w-full overflow-hidden rounded-full bg-slate-100 p-1 shadow-inner">
-                                <div class="h-full rounded-full bg-gradient-to-r from-blue-500 to-blue-700 shadow-md transition-all duration-1000" style="width: <?= (int) ($studentProgress['progress_percent'] ?? 0); ?>%"></div>
-                            </div>
-                        </div>
-                    </div>
-                </article>
-            <?php endif; ?>
-
-            <?php if (($user['role'] ?? '') === 'teacher'): ?>
-                <article class="rounded-[2rem] border border-slate-100 bg-white p-8 shadow-2xl shadow-slate-900/5">
-                    <div class="mb-8 flex items-center justify-between">
-                        <h3 class="flex items-center gap-2 text-xl font-bold text-slate-800">
-                            <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-white">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" /></svg>
-                            </span>
-                            Lịch dạy 7 ngày tới
-                        </h3>
-                    </div>
-
-                    <?php if (empty($teacherSchedules)): ?>
-                        <div class="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-100 bg-slate-50/50 py-16 text-center">
-                            <div class="mb-4 rounded-full bg-white p-4 shadow-sm text-slate-300">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                            </div>
-                            <p class="text-sm font-medium text-slate-400 uppercase tracking-widest">Lịch trình trống</p>
-                        </div>
-                    <?php else: ?>
-                        <div class="grid gap-4 sm:grid-cols-2">
-                            <?php foreach ($teacherSchedules as $schedule): ?>
-                                <div class="group relative rounded-2xl border border-slate-50 bg-slate-50/50 p-5 transition-all hover:bg-white hover:shadow-lg hover:shadow-blue-900/5">
-                                    <div class="mb-3 flex items-start justify-between">
-                                        <div class="rounded-lg bg-blue-100 px-2.5 py-1 text-[10px] font-black uppercase text-blue-700">
-                                            <?= e((string) $schedule['room_name']); ?>
-                                        </div>
-                                        <span class="text-xs font-bold text-slate-400"><?= e((string) $schedule['study_date']); ?></span>
-                                    </div>
-                                    <h4 class="text-lg font-black text-slate-800 group-hover:text-blue-600 transition-colors">
-                                        <?= e((string) $schedule['class_name']); ?>
-                                    </h4>
-                                    <div class="mt-4 flex items-center gap-2 text-sm font-medium text-slate-500">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                        <?= e((string) $schedule['start_time']); ?> - <?= e((string) $schedule['end_time']); ?>
-                                    </div>
-                                </div>
-                            <?php endforeach; ?>
-                        </div>
-                    <?php endif; ?>
-                </article>
-            <?php endif; ?>
+        <div class="absolute top-6 right-6 lg:right-10">
+            <a class="group flex items-center gap-2 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:bg-white hover:text-blue-900" href="<?= e(page_url('home')); ?>">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transition-transform group-hover:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+                Về trang chủ
+            </a>
         </div>
-        
-        <footer class="mt-12 text-center">
-            <p class="text-xs font-bold uppercase tracking-[0.2em] text-slate-300">© 2026 B6 Team Platform</p>
+    </div>
+
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="relative -mt-24 grid grid-cols-1 items-start gap-8 lg:grid-cols-12">
+            
+            <aside class="lg:col-span-4 space-y-6 lg:sticky lg:top-8">
+                <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-xl text-center">
+                    <div class="relative mx-auto -mt-16 h-32 w-32 rounded-full border-4 border-white shadow-lg bg-white">
+                        <img src="<?= e($avatarUrl) ?>" alt="Avatar" class="h-full w-full rounded-full object-cover" />
+                        <button class="absolute bottom-1 right-1 flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-white shadow hover:bg-blue-700 transition" title="Đổi ảnh đại diện">
+                            <i class="fa-solid fa-camera text-xs"></i>
+                        </button>
+                    </div>
+
+                    <div class="mt-4">
+                        <h1 class="text-2xl font-black text-slate-800 tracking-tight"><?= e($fullName) ?></h1>
+                        <span class="mt-1 inline-flex items-center gap-1 rounded-full bg-blue-50 px-3 py-1 text-xs font-bold uppercase tracking-wider text-blue-700 border border-blue-100">
+                            <?= $role === 'teacher' ? '<i class="fa-solid fa-chalkboard-user"></i>' : '<i class="fa-solid fa-laptop-code"></i>' ?>
+                            <?= $roleDisplay ?>
+                        </span>
+                    </div>
+
+                    <hr class="my-6 border-slate-100" />
+
+                    <div class="space-y-4 text-left">
+                        <h3 class="text-xs font-black uppercase tracking-widest text-slate-400">Thông tin liên hệ</h3>
+                        
+                        <div class="flex items-center gap-3 text-sm font-medium text-slate-600">
+                            <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-50 text-slate-400">
+                                <i class="fa-solid fa-envelope"></i>
+                            </div>
+                            <span class="truncate"><?= e($email) ?></span>
+                        </div>
+                        
+                        <div class="flex items-center gap-3 text-sm font-medium text-slate-600">
+                            <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-50 text-slate-400">
+                                <i class="fa-solid fa-phone"></i>
+                            </div>
+                            <span><?= e($phone) ?></span>
+                        </div>
+
+                        <div class="flex items-center gap-3 text-sm font-medium text-slate-600">
+                            <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-50 text-slate-400">
+                                <i class="fa-solid fa-location-dot"></i>
+                            </div>
+                            <span><?= e($address) ?></span>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 flex gap-3">
+                        <button class="flex-1 rounded-xl bg-slate-800 px-4 py-2.5 text-sm font-bold text-white shadow hover:bg-blue-600 transition-colors">
+                            Chỉnh sửa
+                        </button>
+                        <button class="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-600 shadow-sm hover:bg-slate-50 transition-colors" title="Cài đặt bảo mật">
+                            <i class="fa-solid fa-gear"></i>
+                        </button>
+                    </div>
+                </div>
+            </aside>
+
+            <div class="lg:col-span-8 space-y-6 mt-16 lg:mt-0">
+                
+                <div class="hidden lg:block mb-8">
+                    <h2 class="text-3xl font-black text-white drop-shadow-md">Hồ sơ cá nhân</h2>
+                    <p class="text-blue-100 font-medium mt-1 drop-shadow">Quản lý thông tin và tiến trình học tập của bạn.</p>
+                </div>
+
+                <?php if (($user['role'] ?? '') === 'student'): ?>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm text-center">
+                            <div class="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 text-blue-600 mb-2"><i class="fa-solid fa-book"></i></div>
+                            <p class="text-2xl font-black text-slate-800">12</p>
+                            <p class="text-[10px] font-bold uppercase text-slate-400">Môn đang học</p>
+                        </div>
+                        <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm text-center">
+                            <div class="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 mb-2"><i class="fa-solid fa-check-double"></i></div>
+                            <p class="text-2xl font-black text-slate-800">95%</p>
+                            <p class="text-[10px] font-bold uppercase text-slate-400">Chuyên cần</p>
+                        </div>
+                        <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm text-center">
+                            <div class="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-amber-50 text-amber-600 mb-2"><i class="fa-solid fa-star"></i></div>
+                            <p class="text-2xl font-black text-slate-800">8.5</p>
+                            <p class="text-[10px] font-bold uppercase text-slate-400">Điểm TB</p>
+                        </div>
+                        <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm text-center">
+                            <div class="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-rose-50 text-rose-600 mb-2"><i class="fa-solid fa-award"></i></div>
+                            <p class="text-2xl font-black text-slate-800">N5</p>
+                            <p class="text-[10px] font-bold uppercase text-slate-400">Cấp độ</p>
+                        </div>
+                    </div>
+
+                    <?php if(is_array($studentProgress)): ?>
+                    <article class="relative overflow-hidden rounded-[2rem] border border-blue-100 bg-white p-8 shadow-xl">
+                        <div class="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-gradient-to-br from-blue-50 to-indigo-50 opacity-50"></div>
+                        
+                        <div class="relative flex flex-col md:flex-row md:items-center justify-between gap-6">
+                            <div class="flex-1">
+                                <h3 class="flex items-center gap-3 text-xl font-bold text-slate-800">
+                                    <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white shadow-md shadow-blue-200">
+                                        <i class="fa-solid fa-route"></i>
+                                    </span>
+                                    Tiến độ khóa học
+                                </h3>
+                                <p class="mt-2 text-sm text-slate-500">Bạn đã đi được một quãng đường tuyệt vời! Hãy tiếp tục phát huy nhé.</p>
+                                <div class="mt-4 flex items-baseline gap-2">
+                                    <span class="text-4xl font-black text-blue-600 tracking-tighter"><?= (int) ($studentProgress['completed_lessons'] ?? 0); ?></span>
+                                    <span class="text-sm font-bold text-slate-400 uppercase">/ <?= (int) ($studentProgress['total_lessons'] ?? 0); ?> buổi học</span>
+                                </div>
+                            </div>
+
+                            <div class="w-full md:w-72 bg-slate-50 p-5 rounded-2xl border border-slate-100">
+                                <div class="mb-3 flex items-center justify-between text-xs font-black uppercase tracking-wider text-slate-500">
+                                    <span>Hoàn thành</span>
+                                    <span class="text-blue-600 text-lg"><?= (int) ($studentProgress['progress_percent'] ?? 0); ?>%</span>
+                                </div>
+                                <div class="h-3 w-full overflow-hidden rounded-full bg-slate-200 shadow-inner">
+                                    <div class="h-full rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 shadow-md transition-all duration-1000" style="width: <?= (int) ($studentProgress['progress_percent'] ?? 0); ?>%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                    <?php endif; ?>
+                <?php endif; ?>
+
+                <?php if (($user['role'] ?? '') === 'teacher'): ?>
+                    <article class="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-xl">
+                        <div class="mb-6 flex items-center justify-between">
+                            <h3 class="flex items-center gap-3 text-xl font-bold text-slate-800">
+                                <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-md shadow-indigo-200">
+                                    <i class="fa-solid fa-calendar-check"></i>
+                                </span>
+                                Lịch dạy 7 ngày tới
+                            </h3>
+                        </div>
+
+                        <?php if (empty($teacherSchedules)): ?>
+                            <div class="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50 py-16 text-center">
+                                <div class="mb-4 rounded-full bg-white p-4 shadow-sm text-slate-300">
+                                    <i class="fa-regular fa-calendar-xmark text-4xl"></i>
+                                </div>
+                                <p class="text-sm font-bold text-slate-400 uppercase tracking-widest">Lịch trình trống</p>
+                            </div>
+                        <?php else: ?>
+                            <div class="grid gap-4 sm:grid-cols-2">
+                                <?php foreach ($teacherSchedules as $schedule): ?>
+                                    <div class="group relative rounded-2xl border border-slate-100 bg-slate-50/50 p-5 transition-all hover:bg-white hover:shadow-xl hover:border-blue-100 cursor-pointer">
+                                        <div class="mb-3 flex items-start justify-between">
+                                            <div class="rounded-md bg-blue-100 px-2 py-1 text-[10px] font-black uppercase tracking-wider text-blue-700">
+                                                <?= e((string) $schedule['room_name']); ?>
+                                            </div>
+                                            <span class="text-xs font-bold text-slate-400 bg-white px-2 py-1 rounded shadow-sm border border-slate-100">
+                                                <?= e((string) $schedule['study_date']); ?>
+                                            </span>
+                                        </div>
+                                        <h4 class="text-lg font-black text-slate-800 group-hover:text-blue-600 transition-colors">
+                                            <?= e((string) $schedule['class_name']); ?>
+                                        </h4>
+                                        <div class="mt-4 flex items-center gap-2 text-sm font-bold text-slate-500">
+                                            <i class="fa-regular fa-clock text-slate-400"></i>
+                                            <?= e((string) $schedule['start_time']); ?> - <?= e((string) $schedule['end_time']); ?>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
+                    </article>
+                <?php endif; ?>
+
+            </div>
+        </div>
+
+        <footer class="mt-16 text-center pb-8">
+            <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">© 2026 B6 Team Platform</p>
         </footer>
     </div>
 </section>
