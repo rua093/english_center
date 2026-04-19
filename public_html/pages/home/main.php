@@ -254,37 +254,110 @@ $homeError = get_flash('home_error');
         </div>
     </section>
 
-    <section id="su-menh" class="py-24 relative overflow-hidden bg-transparent">
-		<div class="mx-auto max-w-7xl px-4 sm:px-6 relative z-10">
-			<div class="text-center mb-16" data-aos="fade-up">
-				<h2 class="text-4xl md:text-5xl font-black uppercase tracking-tight text-[#2e3192]">Sứ Mệnh <span class="text-red-600">Toàn Cầu</span></h2>
-				<p class="mt-4 text-slate-600 font-medium max-w-2xl mx-auto text-lg">Kiến tạo thế hệ công dân làm chủ tương lai thông qua ngôn ngữ và kỹ năng toàn diện.</p>
-			</div>
-			
-			<div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-				<div class="bg-white/80 backdrop-blur-sm p-8 rounded-[2.5rem] shadow-lg border border-amber-100 hover:-translate-y-3 hover:shadow-xl transition-all duration-300 group" data-aos="fade-up" data-aos-delay="0">
-					<div class="w-16 h-16 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center text-3xl mb-6 group-hover:bg-amber-500 group-hover:text-white group-hover:scale-110 transition-all">💡</div>
-					<h4 class="text-xl font-black mb-3 text-[#2e3192]">Sáng Tạo</h4>
-					<p class="text-sm leading-relaxed text-slate-600 font-medium">Xây dựng không gian học ngoại ngữ thân thiện, hiệu quả và đầy cảm hứng.</p>
-				</div>
-				<div class="bg-white/80 backdrop-blur-sm p-8 rounded-[2.5rem] shadow-lg border border-blue-100 hover:-translate-y-3 hover:shadow-xl transition-all duration-300 group" data-aos="fade-up" data-aos-delay="100">
-					<div class="w-16 h-16 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-3xl mb-6 group-hover:bg-blue-500 group-hover:text-white group-hover:scale-110 transition-all">🗣️</div>
-					<h4 class="text-xl font-black mb-3 text-[#2e3192]">Tự Tin</h4>
-					<p class="text-sm leading-relaxed text-slate-600 font-medium">Làm chủ tiếng Anh từ những câu đơn giản đến hội thoại thực tế đời sống.</p>
-				</div>
-				<div class="bg-white/80 backdrop-blur-sm p-8 rounded-[2.5rem] shadow-lg border border-emerald-100 hover:-translate-y-3 hover:shadow-xl transition-all duration-300 group" data-aos="fade-up" data-aos-delay="200">
-					<div class="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-3xl mb-6 group-hover:bg-emerald-500 group-hover:text-white group-hover:scale-110 transition-all">🎯</div>
-					<h4 class="text-xl font-black mb-3 text-[#2e3192]">Toàn Diện</h4>
-					<p class="text-sm leading-relaxed text-slate-600 font-medium">Đào tạo bài bản 4 kỹ năng Nghe – Nói – Đọc – Viết cho mọi lứa tuổi.</p>
-				</div>
-				<div class="bg-white/80 backdrop-blur-sm p-8 rounded-[2.5rem] shadow-lg border border-purple-100 hover:-translate-y-3 hover:shadow-xl transition-all duration-300 group" data-aos="fade-up" data-aos-delay="300">
-					<div class="w-16 h-16 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-3xl mb-6 group-hover:bg-purple-500 group-hover:text-white group-hover:scale-110 transition-all">🤝</div>
-					<h4 class="text-xl font-black mb-3 text-[#2e3192]">Cam Kết</h4>
-					<p class="text-sm leading-relaxed text-slate-600 font-medium">Theo sát lộ trình, khơi dậy niềm yêu thích với phương châm "Dám nói".</p>
-				</div>
-			</div>
-		</div>
-	</section>						
+    <style>
+    /* Hiệu ứng quay của vòng quỹ đạo */
+    @keyframes spin-orbit {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    /* Hiệu ứng quay ngược của các node để giữ chữ luôn thẳng đứng */
+    @keyframes spin-orbit-reverse {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(-360deg); }
+    }
+    
+    .orbit-spin {
+        animation: spin-orbit 40s linear infinite;
+    }
+    .orbit-reverse-spin {
+        animation: spin-orbit-reverse 40s linear infinite;
+    }
+    
+    /* Tạm dừng toàn bộ vòng quay khi di chuột vào */
+    .orbit-wrapper:hover .orbit-spin,
+    .orbit-wrapper:hover .orbit-reverse-spin {
+        animation-play-state: paused;
+    }
+</style>
+
+<section id="su-menh" class="py-32 relative overflow-hidden bg-transparent z-10">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 relative z-10">
+        
+        <div class="text-center mb-16" data-aos="fade-up">
+            <h2 class="text-4xl md:text-5xl font-black uppercase tracking-tight text-[#2e3192]">Sứ Mệnh <span class="text-red-600">Toàn Cầu</span></h2>
+            <p class="mt-4 text-slate-600 font-medium max-w-2xl mx-auto text-lg">Kiến tạo thế hệ công dân làm chủ tương lai thông qua ngôn ngữ và kỹ năng toàn diện.</p>
+        </div>
+        
+        <div class="relative w-full max-w-[1260px] mx-auto min-h-[620px] md:min-h-[940px] flex items-center justify-center orbit-wrapper mt-10 md:mt-2">
+            
+            <div class="absolute w-[430px] h-[430px] md:w-[770px] md:h-[770px] rounded-full border-2 border-dashed border-blue-400/50 orbit-spin z-10">
+                
+                <div class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50">
+                    <div class="orbit-reverse-spin group cursor-pointer">
+                        <div class="flex items-center gap-4 bg-white/95 backdrop-blur-md p-3 pr-6 rounded-full shadow-lg border border-slate-200 transition-all duration-300 hover:shadow-2xl hover:border-amber-300">
+                            <div class="w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center text-3xl shrink-0 bg-amber-50 text-amber-500 shadow-inner">💡</div>
+                            <div class="overflow-hidden transition-[max-width,max-height] duration-500 ease-in-out max-w-[140px] max-h-[36px] group-hover:max-w-[340px] group-hover:max-h-[170px]">
+                                <h4 class="font-black text-[#2e3192] text-sm md:text-lg whitespace-nowrap">Sáng Tạo</h4>
+                                <p class="text-xs md:text-sm text-slate-600 font-medium mt-1 w-[260px] opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100 leading-relaxed">
+                                    Xây dựng không gian học ngoại ngữ thân thiện, hiệu quả và đầy cảm hứng.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="absolute top-1/2 right-0 translate-x-1/2 -translate-y-1/2 z-50">
+                    <div class="orbit-reverse-spin group cursor-pointer">
+                        <div class="flex items-center gap-4 bg-white/95 backdrop-blur-md p-3 pr-6 rounded-full shadow-lg border border-slate-200 transition-all duration-300 hover:shadow-2xl hover:border-blue-300">
+                            <div class="w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center text-3xl shrink-0 bg-blue-50 text-blue-500 shadow-inner">🗣️</div>
+                            <div class="overflow-hidden transition-[max-width,max-height] duration-500 ease-in-out max-w-[140px] max-h-[36px] group-hover:max-w-[340px] group-hover:max-h-[170px]">
+                                <h4 class="font-black text-[#2e3192] text-sm md:text-lg whitespace-nowrap">Tự Tin</h4>
+                                <p class="text-xs md:text-sm text-slate-600 font-medium mt-1 w-[260px] opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100 leading-relaxed">
+                                    Làm chủ tiếng Anh từ những câu đơn giản đến hội thoại thực tế đời sống.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 z-50">
+                    <div class="orbit-reverse-spin group cursor-pointer">
+                        <div class="flex items-center gap-4 bg-white/95 backdrop-blur-md p-3 pr-6 rounded-full shadow-lg border border-slate-200 transition-all duration-300 hover:shadow-2xl hover:border-emerald-300">
+                            <div class="w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center text-3xl shrink-0 bg-emerald-50 text-emerald-500 shadow-inner">🎯</div>
+                            <div class="overflow-hidden transition-[max-width,max-height] duration-500 ease-in-out max-w-[140px] max-h-[36px] group-hover:max-w-[340px] group-hover:max-h-[170px]">
+                                <h4 class="font-black text-[#2e3192] text-sm md:text-lg whitespace-nowrap">Toàn Diện</h4>
+                                <p class="text-xs md:text-sm text-slate-600 font-medium mt-1 w-[260px] opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100 leading-relaxed">
+                                    Đào tạo bài bản 4 kỹ năng Nghe – Nói – Đọc – Viết cho mọi lứa tuổi.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="absolute top-1/2 left-0 -translate-x-1/2 -translate-y-1/2 z-50">
+                    <div class="orbit-reverse-spin group cursor-pointer">
+                        <div class="flex items-center gap-4 bg-white/95 backdrop-blur-md p-3 pr-6 rounded-full shadow-lg border border-slate-200 transition-all duration-300 hover:shadow-2xl hover:border-purple-300">
+                            <div class="w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center text-3xl shrink-0 bg-purple-50 text-purple-500 shadow-inner">🤝</div>
+                            <div class="overflow-hidden transition-[max-width,max-height] duration-500 ease-in-out max-w-[140px] max-h-[36px] group-hover:max-w-[340px] group-hover:max-h-[170px]">
+                                <h4 class="font-black text-[#2e3192] text-sm md:text-lg whitespace-nowrap">Cam Kết</h4>
+                                <p class="text-xs md:text-sm text-slate-600 font-medium mt-1 w-[260px] opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100 leading-relaxed">
+                                    Theo sát lộ trình, khơi dậy niềm yêu thích với phương châm "Dám nói".
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="relative z-20 w-64 h-64 md:w-[450px] md:h-[450px] rounded-full border-[10px] md:border-[14px] border-white shadow-[0_20px_60px_rgba(30,58,138,0.2)] overflow-hidden bg-white flex items-center justify-center group" data-aos="zoom-in">
+                <img src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&q=80&w=800" alt="Trung tâm" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+                <div class="absolute inset-0 bg-blue-900/10 group-hover:bg-transparent transition-colors"></div>
+            </div>
+
+        </div>
+    </div>
+</section>                            
 								
 	<section id="khoa-hoc" class="py-20 md:py-28 relative overflow-hidden bg-transparent">
     <div class="mx-auto w-full max-w-7xl px-4 sm:px-6 relative z-10">
