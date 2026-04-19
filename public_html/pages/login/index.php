@@ -94,6 +94,11 @@ $success = get_flash('success');
                     Chưa có tài khoản?
                     <a href="<?= e(page_url('register')); ?>" class="font-bold text-blue-600 hover:text-blue-800 hover:underline underline-offset-4">Đăng ký ngay</a>
                 </div>
+
+                <div class="mt-5 text-center text-sm text-slate-500">
+                    Chưa có tài khoản?
+                    <a href="<?= e(page_url('register')); ?>" class="font-bold text-blue-600 hover:text-blue-800 hover:underline underline-offset-4">Đăng ký ngay</a>
+                </div>
             </div>
         </article>
     </div>
