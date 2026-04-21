@@ -14,11 +14,11 @@ final class ExtracurricularActivitiesTableModel
 
     public function listWithRegistrationCount(): array
     {
-        $sql = "SELECT a.id, a.title AS activity_name, a.description, a.start_date, a.start_date AS end_date,
+        $sql = "SELECT a.id, a.title AS activity_name, a.description, a.image_thumbnail, a.start_date, a.start_date AS end_date,
                 COALESCE(a.location, '') AS location, a.status, a.fee, COUNT(r.id) AS registered
             FROM extracurricular_activities a
             LEFT JOIN activity_registrations r ON r.activity_id = a.id
-            GROUP BY a.id, a.title, a.description, a.start_date, a.location, a.status, a.fee
+            GROUP BY a.id, a.title, a.description, a.image_thumbnail, a.start_date, a.location, a.status, a.fee
             ORDER BY a.start_date DESC";
         return $this->fetchAll($sql);
     }
@@ -29,11 +29,11 @@ final class ExtracurricularActivitiesTableModel
         $limit = $this->clampLimit($perPage, 10, 200);
         $offset = ($normalizedPage - 1) * $limit;
 
-        $sql = "SELECT a.id, a.title AS activity_name, a.description, a.start_date, a.start_date AS end_date,
+        $sql = "SELECT a.id, a.title AS activity_name, a.description, a.image_thumbnail, a.start_date, a.start_date AS end_date,
                 COALESCE(a.location, '') AS location, a.status, a.fee, COUNT(r.id) AS registered
             FROM extracurricular_activities a
             LEFT JOIN activity_registrations r ON r.activity_id = a.id
-            GROUP BY a.id, a.title, a.description, a.start_date, a.location, a.status, a.fee
+            GROUP BY a.id, a.title, a.description, a.image_thumbnail, a.start_date, a.location, a.status, a.fee
             ORDER BY a.start_date DESC
             LIMIT {$limit} OFFSET {$offset}";
         return $this->fetchAll($sql);

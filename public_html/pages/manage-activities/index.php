@@ -1,6 +1,7 @@
 <?php
 require_admin_or_staff();
 require_permission('activity.view');
+require_once __DIR__ . '/../../core/file_storage.php';
 
 $academicModel = new AcademicModel();
 $editingActivity = null;
@@ -23,6 +24,8 @@ $adminTitle = 'Quản lý hoạt động';
 
 $success = get_flash('success');
 $error = get_flash('error');
+
+$editingThumbnailUrl = normalize_public_file_url((string) ($editingActivity['image_thumbnail'] ?? ''));
 ?>
 <div class="grid gap-4">
     <?php
@@ -40,11 +43,12 @@ $error = get_flash('error');
     <?php endif; ?>
 
     <?php if ($canCreateActivity || $canUpdateActivity): ?>
-        <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <article class="order-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <h3><?= $editingActivity ? 'Sửa hoạt động' : 'Thêm hoạt động'; ?></h3>
-            <form class="grid gap-3 md:grid-cols-2" method="post" action="/api/activities/save">
+            <form class="grid gap-3 md:grid-cols-2" method="post" action="/api/activities/save" enctype="multipart/form-data">
                 <?= csrf_input(); ?>
                 <input type="hidden" name="id" value="<?= (int) ($editingActivity['id'] ?? 0); ?>">
+                <input type="hidden" name="existing_image_thumbnail" value="<?= e((string) ($editingActivity['image_thumbnail'] ?? '')); ?>">
                 <label>
                     Tên hoạt động
                     <input type="text" name="activity_name" value="<?= e((string) ($editingActivity['activity_name'] ?? '')); ?>" required>
@@ -78,9 +82,15 @@ $error = get_flash('error');
                     <input type="number" step="1000" min="0" name="fee" value="<?= (float) ($editingActivity['fee'] ?? 0); ?>">
                 </label>
                 <label>
-                    Thumbnail URL
-                    <input type="text" name="image_thumbnail" value="<?= e((string) ($editingActivity['image_thumbnail'] ?? '')); ?>">
+                    Ảnh thumbnail
+                    <input type="file" name="activity_thumbnail" accept=".jpg,.jpeg,.png,.gif,.webp">
                 </label>
+                <?php if ($editingThumbnailUrl !== ''): ?>
+                    <div class="md:col-span-2 flex flex-wrap items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-600">
+                        <img class="h-16 w-24 rounded-lg border border-slate-200 object-cover" src="<?= e($editingThumbnailUrl); ?>" alt="Thumbnail hoạt động">
+                        <p>Ảnh hiện tại: <a class="font-semibold text-blue-700 hover:underline" href="<?= e($editingThumbnailUrl); ?>" target="_blank" rel="noopener noreferrer">Mở ảnh</a>. Tải ảnh mới để thay thế.</p>
+                    </div>
+                <?php endif; ?>
                 <div class="md:col-span-2">
                     <button class="<?= ui_btn_primary_classes(); ?>" type="submit">Lưu hoạt động</button>
                 </div>
@@ -88,13 +98,14 @@ $error = get_flash('error');
         </article>
     <?php endif; ?>
 
-    <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <article class="order-1 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <h3>Danh sách hoạt động</h3>
         <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
             <table class="min-w-full border-collapse text-sm">
                 <thead>
                     <tr>
                         <th>Tên hoạt động</th>
+                        <th>Thumbnail</th>
                         <th>Bắt đầu</th>
                         <th>Kết thúc</th>
                         <th>Địa điểm</th>
@@ -105,27 +116,76 @@ $error = get_flash('error');
                 <tbody>
                     <?php if (empty($activities)): ?>
                         <tr>
-                            <td colspan="6">
+                            <td colspan="7">
                                 <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">Chưa có hoạt động nào.</div>
                             </td>
                         </tr>
                     <?php else: ?>
                         <?php foreach ($activities as $act): ?>
+                            <?php $thumbnailUrl = normalize_public_file_url((string) ($act['image_thumbnail'] ?? '')); ?>
                             <tr>
                                 <td><?= e((string) $act['activity_name']); ?></td>
+                                <td>
+                                    <?php if ($thumbnailUrl !== ''): ?>
+                                        <a class="inline-flex" data-skip-action-icon="1" href="<?= e($thumbnailUrl); ?>" target="_blank" rel="noopener noreferrer">
+                                            <img class="h-12 w-16 rounded-md border border-slate-200 object-cover" src="<?= e($thumbnailUrl); ?>" alt="Thumbnail hoạt động">
+                                        </a>
+                                    <?php else: ?>
+                                        <span class="text-xs text-slate-400">Chưa có ảnh</span>
+                                    <?php endif; ?>
+                                </td>
                                 <td><?= e((string) ($act['start_date'] ?? '')); ?></td>
                                 <td><?= e((string) ($act['end_date'] ?? '')); ?></td>
                                 <td><?= e((string) ($act['location'] ?? '-')); ?></td>
                                 <td><?= (int) $act['registered']; ?></td>
                                 <td>
                                     <span class="inline-flex flex-wrap items-center gap-2">
+                                        <button
+                                            type="button"
+                                            class="admin-row-detail-button admin-action-icon-btn"
+                                            data-action-kind="detail"
+                                            data-admin-row-detail="1"
+                                            data-detail-url="<?= e(page_url('activities-manage', ['edit' => (int) $act['id'], 'activity_page' => $activityPage, 'activity_per_page' => $activityPerPage])); ?>"
+                                            data-skip-action-icon="1"
+                                            title="Xem chi tiết"
+                                            aria-label="Xem chi tiết"
+                                        >
+                                            <span class="admin-action-icon-label">Xem chi tiết</span>
+                                            <span class="admin-action-icon-glyph" aria-hidden="true">
+                                                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12z"></path></svg>
+                                            </span>
+                                        </button>
                                         <?php if ($canUpdateActivity): ?>
-                                            <a href="<?= e(page_url('activities-manage', ['edit' => (int) $act['id'], 'activity_page' => $activityPage, 'activity_per_page' => $activityPerPage])); ?>">Sửa</a>
+                                            <a
+                                                href="<?= e(page_url('activities-manage', ['edit' => (int) $act['id'], 'activity_page' => $activityPage, 'activity_per_page' => $activityPerPage])); ?>"
+                                                class="admin-action-icon-btn"
+                                                data-action-kind="edit"
+                                                data-skip-action-icon="1"
+                                                title="Sửa"
+                                                aria-label="Sửa"
+                                            >
+                                                <span class="admin-action-icon-label">Sửa</span>
+                                                <span class="admin-action-icon-glyph" aria-hidden="true">
+                                                    <svg viewBox="0 0 24 24"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
+                                                </span>
+                                            </a>
                                         <?php endif; ?>
                                         <?php if ($canDeleteActivity): ?>
                                             <form class="inline-block" method="post" action="/api/activities/delete?id=<?= (int) $act['id']; ?>" onsubmit="return confirm('Có chắc không?')">
                                                 <?= csrf_input(); ?>
-                                                <button class="<?= ui_btn_danger_classes('sm'); ?>" type="submit">Xóa</button>
+                                                <button
+                                                    class="<?= ui_btn_danger_classes('sm'); ?> admin-action-icon-btn"
+                                                    data-action-kind="delete"
+                                                    data-skip-action-icon="1"
+                                                    type="submit"
+                                                    title="Xóa"
+                                                    aria-label="Xóa"
+                                                >
+                                                    <span class="admin-action-icon-label">Xóa</span>
+                                                    <span class="admin-action-icon-glyph" aria-hidden="true">
+                                                        <svg viewBox="0 0 24 24"><path d="M3 6h18"></path><path d="M8 6V4h8v2"></path><path d="M19 6l-1 14H6L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>
+                                                    </span>
+                                                </button>
                                             </form>
                                         <?php endif; ?>
                                     </span>

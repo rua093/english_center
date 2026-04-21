@@ -7,7 +7,7 @@ if (strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET')) !== 'GET') {
     if (api_expects_json()) {
         api_error('Method not allowed.', ['code' => 'METHOD_NOT_ALLOWED'], 405);
     }
-    redirect(page_url('submissions-academic'));
+    redirect(page_url('classrooms-academic'));
 }
 
 $classId = max(0, (int) ($_GET['class_id'] ?? 0));

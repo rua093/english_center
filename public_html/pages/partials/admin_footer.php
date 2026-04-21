@@ -357,6 +357,11 @@
                         return;
                     }
 
+                    if (type === 'file') {
+                        field.disabled = true;
+                        return;
+                    }
+
                     if (type !== 'hidden' && type !== 'button' && type !== 'submit' && type !== 'reset') {
                         field.readOnly = true;
                     }
@@ -645,7 +650,7 @@
                     let bestIndex = -1;
                     let bestScore = -1;
                     hitCounter.forEach(function (score, index) {
-                        if (score > bestScore) {
+                        if (score > bestScore || (score === bestScore && index > bestIndex)) {
                             bestIndex = index;
                             bestScore = score;
                         }
@@ -1163,6 +1168,11 @@
                     continue;
                 }
 
+                if (table.dataset.disableRowDetail === '1') {
+                    table.dataset.globalRowDetailReady = '1';
+                    continue;
+                }
+
                 const headerTitles = getTableHeaderTitles(table);
                 if (headerTitles.length === 0) {
                     continue;
@@ -1605,6 +1615,10 @@
             const tables = document.querySelectorAll('.admin-ui .overflow-x-auto > table');
             tables.forEach(function (table) {
                 if (table.dataset.globalFilterReady === '1') {
+                    return;
+                }
+
+                if (table.dataset.disableGlobalFilter === '1') {
                     return;
                 }
 

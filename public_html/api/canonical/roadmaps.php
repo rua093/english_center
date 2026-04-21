@@ -31,7 +31,7 @@ function api_roadmaps_save_action(): void
     api_require_post(page_url('roadmaps-academic'));
 
     $roadmapId = input_int($_POST, 'id');
-    api_guard_permission($roadmapId > 0 ? 'academic.classes.update' : 'academic.classes.create');
+    api_guard_permission($roadmapId > 0 ? 'academic.roadmaps.update' : 'academic.roadmaps.create');
 
     $courseId = input_int($_POST, 'course_id');
     $order = max(1, input_int($_POST, 'order', 1));
@@ -77,7 +77,7 @@ function api_roadmaps_save_action(): void
 
 function api_roadmaps_edit_action(): void
 {
-    api_guard_permission('academic.classes.update');
+    api_guard_permission('academic.roadmaps.update');
 
     $query = roadmaps_manage_redirect_query($_GET);
     $query['edit'] = (int) ($_GET['id'] ?? 0);
@@ -87,7 +87,7 @@ function api_roadmaps_edit_action(): void
 
 function api_roadmaps_delete_action(): void
 {
-    api_guard_permission('academic.classes.delete');
+    api_guard_permission('academic.roadmaps.delete');
     api_require_post(page_url('roadmaps-academic'));
 
     $roadmapId = (int) ($_GET['id'] ?? 0);

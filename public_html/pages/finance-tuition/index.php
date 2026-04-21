@@ -102,9 +102,9 @@ $error = get_flash('error');
         <div class="rounded-xl border-l-4 border-rose-500 bg-rose-50 p-3 text-sm text-rose-700"><?= e($error); ?></div>
     <?php endif; ?>
 
-    <?php if ($canCreateTuition || $canUpdateTuition): ?>
+    <?php if ($canUpdateTuition && $editingTuition): ?>
         <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <h3><?= $editingTuition ? 'Sửa hóa đơn học phí' : 'Tạo hóa đơn học phí'; ?></h3>
+            <h3>Sửa hóa đơn học phí</h3>
             <form class="grid gap-3 md:grid-cols-2" method="post" action="/api/tuitions/save">
                 <?= csrf_input(); ?>
                 <input type="hidden" name="id" value="<?= (int) ($editingTuition['id'] ?? 0); ?>">
@@ -155,7 +155,7 @@ $error = get_flash('error');
                 </label>
                 <p class="md:col-span-2 text-xs text-slate-500">Trạng thái sẽ tự động là <strong>debt</strong> nếu số đã thu chưa đủ và tự chuyển <strong>paid</strong> khi thu đủ.</p>
                 <div class="md:col-span-2 inline-flex flex-wrap items-center gap-2">
-                    <button class="<?= ui_btn_primary_classes(); ?>" type="submit"><?= $editingTuition ? 'Cập nhật hóa đơn' : 'Tạo hóa đơn'; ?></button>
+                    <button class="<?= ui_btn_primary_classes(); ?>" type="submit">Cập nhật hóa đơn</button>
                     <?php if ($editingTuition): ?>
                         <a class="<?= ui_btn_secondary_classes(); ?>" href="<?= e(page_url('tuition-finance')); ?>">Hủy chỉnh sửa</a>
                     <?php endif; ?>
@@ -326,7 +326,7 @@ $error = get_flash('error');
                 studentSelect.disabled = true;
                 if (studentHint) {
                     studentHint.textContent = Number(classId) > 0
-                        ? 'Lớp này chưa có học viên. Không thể tạo học phí thủ công.'
+                        ? 'Lớp này chưa có học viên phù hợp để chỉnh sửa học phí.'
                         : 'Vui lòng chọn lớp trước để chọn học viên.';
                 }
                 return;

@@ -19,4 +19,12 @@ final class RolesTableModel
             ['id' => $id]
         );
     }
+
+    public function findByRoleName(string $roleName): ?array
+    {
+        return $this->fetchOne(
+            'SELECT id, role_name, description FROM roles WHERE role_name = :role_name LIMIT 1',
+            ['role_name' => trim($roleName)]
+        );
+    }
 }

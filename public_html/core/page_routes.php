@@ -20,6 +20,8 @@ function page_route_definitions(): array
 		'promotions-manage' => ['directory' => 'manage-promotions', 'aliases' => ['manage-promotions']],
 		'payments-finance' => ['directory' => 'finance-payments', 'aliases' => ['finance-payments']],
 		'feedbacks-manage' => ['directory' => 'manage-feedbacks', 'aliases' => ['manage-feedbacks']],
+		'student-leads-manage' => ['directory' => 'manage-student-leads', 'aliases' => ['manage-student-leads']],
+		'job-applications-manage' => ['directory' => 'manage-job-applications', 'aliases' => ['manage-job-applications']],
 		'approvals-manage' => ['directory' => 'manage-approvals', 'aliases' => ['manage-approvals']],
 		'activities-manage' => ['directory' => 'manage-activities', 'aliases' => ['manage-activities']],
 		'bank-manage' => ['directory' => 'manage-bank', 'aliases' => ['manage-bank']],
@@ -27,7 +29,6 @@ function page_route_definitions(): array
 		'roadmaps-academic' => ['directory' => 'academic-roadmaps', 'aliases' => ['academic-roadmaps']],
 		'classes-academic' => ['directory' => 'academic-classes', 'aliases' => ['academic-classes']],
 		'classrooms-academic' => ['directory' => 'academic-classrooms', 'aliases' => ['academic-classrooms']],
-		'attendance-academic' => ['directory' => 'academic-attendance', 'aliases' => ['academic-attendance']],
 		'classes-academic-edit' => ['directory' => 'academic-class-edit', 'aliases' => ['academic-class-edit']],
 		'schedules-academic' => ['directory' => 'academic-schedules', 'aliases' => ['academic-schedules']],
 		'schedules-academic-edit' => ['directory' => 'academic-schedule-edit', 'aliases' => ['academic-schedule-edit']],
@@ -36,7 +37,6 @@ function page_route_definitions(): array
 		'materials-academic' => ['directory' => 'academic-materials', 'aliases' => ['academic-materials']],
 		'materials-academic-edit' => ['directory' => 'academic-material-edit', 'aliases' => ['academic-material-edit']],
 		'portfolios-academic' => ['directory' => 'academic-portfolios', 'aliases' => ['academic-portfolios']],
-		'submissions-academic' => ['directory' => 'academic-submissions', 'aliases' => ['academic-submissions']],
 	];
 }
 

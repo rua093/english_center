@@ -30,6 +30,8 @@ DROP TABLE IF EXISTS course_packages;
 DROP TABLE IF EXISTS course_roadmaps;
 DROP TABLE IF EXISTS courses;
 DROP TABLE IF EXISTS staff_profiles;
+DROP TABLE IF EXISTS job_applications;
+DROP TABLE IF EXISTS student_leads;
 DROP TABLE IF EXISTS student_profiles;
 DROP TABLE IF EXISTS teacher_certificates;
 DROP TABLE IF EXISTS teacher_profiles;
@@ -130,7 +132,7 @@ CREATE TABLE class_students (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     class_id BIGINT UNSIGNED NOT NULL,
     student_id BIGINT UNSIGNED NOT NULL,
-    learning_status ENUM('trial', 'official', 'suspended') NOT NULL DEFAULT 'official',
+    learning_status ENUM('trial', 'official') NOT NULL DEFAULT 'official',
     enrollment_date DATE,
     CONSTRAINT fk_class_students_class FOREIGN KEY (class_id) REFERENCES classes(id),
     CONSTRAINT fk_class_students_student FOREIGN KEY (student_id) REFERENCES users(id),
@@ -292,6 +294,10 @@ CREATE TABLE exams (
     exam_name VARCHAR(150) NOT NULL,
     exam_type ENUM('entry', 'periodic', 'final') NOT NULL,
     exam_date DATE NOT NULL,
+    score_listening DECIMAL(5,2) DEFAULT NULL,
+    score_speaking DECIMAL(5,2) DEFAULT NULL,
+    score_reading DECIMAL(5,2) DEFAULT NULL,
+    score_writing DECIMAL(5,2) DEFAULT NULL,
     result VARCHAR(50) DEFAULT NULL,
     teacher_comment TEXT,
     level_suggested VARCHAR(120) DEFAULT NULL,
@@ -317,6 +323,53 @@ CREATE TABLE staff_profiles (
     position VARCHAR(100) NOT NULL,
     approval_limit DECIMAL(12,2) NOT NULL DEFAULT 0,
     CONSTRAINT fk_staff_profiles_user FOREIGN KEY (user_id) REFERENCES users(id)
+) ENGINE=InnoDB;
+
+CREATE TABLE student_leads (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    full_name VARCHAR(150) NOT NULL,
+    phone VARCHAR(20) NOT NULL,
+    email VARCHAR(150) DEFAULT NULL,
+    age TINYINT UNSIGNED DEFAULT NULL,
+    parent_name VARCHAR(150) DEFAULT NULL,
+    parent_phone VARCHAR(20) DEFAULT NULL,
+    school_name VARCHAR(180) DEFAULT NULL,
+    target_program VARCHAR(180) DEFAULT NULL,
+    target_score VARCHAR(50) DEFAULT NULL,
+    desired_schedule VARCHAR(180) DEFAULT NULL,
+    note TEXT,
+    source VARCHAR(80) NOT NULL DEFAULT 'website',
+    status ENUM('new', 'entry_tested', 'trial_completed', 'official', 'cancelled') NOT NULL DEFAULT 'new',
+    admin_note TEXT,
+    converted_user_id BIGINT UNSIGNED DEFAULT NULL,
+    converted_at TIMESTAMP NULL DEFAULT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_student_leads_user FOREIGN KEY (converted_user_id) REFERENCES users(id),
+    KEY idx_student_leads_status_created (status, created_at),
+    KEY idx_student_leads_phone (phone)
+) ENGINE=InnoDB;
+
+CREATE TABLE job_applications (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    full_name VARCHAR(150) NOT NULL,
+    phone VARCHAR(20) NOT NULL,
+    email VARCHAR(150) DEFAULT NULL,
+    applying_position VARCHAR(120) DEFAULT NULL,
+    degree VARCHAR(150) DEFAULT NULL,
+    experience_years INT NOT NULL DEFAULT 0,
+    available_schedule VARCHAR(180) DEFAULT NULL,
+    intro TEXT,
+    source VARCHAR(80) NOT NULL DEFAULT 'website',
+    status ENUM('new', 'interviewed', 'official', 'rejected') NOT NULL DEFAULT 'new',
+    admin_note TEXT,
+    converted_user_id BIGINT UNSIGNED DEFAULT NULL,
+    converted_at TIMESTAMP NULL DEFAULT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_job_applications_user FOREIGN KEY (converted_user_id) REFERENCES users(id),
+    KEY idx_job_applications_status_created (status, created_at),
+    KEY idx_job_applications_phone (phone)
 ) ENGINE=InnoDB;
 
 CREATE TABLE assignments (

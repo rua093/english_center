@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/../../core/file_storage.php';
+
 $assignmentId = (int) ($_GET['id'] ?? 0);
 if ($assignmentId > 0) {
     require_permission('academic.assignments.update');
@@ -72,6 +74,7 @@ if (is_array($editingAssignment)) {
 }
 
 $deadlineValue = !empty($editingAssignment['deadline']) ? date('Y-m-d\TH:i', strtotime((string) $editingAssignment['deadline'])) : '';
+$existingAssignmentFileUrl = normalize_public_file_url((string) ($editingAssignment['file_url'] ?? ''));
 
 $module = 'assignments';
 $adminTitle = $editingAssignment ? 'Học vụ - Sửa bài tập' : 'Học vụ - Thêm bài tập';
@@ -82,7 +85,7 @@ $adminTitle = $editingAssignment ? 'Học vụ - Sửa bài tập' : 'Học vụ
         <form class="grid gap-3" method="post" action="/api/assignments/save" enctype="multipart/form-data">
                 <?= csrf_input(); ?>
                 <input type="hidden" name="id" value="<?= (int) ($editingAssignment['id'] ?? 0); ?>">
-                <input type="hidden" name="existing_file_url" value="<?= e((string) ($editingAssignment['file_url'] ?? '')); ?>">
+                <input type="hidden" name="existing_file_url" value="<?= e($existingAssignmentFileUrl); ?>">
                 <label>Lớp học
                     <select id="assignment-class-select" name="class_id" required>
                         <option value="">-- Chọn lớp --</option>
@@ -103,8 +106,8 @@ $adminTitle = $editingAssignment ? 'Học vụ - Sửa bài tập' : 'Học vụ
                 <label>Mô tả<textarea name="description" rows="4"><?= e((string) ($editingAssignment['description'] ?? '')); ?></textarea></label>
                 <label>Hạn nộp<input type="datetime-local" name="deadline" value="<?= e($deadlineValue); ?>" required></label>
                 <label>Tải lên file đính kèm<input type="file" name="assignment_file" accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.png"></label>
-                <?php if (!empty($editingAssignment['file_url'])): ?>
-                    <p class="text-xs text-slate-500">File hiện tại: <a class="font-semibold text-blue-700 hover:underline" href="<?= e((string) $editingAssignment['file_url']); ?>" target="_blank" rel="noopener noreferrer">Mở file</a>. Chọn file mới để thay thế.</p>
+                <?php if ($existingAssignmentFileUrl !== ''): ?>
+                    <p class="text-xs text-slate-500">File hiện tại: <a class="font-semibold text-blue-700 hover:underline" href="<?= e($existingAssignmentFileUrl); ?>" target="_blank" rel="noopener noreferrer">Mở file</a>. Chọn file mới để thay thế.</p>
                 <?php endif; ?>
             <button class="<?= ui_btn_primary_classes(); ?>" type="submit">Lưu bài tập</button>
             <a class="<?= ui_btn_secondary_classes(); ?>" href="<?= e(page_url('assignments-academic')); ?>">Quay lại</a>

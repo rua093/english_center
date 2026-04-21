@@ -20,7 +20,7 @@ if (!empty($_GET['edit'])) {
 }
 
 $module = 'schedules';
-$adminTitle = 'Học vụ - Lịch học';
+$adminTitle = 'Học vụ - Lịch dạy';
 
 $success = get_flash('success');
 $error = get_flash('error');
@@ -143,8 +143,8 @@ $scheduleConflictDataset = array_map(static function (array $schedule): array {
         <?php endif; ?>
 
         <?php if ($canCreateSchedule || $canUpdateSchedule): ?>
-        <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <h3><?= $editingSchedule ? 'Sửa lịch học' : 'Thêm lịch học'; ?></h3>
+        <article class="order-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <h3><?= $editingSchedule ? 'Sửa lịch dạy' : 'Thêm lịch dạy'; ?></h3>
             <form class="grid gap-3" method="post" action="/api/schedules/save" data-schedule-form="1">
                 <?= csrf_input(); ?>
                 <input type="hidden" name="id" value="<?= (int) ($editingSchedule['id'] ?? 0); ?>">
@@ -184,12 +184,12 @@ $scheduleConflictDataset = array_map(static function (array $schedule): array {
                     Giờ kết thúc
                     <input type="time" name="end_time" required value="<?= e((string) ($editingSchedule['end_time'] ?? '')); ?>">
                 </label>
-                <button class="<?= ui_btn_primary_classes(); ?>" type="submit">Lưu lịch học</button>
+                <button class="<?= ui_btn_primary_classes(); ?>" type="submit">Lưu lịch dạy</button>
             </form>
         </article>
         <?php endif; ?>
 
-        <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm" data-weekly-card="1">
+        <article class="order-1 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm" data-weekly-card="1">
             <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
                 <div>
                     <h3>Thời khóa biểu tuần</h3>
@@ -211,7 +211,7 @@ $scheduleConflictDataset = array_map(static function (array $schedule): array {
             </div>
 
             <?php if (empty($weekTimeSlots)): ?>
-                <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">Không có lịch học trong tuần này.</div>
+                <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">Không có lịch dạy trong tuần này.</div>
             <?php else: ?>
                 <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
                     <div class="min-w-[960px]">
@@ -266,12 +266,12 @@ $scheduleConflictDataset = array_map(static function (array $schedule): array {
                     </table>
                     </div>
                 </div>
-                <p class="mt-2 text-xs text-slate-500">Di chuột lên từng ô lịch học để xem nhanh lớp, giáo viên, phòng và giờ học.</p>
+                <p class="mt-2 text-xs text-slate-500">Di chuột lên từng ô lịch dạy để xem nhanh lớp, giáo viên, phòng và giờ học.</p>
             <?php endif; ?>
         </article>
 
-        <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <h3>Danh sách lịch học</h3>
+        <article class="order-2 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <h3>Danh sách lịch dạy</h3>
             <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
                 <table class="min-w-full border-collapse text-sm">
                 <thead>
@@ -279,7 +279,7 @@ $scheduleConflictDataset = array_map(static function (array $schedule): array {
                 </thead>
                 <tbody>
                     <?php if (empty($schedules)): ?>
-                        <tr><td colspan="6"><div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">Chưa có lịch học nào.</div></td></tr>
+                        <tr><td colspan="6"><div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">Chưa có lịch dạy nào.</div></td></tr>
                     <?php else: ?>
                     <?php foreach ($schedules as $schedule): ?>
                         <tr>
@@ -333,7 +333,7 @@ $scheduleConflictDataset = array_map(static function (array $schedule): array {
                 <?php if ($scheduleTotal > 0): ?>
                     <div class="border-t border-slate-200 bg-slate-50/80 px-3 py-2">
                         <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600">
-                            <span class="font-medium">Trang <?= (int) $schedulePage; ?>/<?= (int) $scheduleTotalPages; ?> - Tổng <?= (int) $scheduleTotal; ?> lịch học</span>
+                            <span class="font-medium">Trang <?= (int) $schedulePage; ?>/<?= (int) $scheduleTotalPages; ?> - Tổng <?= (int) $scheduleTotal; ?> lịch dạy</span>
                             <div class="inline-flex items-center gap-1.5">
                                 <form class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2 py-1" method="get" action="<?= e(page_url('schedules-academic')); ?>">
                                     <input type="hidden" name="page" value="schedules-academic">

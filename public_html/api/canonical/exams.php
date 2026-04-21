@@ -35,6 +35,102 @@ function api_exams_validate_column_meta(array $meta, string $invalidPayloadCode 
     }
 }
 
+function api_exams_format_score(?float $score): string
+{
+    if ($score === null) {
+        return '';
+    }
+
+    $normalized = round($score, 2);
+    if (abs($normalized) < 0.00001) {
+        $normalized = 0.0;
+    }
+
+    return rtrim(rtrim(number_format($normalized, 2, '.', ''), '0'), '.');
+}
+
+function api_exams_parse_component_score(mixed $rawValue, string $label, string $errorCode): ?float
+{
+    $text = trim((string) $rawValue);
+    if ($text === '') {
+        return null;
+    }
+
+    $text = str_replace(',', '.', $text);
+    if (!is_numeric($text)) {
+        api_error($label . ' không hợp lệ.', ['code' => $errorCode], 422);
+    }
+
+    $score = round((float) $text, 2);
+    if ($score < 0 || $score > 10) {
+        api_error($label . ' phải nằm trong khoảng 0 đến 10.', ['code' => $errorCode], 422);
+    }
+
+    return $score;
+}
+
+/**
+ * @return array{score_listening:?float,score_speaking:?float,score_reading:?float,score_writing:?float}
+ */
+function api_exams_read_component_scores(array $source): array
+{
+    return [
+        'score_listening' => api_exams_parse_component_score($source['score_listening'] ?? '', 'Điểm Listening', 'INVALID_SCORE_LISTENING'),
+        'score_speaking' => api_exams_parse_component_score($source['score_speaking'] ?? '', 'Điểm Speaking', 'INVALID_SCORE_SPEAKING'),
+        'score_reading' => api_exams_parse_component_score($source['score_reading'] ?? '', 'Điểm Reading', 'INVALID_SCORE_READING'),
+        'score_writing' => api_exams_parse_component_score($source['score_writing'] ?? '', 'Điểm Writing', 'INVALID_SCORE_WRITING'),
+    ];
+}
+
+/**
+ * @param array{score_listening:?float,score_speaking:?float,score_reading:?float,score_writing:?float} $scores
+ */
+function api_exams_compute_total_score(array $scores): ?float
+{
+    $filledCount = 0;
+    foreach ($scores as $score) {
+        if ($score !== null) {
+            $filledCount++;
+        }
+    }
+
+    if ($filledCount === 0) {
+        return null;
+    }
+
+    if ($filledCount < 4) {
+        api_error(
+            'Vui lòng nhập đủ 4 điểm thành phần hoặc để trống toàn bộ.',
+            ['code' => 'INCOMPLETE_COMPONENT_SCORES'],
+            422
+        );
+    }
+
+    $total = ($scores['score_listening'] ?? 0.0)
+        + ($scores['score_speaking'] ?? 0.0)
+        + ($scores['score_reading'] ?? 0.0)
+        + ($scores['score_writing'] ?? 0.0);
+
+    return round($total / 4, 2);
+}
+
+/**
+ * @param array{score_listening:?float,score_speaking:?float,score_reading:?float,score_writing:?float} $scores
+ * @return array{exam_id:int,score_listening:string,score_speaking:string,score_reading:string,score_writing:string,result:string,teacher_comment:string}
+ */
+function api_exams_build_score_response_payload(int $examId, array $scores, string $result, string $teacherComment): array
+{
+    return [
+        'exam_id' => $examId,
+        'score_listening' => api_exams_format_score($scores['score_listening'] ?? null),
+        'score_speaking' => api_exams_format_score($scores['score_speaking'] ?? null),
+        'score_reading' => api_exams_format_score($scores['score_reading'] ?? null),
+        'score_writing' => api_exams_format_score($scores['score_writing'] ?? null),
+        'result' => $result,
+        'teacher_comment' => trim($teacherComment),
+    ];
+}
+
 function api_exams_class_grid_action(): void
 {
     api_guard_permission('academic.classes.view');
@@ -114,6 +210,7 @@ function api_exams_class_grid_action(): void
         $students[] = [
             'id' => $studentId,
             'name' => (string) ($row['student_name'] ?? ('Học viên #' . $studentId)),
+            'learning_status' => ((string) ($row['learning_status'] ?? 'official')) === 'trial' ? 'trial' : 'official',
             'metrics' => [
                 'attendance' => [
                     'total_sessions' => $attendanceTotalSessions,
@@ -175,6 +272,10 @@ function api_exams_class_grid_action(): void
 
         $cells[$studentId][$key] = [
             'exam_id' => (int) ($row['id'] ?? 0),
+            'score_listening' => (string) ($row['score_listening'] ?? ''),
+            'score_speaking' => (string) ($row['score_speaking'] ?? ''),
+            'score_reading' => (string) ($row['score_reading'] ?? ''),
+            'score_writing' => (string) ($row['score_writing'] ?? ''),
             'result' => (string) ($row['result'] ?? ''),
             'teacher_comment' => (string) ($row['teacher_comment'] ?? ''),
         ];
@@ -376,8 +477,14 @@ function api_exams_save_score_action(): void
     $examName = trim((string) ($_POST['exam_name'] ?? ''));
     $examType = trim((string) ($_POST['exam_type'] ?? ''));
     $examDate = trim((string) ($_POST['exam_date'] ?? ''));
+    $resultFallback = trim((string) ($_POST['result'] ?? ''));
 
-    $result = isset($_POST['result']) ? (string) $_POST['result'] : '';
+    $componentScores = api_exams_read_component_scores($_POST);
+    $totalScore = api_exams_compute_total_score($componentScores);
+    $result = api_exams_format_score($totalScore);
+    if ($totalScore === null && $resultFallback !== '') {
+        $result = $resultFallback;
+    }
     $teacherComment = isset($_POST['teacher_comment']) ? (string) $_POST['teacher_comment'] : '';
 
     if ($classId <= 0 || $studentId <= 0 || $examName === '' || $examType === '' || $examDate === '') {
@@ -408,23 +515,50 @@ function api_exams_save_score_action(): void
             api_error('Bản ghi điểm không hợp lệ.', ['code' => 'EXAM_ROW_MISMATCH'], 403);
         }
 
-        $academicModel->updateExamResult($examId, $result, $teacherComment);
-        api_success('Đã lưu điểm.', ['exam_id' => $examId]);
+        $academicModel->updateExamResult(
+            $examId,
+            $result,
+            $teacherComment,
+            $componentScores['score_listening'],
+            $componentScores['score_speaking'],
+            $componentScores['score_reading'],
+            $componentScores['score_writing']
+        );
+        api_success('Đã lưu điểm.', api_exams_build_score_response_payload($examId, $componentScores, $result, $teacherComment));
     }
 
     $existing = $academicModel->findExamRowByMeta($classId, $studentId, $examName, $examType, $examDate);
     if (is_array($existing)) {
         $existingId = (int) ($existing['id'] ?? 0);
         if ($existingId > 0) {
-            $academicModel->updateExamResult($existingId, $result, $teacherComment);
-            api_success('Đã lưu điểm.', ['exam_id' => $existingId]);
+            $academicModel->updateExamResult(
+                $existingId,
+                $result,
+                $teacherComment,
+                $componentScores['score_listening'],
+                $componentScores['score_speaking'],
+                $componentScores['score_reading'],
+                $componentScores['score_writing']
+            );
+            api_success(
+                'Đã lưu điểm.',
+                api_exams_build_score_response_payload($existingId, $componentScores, $result, $teacherComment)
+            );
         }
     }
 
     $newId = $academicModel->createExamRow($classId, $studentId, $examName, $examType, $examDate);
     if ($newId > 0) {
-        $academicModel->updateExamResult($newId, $result, $teacherComment);
+        $academicModel->updateExamResult(
+            $newId,
+            $result,
+            $teacherComment,
+            $componentScores['score_listening'],
+            $componentScores['score_speaking'],
+            $componentScores['score_reading'],
+            $componentScores['score_writing']
+        );
     }
 
-    api_success('Đã lưu điểm.', ['exam_id' => $newId]);
+    api_success('Đã lưu điểm.', api_exams_build_score_response_payload($newId, $componentScores, $result, $teacherComment));
 }

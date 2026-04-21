@@ -39,7 +39,7 @@ function api_schedules_save_action(): void
 		redirect($editPath);
 	}
 
-	set_flash('success', 'Đã lưu lịch học thành công.');
+	set_flash('success', 'Đã lưu lịch dạy thành công.');
 
 	redirect(page_url('schedules-academic'));
 }
@@ -56,6 +56,6 @@ function api_schedules_delete_action(): void
 	api_require_post(page_url('schedules-academic'));
 
 	(new AcademicModel())->deleteSchedule((int) ($_GET['id'] ?? 0));
-	set_flash('success', 'Đã xóa lịch học.');
+	set_flash('success', 'Đã xóa lịch dạy.');
 	redirect(page_url('schedules-academic'));
 }

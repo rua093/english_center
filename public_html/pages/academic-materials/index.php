@@ -1,5 +1,6 @@
 <?php
 require_permission('materials.view');
+require_once __DIR__ . '/../../core/file_storage.php';
 
 $academicModel = new AcademicModel();
 $materialPage = max(1, (int) ($_GET['material_page'] ?? 1));
@@ -17,6 +18,8 @@ $editingMaterial = null;
 if (!empty($_GET['edit'])) {
     $editingMaterial = $academicModel->findMaterial((int) $_GET['edit']);
 }
+
+$editingMaterialFilePath = normalize_public_file_url((string) ($editingMaterial['file_path'] ?? ''));
 
 $module = 'materials';
 $adminTitle = 'Học vụ - Tài liệu';
@@ -47,12 +50,12 @@ $canDeleteMaterial = has_permission('materials.delete');
         <?php endif; ?>
 
         <?php if ($canCreateMaterial || $canUpdateMaterial): ?>
-        <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <article class="order-2 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <h3><?= $editingMaterial ? 'Sửa tài liệu' : 'Thêm tài liệu'; ?></h3>
             <form class="grid gap-3" method="post" action="/api/materials/save" enctype="multipart/form-data">
                 <?= csrf_input(); ?>
                 <input type="hidden" name="id" value="<?= (int) ($editingMaterial['id'] ?? 0); ?>">
-                <input type="hidden" name="existing_file_path" value="<?= e((string) ($editingMaterial['file_path'] ?? '')); ?>">
+                <input type="hidden" name="existing_file_path" value="<?= e($editingMaterialFilePath); ?>">
                 <label>
                     Khóa học
                     <select name="course_id" required>
@@ -73,15 +76,15 @@ $canDeleteMaterial = has_permission('materials.delete');
                     Tải lên file đính kèm
                     <input type="file" name="material_file" accept=".pdf,.mp3,.mp4,.mov,.avi,.doc,.docx,.ppt,.pptx,.jpg,.png">
                 </label>
-                <?php if (!empty($editingMaterial['file_path'])): ?>
-                    <p class="text-xs text-slate-500">File hiện tại: <a class="font-semibold text-blue-700 hover:underline" href="<?= e((string) $editingMaterial['file_path']); ?>" target="_blank" rel="noopener noreferrer">Mở file</a>. Chọn file mới để thay thế.</p>
+                <?php if ($editingMaterialFilePath !== ''): ?>
+                    <p class="text-xs text-slate-500">File hiện tại: <a class="font-semibold text-blue-700 hover:underline" href="<?= e($editingMaterialFilePath); ?>" target="_blank" rel="noopener noreferrer">Mở file</a>. Chọn file mới để thay thế.</p>
                 <?php endif; ?>
                 <button class="<?= ui_btn_primary_classes(); ?>" type="submit">Lưu tài liệu</button>
             </form>
         </article>
         <?php endif; ?>
 
-        <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <article class="order-1 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <h3>Danh sách tài liệu</h3>
             <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
                 <table class="min-w-full border-collapse text-sm">
@@ -93,12 +96,32 @@ $canDeleteMaterial = has_permission('materials.delete');
                         <tr><td colspan="4"><div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">Chưa có tài liệu nào.</div></td></tr>
                     <?php else: ?>
                     <?php foreach ($materials as $material): ?>
+                        <?php $materialFilePath = normalize_public_file_url((string) ($material['file_path'] ?? '')); ?>
                         <tr>
                             <td><?= e((string) $material['title']); ?></td>
                             <td><?= e((string) $material['course_name']); ?></td>
                             <td><?= e((string) ($material['description'] ?? '-')); ?></td>
                             <td>
                                 <span class="inline-flex flex-wrap items-center gap-2">
+                                    <?php if ($materialFilePath !== ''): ?>
+                                        <a
+                                            href="<?= e($materialFilePath); ?>"
+                                            class="admin-action-icon-btn"
+                                            data-action-kind="detail"
+                                            data-skip-action-icon="1"
+                                            title="Mở file"
+                                            aria-label="Mở file"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                        >
+                                            <span class="admin-action-icon-label">Mở file</span>
+                                            <span class="admin-action-icon-glyph" aria-hidden="true">
+                                                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12z"></path></svg>
+                                            </span>
+                                        </a>
+                                    <?php else: ?>
+                                        <span class="text-xs text-slate-400">Chưa có file</span>
+                                    <?php endif; ?>
                                     <?php if ($canUpdateMaterial): ?>
                                         <a
                                             href="<?= e(page_url('materials-academic-edit', ['id' => (int) $material['id'], 'material_page' => $materialPage, 'material_per_page' => $materialPerPage])); ?>"

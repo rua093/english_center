@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/../../core/file_storage.php';
+
 $materialId = (int) ($_GET['id'] ?? 0);
 if ($materialId > 0) {
     require_permission('materials.update');
@@ -9,6 +11,7 @@ if ($materialId > 0) {
 $academicModel = new AcademicModel();
 $editingMaterial = $materialId > 0 ? $academicModel->findMaterial($materialId) : null;
 $materialCourses = $academicModel->classLookups()['courses'] ?? [];
+$existingMaterialFilePath = normalize_public_file_url((string) ($editingMaterial['file_path'] ?? ''));
 
 $module = 'materials';
 $adminTitle = $editingMaterial ? 'Học vụ - Sửa tài liệu' : 'Học vụ - Thêm tài liệu';
@@ -19,7 +22,7 @@ $adminTitle = $editingMaterial ? 'Học vụ - Sửa tài liệu' : 'Học vụ 
         <form class="grid gap-3" method="post" action="/api/materials/save" enctype="multipart/form-data">
             <?= csrf_input(); ?>
             <input type="hidden" name="id" value="<?= (int) ($editingMaterial['id'] ?? 0); ?>">
-            <input type="hidden" name="existing_file_path" value="<?= e((string) ($editingMaterial['file_path'] ?? '')); ?>">
+            <input type="hidden" name="existing_file_path" value="<?= e($existingMaterialFilePath); ?>">
             <label>
                 Khóa học
                 <select name="course_id" required>
@@ -41,22 +44,22 @@ $adminTitle = $editingMaterial ? 'Học vụ - Sửa tài liệu' : 'Học vụ 
                 Tải lên file đính kèm
                 <input type="file" name="material_file" accept=".pdf,.ppt,.pptx,.doc,.docx,.jpg,.jpeg,.png,.mp4,.mov,.webm,.mp3,.avi">
             </label>
-            <?php if (!empty($editingMaterial['file_path'])): ?>
-                <p class="text-xs text-slate-500">File hiện tại: <a class="font-semibold text-blue-700 hover:underline" href="<?= e((string) $editingMaterial['file_path']); ?>" target="_blank" rel="noopener noreferrer">Mở file</a>. Chọn file mới để thay thế.</p>
+            <?php if ($existingMaterialFilePath !== ''): ?>
+                <p class="text-xs text-slate-500">File hiện tại: <a class="font-semibold text-blue-700 hover:underline" href="<?= e($existingMaterialFilePath); ?>" target="_blank" rel="noopener noreferrer">Mở file</a>. Chọn file mới để thay thế.</p>
             <?php endif; ?>
             <button class="<?= ui_btn_primary_classes(); ?>" type="submit">Lưu tài liệu</button>
             <a class="<?= ui_btn_secondary_classes(); ?>" href="<?= e(page_url('materials-academic')); ?>">Quay lại</a>
         </form>
 
-        <?php if (!empty($editingMaterial['file_path'])): ?>
+        <?php if ($existingMaterialFilePath !== ''): ?>
             <div class="mt-5">
                 <h3>Xem trước</h3>
-                <?php if (preg_match('/\.(jpg|jpeg|png|gif|webp)$/i', (string) $editingMaterial['file_path'])): ?>
-                    <img class="w-full rounded-xl" src="<?= e((string) $editingMaterial['file_path']); ?>" alt="preview">
-                <?php elseif (preg_match('/\.(mp4|mov|webm)$/i', (string) $editingMaterial['file_path'])): ?>
-                    <video class="w-full rounded-xl" controls><source src="<?= e((string) $editingMaterial['file_path']); ?>"></video>
+                <?php if (preg_match('/\.(jpg|jpeg|png|gif|webp)$/i', $existingMaterialFilePath)): ?>
+                    <img class="w-full rounded-xl" src="<?= e($existingMaterialFilePath); ?>" alt="preview">
+                <?php elseif (preg_match('/\.(mp4|mov|webm)$/i', $existingMaterialFilePath)): ?>
+                    <video class="w-full rounded-xl" controls><source src="<?= e($existingMaterialFilePath); ?>"></video>
                 <?php else: ?>
-                    <a href="<?= e((string) $editingMaterial['file_path']); ?>" target="_blank" rel="noopener noreferrer">Mở file</a>
+                    <a href="<?= e($existingMaterialFilePath); ?>" target="_blank" rel="noopener noreferrer">Mở file</a>
                 <?php endif; ?>
             </div>
         <?php endif; ?>

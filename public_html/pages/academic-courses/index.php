@@ -1,5 +1,5 @@
 <?php
-require_permission('academic.classes.view');
+require_permission('academic.courses.view');
 
 $academicModel = new AcademicModel();
 $coursePage = max(1, (int) ($_GET['course_page'] ?? 1));
@@ -24,9 +24,9 @@ $adminTitle = 'Học vụ - Khóa học';
 $success = get_flash('success');
 $error = get_flash('error');
 
-$canCreateCourse = has_permission('academic.classes.create');
-$canUpdateCourse = has_permission('academic.classes.update');
-$canDeleteCourse = has_permission('academic.classes.delete');
+$canCreateCourse = has_permission('academic.courses.create');
+$canUpdateCourse = has_permission('academic.courses.update');
+$canDeleteCourse = has_permission('academic.courses.delete');
 
 $selectedCourseName = trim((string) ($editingCourse['course_name'] ?? ''));
 $selectedDescription = trim((string) ($editingCourse['description'] ?? ''));

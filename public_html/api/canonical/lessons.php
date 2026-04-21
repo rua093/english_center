@@ -18,6 +18,16 @@ function lessons_manage_redirect_query(array $source): array
         $query['class_id'] = $classId;
     }
 
+    $classPage = input_int($source, 'class_page');
+    if ($classPage > 0) {
+        $query['class_page'] = $classPage;
+    }
+
+    $classPerPage = input_int($source, 'class_per_page');
+    if ($classPerPage > 0) {
+        $query['class_per_page'] = $classPerPage;
+    }
+
     $scheduleId = input_int($source, 'schedule_id');
     if ($scheduleId <= 0) {
         $scheduleId = input_int($source, 'attendance_schedule_id');
@@ -47,7 +57,7 @@ function lessons_manage_redirect_query(array $source): array
 function lessons_manage_redirect_page(array $source, string $fallback): string
 {
     $requestedPage = resolve_page_slug(input_string($source, 'redirect_page'));
-    $allowedPages = ['classrooms-academic', 'attendance-academic'];
+    $allowedPages = ['classrooms-academic'];
 
     if (in_array($requestedPage, $allowedPages, true)) {
         return $requestedPage;
@@ -161,7 +171,7 @@ function api_lessons_attendance_roster_action(): void
 
 function api_lessons_attendance_action(): void
 {
-    api_require_post(page_url('attendance-academic'));
+    api_require_post(page_url('classrooms-academic'));
     api_guard_permission('academic.schedules.update');
 
     $scheduleId = input_int($_POST, 'schedule_id');
@@ -169,7 +179,7 @@ function api_lessons_attendance_action(): void
         $scheduleId = input_int($_POST, 'attendance_schedule_id');
     }
 
-    $redirectPage = lessons_manage_redirect_page($_POST, 'attendance-academic');
+    $redirectPage = lessons_manage_redirect_page($_POST, 'classrooms-academic');
     $redirectQuery = lessons_manage_redirect_query($_POST);
     if ($scheduleId > 0) {
         $redirectQuery['schedule_id'] = $scheduleId;

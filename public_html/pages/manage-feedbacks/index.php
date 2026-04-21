@@ -3,10 +3,6 @@ require_admin_or_staff();
 require_permission('feedback.view');
 
 $academicModel = new AcademicModel();
-$lookups = $academicModel->feedbackLookups();
-$students = $lookups['students'] ?? [];
-$teachers = $lookups['teachers'] ?? [];
-$classes = $lookups['classes'] ?? [];
 
 $feedbackPage = max(1, (int) ($_GET['feedback_page'] ?? 1));
 $feedbackPerPage = ui_pagination_resolve_per_page('feedback_per_page', 10);
@@ -26,7 +22,6 @@ $error = get_flash('error');
 ?>
 <div class="grid gap-4">
     <?php
-    $canCreateFeedback = has_permission('feedback.create');
     $canDeleteFeedback = has_permission('feedback.delete');
     ?>
 
@@ -36,54 +31,6 @@ $error = get_flash('error');
 
     <?php if ($error): ?>
         <div class="rounded-xl border-l-4 border-rose-500 bg-rose-50 p-3 text-sm text-rose-700"><?= e($error); ?></div>
-    <?php endif; ?>
-
-    <?php if ($canCreateFeedback): ?>
-        <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <h3>Thêm đánh giá</h3>
-            <form class="grid gap-3 md:grid-cols-2" method="post" action="/api/feedbacks/save">
-                <?= csrf_input(); ?>
-                <input type="hidden" name="id" value="">
-                <label>
-                    Học viên
-                    <select name="student_id" required>
-                        <option value="">Chọn học viên</option>
-                        <?php foreach ($students as $s): ?>
-                            <option value="<?= (int) $s['id']; ?>"><?= e((string) $s['full_name']); ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </label>
-                <label>
-                    Giáo viên (tùy chọn)
-                    <select name="teacher_id">
-                        <option value="">Không chọn</option>
-                        <?php foreach ($teachers as $t): ?>
-                            <option value="<?= (int) $t['id']; ?>"><?= e((string) $t['full_name']); ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </label>
-                <label>
-                    Lớp học
-                    <select name="class_id" required>
-                        <option value="">Chọn lớp học</option>
-                        <?php foreach ($classes as $c): ?>
-                            <option value="<?= (int) $c['id']; ?>"><?= e((string) $c['class_name']); ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </label>
-                <label>
-                    Đánh giá (1-5)
-                    <input type="number" name="rating" min="1" max="5" required>
-                </label>
-                <label class="md:col-span-2">
-                    Nhận xét
-                    <textarea name="comment" rows="4"></textarea>
-                </label>
-                <div class="md:col-span-2">
-                    <button class="<?= ui_btn_primary_classes(); ?>" type="submit">Lưu đánh giá</button>
-                </div>
-            </form>
-        </article>
     <?php endif; ?>
 
     <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">

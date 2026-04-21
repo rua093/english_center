@@ -26,7 +26,9 @@ final class ExamsTableModel extends BaseTableModel
             return [];
         }
 
-        $sql = "SELECT id, class_id, student_id, exam_name, exam_type, exam_date, result, teacher_comment
+        $sql = "SELECT id, class_id, student_id, exam_name, exam_type, exam_date,
+                score_listening, score_speaking, score_reading, score_writing,
+                result, teacher_comment
             FROM exams
             WHERE class_id = :class_id
             ORDER BY exam_date ASC, exam_name ASC, student_id ASC";
@@ -90,7 +92,12 @@ final class ExamsTableModel extends BaseTableModel
         }
 
         return $this->fetchOne(
-            'SELECT id, class_id, student_id, exam_name, exam_type, exam_date, result, teacher_comment FROM exams WHERE id = :id LIMIT 1',
+            'SELECT id, class_id, student_id, exam_name, exam_type, exam_date,
+                    score_listening, score_speaking, score_reading, score_writing,
+                    result, teacher_comment
+             FROM exams
+             WHERE id = :id
+             LIMIT 1',
             ['id' => $id]
         );
     }
@@ -102,7 +109,9 @@ final class ExamsTableModel extends BaseTableModel
         }
 
         return $this->fetchOne(
-            'SELECT id, class_id, student_id, exam_name, exam_type, exam_date, result, teacher_comment
+                        'SELECT id, class_id, student_id, exam_name, exam_type, exam_date,
+                                        score_listening, score_speaking, score_reading, score_writing,
+                                        result, teacher_comment
              FROM exams
              WHERE class_id = :class_id
                AND student_id = :student_id
@@ -141,7 +150,15 @@ final class ExamsTableModel extends BaseTableModel
         return (int) $this->pdo->lastInsertId();
     }
 
-    public function updateExamResult(int $examId, ?string $result, ?string $teacherComment): void
+    public function updateExamResult(
+        int $examId,
+        ?string $result,
+        ?string $teacherComment,
+        ?float $scoreListening = null,
+        ?float $scoreSpeaking = null,
+        ?float $scoreReading = null,
+        ?float $scoreWriting = null
+    ): void
     {
         if ($examId <= 0) {
             return;
@@ -151,9 +168,20 @@ final class ExamsTableModel extends BaseTableModel
         $normalizedComment = $teacherComment !== null ? trim($teacherComment) : '';
 
         $this->executeStatement(
-            'UPDATE exams SET result = :result, teacher_comment = :teacher_comment WHERE id = :id',
+            'UPDATE exams
+             SET score_listening = :score_listening,
+                 score_speaking = :score_speaking,
+                 score_reading = :score_reading,
+                 score_writing = :score_writing,
+                 result = :result,
+                 teacher_comment = :teacher_comment
+             WHERE id = :id',
             [
                 'id' => $examId,
+                'score_listening' => $scoreListening,
+                'score_speaking' => $scoreSpeaking,
+                'score_reading' => $scoreReading,
+                'score_writing' => $scoreWriting,
                 'result' => $normalizedResult !== '' ? $normalizedResult : null,
                 'teacher_comment' => $normalizedComment !== '' ? $normalizedComment : null,
             ]

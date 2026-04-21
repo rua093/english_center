@@ -9,15 +9,12 @@ function api_feedbacks_save_action(): void
 	api_require_post(page_url('feedbacks-manage'));
 
 	$feedbackId = input_int($_POST, 'id');
-	api_guard_permission($feedbackId > 0 ? 'feedback.update' : 'feedback.create');
-
-	if ($feedbackId <= 0 && (
-		input_int($_POST, 'student_id', input_int($_POST, 'sender_id')) <= 0 ||
-		input_int($_POST, 'class_id', input_int($_POST, 'course_id')) <= 0
-	)) {
-		set_flash('error', 'Vui lòng chọn học viên và lớp học.');
+	if ($feedbackId <= 0) {
+		set_flash('error', 'Chức năng tạo mới đánh giá chỉ áp dụng cho cổng học viên.');
 		redirect(page_url('feedbacks-manage'));
 	}
+
+	api_guard_permission('feedback.update');
 
 	$rating = input_int($_POST, 'rating');
 	if ($rating < 1 || $rating > 5) {

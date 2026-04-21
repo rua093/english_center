@@ -125,9 +125,25 @@ final class AcademicModel
         return $this->examsTable->createExamRow($classId, $studentId, $examName, $examType, $examDate);
     }
 
-    public function updateExamResult(int $examId, ?string $result, ?string $teacherComment): void
+    public function updateExamResult(
+        int $examId,
+        ?string $result,
+        ?string $teacherComment,
+        ?float $scoreListening = null,
+        ?float $scoreSpeaking = null,
+        ?float $scoreReading = null,
+        ?float $scoreWriting = null
+    ): void
     {
-        $this->examsTable->updateExamResult($examId, $result, $teacherComment);
+        $this->examsTable->updateExamResult(
+            $examId,
+            $result,
+            $teacherComment,
+            $scoreListening,
+            $scoreSpeaking,
+            $scoreReading,
+            $scoreWriting
+        );
     }
 
     public function updateExamColumnMeta(
@@ -511,6 +527,20 @@ final class AcademicModel
         return $this->classStudentsTable->listStudentsByClass();
     }
 
+    public function listRegistrationEnrollmentRows(int $limit = 300): array
+    {
+        return $this->classStudentsTable->listEnrollmentRowsForRegistration($limit);
+    }
+
+    public function findRegistrationEnrollmentRow(int $studentId, int $classId): ?array
+    {
+        if ($studentId <= 0 || $classId <= 0) {
+            return null;
+        }
+
+        return $this->classStudentsTable->findEnrollmentRowForRegistration($classId, $studentId);
+    }
+
     public function isStudentEnrolledInClass(int $studentId, int $classId): bool
     {
         if ($studentId <= 0 || $classId <= 0) {
@@ -529,6 +559,110 @@ final class AcademicModel
         return $this->tuitionFeesTable->findByStudentAndClass($studentId, $classId) !== null;
     }
 
+    public function updateRegistrationLearningStatus(int $studentId, int $classId, string $targetStatus): array
+    {
+        if ($studentId <= 0 || $classId <= 0) {
+            throw new InvalidArgumentException('Dữ liệu học viên/lớp học không hợp lệ.');
+        }
+
+        $normalizedTargetStatus = in_array($targetStatus, ['trial', 'official'], true)
+            ? $targetStatus
+            : '';
+        if ($normalizedTargetStatus === '') {
+            throw new InvalidArgumentException('Trạng thái học viên không hợp lệ.');
+        }
+
+        $enrollment = $this->classStudentsTable->findEnrollment($classId, $studentId);
+        if (!is_array($enrollment)) {
+            throw new RuntimeException('Không tìm thấy ghi danh học viên trong lớp đã chọn.');
+        }
+
+        $currentStatus = (string) ($enrollment['learning_status'] ?? 'official');
+        if ($currentStatus === $normalizedTargetStatus) {
+            return [
+                'updated' => false,
+                'from_status' => $currentStatus,
+                'to_status' => $normalizedTargetStatus,
+                'tuition_created_id' => 0,
+                'tuition_deleted_id' => 0,
+            ];
+        }
+
+        $tuitionCreatedId = 0;
+        $tuitionDeletedId = 0;
+
+        $this->tuitionFeesTable->executeInTransaction(function () use (
+            $studentId,
+            $classId,
+            $normalizedTargetStatus,
+            &$tuitionCreatedId,
+            &$tuitionDeletedId
+        ): void {
+            $existingTuition = $this->tuitionFeesTable->findByStudentAndClass($studentId, $classId);
+
+            if ($normalizedTargetStatus === 'official') {
+                if (!$existingTuition) {
+                    $class = $this->classesTable->findById($classId);
+                    if (!is_array($class)) {
+                        throw new RuntimeException('Không tìm thấy lớp học để tính học phí.');
+                    }
+
+                    $courseId = (int) ($class['course_id'] ?? 0);
+                    if ($courseId <= 0) {
+                        throw new RuntimeException('Lớp học chưa liên kết khóa học hợp lệ.');
+                    }
+
+                    $course = $this->coursesTable->findById($courseId);
+                    if (!is_array($course)) {
+                        throw new RuntimeException('Không tìm thấy khóa học để tính học phí.');
+                    }
+
+                    $baseAmount = max(0, (float) ($course['base_price'] ?? 0));
+                    $tuitionCreatedId = $this->tuitionFeesTable->createDebtForRegistration([
+                        'student_id' => $studentId,
+                        'class_id' => $classId,
+                        'package_id' => 0,
+                        'base_amount' => $baseAmount,
+                        'discount_type' => 'none',
+                        'discount_amount' => 0,
+                        'payment_plan' => 'full',
+                    ]);
+                }
+            } else {
+                if ($existingTuition) {
+                    $tuitionId = (int) ($existingTuition['id'] ?? 0);
+                    $amountPaid = max(0, (float) ($existingTuition['amount_paid'] ?? 0));
+                    $paidFromTransactions = $tuitionId > 0
+                        ? max(0, $this->paymentTransactionsTable->sumSuccessAmountByTuitionId($tuitionId))
+                        : 0.0;
+
+                    if (max($amountPaid, $paidFromTransactions) > 0.0001) {
+                        throw new DomainException('Không thể chuyển từ chính thức sang học thử vì học viên đã thanh toán học phí.');
+                    }
+
+                    if ($tuitionId > 0) {
+                        $this->paymentTransactionsTable->deleteByTuitionFeeId($tuitionId);
+                        $this->tuitionFeesTable->deleteById($tuitionId);
+                        $tuitionDeletedId = $tuitionId;
+                    }
+                }
+            }
+
+            $updated = $this->classStudentsTable->updateLearningStatus($classId, $studentId, $normalizedTargetStatus);
+            if (!$updated) {
+                throw new RuntimeException('Không thể cập nhật trạng thái học viên trong lớp.');
+            }
+        });
+
+        return [
+            'updated' => true,
+            'from_status' => $currentStatus,
+            'to_status' => $normalizedTargetStatus,
+            'tuition_created_id' => $tuitionCreatedId,
+            'tuition_deleted_id' => $tuitionDeletedId,
+        ];
+    }
+
     public function registerCourseAndCreateDebtTuition(array $data): array
     {
         $studentId = (int) ($data['student_id'] ?? 0);
@@ -545,7 +679,7 @@ final class AcademicModel
             throw new InvalidArgumentException('Dữ liệu đăng ký không hợp lệ.');
         }
 
-        $normalizedLearningStatus = in_array($learningStatus, ['trial', 'official', 'suspended'], true)
+        $normalizedLearningStatus = in_array($learningStatus, ['trial', 'official'], true)
             ? $learningStatus
             : 'official';
 
@@ -583,6 +717,21 @@ final class AcademicModel
                 throw new RuntimeException('Không thể thêm học viên vào lớp đã chọn. Vui lòng thử lại.');
             }
 
+            $enrollment = $this->classStudentsTable->findEnrollment($classId, $studentId);
+            if (!is_array($enrollment)) {
+                throw new RuntimeException('Không thể xác định trạng thái ghi danh của học viên.');
+            }
+
+            $currentStatus = (string) ($enrollment['learning_status'] ?? 'official');
+            if ($currentStatus !== $normalizedLearningStatus) {
+                $this->classStudentsTable->updateLearningStatus($classId, $studentId, $normalizedLearningStatus);
+            }
+
+            if ($normalizedLearningStatus === 'trial') {
+                $tuitionId = 0;
+                return;
+            }
+
             $tuitionId = $this->tuitionFeesTable->createDebtForRegistration([
                 'student_id' => $studentId,
                 'class_id' => $classId,
@@ -597,6 +746,7 @@ final class AcademicModel
         return [
             'tuition_id' => $tuitionId,
             'already_enrolled' => $alreadyEnrolled,
+            'learning_status' => $normalizedLearningStatus,
         ];
     }
 

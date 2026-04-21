@@ -2,6 +2,8 @@
 $homeUser = auth_user();
 $studentProgress = $homeWidgets['student_progress'] ?? null;
 $teacherSchedules = $homeWidgets['teacher_schedules'] ?? [];
+$homeSuccess = get_flash('home_success');
+$homeError = get_flash('home_error');
 ?>
 
 <main>
@@ -169,25 +171,100 @@ $teacherSchedules = $homeWidgets['teacher_schedules'] ?? [];
 	</section>
 
 	<section class="py-10 md:py-14 bg-slate-900 text-slate-100" id="lien-he">
-		<div class="mx-auto w-full max-w-6xl px-4 sm:px-6 text-center">
+		<div class="mx-auto w-full max-w-6xl px-4 sm:px-6">
 			<h2>Sẵn sàng nâng cấp lộ trình học tiếng Anh?</h2>
-			<p>Để lại thông tin để được tư vấn lộ trình và đặt lịch kiểm tra phù hợp với mục tiêu của bạn.</p>
-			<form class="mx-auto mt-6 grid max-w-4xl gap-3 md:grid-cols-4" action="#" method="post">
-				<?= csrf_input(); ?>
-				<label class="grid gap-1 text-left text-sm">
-					Họ và tên
-					<input class="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900" type="text" name="full_name" placeholder="Nguyễn Văn A" required>
-				</label>
-				<label class="grid gap-1 text-left text-sm">
-					Số điện thoại
-					<input class="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900" type="tel" name="phone" placeholder="09xxxxxxxx" required>
-				</label>
-				<label class="grid gap-1 text-left text-sm">
-					Mục tiêu
-					<input class="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900" type="text" name="target" placeholder="IELTS 6.5 trong 6 tháng">
-				</label>
-				<button type="submit" class="inline-flex items-center justify-center rounded-xl bg-blue-700 px-4 py-2.5 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-blue-800">Đăng ký ngay</button>
-			</form>
+			<p>Để lại thông tin theo nhu cầu của bạn: tư vấn học viên hoặc ứng tuyển giáo viên.</p>
+
+			<?php if ($homeSuccess): ?>
+				<div class="mt-4 rounded-xl border border-emerald-300 bg-emerald-100 px-4 py-3 text-sm font-semibold text-emerald-800"><?= e($homeSuccess); ?></div>
+			<?php endif; ?>
+			<?php if ($homeError): ?>
+				<div class="mt-4 rounded-xl border border-rose-300 bg-rose-100 px-4 py-3 text-sm font-semibold text-rose-800"><?= e($homeError); ?></div>
+			<?php endif; ?>
+
+			<div class="mt-6 grid gap-4 lg:grid-cols-2">
+				<form class="grid gap-3 rounded-2xl border border-slate-700 bg-slate-800 p-4" action="/api/leads/submit" method="post">
+					<?= csrf_input(); ?>
+					<h3 class="text-base font-extrabold text-white">Form tư vấn học viên</h3>
+					<label class="grid gap-1 text-left text-sm">
+						Họ và tên
+						<input class="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900" type="text" name="full_name" placeholder="Nguyen Van A" required>
+					</label>
+					<label class="grid gap-1 text-left text-sm">
+						Số điện thoại
+						<input class="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900" type="tel" name="phone" placeholder="09xxxxxxxx" required>
+					</label>
+					<label class="grid gap-1 text-left text-sm">
+						Email
+						<input class="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900" type="email" name="email" placeholder="ban@example.com">
+					</label>
+					<div class="grid gap-3 md:grid-cols-2">
+						<label class="grid gap-1 text-left text-sm">
+							Tuổi
+							<input class="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900" type="number" min="0" name="age" placeholder="15">
+						</label>
+						<label class="grid gap-1 text-left text-sm">
+							Mục tiêu điểm
+							<input class="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900" type="text" name="target_score" placeholder="IELTS 6.5">
+						</label>
+					</div>
+					<label class="grid gap-1 text-left text-sm">
+						Chương trình quan tâm
+						<input class="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900" type="text" name="target_program" placeholder="IELTS Foundation">
+					</label>
+					<label class="grid gap-1 text-left text-sm">
+						Lịch mong muốn
+						<input class="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900" type="text" name="desired_schedule" placeholder="Toi T2-T4-T6">
+					</label>
+					<label class="grid gap-1 text-left text-sm">
+						Ghi chú
+						<textarea class="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900" name="note" rows="3" placeholder="Nhu cau hoc tap va thong tin bo sung"></textarea>
+					</label>
+					<button type="submit" class="inline-flex items-center justify-center rounded-xl bg-blue-700 px-4 py-2.5 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-blue-800">Gửi tư vấn học viên</button>
+				</form>
+
+				<form class="grid gap-3 rounded-2xl border border-slate-700 bg-slate-800 p-4" action="/api/applications/submit" method="post">
+					<?= csrf_input(); ?>
+					<h3 class="text-base font-extrabold text-white">Form ứng tuyển giáo viên</h3>
+					<label class="grid gap-1 text-left text-sm">
+						Họ và tên
+						<input class="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900" type="text" name="full_name" placeholder="Tran Thi B" required>
+					</label>
+					<label class="grid gap-1 text-left text-sm">
+						Số điện thoại
+						<input class="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900" type="tel" name="phone" placeholder="09xxxxxxxx" required>
+					</label>
+					<label class="grid gap-1 text-left text-sm">
+						Email
+						<input class="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900" type="email" name="email" placeholder="teacher@example.com">
+					</label>
+					<div class="grid gap-3 md:grid-cols-2">
+						<label class="grid gap-1 text-left text-sm">
+							Vị trí ứng tuyển
+							<input class="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900" type="text" name="applying_position" placeholder="IELTS Teacher">
+						</label>
+						<label class="grid gap-1 text-left text-sm">
+							Bằng cấp
+							<input class="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900" type="text" name="degree" placeholder="TESOL/CELTA">
+						</label>
+					</div>
+					<div class="grid gap-3 md:grid-cols-2">
+						<label class="grid gap-1 text-left text-sm">
+							Số năm kinh nghiệm
+							<input class="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900" type="number" min="0" name="experience_years" placeholder="3">
+						</label>
+						<label class="grid gap-1 text-left text-sm">
+							Lịch có thể dạy
+							<input class="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900" type="text" name="available_schedule" placeholder="Toi T2-T6">
+						</label>
+					</div>
+					<label class="grid gap-1 text-left text-sm">
+						Giới thiệu bản thân
+						<textarea class="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900" name="intro" rows="3" placeholder="Kinh nghiem day hoc va diem manh chuyen mon"></textarea>
+					</label>
+					<button type="submit" class="inline-flex items-center justify-center rounded-xl bg-blue-700 px-4 py-2.5 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-blue-800">Gửi hồ sơ ứng tuyển</button>
+				</form>
+			</div>
 		</div>
 	</section>
 </main>

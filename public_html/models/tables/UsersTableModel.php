@@ -198,6 +198,25 @@ final class UsersTableModel extends BaseTableModel
         return $this->fetchAll($sql, $params);
     }
 
+    public function usernameExists(string $username, int $excludeUserId = 0): bool
+    {
+        $normalized = trim($username);
+        if ($normalized === '') {
+            return false;
+        }
+
+        $params = ['username' => $normalized];
+        $sql = 'SELECT COUNT(*) AS total FROM users WHERE username = :username';
+
+        if ($excludeUserId > 0) {
+            $sql .= ' AND id <> :exclude_id';
+            $params['exclude_id'] = $excludeUserId;
+        }
+
+        $count = (int) $this->fetchScalar($sql, $params, 'total', 0);
+        return $count > 0;
+    }
+
     private function findRoleProfile(int $userId, string $roleName): array
     {
         if ($userId <= 0) {

@@ -67,6 +67,51 @@ VALUES (NULL, 4, 'Entry Test', 'entry', '2026-03-28', '5.0', 'Can tang cuong spe
 INSERT INTO student_profiles (user_id, parent_name, parent_phone, school_name, target_score, entry_test_id)
 VALUES (4, 'Tran Thi Parent', '0909999999', 'THPT Demo', 'IELTS 6.5', 1);
 
+INSERT INTO student_leads (
+	full_name,
+	phone,
+	email,
+	age,
+	parent_name,
+	parent_phone,
+	school_name,
+	target_program,
+	target_score,
+	desired_schedule,
+	note,
+	source,
+	status,
+	admin_note,
+	converted_user_id,
+	converted_at
+) VALUES
+('Tran Gia Han', '0912345678', 'g.han@example.com', 15, 'Tran Thi Huong', '0911111122', 'THPT Nguyen Hue', 'IELTS Foundation', 'IELTS 6.0', 'Toi T2-T4-T6', 'Can tu van lo trinh 6 thang.', 'website', 'new', 'Da tiep nhan tu form web.', NULL, NULL),
+('Pham Minh Duc', '0923456789', 'phamhduc@example.com', 16, 'Pham Van B', '0922222233', 'THPT Tran Phu', 'IELTS Intensive 6.5+', 'IELTS 6.5', 'Sang T3-T5', 'Da hoan thanh hoc thu va dong y nhap hoc.', 'website', 'official', 'Da test dau vao va hoc thu dat yeu cau.', 4, '2026-03-30 10:00:00'),
+('Le Ngoc Anh', '0931234567', 'le.ngoc.anh@example.com', 14, 'Le Thi C', '0933333444', 'THCS Chu Van An', 'Giao tiep Level 1', 'Giao tiep tu tin', 'Chieu T7-CN', 'Phu huynh muon hoc thu truoc khi dang ky chinh thuc.', 'website', 'entry_tested', 'Da hoan thanh test dau vao, cho xep lop hoc thu.', NULL, NULL),
+('Do Khanh Linh', '0967778899', 'k.linh@example.com', 17, 'Do Van D', '0961112233', 'THPT Le Quy Don', 'IELTS Intensive 6.5+', 'IELTS 7.0', 'Toi T3-T5-T7', 'Da hoc thu 2 buoi, dang cho xac nhan nhap hoc.', 'facebook', 'trial_completed', 'Da hoan thanh hoc thu, sale dang follow.', NULL, NULL),
+('Bui Tuan Kiet', '0978889900', 'kiet.bui@example.com', 13, 'Bui Thi E', '0972223344', 'THCS Nguyen Du', 'Giao tiep Level 1', 'Phat am co ban', 'Sang T7-CN', 'Phu huynh tam hoan vi trung lich hoc chinh.', 'website', 'cancelled', 'Khach tam dung, hen lien he lai vao thang sau.', NULL, NULL);
+
+INSERT INTO job_applications (
+	full_name,
+	phone,
+	email,
+	applying_position,
+	degree,
+	experience_years,
+	available_schedule,
+	intro,
+	source,
+	status,
+	admin_note,
+	converted_user_id,
+	converted_at
+) VALUES
+('Nguyen Thi Ha', '0934567890', 'ha.teacher@example.com', 'IELTS Teacher', 'Master of TESOL', 5, 'Toi T2-T6', 'Da tung day tai trung tam quoc te va co lop IELTS 6.5+.', 'website', 'new', 'Moi tiep nhan ho so.', NULL, NULL),
+('Le Quang Huy', '0945678901', 'huy.applicant@example.com', 'Speaking Coach', 'CELTA', 3, 'Full-time', 'Tap trung phan xa speaking va lop giao tiep cho nguoi di lam.', 'website', 'interviewed', 'Da phong van vong 1, cho ket qua cuoi.', NULL, NULL),
+('Teacher Demo', '0900000003', 'teacher@ec.local', 'IELTS Teacher', 'Bachelor of English Language', 6, 'Full-time', 'Da trung tuyen va da tao tai khoan giao vien.', 'website', 'official', 'Da phong van va onboard.', 3, '2026-03-25 09:15:00'),
+('Pham Thu Trang', '0956789012', 'trang.pham@example.com', 'Junior English Teacher', 'BA English Linguistics', 2, 'Toi T2-T4-T6', 'Co kinh nghiem tro giang va dung lop thieu nhi.', 'linkedin', 'new', 'Ho so moi tu kenh linkedin.', NULL, NULL),
+('Vo Thanh Son', '0987001122', 'son.vo@example.com', 'Speaking Coach', 'CELTA', 4, 'Part-time T7-CN', 'Phu hop lop giao tiep nguoi di lam cuoi tuan.', 'referral', 'rejected', 'Khong phu hop khung gio trung tam dang can.', NULL, NULL);
+
 INSERT INTO assignments (lesson_id, title, description, deadline, file_url) VALUES
 (1, 'Write a self-introduction', 'Viet doan van 180-220 tu gioi thieu ban than.', '2026-04-15 23:59:00', '/assets/uploads/assignment-1.pdf');
 
@@ -108,6 +153,14 @@ INSERT INTO permissions (permission_name, slug) VALUES
 ('Tao lop hoc', 'academic.classes.create'),
 ('Cap nhat lop hoc', 'academic.classes.update'),
 ('Xoa lop hoc', 'academic.classes.delete'),
+('Xem khoa hoc', 'academic.courses.view'),
+('Tao khoa hoc', 'academic.courses.create'),
+('Cap nhat khoa hoc', 'academic.courses.update'),
+('Xoa khoa hoc', 'academic.courses.delete'),
+('Xem roadmap khoa hoc', 'academic.roadmaps.view'),
+('Tao roadmap khoa hoc', 'academic.roadmaps.create'),
+('Cap nhat roadmap khoa hoc', 'academic.roadmaps.update'),
+('Xoa roadmap khoa hoc', 'academic.roadmaps.delete'),
 ('Xem lich hoc', 'academic.schedules.view'),
 ('Tao lich hoc', 'academic.schedules.create'),
 ('Cap nhat lich hoc', 'academic.schedules.update'),
@@ -136,7 +189,9 @@ INSERT INTO permissions (permission_name, slug) VALUES
 ('Xem tai khoan ngan hang', 'bank.view'),
 ('Tao tai khoan ngan hang', 'bank.create'),
 ('Cap nhat tai khoan ngan hang', 'bank.update'),
-('Xoa tai khoan ngan hang', 'bank.delete');
+('Xoa tai khoan ngan hang', 'bank.delete'),
+('Quan ly dau moi hoc vien', 'student_lead.manage'),
+('Quan ly ho so ung tuyen giao vien', 'job_application.manage');
 
 INSERT INTO role_permissions (role_id, permission_id)
 SELECT r.id, p.id
@@ -154,6 +209,8 @@ INNER JOIN permissions p ON p.slug IN (
 	'materials.manage',
 	'admin.dashboard.view',
 	'admin.user.manage',
+	'student_lead.manage',
+	'job_application.manage',
 	'finance.tuition.manage',
 	'finance.payment.manage',
 	'feedback.manage',
@@ -161,6 +218,8 @@ INNER JOIN permissions p ON p.slug IN (
 	'activity.manage',
 	'bank.manage'
 	,'academic.classes.view','academic.classes.create','academic.classes.update','academic.classes.delete'
+	,'academic.courses.view','academic.courses.create','academic.courses.update','academic.courses.delete'
+	,'academic.roadmaps.view','academic.roadmaps.create','academic.roadmaps.update','academic.roadmaps.delete'
 	,'academic.schedules.view','academic.schedules.create','academic.schedules.update','academic.schedules.delete'
 	,'academic.assignments.view','academic.assignments.create','academic.assignments.update','academic.assignments.delete'
 	,'academic.submissions.view'
@@ -184,6 +243,12 @@ INNER JOIN permissions p ON p.slug IN (
 	'academic.classes.view',
 	'academic.classes.create',
 	'academic.classes.update',
+	'academic.courses.view',
+	'academic.courses.create',
+	'academic.courses.update',
+	'academic.roadmaps.view',
+	'academic.roadmaps.create',
+	'academic.roadmaps.update',
 	'academic.schedules.view',
 	'academic.schedules.create',
 	'academic.schedules.update',
@@ -330,7 +395,7 @@ INSERT INTO class_students (class_id, student_id, learning_status, enrollment_da
 ((SELECT id FROM classes WHERE class_name = 'BUS-K22-Toi-3-5' LIMIT 1), (SELECT id FROM users WHERE username = 'student2@ec.local' LIMIT 1), 'trial', '2026-05-03'),
 ((SELECT id FROM classes WHERE class_name = 'BUS-K22-Toi-3-5' LIMIT 1), (SELECT id FROM users WHERE username = 'student3@ec.local' LIMIT 1), 'official', '2026-05-03'),
 ((SELECT id FROM classes WHERE class_name = 'TOEIC-K11-Sang-2-4-6' LIMIT 1), (SELECT id FROM users WHERE username = 'student2@ec.local' LIMIT 1), 'official', '2026-03-01'),
-((SELECT id FROM classes WHERE class_name = 'TOEIC-K11-Sang-2-4-6' LIMIT 1), (SELECT id FROM users WHERE username = 'student4@ec.local' LIMIT 1), 'suspended', '2026-03-01'),
+((SELECT id FROM classes WHERE class_name = 'TOEIC-K11-Sang-2-4-6' LIMIT 1), (SELECT id FROM users WHERE username = 'student4@ec.local' LIMIT 1), 'official', '2026-03-01'),
 ((SELECT id FROM classes WHERE class_name = 'IELTS-K19-Toi-3-5' LIMIT 1), (SELECT id FROM users WHERE username = 'student3@ec.local' LIMIT 1), 'official', '2025-11-01'),
 ((SELECT id FROM classes WHERE class_name = 'KIDS-K03-Cuoi-Tuan' LIMIT 1), (SELECT id FROM users WHERE username = 'student3@ec.local' LIMIT 1), 'official', '2026-04-06');
 
