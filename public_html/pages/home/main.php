@@ -41,26 +41,26 @@ $teacherSchedules = $homeWidgets['teacher_schedules'] ?? [];
         </div>
 
         <div class="absolute bottom-0 left-0 right-0 translate-y-1/2 z-30 flex flex-col items-center px-4 sm:px-6">
-            <div class="w-full max-w-[1180px] bg-[#2e3192] rounded-3xl shadow-[0_18px_60px_rgba(0,0,0,0.35)] flex flex-col overflow-hidden border border-blue-400/25 ring-1 ring-white/10">
+            <div class="w-full max-w-[1180px] bg-gradient-to-br from-red-200 via-rose-200 to-lime-200 rounded-3xl shadow-[0_18px_60px_rgba(0,0,0,0.18)] flex flex-col overflow-hidden border border-lime-400/35 ring-1 ring-white/10">
                 <div class="h-1 w-full bg-gradient-to-r from-amber-400 via-cyan-300 to-sky-400"></div>
                 <div class="grid gap-0 lg:grid-cols-[1.35fr_1fr] items-stretch">
-                    <div class="p-6 md:p-8 lg:p-10 lg:border-r border-white/10 relative overflow-hidden flex items-center">
-                        <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.14),transparent_38%)]"></div>
+                    <div class="p-6 md:p-8 lg:p-10 lg:border-r border-lime-200/80 relative overflow-hidden flex items-center">
+                        <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.58),transparent_38%)]"></div>
                         <div class="relative z-10 max-w-3xl">
-                            <p class="text-amber-100 font-semibold text-sm md:text-base leading-relaxed max-w-2xl">
+                            <p class="text-slate-800 font-semibold text-sm md:text-base leading-relaxed max-w-2xl">
                                 Tìm các khóa học phù hợp với bạn và giúp con đường học vấn của bạn thành công
                             </p>
                         </div>
                     </div>
-                    <div class="p-6 md:p-8 lg:p-10 bg-white/8 backdrop-blur-sm flex items-center relative overflow-hidden">
+                    <div class="p-6 md:p-8 lg:p-10 bg-white/72 backdrop-blur-sm flex items-center relative overflow-hidden">
                         <div class="absolute inset-0 pointer-events-none">
-                            <div class="absolute -top-8 right-10 h-20 w-20 rounded-none border border-white/10 bg-white/5 rotate-12"></div>
-                            <div class="absolute bottom-8 right-16 h-12 w-12 rounded-none bg-amber-400/15 rotate-45"></div>
-                            <div class="absolute top-1/2 left-6 h-14 w-14 rounded-none border border-cyan-300/20 bg-cyan-300/10 -rotate-12"></div>
+                            <div class="absolute -top-8 right-10 h-20 w-20 rounded-none border border-lime-300/70 bg-white/50 rotate-12"></div>
+                            <div class="absolute bottom-8 right-16 h-12 w-12 rounded-none bg-lime-400/35 rotate-45"></div>
+                            <div class="absolute top-1/2 left-6 h-14 w-14 rounded-none border border-lime-300/60 bg-lime-100/50 -rotate-12"></div>
                         </div>
                         <div class="relative z-10 w-full grid gap-4 sm:grid-cols-2">
                             <div class="relative">
-                                <select class="w-full bg-white text-blue-950 font-bold rounded-2xl px-5 py-3 outline-none appearance-none cursor-pointer text-sm shadow-inner border border-white/60">
+                                <select class="w-full bg-white text-slate-800 font-bold rounded-2xl px-5 py-3 outline-none appearance-none cursor-pointer text-sm shadow-inner border border-lime-200/90">
                                     <option value="" disabled selected>Độ tuổi</option>
                                     <option>Mầm non</option>
                                     <option>Tiểu học</option>
@@ -68,7 +68,7 @@ $teacherSchedules = $homeWidgets['teacher_schedules'] ?? [];
                                 <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-[10px]"></i>
                             </div>
                             <div class="relative">
-                                <select class="w-full bg-white text-blue-950 font-bold rounded-2xl px-5 py-3 outline-none appearance-none cursor-pointer text-sm shadow-inner border border-white/60">
+                                <select class="w-full bg-white text-slate-800 font-bold rounded-2xl px-5 py-3 outline-none appearance-none cursor-pointer text-sm shadow-inner border border-lime-200/90">
                                     <option value="" disabled selected>Chương trình học</option>
                                     <option>IELTS</option>
                                     <option>Giao tiếp</option>
@@ -95,7 +95,7 @@ $teacherSchedules = $homeWidgets['teacher_schedules'] ?? [];
         </div>
 
         <div class="relative z-10 max-w-[1450px] mx-auto px-4 sm:px-6 flex flex-col lg:flex-row gap-10 lg:gap-14 items-center lg:items-stretch">
-            <div class="hidden lg:flex lg:w-5/12 relative items-end justify-center pt-10" data-aos="fade-right" data-aos-duration="1200">
+            <div class="hidden lg:flex lg:w-5/12 relative items-center justify-center lg:-mt-20" data-aos="fade-right" data-aos-duration="1200">
                 <div class="absolute bottom-10 left-1/2 -translate-x-1/2 w-[90%] h-[80%] bg-gradient-to-t from-blue-300/40 to-transparent rounded-[3rem] blur-[60px] -z-10"></div>
                 <img src="assets/images/student_girl.png" alt="Học sinh tiêu biểu" class="w-full max-w-[550px] object-contain relative z-10 drop-shadow-[0_20px_40px_rgba(30,58,138,0.25)]">
                 
@@ -157,20 +157,20 @@ $teacherSchedules = $homeWidgets['teacher_schedules'] ?? [];
             </div>
         </div>
     </section>
-    	<div class="fixed bottom-5 right-4 z-50 flex flex-col items-end gap-3 sm:bottom-6 sm:right-6">
-    		<a href="#top" class="group flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-slate-800 text-white shadow-[0_10px_25px_rgba(15,23,42,0.28)] ring-2 ring-white transition-all hover:-translate-y-1 hover:bg-slate-700" aria-label="Lên đầu trang">
+        <div class="fixed bottom-5 right-4 z-50 flex flex-col items-end gap-3 sm:bottom-6 sm:right-6">
+            <a href="#hero-video" class="group flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-slate-800 text-white shadow-[0_10px_25px_rgba(15,23,42,0.28)] ring-2 ring-white transition-all hover:-translate-y-1 hover:bg-slate-700" aria-label="Đi tới hero video">
     			<i class="fa-solid fa-arrow-up text-[15px] sm:text-base transition-transform duration-300 group-hover:-translate-y-0.5"></i>
     		</a>
-    		<a href="https://www.facebook.com/" target="_blank" rel="noopener noreferrer" class="group flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-[#1877F2] text-white shadow-[0_10px_25px_rgba(24,119,242,0.28)] ring-2 ring-white transition-all hover:-translate-y-1 hover:scale-105" aria-label="Facebook">
+            <a href="https://www.facebook.com/" target="_blank" rel="noopener noreferrer" class="group contact-bell flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-[#1877F2] text-white shadow-[0_10px_25px_rgba(24,119,242,0.28)] ring-2 ring-white transition-all hover:-translate-y-1 hover:scale-105" aria-label="Facebook" style="animation-delay: 0s;">
     			<i class="fa-brands fa-facebook-f text-[15px] sm:text-base"></i>
     		</a>
-    		<a href="https://zalo.me/" target="_blank" rel="noopener noreferrer" class="group flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-[#0068FF] text-white shadow-[0_10px_25px_rgba(0,104,255,0.28)] ring-2 ring-white transition-all hover:-translate-y-1 hover:scale-105" aria-label="Zalo">
+            <a href="https://zalo.me/" target="_blank" rel="noopener noreferrer" class="group contact-bell flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-[#0068FF] text-white shadow-[0_10px_25px_rgba(0,104,255,0.28)] ring-2 ring-white transition-all hover:-translate-y-1 hover:scale-105" aria-label="Zalo" style="animation-delay: 0.15s;">
     			<span class="text-[13px] sm:text-sm font-black leading-none tracking-tight">Z</span>
     		</a>
-    		<a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer" class="group flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-gradient-to-br from-[#f09433] via-[#e6683c] via-[#dc2743] to-[#bc1888] text-white shadow-[0_10px_25px_rgba(220,39,67,0.28)] ring-2 ring-white transition-all hover:-translate-y-1 hover:scale-105" aria-label="Instagram">
+            <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer" class="group contact-bell flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-gradient-to-br from-[#f09433] via-[#e6683c] via-[#dc2743] to-[#bc1888] text-white shadow-[0_10px_25px_rgba(220,39,67,0.28)] ring-2 ring-white transition-all hover:-translate-y-1 hover:scale-105" aria-label="Instagram" style="animation-delay: 0.3s;">
     			<i class="fa-brands fa-instagram text-[15px] sm:text-base"></i>
     		</a>
-    		<a href="https://www.messenger.com/" target="_blank" rel="noopener noreferrer" class="group flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-[#0084FF] text-white shadow-[0_10px_25px_rgba(0,132,255,0.28)] ring-2 ring-white transition-all hover:-translate-y-1 hover:scale-105" aria-label="Messenger">
+            <a href="https://www.messenger.com/" target="_blank" rel="noopener noreferrer" class="group contact-bell flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-[#0084FF] text-white shadow-[0_10px_25px_rgba(0,132,255,0.28)] ring-2 ring-white transition-all hover:-translate-y-1 hover:scale-105" aria-label="Messenger" style="animation-delay: 0.45s;">
     			<i class="fa-brands fa-facebook-messenger text-[15px] sm:text-base"></i>
     		</a>
     	</div>
@@ -262,32 +262,6 @@ $teacherSchedules = $homeWidgets['teacher_schedules'] ?? [];
             </div>
         </div>
     </section>
-
-    <style>
-    /* Hiệu ứng quay của vòng quỹ đạo */
-    @keyframes spin-orbit {
-        from { transform: rotate(0deg); }
-        to { transform: rotate(360deg); }
-    }
-    /* Hiệu ứng quay ngược của các node để giữ chữ luôn thẳng đứng */
-    @keyframes spin-orbit-reverse {
-        from { transform: rotate(0deg); }
-        to { transform: rotate(-360deg); }
-    }
-    
-    .orbit-spin {
-        animation: spin-orbit 20s linear infinite;
-    }
-    .orbit-reverse-spin {
-        animation: spin-orbit-reverse 20s linear infinite;
-    }
-    
-    /* Tạm dừng toàn bộ vòng quay khi di chuột vào */
-    .orbit-wrapper:hover .orbit-spin,
-    .orbit-wrapper:hover .orbit-reverse-spin {
-        animation-play-state: paused;
-    }
-</style>
 
     <section id="su-menh" class="pt-24 pb-12 md:pt-28 md:pb-16 relative overflow-hidden bg-transparent z-10">
         <div class="absolute inset-0 pointer-events-none z-0 overflow-hidden">
@@ -674,26 +648,5 @@ $teacherSchedules = $homeWidgets['teacher_schedules'] ?? [];
         </div>
     </section>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const dynamicBg = document.getElementById('dynamic-scroll-bg');
-            if(dynamicBg) {
-                window.addEventListener('scroll', () => {
-                    // Lấy vị trí cuộn hiện tại
-                    const scrollTop = window.scrollY || document.documentElement.scrollTop;
-                    // Lấy tổng chiều cao có thể cuộn
-                    const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-                    
-                    // Tránh lỗi chia cho 0 nếu trang quá ngắn
-                    if (maxScroll <= 0) return;
-                    
-                    const scrollPercent = scrollTop / maxScroll;
-                    
-                    // Di chuyển nền gradient lên trên (Tối đa 75% vì lớp fixed cao 400vh)
-                    const translateY = scrollPercent * 75;
-                    dynamicBg.style.transform = `translateY(-${translateY}%)`;
-                });
-            }
-        });
-    </script>
+   
 </main>
