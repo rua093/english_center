@@ -109,3 +109,90 @@ if (is_logged_in()) {
 	    AOS.refresh();
 	});
 	</script>
+
+	 <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const dynamicBg = document.getElementById('dynamic-scroll-bg');
+            if(dynamicBg) {
+                window.addEventListener('scroll', () => {
+                    // Lấy vị trí cuộn hiện tại
+                    const scrollTop = window.scrollY || document.documentElement.scrollTop;
+                    // Lấy tổng chiều cao có thể cuộn
+                    const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+                    
+                    // Tránh lỗi chia cho 0 nếu trang quá ngắn
+                    if (maxScroll <= 0) return;
+                    
+                    const scrollPercent = scrollTop / maxScroll;
+                    
+                    // Di chuyển nền gradient lên trên (Tối đa 75% vì lớp fixed cao 400vh)
+                    const translateY = scrollPercent * 75;
+                    dynamicBg.style.transform = `translateY(-${translateY}%)`;
+                });
+            }
+        });
+    </script>
+
+	<style>
+    @keyframes bell-shake {
+        0%, 100% { transform: rotate(0deg) translateY(0); }
+        10% { transform: rotate(-8deg) translateY(-1px); }
+        20% { transform: rotate(8deg) translateY(-1px); }
+        30% { transform: rotate(-6deg) translateY(0); }
+        40% { transform: rotate(6deg) translateY(0); }
+        50% { transform: rotate(-4deg) translateY(-1px); }
+        60% { transform: rotate(4deg) translateY(0); }
+        70% { transform: rotate(-2deg) translateY(0); }
+        80% { transform: rotate(2deg) translateY(0); }
+        90% { transform: rotate(0deg) translateY(-1px); }
+    }
+
+    .contact-bell {
+        animation: bell-shake 2.8s ease-in-out infinite;
+        transform-origin: center bottom;
+    }
+
+    .contact-bell:nth-child(2) {
+        animation-delay: 0.15s;
+    }
+
+    .contact-bell:nth-child(3) {
+        animation-delay: 0.3s;
+    }
+
+    .contact-bell:nth-child(4) {
+        animation-delay: 0.45s;
+    }
+
+    .contact-bell:nth-child(5) {
+        animation-delay: 0.6s;
+    }
+
+    .contact-bell:hover {
+        animation-play-state: paused;
+    }
+
+    /* Hiệu ứng quay của vòng quỹ đạo */
+    @keyframes spin-orbit {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    /* Hiệu ứng quay ngược của các node để giữ chữ luôn thẳng đứng */
+    @keyframes spin-orbit-reverse {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(-360deg); }
+    }
+    
+    .orbit-spin {
+        animation: spin-orbit 20s linear infinite;
+    }
+    .orbit-reverse-spin {
+        animation: spin-orbit-reverse 20s linear infinite;
+    }
+    
+    /* Tạm dừng toàn bộ vòng quay khi di chuột vào */
+    .orbit-wrapper:hover .orbit-spin,
+    .orbit-wrapper:hover .orbit-reverse-spin {
+        animation-play-state: paused;
+    }
+</style>
