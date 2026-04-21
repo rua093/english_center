@@ -23,13 +23,13 @@
                     Hệ thống đào tạo Anh ngữ chuẩn quốc tế, giúp học viên bứt phá giới hạn và tự tin kết nối toàn cầu.
                 </p>
                 <div class="flex gap-3">
-                    <a href="#" class="w-10 h-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-blue-300 hover:bg-blue-600 hover:text-white hover:border-blue-500 transition-all duration-300">
+                    <a href="#" class="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/30 hover:scale-105 transition-all duration-300">
                         <i class="fa-brands fa-facebook-f text-base"></i>
                     </a>
-                    <a href="#" class="w-10 h-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-blue-300 hover:bg-gradient-to-tr hover:from-pink-500 hover:to-orange-500 hover:text-white transition-all duration-300">
+                    <a href="#" class="w-10 h-10 rounded-lg bg-gradient-to-tr from-pink-500 to-orange-500 flex items-center justify-center text-white shadow-lg shadow-pink-500/30 hover:scale-105 transition-all duration-300">
                         <i class="fa-brands fa-instagram text-lg"></i>
                     </a>
-                    <a href="#" class="w-10 h-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-blue-300 hover:bg-red-600 hover:text-white transition-all duration-300">
+                   <a href="#" class="w-10 h-10 rounded-lg bg-red-600 flex items-center justify-center text-white shadow-lg shadow-red-500/30 hover:scale-105 transition-all duration-300">
                         <i class="fa-brands fa-youtube text-base"></i>
                     </a>
                 </div>
@@ -61,9 +61,11 @@
                             </a>
                         </li>
                     <?php endif; ?>
-                    <li>
+                        <li>
                         <a href="#" class="group flex items-center gap-3 hover:text-white transition-all">
-                            <div class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-blue-400 group-hover:bg-blue-400 group-hover:text-blue-950 transition-all"><i class="fa-solid fa-calendar-days text-xs"></i></div>
+                            <div class="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center text-white shadow-md shadow-amber-500/30 group-hover:scale-105 group-hover:-translate-y-0.5 transition-all">
+                                <i class="fa-solid fa-calendar-days text-xs"></i>
+                            </div>
                             <span class="text-xs font-bold">Lịch khai giảng</span>
                         </a>
                     </li>
@@ -77,16 +79,18 @@
                 </h4>
                 <div class="space-y-4 mt-6">
                     <div class="flex gap-3 items-start group">
-                        <div class="w-9 h-9 rounded-lg bg-white/5 flex items-center justify-center text-blue-400 flex-shrink-0 group-hover:bg-blue-400 group-hover:text-blue-950 transition-all">
+                        <div class="w-9 h-9 rounded-lg bg-emerald-500 flex items-center justify-center text-white flex-shrink-0 shadow-md shadow-emerald-500/30 group-hover:scale-105 group-hover:-translate-y-0.5 transition-all">
                             <i class="fa-solid fa-location-dot text-sm"></i>
                         </div>
                         <span class="text-[13px] font-bold leading-relaxed pt-1">Thôn Phú Thạnh - Phường Quảng Phú, TP. Đà Nẵng</span>
                     </div>
                     <div class="flex gap-3 items-center group">
-                        <div class="w-9 h-9 rounded-lg bg-white/5 flex items-center justify-center text-blue-400 flex-shrink-0 group-hover:bg-blue-400 group-hover:text-blue-950 transition-all">
+                        <div class="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center text-white flex-shrink-0 shadow-md shadow-blue-500/30 group-hover:scale-105 group-hover:-translate-y-0.5 transition-all">
                             <i class="fa-solid fa-phone-volume text-sm"></i>
                         </div>
-                        <a href="tel:02873083333" class="text-lg font-black text-white hover:text-blue-400 transition-all">028 7308 3333</a>
+                        <a href="tel:02873083333" class="text-lg font-black text-white hover:text-blue-400 transition-all">
+                            028 7308 3333
+                        </a>
                     </div>
                 </div>
             </div>
@@ -102,10 +106,10 @@
                 <a href="#" class="hover:text-white transition-colors">Điều khoản</a>
             </div>
             
-            <a href="#top" class="group flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-[10px] font-black text-blue-400 hover:bg-blue-400 hover:text-blue-950 transition-all duration-500">
+            <!-- <a href="#top" class="group flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-[10px] font-black text-blue-400 hover:bg-blue-400 hover:text-blue-950 transition-all duration-500">
                 <span>LÊN ĐẦU TRANG</span>
                 <i class="fa-solid fa-arrow-up transition-transform group-hover:-translate-y-1"></i>
-            </a>
+            </a> -->
         </div>
     </div>
 </footer>
