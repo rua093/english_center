@@ -6,6 +6,7 @@ function page_route_definitions(): array
 	return [
 		'home' => ['directory' => 'home', 'aliases' => []],
 		'courses' => ['directory' => 'main-courses', 'aliases' => ['main-courses', 'khoa-hoc']],
+		'course-detail' => ['directory' => 'main-courses/detail', 'aliases' => ['khoa-hoc-chi-tiet']],
 		'login' => ['directory' => 'login', 'aliases' => []],
 		'register' => ['directory' => 'register', 'aliases' => []],
 		'logout' => ['directory' => 'logout', 'aliases' => []],

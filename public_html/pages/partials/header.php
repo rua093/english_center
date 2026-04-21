@@ -35,7 +35,7 @@
                 <div class="relative group py-6">
                     <a class="inline-flex items-center gap-1.5 text-[16px] font-extrabold text-slate-800 hover:text-[#27318b] transition-colors cursor-pointer" href="<?= e(page_url('courses')); ?>">
                         Chương trình học
-                        <i class="fa-solid fa-chevron-down text-[10px] text-slate-800 group-hover:text-[#27318b] transition-transform duration-300 group-hover:rotate-180"></i>
+                        <!-- <i class="fa-solid fa-chevron-down text-[10px] text-slate-800 group-hover:text-[#27318b] transition-transform duration-300 group-hover:rotate-180"></i> -->
                     </a>
                 </div>
 
@@ -221,8 +221,8 @@
                         <div class="absolute right-0 top-full z-50 w-64 opacity-0 invisible translate-y-2 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 transition-all duration-200">
                             <div class="rounded-xl border border-slate-100 bg-white shadow-[0_10px_30px_rgba(0,0,0,0.08)] py-2">
                                 <?php if (can_access_page('profile')): ?><a class="block px-5 py-2.5 text-[14px] font-bold text-slate-700 hover:bg-slate-50 hover:text-[#27318b]" href="<?= e(page_url('profile')); ?>">Trang cá nhân</a><?php endif; ?>
-                                <?php if (can_access_page('dashboard-student')): ?><a class="block px-5 py-2.5 text-[14px] font-bold text-slate-700 hover:bg-slate-50 hover:text-[#27318b]" href="<?= e(page_url('dashboard-student')); ?>">Dashboard Học viên</a><?php endif; ?>
-                                <?php if (can_access_page('dashboard-teacher')): ?><a class="block px-5 py-2.5 text-[14px] font-bold text-slate-700 hover:bg-slate-50 hover:text-[#27318b]" href="<?= e(page_url('dashboard-teacher')); ?>">Dashboard Giáo viên</a><?php endif; ?>
+                                <?php if (can_access_page('dashboard-student')): ?><a class="block px-5 py-2.5 text-[14px] font-bold text-slate-700 hover:bg-slate-50 hover:text-[#27318b]" href="<?= e(page_url('dashboard-student')); ?>">Trang Học viên</a><?php endif; ?>
+                                <?php if (can_access_page('dashboard-teacher')): ?><a class="block px-5 py-2.5 text-[14px] font-bold text-slate-700 hover:bg-slate-50 hover:text-[#27318b]" href="<?= e(page_url('dashboard-teacher')); ?>">Trang Giáo viên</a><?php endif; ?>
                                 <?php if (can_access_page('portfolios-academic')): ?><a class="block px-5 py-2.5 text-[14px] font-bold text-slate-700 hover:bg-slate-50 hover:text-[#27318b]" href="<?= e(page_url('portfolios-academic')); ?>">Portfolio</a><?php endif; ?>
                                 <?php if (can_access_page('dashboard-admin')): ?><a class="block px-5 py-2.5 text-[14px] font-bold text-[#27318b] bg-blue-50/50 hover:bg-blue-50" href="/admin">Quản trị hệ thống</a><?php endif; ?>
                                 <div class="h-px bg-slate-100 my-1"></div>

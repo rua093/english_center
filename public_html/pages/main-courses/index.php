@@ -1,70 +1,5 @@
 <?php
-$courses = [
-    [
-        'title' => 'Tiếng Anh Mầm non',
-        'level' => '4 - 6 tuổi',
-        'duration' => '24 buổi',
-        'image' => 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=1200&q=80',
-        'price' => '1.250.000đ',
-        'tag' => 'Khởi đầu'
-    ],
-    [
-        'title' => 'Tiếng Anh Tiểu học',
-        'level' => '7 - 11 tuổi',
-        'duration' => '32 buổi',
-        'image' => 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=1200&q=80',
-        'price' => '1.490.000đ',
-        'tag' => 'Phổ biến'
-    ],
-    [
-        'title' => 'Giao tiếp phản xạ',
-        'level' => 'Thiếu niên',
-        'duration' => '36 buổi',
-        'image' => 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1200&q=80',
-        'price' => '1.990.000đ',
-        'tag' => 'Mới'
-    ],
-    [
-        'title' => 'IELTS Foundation',
-        'level' => 'Band 3.5 - 4.5',
-        'duration' => '40 buổi',
-        'image' => 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1200&q=80',
-        'price' => '2.390.000đ',
-        'tag' => 'Nền tảng'
-    ],
-    [
-        'title' => 'IELTS Intensive',
-        'level' => 'Band 5.5 - 6.5',
-        'duration' => '48 buổi',
-        'image' => 'https://images.unsplash.com/photo-1513258496099-48168024aec0?auto=format&fit=crop&w=1200&q=80',
-        'price' => '3.490.000đ',
-        'tag' => 'Hot'
-    ],
-    [
-        'title' => 'IELTS Advance',
-        'level' => 'Band 6.5+',
-        'duration' => '56 buổi',
-        'image' => 'https://images.unsplash.com/photo-1543269865-cbf427effbad?auto=format&fit=crop&w=1200&q=80',
-        'price' => '4.490.000đ',
-        'tag' => 'Tăng tốc'
-    ],
-    [
-        'title' => 'Tiếng Anh Hè',
-        'level' => 'Theo độ tuổi',
-        'duration' => '8 tuần',
-        'image' => 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=1200&q=80',
-        'price' => '2.100.000đ',
-        'tag' => 'Mùa hè'
-    ],
-    [
-        'title' => 'Tiếng Anh Doanh nghiệp',
-        'level' => 'Người đi làm',
-        'duration' => '30 buổi',
-        'image' => 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1200&q=80',
-        'price' => '2.850.000đ',
-        'tag' => 'Chuyên sâu'
-    ],
-];
+$courses = require __DIR__ . '/catalog.php';
 
 $stats = [
     ['value' => '12+', 'label' => 'Chương trình học'],
@@ -79,6 +14,9 @@ $highlights = [
     ['icon' => 'fa-solid fa-medal', 'title' => 'Lộ trình rõ ràng', 'desc' => 'Có mục tiêu đầu ra và mốc tiến độ từng giai đoạn.'],
 ];
 ?>
+
+<link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css">
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 
 <style>
     .course-card:hover .course-img {
@@ -96,6 +34,14 @@ $highlights = [
     .badge-soft-green {
         background: linear-gradient(135deg, rgba(16,185,129,0.16), rgba(16,185,129,0.08));
     }
+
+    @media (prefers-reduced-motion: reduce) {
+        .course-card:hover .course-img {
+            transition: none !important;
+            animation: none !important;
+            transform: none !important;
+        }
+    }
 </style>
 
 <main class="bg-[#fbfcfa] text-slate-800 overflow-hidden">
@@ -108,7 +54,8 @@ $highlights = [
 
         <div class="mx-auto max-w-[1450px] px-4 sm:px-6 relative z-10">
             <div class="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] items-center">
-                <div class="space-y-7" data-aos="fade-right">
+                <div class="space-y-7 rounded-[2.5rem] p-2 md:p-3 bg-white/20 backdrop-blur-sm border border-white/40 shadow-[0_12px_40px_rgba(15,23,42,0.03)]" data-aos="fade-right" data-aos-duration="700">
+                    <div class="morph-content space-y-7 rounded-[2.2rem] bg-white/55 p-5 md:p-6 backdrop-blur-md border border-white/60 shadow-[0_12px_40px_rgba(15,23,42,0.04)]">
                     <span class="inline-flex items-center gap-2 rounded-full border border-red-200 bg-white/80 px-4 py-2 text-xs font-black uppercase tracking-[0.2em] text-rose-600 shadow-sm backdrop-blur">
                         <span class="h-2 w-2 rounded-full bg-lime-400"></span>
                         Chương trình học
@@ -124,11 +71,13 @@ $highlights = [
                     </div>
 
                     <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                        <?php $statDelay = 0; ?>
                         <?php foreach ($stats as $stat): ?>
-                            <div class="rounded-3xl border border-white bg-white/80 p-5 shadow-[0_12px_30px_rgba(15,23,42,0.05)] backdrop-blur-md">
+                            <div class="rounded-3xl border border-white bg-white/80 p-5 shadow-[0_12px_30px_rgba(15,23,42,0.05)] backdrop-blur-md" data-aos="fade-up" data-aos-delay="<?= $statDelay; ?>" data-aos-duration="600">
                                 <div class="text-2xl md:text-3xl font-black text-slate-950"><?= e($stat['value']); ?></div>
                                 <div class="mt-1 text-xs font-bold uppercase tracking-wider text-slate-500"><?= e($stat['label']); ?></div>
                             </div>
+                            <?php $statDelay += 100; ?>
                         <?php endforeach; ?>
                     </div>
 
@@ -142,36 +91,45 @@ $highlights = [
                             <i class="fa-solid fa-calendar-check"></i>
                         </a>
                     </div>
+                    </div>
                 </div>
 
-                <div class="relative" data-aos="fade-left">
+                <div class="relative" data-aos="fade-left" data-aos-duration="700">
                     <div class="absolute inset-0 translate-x-6 translate-y-6 rounded-[2.5rem] bg-gradient-to-br from-red-200/50 to-lime-200/50 blur-2xl"></div>
-                    <div class="relative overflow-hidden rounded-[2.5rem] border border-white bg-white/80 p-4 shadow-[0_24px_80px_rgba(15,23,42,0.12)] backdrop-blur-md">
+                    <div class="relative overflow-hidden rounded-[2.5rem] border border-white bg-white/80 p-4 shadow-[0_24px_80px_rgba(15,23,42,0.12)] backdrop-blur-md" data-aos="zoom-in" data-aos-duration="800">
+                        <div class="morph-content">
                         <div class="grid gap-4 sm:grid-cols-2">
-                            <div class="rounded-[2rem] bg-gradient-to-br from-red-500 to-rose-500 p-6 text-white shadow-lg">
+                            <div class="rounded-[2rem] bg-gradient-to-br from-red-500 to-rose-500 p-6 text-white shadow-lg transition-transform duration-300 hover:-translate-y-1" data-aos="zoom-in" data-aos-delay="100">
+                                <div class="morph-content">
                                 <div class="mb-10 flex items-center justify-between">
                                     <span class="rounded-full bg-white/20 px-3 py-1 text-[10px] font-black uppercase tracking-widest">Ưu tiên</span>
                                     <i class="fa-solid fa-star text-white/70"></i>
                                 </div>
                                 <h2 class="text-2xl font-black leading-tight">Lộ trình rõ ràng, đầu ra dễ kiểm soát.</h2>
+                                </div>
                             </div>
-                            <div class="rounded-[2rem] bg-gradient-to-br from-lime-200 to-lime-100 p-6 text-slate-900 shadow-lg">
+                            
+                            <div class="rounded-[2rem] bg-gradient-to-br from-lime-200 to-lime-100 p-6 text-slate-900 shadow-lg transition-transform duration-300 hover:-translate-y-1" data-aos="zoom-in" data-aos-delay="200">
+                                <div class="morph-content">
                                 <div class="mb-8 flex items-center gap-3">
                                     <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-emerald-600 shadow-sm">
-                                        <i class="fa-solid fa-leaf"></i>
+                                        <i class="fa-solid fa-seedling text-xl"></i>
                                     </div>
                                     <div>
-                                        <p class="text-xs font-bold uppercase tracking-widest text-slate-500">Màu chủ đạo</p>
-                                        <p class="text-sm font-black">Đỏ và xanh lá chuối non</p>
+                                        <p class="text-[11px] font-bold uppercase tracking-widest text-emerald-700">Định hướng cốt lõi</p>
+                                        <p class="text-sm font-black text-slate-900">Ươm mầm & Phát triển</p>
                                     </div>
                                 </div>
-                                <p class="text-sm leading-relaxed text-slate-600">
-                                    Bố cục sáng, dễ đọc, tập trung vào thông tin chính của từng khoá học.
+                                <p class="text-sm leading-relaxed text-slate-700 font-medium">
+                                    Chú trọng xây dựng nền tảng tư duy vững chắc, kết hợp kiến thức chuyên sâu và kỹ năng thực chiến giúp học viên bứt phá tiềm năng.
                                 </p>
+                                </div>
                             </div>
+
                         </div>
 
-                        <div class="mt-4 rounded-[2rem] course-gradient border border-white p-5">
+                        <div class="mt-4 rounded-[2rem] course-gradient border border-white p-5" data-aos="fade-up" data-aos-delay="250">
+                            <div class="morph-content">
                             <div class="flex items-center justify-between gap-4">
                                 <div>
                                     <p class="text-xs font-bold uppercase tracking-[0.2em] text-slate-500">Tư vấn nhanh</p>
@@ -181,6 +139,8 @@ $highlights = [
                                     <i class="fa-solid fa-arrow-right"></i>
                                 </span>
                             </div>
+                            </div>
+                        </div>
                         </div>
                     </div>
                 </div>
@@ -191,14 +151,18 @@ $highlights = [
     <section class="py-10 md:py-14">
         <div class="mx-auto max-w-[1450px] px-4 sm:px-6">
             <div class="grid gap-4 md:grid-cols-3">
+                <?php $highlightDelay = 0; ?>
                 <?php foreach ($highlights as $highlight): ?>
-                    <div class="rounded-[2rem] border border-white bg-white/90 p-6 shadow-[0_12px_30px_rgba(15,23,42,0.05)] backdrop-blur-md">
+                    <div class="rounded-[2rem] border border-white bg-white/90 p-6 shadow-[0_12px_30px_rgba(15,23,42,0.05)] backdrop-blur-md transition-transform duration-300 hover:-translate-y-1" data-aos="fade-up" data-aos-delay="<?= $highlightDelay; ?>" data-aos-duration="600">
+                        <div class="morph-content">
                         <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl badge-soft-green text-emerald-600">
                             <i class="<?= e($highlight['icon']); ?>"></i>
                         </div>
                         <h3 class="text-lg font-black text-slate-950"><?= e($highlight['title']); ?></h3>
                         <p class="mt-2 text-sm leading-relaxed text-slate-600"><?= e($highlight['desc']); ?></p>
+                        </div>
                     </div>
+                    <?php $highlightDelay += 100; ?>
                 <?php endforeach; ?>
             </div>
         </div>
@@ -223,8 +187,10 @@ $highlights = [
             </div>
 
             <div class="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
+                <?php $courseDelay = 0; ?>
                 <?php foreach ($courses as $course): ?>
-                    <article class="course-card group overflow-hidden rounded-[2rem] border border-white bg-white/95 shadow-[0_14px_40px_rgba(15,23,42,0.08)] transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_24px_60px_rgba(15,23,42,0.14)]" data-aos="fade-up">
+                    <article class="course-card group overflow-hidden rounded-[2rem] border border-white bg-white/95 shadow-[0_14px_40px_rgba(15,23,42,0.08)] transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_24px_60px_rgba(15,23,42,0.14)]" data-aos="fade-up" data-aos-delay="<?= $courseDelay; ?>" data-aos-duration="700">
+                        <div class="morph-content">
                         <div class="relative h-56 overflow-hidden">
                             <img src="<?= e($course['image']); ?>" alt="<?= e($course['title']); ?>" class="course-img h-full w-full object-cover transition-transform duration-700">
                             <div class="absolute inset-0 bg-gradient-to-t from-slate-950/45 via-slate-950/0 to-transparent"></div>
@@ -244,6 +210,7 @@ $highlights = [
                                 </div>
                             </div>
                         </div>
+                        </div>
 
                         <div class="p-6">
                             <h3 class="text-xl font-black leading-tight text-slate-950 transition-colors group-hover:text-rose-600"><?= e($course['title']); ?></h3>
@@ -256,12 +223,14 @@ $highlights = [
                                     <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Học phí từ</p>
                                     <p class="text-xl font-black text-slate-950"><?= e($course['price']); ?></p>
                                 </div>
-                                <a href="#dang-ky-tu-van" class="inline-flex h-11 w-11 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 transition-all hover:bg-emerald-600 hover:text-white">
+                                <a href="<?= e(page_url('course-detail', ['course' => $course['slug']])); ?>" class="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-4 py-2 text-sm font-black text-emerald-600 transition-all hover:bg-emerald-600 hover:text-white">
+                                    Xem chi tiết
                                     <i class="fa-solid fa-arrow-right"></i>
                                 </a>
                             </div>
                         </div>
                     </article>
+                    <?php $courseDelay += 100; ?>
                 <?php endforeach; ?>
             </div>
         </div>
@@ -270,7 +239,8 @@ $highlights = [
     <section id="dang-ky-tu-van" class="py-14 md:py-20">
         <div class="mx-auto max-w-[1450px] px-4 sm:px-6">
             <div class="grid gap-8 lg:grid-cols-[0.95fr_1.05fr] items-stretch">
-                <div class="rounded-[2.5rem] bg-gradient-to-br from-red-600 to-rose-500 p-8 md:p-10 text-white shadow-[0_24px_60px_rgba(225,29,72,0.25)]">
+                <div class="rounded-[2.5rem] bg-gradient-to-br from-red-600 to-rose-500 p-8 md:p-10 text-white shadow-[0_24px_60px_rgba(225,29,72,0.25)] transition-transform duration-300 hover:-translate-y-1" data-aos="fade-right" data-aos-duration="700">
+                    <div class="morph-content">
                     <span class="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-xs font-black uppercase tracking-[0.2em]">
                         <span class="h-2 w-2 rounded-full bg-lime-300"></span>
                         Tư vấn nhanh
@@ -294,9 +264,11 @@ $highlights = [
                             <p class="mt-1 text-xs font-bold uppercase tracking-wider text-white/80">Cá nhân hóa</p>
                         </div>
                     </div>
+                    </div>
                 </div>
 
-                <div class="rounded-[2.5rem] border border-white bg-white p-8 md:p-10 shadow-[0_24px_60px_rgba(15,23,42,0.08)]">
+                <div class="rounded-[2.5rem] border border-white bg-white p-8 md:p-10 shadow-[0_24px_60px_rgba(15,23,42,0.08)] transition-transform duration-300 hover:-translate-y-1" data-aos="fade-left" data-aos-duration="700" data-aos-delay="100">
+                    <div class="morph-content">
                     <div class="mb-8">
                         <h3 class="text-2xl font-black text-slate-950">Đăng ký nhận tư vấn</h3>
                         <p class="mt-2 text-slate-600">Để lại thông tin, trung tâm sẽ liên hệ sớm nhất.</p>
@@ -320,8 +292,22 @@ $highlights = [
                             <i class="fa-solid fa-paper-plane"></i>
                         </button>
                     </form>
+                    </div>
                 </div>
             </div>
         </div>
     </section>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof AOS !== 'undefined') {
+                AOS.init({
+                    duration: 650,
+                    once: true,
+                    offset: 0,
+                    easing: 'ease-out-cubic'
+                });
+            }
+        });
+    </script>
 </main>
