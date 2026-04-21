@@ -39,12 +39,6 @@ $homeError = get_flash('home_error');
                 <p class="mt-4 text-base md:text-lg text-sky-100 font-medium max-w-lg drop-shadow-md">
                     Đồng hành cùng mỗi học viên để khơi dậy tiềm năng và đam mê trên hành trình học tập trọn đời.
                 </p>
-                <div class="mt-8">
-                    <a href="#" class="group inline-flex items-center gap-3 bg-[#2e3192]/80 hover:bg-[#2e3192] backdrop-blur-md text-white px-6 py-2.5 rounded-full text-sm font-bold uppercase transition-all border border-white/20 shadow-xl">
-                        XEM VIDEO 
-                        <span class="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,1)]"></span>
-                    </a>
-                </div>
             </div>
         </div>
 
@@ -165,6 +159,23 @@ $homeError = get_flash('home_error');
             </div>
         </div>
     </section>
+    	<div class="fixed bottom-5 right-4 z-50 flex flex-col items-end gap-3 sm:bottom-6 sm:right-6">
+    		<a href="#top" class="group flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-slate-800 text-white shadow-[0_10px_25px_rgba(15,23,42,0.28)] ring-2 ring-white transition-all hover:-translate-y-1 hover:bg-slate-700" aria-label="Lên đầu trang">
+    			<i class="fa-solid fa-arrow-up text-[15px] sm:text-base transition-transform duration-300 group-hover:-translate-y-0.5"></i>
+    		</a>
+    		<a href="https://www.facebook.com/" target="_blank" rel="noopener noreferrer" class="group flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-[#1877F2] text-white shadow-[0_10px_25px_rgba(24,119,242,0.28)] ring-2 ring-white transition-all hover:-translate-y-1 hover:scale-105" aria-label="Facebook">
+    			<i class="fa-brands fa-facebook-f text-[15px] sm:text-base"></i>
+    		</a>
+    		<a href="https://zalo.me/" target="_blank" rel="noopener noreferrer" class="group flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-[#0068FF] text-white shadow-[0_10px_25px_rgba(0,104,255,0.28)] ring-2 ring-white transition-all hover:-translate-y-1 hover:scale-105" aria-label="Zalo">
+    			<span class="text-[13px] sm:text-sm font-black leading-none tracking-tight">Z</span>
+    		</a>
+    		<a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer" class="group flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-gradient-to-br from-[#f09433] via-[#e6683c] via-[#dc2743] to-[#bc1888] text-white shadow-[0_10px_25px_rgba(220,39,67,0.28)] ring-2 ring-white transition-all hover:-translate-y-1 hover:scale-105" aria-label="Instagram">
+    			<i class="fa-brands fa-instagram text-[15px] sm:text-base"></i>
+    		</a>
+    		<a href="https://www.messenger.com/" target="_blank" rel="noopener noreferrer" class="group flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-[#0084FF] text-white shadow-[0_10px_25px_rgba(0,132,255,0.28)] ring-2 ring-white transition-all hover:-translate-y-1 hover:scale-105" aria-label="Messenger">
+    			<i class="fa-brands fa-facebook-messenger text-[15px] sm:text-base"></i>
+    		</a>
+    	</div>
 
 	<?php if ($homeUser && (string) ($homeUser['role'] ?? '') === 'teacher'): ?>
 		<section id="lich-day-noi-bo" class="py-12 relative z-20 bg-transparent" aria-label="Widget giáo viên">
@@ -267,10 +278,10 @@ $homeError = get_flash('home_error');
     }
     
     .orbit-spin {
-        animation: spin-orbit 40s linear infinite;
+        animation: spin-orbit 20s linear infinite;
     }
     .orbit-reverse-spin {
-        animation: spin-orbit-reverse 40s linear infinite;
+        animation: spin-orbit-reverse 20s linear infinite;
     }
     
     /* Tạm dừng toàn bộ vòng quay khi di chuột vào */
@@ -280,86 +291,121 @@ $homeError = get_flash('home_error');
     }
 </style>
 
-<section id="su-menh" class="py-32 relative overflow-hidden bg-transparent z-10">
-    <div class="mx-auto max-w-7xl px-4 sm:px-6 relative z-10">
-        
-        <div class="text-center mb-16" data-aos="fade-up">
-            <h2 class="text-4xl md:text-5xl font-black uppercase tracking-tight text-[#2e3192]">Sứ Mệnh <span class="text-red-600">Toàn Cầu</span></h2>
-            <p class="mt-4 text-slate-600 font-medium max-w-2xl mx-auto text-lg">Kiến tạo thế hệ công dân làm chủ tương lai thông qua ngôn ngữ và kỹ năng toàn diện.</p>
+    <section id="su-menh" class="pt-24 pb-12 md:pt-28 md:pb-16 relative overflow-hidden bg-transparent z-10">
+        <div class="absolute inset-0 pointer-events-none z-0 overflow-hidden">
+            <div class="absolute top-6 left-4 sm:top-10 sm:left-8 md:top-12 md:left-12 flex flex-col gap-4 text-slate-300 rotate-[-8deg]">
+                <i class="fa-solid fa-paper-plane text-4xl md:text-5xl opacity-55"></i>
+                <i class="fa-solid fa-earth-americas text-5xl md:text-6xl ml-6 opacity-55"></i>
+                <i class="fa-solid fa-book-open text-4xl md:text-5xl ml-10 opacity-55"></i>
+            </div>
+
+            <div class="absolute top-6 right-4 sm:top-10 sm:right-8 md:top-12 md:right-12 flex flex-col gap-4 items-end text-slate-300 rotate-[10deg]">
+                <i class="fa-solid fa-graduation-cap text-4xl md:text-5xl opacity-55"></i>
+                <i class="fa-solid fa-lightbulb text-5xl md:text-6xl mr-6 opacity-55"></i>
+                <i class="fa-solid fa-rocket text-4xl md:text-5xl mr-10 opacity-55"></i>
+            </div>
+
+            <div class="absolute bottom-6 left-4 sm:bottom-10 sm:left-8 md:bottom-12 md:left-12 flex flex-col gap-4 text-slate-300 rotate-[8deg]">
+                <i class="fa-solid fa-comments text-4xl md:text-5xl opacity-55"></i>
+                <i class="fa-solid fa-pen-nib text-5xl md:text-6xl ml-6 opacity-55"></i>
+                <i class="fa-solid fa-book text-4xl md:text-5xl ml-10 opacity-55"></i>
+            </div>
+
+            <div class="absolute bottom-6 right-4 sm:bottom-10 sm:right-8 md:bottom-12 md:right-12 flex flex-col gap-4 items-end text-slate-300 rotate-[-10deg]">
+                <i class="fa-solid fa-users text-4xl md:text-5xl opacity-55"></i>
+                <i class="fa-solid fa-star text-5xl md:text-6xl mr-6 opacity-55"></i>
+                <i class="fa-solid fa-compass text-4xl md:text-5xl mr-10 opacity-55"></i>
+            </div>
+
+            <i class="absolute top-[18%] left-[18%] fa-solid fa-laptop-code text-slate-300 text-3xl md:text-5xl opacity-[0.40] rotate-[-14deg]"></i>
+            <i class="absolute top-[28%] right-[22%] fa-solid fa-book text-slate-300 text-3xl md:text-5xl opacity-[0.40] rotate-[12deg]"></i>
+            <i class="absolute top-[42%] left-[9%] fa-solid fa-comments text-slate-300 text-4xl md:text-6xl opacity-[0.40] rotate-[-6deg]"></i>
+            <i class="absolute top-[46%] right-[10%] fa-solid fa-globe text-slate-300 text-4xl md:text-6xl opacity-[0.40] rotate-[8deg]"></i>
+            <i class="absolute top-[56%] left-[26%] fa-solid fa-lightbulb text-slate-300 text-3xl md:text-5xl opacity-[0.40] rotate-[-18deg]"></i>
+            <i class="absolute top-[60%] right-[28%] fa-solid fa-paper-plane text-slate-300 text-3xl md:text-5xl opacity-[0.40] rotate-[16deg]"></i>
+            <i class="absolute bottom-[28%] left-[14%] fa-solid fa-pen-nib text-slate-300 text-3xl md:text-5xl opacity-[0.40] rotate-[10deg]"></i>
+            <i class="absolute bottom-[24%] right-[16%] fa-solid fa-graduation-cap text-slate-300 text-4xl md:text-6xl opacity-[0.40] rotate-[-12deg]"></i>
+            <i class="absolute bottom-[40%] left-[42%] fa-solid fa-star text-slate-300 text-2xl md:text-4xl opacity-[0.40] rotate-[20deg]"></i>
+            <i class="absolute top-[34%] left-[46%] fa-solid fa-earth-americas text-slate-300 text-3xl md:text-5xl opacity-[0.36] rotate-[-10deg]"></i>
         </div>
-        
-        <div class="relative w-full max-w-[1260px] mx-auto min-h-[620px] md:min-h-[940px] flex items-center justify-center orbit-wrapper mt-10 md:mt-2">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 relative z-10">
             
-            <div class="absolute w-[430px] h-[430px] md:w-[770px] md:h-[770px] rounded-full border-2 border-dashed border-blue-400/50 orbit-spin z-10">
-                
-                <div class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50">
-                    <div class="orbit-reverse-spin group cursor-pointer">
-                        <div class="flex items-center gap-4 bg-white/95 backdrop-blur-md p-3 pr-6 rounded-full shadow-lg border border-slate-200 transition-all duration-300 hover:shadow-2xl hover:border-amber-300">
-                            <div class="w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center text-3xl shrink-0 bg-amber-50 text-amber-500 shadow-inner">💡</div>
-                            <div class="overflow-hidden transition-[max-width,max-height] duration-500 ease-in-out max-w-[140px] max-h-[36px] group-hover:max-w-[340px] group-hover:max-h-[170px]">
-                                <h4 class="font-black text-[#2e3192] text-sm md:text-lg whitespace-nowrap">Sáng Tạo</h4>
-                                <p class="text-xs md:text-sm text-slate-600 font-medium mt-1 w-[260px] opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100 leading-relaxed">
-                                    Xây dựng không gian học ngoại ngữ thân thiện, hiệu quả và đầy cảm hứng.
-                                </p>
+            <div class="text-center mb-8 md:mb-10" data-aos="fade-up">
+                <h2 class="text-4xl md:text-5xl font-black uppercase tracking-tight text-[#2e3192]">Sứ Mệnh <span class="text-red-600">Toàn Cầu</span></h2>
+                <p class="mt-4 text-slate-600 font-medium max-w-2xl mx-auto text-lg">Kiến tạo thế hệ công dân làm chủ tương lai thông qua ngôn ngữ và kỹ năng toàn diện.</p>
+            </div>
+            
+                <div class="relative w-full max-w-[1260px] mx-auto min-h-[620px] md:min-h-[940px] flex items-center justify-center orbit-wrapper mt-10 md:mt-2" style="transform: scale(0.95);">
+                <div class="absolute w-[430px] h-[430px] md:w-[770px] md:h-[770px] rounded-full border-2 border-dashed border-blue-400/50 orbit-spin z-10">
+                    
+                    <div class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50">
+                        <div class="orbit-reverse-spin group cursor-pointer">
+                            <div class="flex items-center gap-4 bg-white/95 backdrop-blur-md p-3 pr-6 rounded-full shadow-lg border border-slate-200 transition-all duration-300 hover:shadow-2xl hover:border-amber-300">
+                                <div class="w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center text-3xl shrink-0 bg-amber-50 text-amber-500 shadow-inner">💡</div>
+                                <div class="overflow-hidden transition-[max-width,max-height] duration-500 ease-in-out max-w-[140px] max-h-[36px] group-hover:max-w-[340px] group-hover:max-h-[170px]">
+                                    <h4 class="font-black text-[#2e3192] text-sm md:text-lg whitespace-nowrap">Sáng Tạo</h4>
+                                    <p class="text-xs md:text-sm text-slate-600 font-medium mt-1 w-[260px] opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100 leading-relaxed">
+                                        Xây dựng không gian học ngoại ngữ thân thiện, hiệu quả và đầy cảm hứng.
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </div>
+
+                    <div class="absolute top-1/2 right-0 translate-x-1/2 -translate-y-1/2 z-50">
+                        <div class="orbit-reverse-spin group cursor-pointer">
+                            <div class="flex items-center gap-4 bg-white/95 backdrop-blur-md p-3 pr-6 rounded-full shadow-lg border border-slate-200 transition-all duration-300 hover:shadow-2xl hover:border-blue-300">
+                                <div class="w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center text-3xl shrink-0 bg-blue-50 text-blue-500 shadow-inner">🗣️</div>
+                                <div class="overflow-hidden transition-[max-width,max-height] duration-500 ease-in-out max-w-[140px] max-h-[36px] group-hover:max-w-[340px] group-hover:max-h-[170px]">
+                                    <h4 class="font-black text-[#2e3192] text-sm md:text-lg whitespace-nowrap">Tự Tin</h4>
+                                    <p class="text-xs md:text-sm text-slate-600 font-medium mt-1 w-[260px] opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100 leading-relaxed">
+                                        Làm chủ tiếng Anh từ những câu đơn giản đến hội thoại thực tế đời sống.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 z-50">
+                        <div class="orbit-reverse-spin group cursor-pointer">
+                            <div class="flex items-center gap-4 bg-white/95 backdrop-blur-md p-3 pr-6 rounded-full shadow-lg border border-slate-200 transition-all duration-300 hover:shadow-2xl hover:border-emerald-300">
+                                <div class="w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center text-3xl shrink-0 bg-emerald-50 text-emerald-500 shadow-inner">🎯</div>
+                                <div class="overflow-hidden transition-[max-width,max-height] duration-500 ease-in-out max-w-[140px] max-h-[36px] group-hover:max-w-[340px] group-hover:max-h-[170px]">
+                                    <h4 class="font-black text-[#2e3192] text-sm md:text-lg whitespace-nowrap">Toàn Diện</h4>
+                                    <p class="text-xs md:text-sm text-slate-600 font-medium mt-1 w-[260px] opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100 leading-relaxed">
+                                        Đào tạo bài bản 4 kỹ năng Nghe – Nói – Đọc – Viết cho mọi lứa tuổi.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="absolute top-1/2 left-0 -translate-x-1/2 -translate-y-1/2 z-50">
+                        <div class="orbit-reverse-spin group cursor-pointer">
+                            <div class="flex items-center gap-4 bg-white/95 backdrop-blur-md p-3 pr-6 rounded-full shadow-lg border border-slate-200 transition-all duration-300 hover:shadow-2xl hover:border-purple-300">
+                                <div class="w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center text-3xl shrink-0 bg-purple-50 text-purple-500 shadow-inner">🤝</div>
+                                <div class="overflow-hidden transition-[max-width,max-height] duration-500 ease-in-out max-w-[140px] max-h-[36px] group-hover:max-w-[340px] group-hover:max-h-[170px]">
+                                    <h4 class="font-black text-[#2e3192] text-sm md:text-lg whitespace-nowrap">Cam Kết</h4>
+                                    <p class="text-xs md:text-sm text-slate-600 font-medium mt-1 w-[260px] opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100 leading-relaxed">
+                                        Theo sát lộ trình, khơi dậy niềm yêu thích với phương châm "Dám nói".
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
 
-                <div class="absolute top-1/2 right-0 translate-x-1/2 -translate-y-1/2 z-50">
-                    <div class="orbit-reverse-spin group cursor-pointer">
-                        <div class="flex items-center gap-4 bg-white/95 backdrop-blur-md p-3 pr-6 rounded-full shadow-lg border border-slate-200 transition-all duration-300 hover:shadow-2xl hover:border-blue-300">
-                            <div class="w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center text-3xl shrink-0 bg-blue-50 text-blue-500 shadow-inner">🗣️</div>
-                            <div class="overflow-hidden transition-[max-width,max-height] duration-500 ease-in-out max-w-[140px] max-h-[36px] group-hover:max-w-[340px] group-hover:max-h-[170px]">
-                                <h4 class="font-black text-[#2e3192] text-sm md:text-lg whitespace-nowrap">Tự Tin</h4>
-                                <p class="text-xs md:text-sm text-slate-600 font-medium mt-1 w-[260px] opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100 leading-relaxed">
-                                    Làm chủ tiếng Anh từ những câu đơn giản đến hội thoại thực tế đời sống.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 z-50">
-                    <div class="orbit-reverse-spin group cursor-pointer">
-                        <div class="flex items-center gap-4 bg-white/95 backdrop-blur-md p-3 pr-6 rounded-full shadow-lg border border-slate-200 transition-all duration-300 hover:shadow-2xl hover:border-emerald-300">
-                            <div class="w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center text-3xl shrink-0 bg-emerald-50 text-emerald-500 shadow-inner">🎯</div>
-                            <div class="overflow-hidden transition-[max-width,max-height] duration-500 ease-in-out max-w-[140px] max-h-[36px] group-hover:max-w-[340px] group-hover:max-h-[170px]">
-                                <h4 class="font-black text-[#2e3192] text-sm md:text-lg whitespace-nowrap">Toàn Diện</h4>
-                                <p class="text-xs md:text-sm text-slate-600 font-medium mt-1 w-[260px] opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100 leading-relaxed">
-                                    Đào tạo bài bản 4 kỹ năng Nghe – Nói – Đọc – Viết cho mọi lứa tuổi.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="absolute top-1/2 left-0 -translate-x-1/2 -translate-y-1/2 z-50">
-                    <div class="orbit-reverse-spin group cursor-pointer">
-                        <div class="flex items-center gap-4 bg-white/95 backdrop-blur-md p-3 pr-6 rounded-full shadow-lg border border-slate-200 transition-all duration-300 hover:shadow-2xl hover:border-purple-300">
-                            <div class="w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center text-3xl shrink-0 bg-purple-50 text-purple-500 shadow-inner">🤝</div>
-                            <div class="overflow-hidden transition-[max-width,max-height] duration-500 ease-in-out max-w-[140px] max-h-[36px] group-hover:max-w-[340px] group-hover:max-h-[170px]">
-                                <h4 class="font-black text-[#2e3192] text-sm md:text-lg whitespace-nowrap">Cam Kết</h4>
-                                <p class="text-xs md:text-sm text-slate-600 font-medium mt-1 w-[260px] opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100 leading-relaxed">
-                                    Theo sát lộ trình, khơi dậy niềm yêu thích với phương châm "Dám nói".
-                                </p>
-                            </div>
-                        </div>
-                    </div>
+                <div class="relative z-20 w-64 h-64 md:w-[450px] md:h-[450px] rounded-full border-[10px] md:border-[14px] border-white shadow-[0_20px_60px_rgba(30,58,138,0.2)] overflow-hidden bg-white flex items-center justify-center group" data-aos="zoom-in">
+                    <img src="assets/images/logo.jpg" alt="Trung tâm" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+                    <div class="absolute inset-0 bg-blue-900/10 group-hover:bg-transparent transition-colors"></div>
                 </div>
 
             </div>
-
-            <div class="relative z-20 w-64 h-64 md:w-[450px] md:h-[450px] rounded-full border-[10px] md:border-[14px] border-white shadow-[0_20px_60px_rgba(30,58,138,0.2)] overflow-hidden bg-white flex items-center justify-center group" data-aos="zoom-in">
-                <img src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&q=80&w=800" alt="Trung tâm" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
-                <div class="absolute inset-0 bg-blue-900/10 group-hover:bg-transparent transition-colors"></div>
-            </div>
-
         </div>
-    </div>
-</section>                            
+    </section>                            
 								
-	<section id="khoa-hoc" class="py-20 md:py-28 relative overflow-hidden bg-transparent">
+    <section id="khoa-hoc" class="pt-8 pb-20 md:pt-10 md:pb-28 relative overflow-hidden bg-transparent">
     <div class="mx-auto w-full max-w-7xl px-4 sm:px-6 relative z-10">
         <div class="mb-14 text-center" data-aos="fade-up">
             <h2 class="text-3xl md:text-5xl font-black text-[#2e3192] uppercase tracking-tight">
@@ -469,69 +515,65 @@ $homeError = get_flash('home_error');
         </div>
     </section>
 	
-    <section id="giao-vien" class="py-20 md:py-28 relative overflow-hidden bg-transparent border-t border-white/30">
-        <div class="mx-auto w-full max-w-7xl px-4 sm:px-6 relative z-10">
-            <div class="text-center mb-16" data-aos="fade-up">
-                <h2 class="text-3xl md:text-5xl font-black text-blue-600 uppercase leading-tight tracking-tight">
+    <section id="giao-vien" class="py-20 md:py-28 relative overflow-hidden bg-transparent z-10">
+    <div class="mx-auto w-full max-w-7xl px-4 sm:px-6 relative z-10">
+        
+        <div class="mb-16 flex flex-col lg:flex-row gap-8 items-start lg:items-center justify-between" data-aos="fade-up">
+            
+            <div class="lg:w-1/2">
+                <h2 class="text-3xl md:text-5xl font-black text-blue-800 leading-tight tracking-tight">
                     Hơn 3.100 Giáo viên và trợ giảng <br>
-                    <span class="relative inline-block text-white px-8 py-2 mt-4">
-                        <span class="relative z-10">Chuẩn quốc tế</span>
-                        <div class="absolute inset-0 bg-red-600 rounded-full -rotate-1 shadow-lg"></div>
-                    </span>
+                    <span class="text-blue-600">Chuẩn quốc tế</span>
                 </h2>
             </div>
-
-            <div class="bg-blue-500/90 backdrop-blur-md rounded-t-[3rem] p-8 md:p-12 shadow-xl" data-aos="fade-up">
-                <div class="grid lg:grid-cols-3 gap-8 items-center">
-                    <div class="lg:col-span-2">
-                        <p class="text-white font-extrabold text-xl md:text-2xl leading-snug">
-                            Đội ngũ giảng dạy chuẩn quốc tế lớn nhất Việt Nam sẵn sàng cùng Phụ huynh & Học viên chinh phục mọi mục tiêu.
-                        </p>
-                    </div>
-                    <div class="flex justify-center lg:justify-end">
-                        <div class="flex -space-x-4">
-                            <div class="w-14 h-14 rounded-full border-4 border-blue-600 bg-slate-200 overflow-hidden shadow-lg"><img src="https://i.pravatar.cc/100?u=1" alt="T1"></div>
-                            <div class="w-14 h-14 rounded-full border-4 border-blue-600 bg-slate-200 overflow-hidden shadow-lg"><img src="https://i.pravatar.cc/100?u=2" alt="T2"></div>
-                            <div class="w-14 h-14 rounded-full border-4 border-blue-600 bg-white text-blue-600 flex items-center justify-center text-xs font-black shadow-lg">+3k</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-white/80 backdrop-blur-md border-x border-b border-white rounded-b-[3rem] p-6 md:p-10 shadow-xl" data-aos="fade-up">
-                <div class="swiper teacherSwiper pb-12">
-                    <div class="swiper-wrapper">
-                        <?php 
-                        $sample_teachers = [
-                            ['name' => 'ANNE KENTHILL', 'exp' => '+8', 'img' => 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400'],
-                            ['name' => 'SCOTT PORTER', 'exp' => '+12', 'img' => 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400'],
-                            ['name' => 'PETER HARBISON', 'exp' => '+10', 'img' => 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400'],
-                            ['name' => 'SARAH JENNER', 'exp' => '+6', 'img' => 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=400'],
-                        ];
-                        foreach ($sample_teachers as $t): 
-                        ?>
-                        <div class="swiper-slide h-auto">
-                            <article class="h-full flex flex-col rounded-[2rem] bg-white border-4 border-white hover:border-blue-300 overflow-hidden transition-all duration-500 hover:-translate-y-3 hover:shadow-xl group">
-                                <div class="relative aspect-[3/4] overflow-hidden bg-slate-200">
-                                    <img src="<?= $t['img'] ?>" alt="<?= $t['name'] ?>" class="w-full h-full object-cover grayscale opacity-90 group-hover:opacity-100 group-hover:grayscale-0 transition-all duration-700 group-hover:scale-105">
-                                    <div class="absolute top-4 right-4 bg-red-600 text-white rounded-xl p-2 text-center min-w-[52px] shadow-lg">
-                                        <span class="block text-xl font-black leading-none"><?= $t['exp'] ?></span><span class="block text-[7px] font-bold uppercase mt-1">Năm</span>
-                                    </div>
-                                </div>
-                                <div class="p-5 text-center flex-1 flex flex-col justify-center bg-white">
-                                    <h4 class="text-sm font-black text-blue-600 uppercase"><?= $t['name'] ?></h4>
-                                </div>
-                            </article>
-                        </div>
-                        <?php endforeach; ?>
-                    </div>
-                    <div class="swiper-pagination-teacher mt-10"></div>
+            
+            <div class="lg:w-1/2 flex items-start sm:items-center gap-4 sm:gap-6">
+                <p class="text-slate-600 font-medium text-sm leading-relaxed border-l-2 border-slate-300 pl-4 sm:pl-6 text-left">
+                    100% giáo viên nước ngoài được đảm bảo bởi International House - tổ chức uy tín hàng đầu thế giới về chuẩn đào tạo giáo viên nghiêm ngặt (như CELTA, DELTA)
+                </p>
+                <div class="w-14 h-14 sm:w-16 sm:h-16 shrink-0 bg-[#2e3192] rounded-full flex items-center justify-center text-white font-bold text-xl sm:text-2xl shadow-md">
+                    ih
                 </div>
             </div>
         </div>
-    </section>
 
-	<section id="portal" class="relative py-20 md:py-32 overflow-hidden bg-transparent border-t border-white/30">
+        <div class="w-full" data-aos="fade-up" data-aos-delay="100">
+            <div class="swiper teacherSwiper pb-16">
+                <div class="swiper-wrapper">
+                    <?php 
+                    // Dữ liệu mẫu cập nhật tên và chức danh theo ảnh của bạn
+                    $sample_teachers = [
+                        ['name' => 'Linzi Mary Dickson', 'role' => 'Giáo viên', 'img' => 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=600&h=800&fit=crop'],
+                        ['name' => 'Pavel Kukikov', 'role' => 'Giáo viên', 'img' => 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=600&h=800&fit=crop'],
+                        ['name' => 'Jonathan Bourdon', 'role' => 'Giáo viên', 'img' => 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=600&h=800&fit=crop'],
+                        ['name' => 'Carolina De Castro', 'role' => 'Giám đốc học vụ cụm', 'img' => 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=600&h=800&fit=crop'],
+                        ['name' => 'Michael Vance', 'role' => 'Giáo viên', 'img' => 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=600&h=800&fit=crop'],
+                    ];
+                    foreach ($sample_teachers as $t): 
+                    ?>
+                    <div class="swiper-slide h-auto">
+                        <article class="flex flex-col gap-4 group cursor-pointer">
+                            <div class="relative w-full aspect-[4/5] rounded-3xl overflow-hidden bg-slate-200 shadow-[0_10px_30px_rgba(0,0,0,0.05)]">
+                                <img src="<?= $t['img'] ?>" alt="<?= $t['name'] ?>" class="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105">
+                                <div class="absolute inset-0 bg-blue-900/0 group-hover:bg-blue-900/10 transition-colors duration-300"></div>
+                            </div>
+                            <div class="px-1 text-left">
+                                <h4 class="text-lg md:text-xl font-extrabold text-slate-800 group-hover:text-blue-600 transition-colors"><?= $t['name'] ?></h4>
+                                <p class="text-sm font-medium text-slate-500 mt-1"><?= $t['role'] ?></p>
+                            </div>
+                        </article>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+                
+                <div class="swiper-pagination-teacher mt-8 flex justify-center"></div>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+	<!-- <section id="portal" class="relative py-20 md:py-32 overflow-hidden bg-transparent border-t border-white/30">
 		<div class="relative z-10 mx-auto w-full max-w-6xl px-4 sm:px-6">
 			<div class="mb-16 text-center max-w-2xl mx-auto" data-aos="fade-down">
 				<h2 class="text-3xl md:text-4xl font-black text-[#2e3192] uppercase tracking-tight">
@@ -574,23 +616,20 @@ $homeError = get_flash('home_error');
 				</article>
 			</div>
 		</div>
-	</section>
+	</section> -->
 
-	<section id="lien-he" class="relative py-20 md:py-32 overflow-hidden bg-transparent border-t border-white/30">
-        <div class="relative z-10 mx-auto w-full max-w-5xl px-4 sm:px-6">
-            <div class="mb-14 text-center" data-aos="fade-up">
-                <h2 class="text-3xl md:text-5xl font-black text-[#0c4a6e] uppercase tracking-tight">ĐĂNG KÝ NHẬN TƯ VẤN NGAY</h2>
-                <p class="mt-5 text-[#0284c7] font-semibold text-lg">Đội ngũ chuyên viên sẽ liên hệ và hỗ trợ bạn trong thời gian sớm nhất</p>
-            </div>
+	<section id="lien-he" class="relative py-20 md:py-32 overflow-hidden bg-transparent z-10">
+        <!-- <section id="lien-he" class="relative bg-[#f4f7fb] overflow-hidden z-10"> -->
+        <div class="mx-auto w-full max-w-[1400px] flex flex-col lg:flex-row">
 
-            <div class="grid md:grid-cols-3 gap-8 items-stretch">
+            <!-- <div class="grid md:grid-cols-3 gap-8 items-stretch">
                 <div class="md:col-span-2 bg-white/80 backdrop-blur-xl rounded-[2.5rem] p-8 md:p-10 shadow-xl border border-white" data-aos="fade-right">
                     <form class="flex flex-col gap-5" action="#" method="post">
                         <?= csrf_input(); ?>
                         
                         <div>
                             <input class="w-full bg-white/95 text-blue-900 placeholder-slate-400 font-semibold rounded-full px-6 py-4 outline-none focus:bg-white focus:ring-4 focus:ring-blue-300/50 transition-all shadow-inner" type="text" name="full_name" placeholder="Họ Và Tên *" required>
-                        </div>
+                        </div> -->
 
 			<!-- <div class="grid gap-3" data-role-panels>
 				<article class="rounded-2xl border border-blue-200 bg-blue-50 p-5 shadow-sm" data-role="student">
@@ -710,29 +749,64 @@ $homeError = get_flash('home_error');
 			</div>
 		</div>
 	</section> -->
-                        <input class="w-full bg-slate-50 text-blue-900 rounded-full px-6 py-4 outline-none focus:ring-4 focus:ring-blue-200 transition-all" type="text" name="full_name" placeholder="Họ Và Tên *" required>
+                        <!-- <input class="w-full bg-slate-50 text-blue-900 rounded-full px-6 py-4 outline-none focus:ring-4 focus:ring-blue-200 transition-all" type="text" name="full_name" placeholder="Họ Và Tên *" required>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                             <input class="w-full bg-slate-50 text-blue-900 rounded-full px-6 py-4 outline-none focus:ring-4 focus:ring-blue-200" type="tel" name="phone" placeholder="Điện thoại *" required>
                             <select name="learning_mode" class="w-full bg-slate-50 text-blue-900 rounded-full px-6 py-4 outline-none focus:ring-4 focus:ring-blue-200" required>
                                 <option value="" disabled selected hidden>Hình thức học *</option>
                                 <option value="offline">Học tại trung tâm</option>
-                            </select>
-                        </div>
-                        <input class="w-full bg-slate-50 text-blue-900 rounded-full px-6 py-4 outline-none focus:ring-4 focus:ring-blue-200" type="email" name="email" placeholder="Địa chỉ email">
-                        <button type="submit" class="mt-4 bg-[#2e3192] hover:bg-blue-700 text-white font-black rounded-full py-5 px-4 text-xl uppercase transition-all shadow-lg hover:shadow-xl hover:-translate-y-1">
-                            Gửi yêu cầu
-                        </button>
-                    </form>
-                </div>
+                            </select> -->
+            <div class="w-full lg:w-1/2 flex flex-col justify-center px-6 py-16 lg:px-16 xl:px-32 z-10" data-aos="fade-right">
+                
+                <h2 class="text-[28px] md:text-[36px] font-bold text-[#185b9d] mb-8 tracking-tight">
+                    Tư vấn và kiểm tra miễn phí
+                </h2>
 
-                <div class="flex flex-col gap-5 h-full" data-aos="fade-left">
-                    <div class="flex-1 bg-white/80 backdrop-blur-xl rounded-[2rem] p-6 border border-white shadow-xl flex flex-col justify-center gap-4">
-                        <h3 class="text-[#0c4a6e] font-extrabold text-center text-lg uppercase">Hỗ trợ trực tuyến</h3>
-                        <a href="#" class="bg-red-50 text-red-600 rounded-full py-3 px-4 text-center font-bold">HOTLINE: 028.7308.3333</a>
-                        <a href="#" class="bg-blue-50 text-blue-600 rounded-full py-3 px-4 text-center font-bold">Zalo / Messenger</a>
+                <form class="flex flex-col w-full max-w-[420px]" action="#" method="post">
+                    <?= csrf_input(); ?>
+
+                    <input class="w-full bg-white text-slate-800 placeholder-slate-400 font-medium rounded-xl px-5 py-3.5 mb-4 outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 border border-slate-200 transition-all shadow-sm" 
+                        type="text" name="full_name" placeholder="Họ tên phụ huynh" required>
+
+                    <input class="w-full bg-white text-slate-800 placeholder-slate-400 font-medium rounded-xl px-5 py-3.5 mb-4 outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 border border-slate-200 transition-all shadow-sm" 
+                        type="tel" name="phone" placeholder="Số điện thoại" required>
+
+                    <div class="relative mb-4">
+                        <select name="learning_mode" class="w-full bg-white text-slate-800 font-medium rounded-xl px-5 py-3.5 outline-none appearance-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 border border-slate-200 shadow-sm transition-all cursor-pointer" required>
+                            <option value="" disabled selected hidden>Hình thức học</option>
+                            <option value="offline">Học tại trung tâm</option>
+                            <option value="online">Học trực tuyến</option>
+                        </select>
+                        <div class="absolute inset-y-0 right-4 flex items-center pointer-events-none">
+                            <i class="fa-solid fa-chevron-down text-slate-400 text-sm"></i>
+                        </div>
                     </div>
-                </div>
+
+                    <input class="w-full bg-white text-slate-800 placeholder-slate-400 font-medium rounded-xl px-5 py-3.5 mb-6 outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 border border-slate-200 transition-all shadow-sm" 
+                        type="email" name="email" placeholder="Email">
+
+                    <button type="submit" class="w-full bg-[#ffc107] hover:bg-[#ffb300] text-slate-900 font-semibold rounded-full py-3.5 px-6 text-lg transition-colors shadow-sm">
+                        Đăng Ký
+                    </button>
+
+                    <p class="text-[11px] text-slate-600 mt-4 leading-snug">
+                        * Thông tin được đồng ý tuân theo chính sách bảo mật và bảo vệ thông tin cá nhân.
+                    </p>
+                </form>
             </div>
+
+            <div class="w-full lg:w-1/2 relative min-h-[400px] lg:min-h-[600px]" data-aos="fade-left">
+                
+                <img src="assets/images/tu_van_student.jpg" alt="Học sinh" class="absolute inset-0 w-full h-full object-cover object-top lg:object-center">
+
+                <!-- Mờ bên trái -->
+                <div class="absolute inset-y-0 left-0 w-24 md:w-32 bg-gradient-to-r from-[#f4f7fb] to-transparent pointer-events-none"></div>
+
+                <!-- Mờ bên phải -->
+                <div class="absolute inset-y-0 right-0 w-24 md:w-32 bg-gradient-to-l from-[#f4f7fb] to-transparent pointer-events-none"></div>
+
+            </div>
+
         </div>
     </section>
 
