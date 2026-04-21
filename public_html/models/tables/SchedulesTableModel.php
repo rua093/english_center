@@ -28,10 +28,12 @@ final class SchedulesTableModel
     {
         $sql = "SELECT s.id, s.class_id, s.room_id, s.teacher_id, s.study_date, s.start_time, s.end_time,
                 COALESCE(r.room_name, 'Online') AS room_name,
+                COALESCE(u.full_name, CONCAT('GV #', s.teacher_id)) AS teacher_name,
                 linked.id AS assigned_lesson_id,
                 linked.actual_title AS assigned_lesson_title
             FROM schedules s
             LEFT JOIN rooms r ON r.id = s.room_id
+            LEFT JOIN users u ON u.id = s.teacher_id
             LEFT JOIN (
                 SELECT l.schedule_id, MIN(l.id) AS lesson_id
                 FROM lessons l

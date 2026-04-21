@@ -816,3 +816,186 @@ BEGIN
 END$$
 
 DELIMITER ;
+
+-- Add dedicated permissions for course and roadmap management.
+INSERT INTO permissions (permission_name, slug) VALUES
+('Xem khoa hoc', 'academic.courses.view'),
+('Tao khoa hoc', 'academic.courses.create'),
+('Cap nhat khoa hoc', 'academic.courses.update'),
+('Xoa khoa hoc', 'academic.courses.delete'),
+('Xem roadmap khoa hoc', 'academic.roadmaps.view'),
+('Tao roadmap khoa hoc', 'academic.roadmaps.create'),
+('Cap nhat roadmap khoa hoc', 'academic.roadmaps.update'),
+('Xoa roadmap khoa hoc', 'academic.roadmaps.delete')
+ON DUPLICATE KEY UPDATE permission_name = VALUES(permission_name);
+
+-- Copy existing class CRUD grants to the new course/roadmap permissions.
+INSERT IGNORE INTO role_permissions (role_id, permission_id)
+SELECT rp.role_id, p_target.id
+FROM role_permissions rp
+INNER JOIN permissions p_source ON p_source.id = rp.permission_id
+INNER JOIN (
+    SELECT 'academic.classes.view' AS source_slug, 'academic.courses.view' AS target_slug
+    UNION ALL SELECT 'academic.classes.create', 'academic.courses.create'
+    UNION ALL SELECT 'academic.classes.update', 'academic.courses.update'
+    UNION ALL SELECT 'academic.classes.delete', 'academic.courses.delete'
+    UNION ALL SELECT 'academic.classes.view', 'academic.roadmaps.view'
+    UNION ALL SELECT 'academic.classes.create', 'academic.roadmaps.create'
+    UNION ALL SELECT 'academic.classes.update', 'academic.roadmaps.update'
+    UNION ALL SELECT 'academic.classes.delete', 'academic.roadmaps.delete'
+) permission_map ON permission_map.source_slug = p_source.slug
+INNER JOIN permissions p_target ON p_target.slug = permission_map.target_slug;
+
+-- Add detailed exam component scores.
+SET @score_listening_exists := (
+    SELECT COUNT(*)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'exams'
+      AND column_name = 'score_listening'
+);
+SET @ddl := IF(
+    @score_listening_exists = 0,
+    'ALTER TABLE exams ADD COLUMN score_listening DECIMAL(5,2) DEFAULT NULL AFTER exam_date',
+    'SELECT ''skip score_listening'''
+);
+PREPARE stmt FROM @ddl;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @score_speaking_exists := (
+    SELECT COUNT(*)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'exams'
+      AND column_name = 'score_speaking'
+);
+SET @ddl := IF(
+    @score_speaking_exists = 0,
+    'ALTER TABLE exams ADD COLUMN score_speaking DECIMAL(5,2) DEFAULT NULL AFTER score_listening',
+    'SELECT ''skip score_speaking'''
+);
+PREPARE stmt FROM @ddl;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @score_reading_exists := (
+    SELECT COUNT(*)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'exams'
+      AND column_name = 'score_reading'
+);
+SET @ddl := IF(
+    @score_reading_exists = 0,
+    'ALTER TABLE exams ADD COLUMN score_reading DECIMAL(5,2) DEFAULT NULL AFTER score_speaking',
+    'SELECT ''skip score_reading'''
+);
+PREPARE stmt FROM @ddl;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @score_writing_exists := (
+    SELECT COUNT(*)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'exams'
+      AND column_name = 'score_writing'
+);
+SET @ddl := IF(
+    @score_writing_exists = 0,
+    'ALTER TABLE exams ADD COLUMN score_writing DECIMAL(5,2) DEFAULT NULL AFTER score_reading',
+    'SELECT ''skip score_writing'''
+);
+PREPARE stmt FROM @ddl;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+-- Create website intake table for student consultation leads.
+SET @has_student_leads := (
+    SELECT COUNT(*)
+    FROM information_schema.tables
+    WHERE table_schema = DATABASE()
+      AND table_name = 'student_leads'
+);
+
+SET @sql := IF(
+    @has_student_leads = 0,
+    "CREATE TABLE student_leads (
+        id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        full_name VARCHAR(150) NOT NULL,
+        phone VARCHAR(20) NOT NULL,
+        email VARCHAR(150) DEFAULT NULL,
+        age TINYINT UNSIGNED DEFAULT NULL,
+        parent_name VARCHAR(150) DEFAULT NULL,
+        parent_phone VARCHAR(20) DEFAULT NULL,
+        school_name VARCHAR(180) DEFAULT NULL,
+        target_program VARCHAR(180) DEFAULT NULL,
+        target_score VARCHAR(50) DEFAULT NULL,
+        desired_schedule VARCHAR(180) DEFAULT NULL,
+        note TEXT,
+        source VARCHAR(80) NOT NULL DEFAULT 'website',
+        status ENUM('new', 'entry_tested', 'trial_completed', 'official', 'cancelled') NOT NULL DEFAULT 'new',
+        admin_note TEXT,
+        converted_user_id BIGINT UNSIGNED DEFAULT NULL,
+        converted_at TIMESTAMP NULL DEFAULT NULL,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        CONSTRAINT fk_student_leads_user FOREIGN KEY (converted_user_id) REFERENCES users(id),
+        KEY idx_student_leads_status_created (status, created_at),
+        KEY idx_student_leads_phone (phone)
+    ) ENGINE=InnoDB",
+    "SELECT 'Skip: student_leads table exists' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+-- Create website intake table for teacher job applications.
+SET @has_job_applications := (
+    SELECT COUNT(*)
+    FROM information_schema.tables
+    WHERE table_schema = DATABASE()
+      AND table_name = 'job_applications'
+);
+
+SET @sql := IF(
+    @has_job_applications = 0,
+    "CREATE TABLE job_applications (
+        id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        full_name VARCHAR(150) NOT NULL,
+        phone VARCHAR(20) NOT NULL,
+        email VARCHAR(150) DEFAULT NULL,
+        applying_position VARCHAR(120) DEFAULT NULL,
+        degree VARCHAR(150) DEFAULT NULL,
+        experience_years INT NOT NULL DEFAULT 0,
+        available_schedule VARCHAR(180) DEFAULT NULL,
+        intro TEXT,
+        source VARCHAR(80) NOT NULL DEFAULT 'website',
+        status ENUM('new', 'interviewed', 'official', 'rejected') NOT NULL DEFAULT 'new',
+        admin_note TEXT,
+        converted_user_id BIGINT UNSIGNED DEFAULT NULL,
+        converted_at TIMESTAMP NULL DEFAULT NULL,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        CONSTRAINT fk_job_applications_user FOREIGN KEY (converted_user_id) REFERENCES users(id),
+        KEY idx_job_applications_status_created (status, created_at),
+        KEY idx_job_applications_phone (phone)
+    ) ENGINE=InnoDB",
+    "SELECT 'Skip: job_applications table exists' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+-- Add permissions for lead/application management and grant to admin role.
+INSERT INTO permissions (permission_name, slug) VALUES
+('Quan ly dau moi hoc vien', 'student_lead.manage'),
+('Quan ly ho so ung tuyen giao vien', 'job_application.manage')
+ON DUPLICATE KEY UPDATE permission_name = VALUES(permission_name);
+
+INSERT IGNORE INTO role_permissions (role_id, permission_id)
+SELECT r.id, p.id
+FROM roles r
+INNER JOIN permissions p ON p.slug IN ('student_lead.manage', 'job_application.manage')
+WHERE r.role_name = 'admin';

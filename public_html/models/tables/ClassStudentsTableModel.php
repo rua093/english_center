@@ -13,7 +13,7 @@ final class ClassStudentsTableModel
             return [];
         }
 
-        $sql = "SELECT DISTINCT cs.class_id, cs.student_id, u.full_name AS student_name
+        $sql = "SELECT DISTINCT cs.class_id, cs.student_id, cs.learning_status, u.full_name AS student_name
             FROM class_students cs
             INNER JOIN users u ON u.id = cs.student_id
             WHERE cs.class_id = :class_id
@@ -25,7 +25,7 @@ final class ClassStudentsTableModel
 
     public function listStudentsByClass(): array
     {
-        $sql = "SELECT DISTINCT cs.class_id, cs.student_id, c.class_name, u.full_name AS student_name
+        $sql = "SELECT DISTINCT cs.class_id, cs.student_id, cs.learning_status, c.class_name, u.full_name AS student_name
             FROM class_students cs
             INNER JOIN classes c ON c.id = cs.class_id
             INNER JOIN users u ON u.id = cs.student_id
@@ -48,13 +48,55 @@ final class ClassStudentsTableModel
         ) > 0;
     }
 
+    public function findEnrollment(int $classId, int $studentId): ?array
+    {
+        if ($classId <= 0 || $studentId <= 0) {
+            return null;
+        }
+
+        return $this->fetchOne(
+            'SELECT class_id, student_id, learning_status, enrollment_date
+             FROM class_students
+             WHERE class_id = :class_id AND student_id = :student_id
+             LIMIT 1',
+            [
+                'class_id' => $classId,
+                'student_id' => $studentId,
+            ]
+        );
+    }
+
+    public function updateLearningStatus(int $classId, int $studentId, string $learningStatus): bool
+    {
+        if ($classId <= 0 || $studentId <= 0) {
+            return false;
+        }
+
+        $normalizedStatus = in_array($learningStatus, ['trial', 'official'], true)
+            ? $learningStatus
+            : 'official';
+
+        $affectedRows = $this->executeStatement(
+            'UPDATE class_students
+             SET learning_status = :learning_status
+             WHERE class_id = :class_id AND student_id = :student_id',
+            [
+                'learning_status' => $normalizedStatus,
+                'class_id' => $classId,
+                'student_id' => $studentId,
+            ]
+        );
+
+        return $affectedRows > 0;
+    }
+
     public function enrollStudent(int $classId, int $studentId, string $learningStatus = 'official', ?string $enrollmentDate = null): void
     {
         if ($classId <= 0 || $studentId <= 0) {
             return;
         }
 
-        $normalizedStatus = in_array($learningStatus, ['trial', 'official', 'suspended'], true)
+        $normalizedStatus = in_array($learningStatus, ['trial', 'official'], true)
             ? $learningStatus
             : 'official';
 
@@ -85,5 +127,85 @@ final class ClassStudentsTableModel
             ORDER BY c.id DESC
             LIMIT " . $limit;
         return $this->fetchAll($sql, ['student_id' => $studentId]);
+    }
+
+    public function listEnrollmentRowsForRegistration(int $limit = 300): array
+    {
+        $limit = $this->clampLimit($limit, 300, 1000);
+
+        $sql = "SELECT
+                cs.class_id,
+                cs.student_id,
+                cs.learning_status,
+                cs.enrollment_date,
+                u.full_name AS student_name,
+                c.class_name,
+                c.course_id,
+                co.course_name,
+                tf.id AS tuition_id,
+                tf.total_amount,
+                tf.amount_paid,
+                tf.payment_plan,
+                tf.status AS tuition_status
+            FROM class_students cs
+            INNER JOIN users u ON u.id = cs.student_id
+            INNER JOIN classes c ON c.id = cs.class_id
+            INNER JOIN courses co ON co.id = c.course_id
+            LEFT JOIN tuition_fees tf ON tf.id = (
+                SELECT t2.id
+                FROM tuition_fees t2
+                WHERE t2.student_id = cs.student_id
+                  AND t2.class_id = cs.class_id
+                ORDER BY t2.id DESC
+                LIMIT 1
+            )
+            WHERE u.deleted_at IS NULL
+            ORDER BY cs.id DESC
+            LIMIT " . $limit;
+
+        return $this->fetchAll($sql);
+    }
+
+    public function findEnrollmentRowForRegistration(int $classId, int $studentId): ?array
+    {
+        if ($classId <= 0 || $studentId <= 0) {
+            return null;
+        }
+
+        $sql = "SELECT
+                cs.class_id,
+                cs.student_id,
+                cs.learning_status,
+                cs.enrollment_date,
+                u.full_name AS student_name,
+                c.class_name,
+                c.course_id,
+                co.course_name,
+                tf.id AS tuition_id,
+                tf.total_amount,
+                tf.amount_paid,
+                tf.payment_plan,
+                tf.status AS tuition_status
+            FROM class_students cs
+            INNER JOIN users u ON u.id = cs.student_id
+            INNER JOIN classes c ON c.id = cs.class_id
+            INNER JOIN courses co ON co.id = c.course_id
+            LEFT JOIN tuition_fees tf ON tf.id = (
+                SELECT t2.id
+                FROM tuition_fees t2
+                WHERE t2.student_id = cs.student_id
+                  AND t2.class_id = cs.class_id
+                ORDER BY t2.id DESC
+                LIMIT 1
+            )
+            WHERE cs.class_id = :class_id
+              AND cs.student_id = :student_id
+              AND u.deleted_at IS NULL
+            LIMIT 1";
+
+        return $this->fetchOne($sql, [
+            'class_id' => $classId,
+            'student_id' => $studentId,
+        ]);
     }
 }

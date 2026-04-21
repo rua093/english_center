@@ -24,6 +24,14 @@ INSERT INTO permissions (permission_name, slug) VALUES
 ('Tao lop hoc', 'academic.classes.create'),
 ('Cap nhat lop hoc', 'academic.classes.update'),
 ('Xoa lop hoc', 'academic.classes.delete'),
+('Xem khoa hoc', 'academic.courses.view'),
+('Tao khoa hoc', 'academic.courses.create'),
+('Cap nhat khoa hoc', 'academic.courses.update'),
+('Xoa khoa hoc', 'academic.courses.delete'),
+('Xem roadmap khoa hoc', 'academic.roadmaps.view'),
+('Tao roadmap khoa hoc', 'academic.roadmaps.create'),
+('Cap nhat roadmap khoa hoc', 'academic.roadmaps.update'),
+('Xoa roadmap khoa hoc', 'academic.roadmaps.delete'),
 ('Xem lich hoc', 'academic.schedules.view'),
 ('Tao lich hoc', 'academic.schedules.create'),
 ('Cap nhat lich hoc', 'academic.schedules.update'),
@@ -56,7 +64,9 @@ INSERT INTO permissions (permission_name, slug) VALUES
 ('Xem tai khoan ngan hang', 'bank.view'),
 ('Tao tai khoan ngan hang', 'bank.create'),
 ('Cap nhat tai khoan ngan hang', 'bank.update'),
-('Xoa tai khoan ngan hang', 'bank.delete')
+('Xoa tai khoan ngan hang', 'bank.delete'),
+('Quan ly dau moi hoc vien', 'student_lead.manage'),
+('Quan ly ho so ung tuyen giao vien', 'job_application.manage')
 ON DUPLICATE KEY UPDATE permission_name = VALUES(permission_name);
 
 DELETE rp
@@ -74,6 +84,8 @@ INNER JOIN permissions p ON p.slug IN (
     'teacher.dashboard.view', 'teacher.schedule.view', 'teacher.leave.request',
     'admin.dashboard.view', 'admin.user.manage', 'admin.role_permission.manage', 'reports.view',
     'academic.classes.view', 'academic.classes.create', 'academic.classes.update', 'academic.classes.delete',
+    'academic.courses.view', 'academic.courses.create', 'academic.courses.update', 'academic.courses.delete',
+    'academic.roadmaps.view', 'academic.roadmaps.create', 'academic.roadmaps.update', 'academic.roadmaps.delete',
     'academic.schedules.view', 'academic.schedules.create', 'academic.schedules.update', 'academic.schedules.delete',
     'academic.assignments.view', 'academic.assignments.create', 'academic.assignments.update', 'academic.assignments.delete',
     'academic.submissions.view', 'academic.submissions.grade',
@@ -82,7 +94,8 @@ INNER JOIN permissions p ON p.slug IN (
     'feedback.view', 'feedback.create', 'feedback.update', 'feedback.delete',
     'approval.view', 'approval.update', 'approval.request',
     'activity.view', 'activity.create', 'activity.update', 'activity.delete',
-    'bank.view', 'bank.create', 'bank.update', 'bank.delete'
+    'bank.view', 'bank.create', 'bank.update', 'bank.delete',
+    'student_lead.manage', 'job_application.manage'
 )
 WHERE r.role_name = 'admin';
 
@@ -94,6 +107,8 @@ INNER JOIN permissions p ON p.slug IN (
     'public.home.view',
     'admin.dashboard.view', 'reports.view',
     'academic.classes.view', 'academic.classes.create', 'academic.classes.update',
+    'academic.courses.view', 'academic.courses.create', 'academic.courses.update',
+    'academic.roadmaps.view', 'academic.roadmaps.create', 'academic.roadmaps.update',
     'academic.schedules.view', 'academic.schedules.create', 'academic.schedules.update',
     'academic.assignments.view', 'academic.assignments.create', 'academic.assignments.update',
     'academic.submissions.view',

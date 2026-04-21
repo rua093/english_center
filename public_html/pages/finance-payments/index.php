@@ -54,7 +54,7 @@ $error = get_flash('error');
     <?php endif; ?>
 
     <?php if ($canCreatePayment || $canUpdatePayment): ?>
-        <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <article class="order-2 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <h3><?= $editingPayment ? 'Sửa giao dịch thanh toán' : 'Tạo giao dịch thanh toán'; ?></h3>
             <form class="grid gap-3 md:grid-cols-2" method="post" action="/api/payments/save">
                 <?= csrf_input(); ?>
@@ -104,7 +104,7 @@ $error = get_flash('error');
         </article>
     <?php endif; ?>
 
-    <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <article class="order-1 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <h3>Danh sách giao dịch</h3>
         <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
             <table class="min-w-full border-collapse text-sm">

@@ -1,5 +1,6 @@
 <?php
 require_permission('academic.assignments.view');
+require_once __DIR__ . '/../../core/file_storage.php';
 
 $academicModel = new AcademicModel();
 $assignmentPage = max(1, (int) ($_GET['assignment_page'] ?? 1));
@@ -17,6 +18,8 @@ $editingAssignment = null;
 if (!empty($_GET['edit'])) {
     $editingAssignment = $academicModel->findAssignment((int) $_GET['edit']);
 }
+
+$editingAssignmentFileUrl = normalize_public_file_url((string) ($editingAssignment['file_url'] ?? ''));
 
 $assignmentClasses = [];
 foreach ($lessons as $lesson) {
@@ -98,7 +101,7 @@ $canUpdateMaterial = has_permission('materials.update');
         <?php endif; ?>
 
         <?php if ($canCreateAssignment || $canUpdateAssignment): ?>
-        <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <article class="order-2 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <h3><?= $editingAssignment ? 'Sửa bài tập' : 'Thêm bài tập'; ?></h3>
             <form class="grid gap-3" method="post" action="/api/assignments/save" enctype="multipart/form-data">
                 <?= csrf_input(); ?>
@@ -138,15 +141,15 @@ $canUpdateMaterial = has_permission('materials.update');
                     Tải lên file đính kèm
                     <input type="file" name="assignment_file" accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.png">
                 </label>
-                <?php if (!empty($editingAssignment['file_url'])): ?>
-                    <p class="text-xs text-slate-500">File hiện tại: <a class="font-semibold text-blue-700 hover:underline" href="<?= e((string) $editingAssignment['file_url']); ?>" target="_blank" rel="noopener noreferrer">Mở file</a>. Chọn file mới để thay thế.</p>
+                <?php if ($editingAssignmentFileUrl !== ''): ?>
+                    <p class="text-xs text-slate-500">File hiện tại: <a class="font-semibold text-blue-700 hover:underline" href="<?= e($editingAssignmentFileUrl); ?>" target="_blank" rel="noopener noreferrer">Mở file</a>. Chọn file mới để thay thế.</p>
                 <?php endif; ?>
                 <button class="<?= ui_btn_primary_classes(); ?>" type="submit">Lưu bài tập</button>
             </form>
         </article>
         <?php endif; ?>
 
-        <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <article class="order-1 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <h3>Danh sách bài tập</h3>
             <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
                 <table class="min-w-full border-collapse text-sm">
@@ -158,12 +161,45 @@ $canUpdateMaterial = has_permission('materials.update');
                         <tr><td colspan="4"><div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">Chưa có bài tập nào.</div></td></tr>
                     <?php else: ?>
                     <?php foreach ($assignments as $assignment): ?>
+                        <?php $assignmentFileUrl = normalize_public_file_url((string) ($assignment['file_url'] ?? '')); ?>
                         <tr>
                             <td><?= e((string) $assignment['title']); ?></td>
                             <td><?= e((string) $assignment['class_name']); ?></td>
                             <td><?= e((string) $assignment['deadline']); ?></td>
                             <td>
                                 <span class="inline-flex flex-wrap items-center gap-2">
+                                    <?php if ($assignmentFileUrl !== ''): ?>
+                                        <a
+                                            href="<?= e($assignmentFileUrl); ?>"
+                                            class="admin-action-icon-btn"
+                                            data-action-kind="detail"
+                                            data-skip-action-icon="1"
+                                            title="Mở file"
+                                            aria-label="Mở file"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                        >
+                                            <span class="admin-action-icon-label">Mở file</span>
+                                            <span class="admin-action-icon-glyph" aria-hidden="true">
+                                                <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M16 13H8"></path><path d="M16 17H8"></path><path d="M10 9H8"></path></svg>
+                                            </span>
+                                        </a>
+                                    <?php else: ?>
+                                        <span
+                                            class="admin-action-icon-btn"
+                                            data-skip-action-icon="1"
+                                            title="Chưa có file"
+                                            aria-label="Chưa có file"
+                                            aria-disabled="true"
+                                            tabindex="-1"
+                                            style="opacity: 0.35; pointer-events: none;"
+                                        >
+                                            <span class="admin-action-icon-label">Chưa có file</span>
+                                            <span class="admin-action-icon-glyph" aria-hidden="true">
+                                                <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M16 13H8"></path><path d="M16 17H8"></path><path d="M10 9H8"></path></svg>
+                                            </span>
+                                        </span>
+                                    <?php endif; ?>
                                     <?php if ($canUpdateAssignment): ?>
                                         <a
                                             href="<?= e(page_url('assignments-academic-edit', ['id' => (int) $assignment['id'], 'assignment_page' => $assignmentPage, 'assignment_per_page' => $assignmentPerPage])); ?>"

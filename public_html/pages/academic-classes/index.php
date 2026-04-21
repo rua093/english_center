@@ -47,7 +47,7 @@ $canUpdateMaterial = has_permission('materials.update');
         <?php endif; ?>
 
         <?php if ($canCreateClass || $canUpdateClass): ?>
-            <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <article class="order-2 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                 <h3><?= $editingClass ? 'Sửa lớp học' : 'Thêm lớp học'; ?></h3>
                 <form class="grid gap-3" method="post" action="/api/classes/save">
                     <?= csrf_input(); ?>
@@ -94,10 +94,10 @@ $canUpdateMaterial = has_permission('materials.update');
             </article>
         <?php endif; ?>
 
-        <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <article class="order-1 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <h3>Danh sách lớp học</h3>
             <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
-                <table class="min-w-full border-collapse text-sm">
+                <table class="min-w-full border-collapse text-sm" data-disable-row-detail="1">
                 <thead>
                     <tr><th>Tên lớp</th><th>Khóa học</th><th>Giáo viên</th><th>Trạng thái</th><th>Hành động</th></tr>
                 </thead>
@@ -113,6 +113,21 @@ $canUpdateMaterial = has_permission('materials.update');
                             <td><span class="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-bold capitalize is-<?= e((string) $class['status']); ?>"><?= e((string) $class['status']); ?></span></td>
                             <td>
                                 <span class="inline-flex flex-wrap items-center gap-2">
+                                    <?php if (can_access_page('classrooms-academic')): ?>
+                                        <a
+                                            href="<?= e(page_url('classrooms-academic', ['course_id' => (int) ($class['course_id'] ?? 0), 'class_id' => (int) $class['id'], 'class_page' => $classPage, 'class_per_page' => $classPerPage])); ?>"
+                                            class="admin-action-icon-btn"
+                                            data-action-kind="detail"
+                                            data-skip-action-icon="1"
+                                            title="Chi tiết"
+                                            aria-label="Chi tiết"
+                                        >
+                                            <span class="admin-action-icon-label">Chi tiết</span>
+                                            <span class="admin-action-icon-glyph" aria-hidden="true">
+                                                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12z"></path></svg>
+                                            </span>
+                                        </a>
+                                    <?php endif; ?>
                                     <?php if ($canUpdateClass): ?>
                                         <a
                                             href="<?= e(page_url('classes-academic-edit', ['id' => (int) $class['id'], 'class_page' => $classPage, 'class_per_page' => $classPerPage])); ?>"

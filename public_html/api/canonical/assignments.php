@@ -20,6 +20,16 @@ function assignments_manage_redirect_query(array $source): array
 		$query['class_id'] = $classId;
 	}
 
+	$classPage = input_int($source, 'class_page');
+	if ($classPage > 0) {
+		$query['class_page'] = $classPage;
+	}
+
+	$classPerPage = input_int($source, 'class_per_page');
+	if ($classPerPage > 0) {
+		$query['class_per_page'] = $classPerPage;
+	}
+
 	$lessonId = input_int($source, 'lesson_id');
 	if ($lessonId > 0) {
 		$query['lesson_id'] = $lessonId;

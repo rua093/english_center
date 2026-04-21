@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 require_permission('academic.submissions.grade');
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-	redirect(page_url('submissions-academic'));
+	redirect(page_url('classrooms-academic'));
 }
 
 function submissions_grade_resolve_redirect_page(array $source): string
@@ -13,7 +13,7 @@ function submissions_grade_resolve_redirect_page(array $source): string
 		return $requestedPage;
 	}
 
-	return 'submissions-academic';
+	return 'classrooms-academic';
 }
 
 function submissions_grade_resolve_redirect_query(array $source, string $redirectPage): array
@@ -29,6 +29,16 @@ function submissions_grade_resolve_redirect_query(array $source, string $redirec
 		$classId = max(0, (int) ($source['class_id'] ?? 0));
 		if ($classId > 0) {
 			$query['class_id'] = $classId;
+		}
+
+		$classPage = max(0, (int) ($source['class_page'] ?? 0));
+		if ($classPage > 0) {
+			$query['class_page'] = $classPage;
+		}
+
+		$classPerPage = max(0, (int) ($source['class_per_page'] ?? 0));
+		if ($classPerPage > 0) {
+			$query['class_per_page'] = $classPerPage;
 		}
 
 		$lessonId = max(0, (int) ($source['lesson_id'] ?? 0));
@@ -59,24 +69,7 @@ function submissions_grade_resolve_redirect_query(array $source, string $redirec
 		return $query;
 	}
 
-	$classId = max(0, (int) ($source['class_id'] ?? 0));
-	$lessonId = max(0, (int) ($source['lesson_id'] ?? 0));
-	$assignmentId = max(0, (int) ($source['assignment_id'] ?? 0));
-	$submissionPage = max(1, (int) ($source['submission_page'] ?? 1));
-	$submissionPerPage = max(1, (int) ($source['submission_per_page'] ?? 10));
-	$gradeStatus = trim((string) ($source['grade_status'] ?? 'pending'));
-	if (!in_array($gradeStatus, ['pending', 'graded', 'all', 'missing'], true)) {
-		$gradeStatus = 'pending';
-	}
-
-	return [
-		'class_id' => $classId,
-		'lesson_id' => $lessonId,
-		'assignment_id' => $assignmentId,
-		'grade_status' => $gradeStatus,
-		'submission_page' => $submissionPage,
-		'submission_per_page' => $submissionPerPage,
-	];
+	return [];
 }
 
 $submissionId = (int) ($_POST['submission_id'] ?? 0);

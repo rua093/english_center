@@ -68,7 +68,7 @@ $today = date('Y-m-d');
     <?php endif; ?>
 
     <?php if ($canManagePromotion): ?>
-        <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <article class="order-2 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <h3><?= $editingPromotion ? 'Sửa ưu đãi' : 'Thêm ưu đãi'; ?></h3>
             <form class="grid gap-3 md:grid-cols-2" method="post" action="/api/promotions/save">
                 <?= csrf_input(); ?>
@@ -133,7 +133,7 @@ $today = date('Y-m-d');
         </article>
     <?php endif; ?>
 
-    <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <article class="order-1 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <h3>Danh sách ưu đãi</h3>
         <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
             <table class="min-w-full border-collapse text-sm">

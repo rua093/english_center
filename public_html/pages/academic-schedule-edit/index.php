@@ -29,7 +29,7 @@ $scheduleConflictDataset = array_map(static function (array $schedule): array {
 }, $allSchedules);
 
 $module = 'schedules';
-$adminTitle = $editingSchedule ? 'Học vụ - Sửa lịch học' : 'Học vụ - Thêm lịch học';
+$adminTitle = $editingSchedule ? 'Học vụ - Sửa lịch dạy' : 'Học vụ - Thêm lịch dạy';
 ?>
 <div class="grid gap-4">
     <?php if ($success): ?>
@@ -41,7 +41,7 @@ $adminTitle = $editingSchedule ? 'Học vụ - Sửa lịch học' : 'Học vụ
     <?php endif; ?>
 
     <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h2><?= $editingSchedule ? 'Chỉnh sửa lịch học' : 'Thêm lịch học'; ?></h2>
+        <h2><?= $editingSchedule ? 'Chỉnh sửa lịch dạy' : 'Thêm lịch dạy'; ?></h2>
         <form class="grid gap-3" method="post" action="/api/schedules/save" data-schedule-form="1">
                 <?= csrf_input(); ?>
                 <input type="hidden" name="id" value="<?= (int) ($editingSchedule['id'] ?? 0); ?>">
@@ -71,7 +71,7 @@ $adminTitle = $editingSchedule ? 'Học vụ - Sửa lịch học' : 'Học vụ
                 <label>Ngày học<input type="date" name="study_date" value="<?= e((string) ($editingSchedule['study_date'] ?? '')); ?>" required></label>
                 <label>Giờ bắt đầu<input type="time" name="start_time" value="<?= e((string) ($editingSchedule['start_time'] ?? '')); ?>" required></label>
                 <label>Giờ kết thúc<input type="time" name="end_time" value="<?= e((string) ($editingSchedule['end_time'] ?? '')); ?>" required></label>
-            <button class="<?= ui_btn_primary_classes(); ?>" type="submit">Lưu lịch học</button>
+            <button class="<?= ui_btn_primary_classes(); ?>" type="submit">Lưu lịch dạy</button>
             <a class="<?= ui_btn_secondary_classes(); ?>" href="<?= e(page_url('schedules-academic')); ?>">Quay lại</a>
         </form>
     </article>

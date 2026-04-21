@@ -1,5 +1,5 @@
 <?php
-require_permission('academic.classes.view');
+require_permission('academic.roadmaps.view');
 
 $academicModel = new AcademicModel();
 $courseOptions = $academicModel->classLookups()['courses'] ?? [];
@@ -42,9 +42,9 @@ $adminTitle = 'Học vụ - Roadmap khóa học';
 $success = get_flash('success');
 $error = get_flash('error');
 
-$canCreateRoadmap = has_permission('academic.classes.create');
-$canUpdateRoadmap = has_permission('academic.classes.update');
-$canDeleteRoadmap = has_permission('academic.classes.delete');
+$canCreateRoadmap = has_permission('academic.roadmaps.create');
+$canUpdateRoadmap = has_permission('academic.roadmaps.update');
+$canDeleteRoadmap = has_permission('academic.roadmaps.delete');
 
 $selectedOrder = max(1, (int) ($editingRoadmap['order'] ?? 1));
 $selectedTopicTitle = trim((string) ($editingRoadmap['topic_title'] ?? ''));

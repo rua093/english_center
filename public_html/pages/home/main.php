@@ -2,6 +2,8 @@
 $homeUser = auth_user();
 $studentProgress = $homeWidgets['student_progress'] ?? null;
 $teacherSchedules = $homeWidgets['teacher_schedules'] ?? [];
+$homeSuccess = get_flash('home_success');
+$homeError = get_flash('home_error');
 ?>
 
 <main class="font-jakarta relative">

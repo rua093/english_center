@@ -14,3 +14,5 @@ require_once __DIR__ . '/database.php';
 require_once __DIR__ . '/page_routes.php';
 require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/page_actions.php';
+
+sync_auth_permissions();

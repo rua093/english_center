@@ -12,6 +12,13 @@ $promotions = is_array($lookups['promotions'] ?? null) ? $lookups['promotions'] 
 $viewer = auth_user();
 $isAdmin = (($viewer['role'] ?? '') === 'admin');
 $canCreateRegistration = $isAdmin || has_any_permission(['finance.tuition.manage', 'finance.tuition.create', 'finance.tuition.update']);
+$canChangeLearningStatus = $isAdmin || has_any_permission(['finance.tuition.manage', 'finance.tuition.create', 'finance.tuition.update']);
+$registrationRows = $academicModel->listRegistrationEnrollmentRows(400);
+
+$learningStatusLabels = [
+    'official' => 'Chính thức',
+    'trial' => 'Học thử',
+];
 
 $success = get_flash('success');
 $error = get_flash('error');
@@ -40,7 +47,7 @@ if (is_string($oldFormPayloadRaw) && $oldFormPayloadRaw !== '') {
             : 'full';
 
         $learningStatus = (string) ($decoded['learning_status'] ?? 'official');
-        $formState['learning_status'] = in_array($learningStatus, ['trial', 'official', 'suspended'], true)
+        $formState['learning_status'] = in_array($learningStatus, ['trial', 'official'], true)
             ? $learningStatus
             : 'official';
     }
@@ -210,14 +217,14 @@ $adminTitle = 'Đăng ký khóa học';
                         </div>
                         <div class="rounded-lg border border-slate-200 bg-white p-3">
                             <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Trạng thái sau khi tạo</p>
-                            <p class="mt-1 inline-flex items-center rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-rose-700">debt | đã thu 0 đ</p>
+                            <p id="preview-invoice-status" class="mt-1 inline-flex items-center rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-rose-700">debt | đã thu 0 đ</p>
                         </div>
                     </div>
                     <p class="mt-3 text-xs text-slate-500">Ghi chú: hệ thống sẽ kiểm tra đúng học viên, đúng khóa - lớp và ngăn tạo trùng học phí.</p>
                 </div>
 
                 <div class="inline-flex flex-wrap items-center gap-2 lg:col-span-2">
-                    <button class="<?= ui_btn_primary_classes(); ?>" type="submit">Đăng ký và tạo học phí nợ</button>
+                    <button class="<?= ui_btn_primary_classes(); ?>" type="submit">Đăng ký khóa học</button>
                     <a class="<?= ui_btn_secondary_classes(); ?>" href="<?= e(page_url('tuition-finance')); ?>">Xem danh sách học phí</a>
                 </div>
             </form>
@@ -228,6 +235,109 @@ $adminTitle = 'Đăng ký khóa học';
             <p class="text-sm text-amber-800">Tài khoản hiện tại chưa có quyền tạo học phí trực tiếp. Vui lòng liên hệ Admin để cấp quyền <strong>finance.tuition.create</strong> hoặc <strong>finance.tuition.manage</strong>.</p>
         </article>
     <?php endif; ?>
+
+    <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <div>
+                <h3>Danh sách ghi danh & trạng thái học</h3>
+                <p class="text-sm text-slate-500">Chuyển trực tiếp giữa <strong>Học thử</strong> và <strong>Chính thức</strong> trong cột Trạng thái học.</p>
+            </div>
+            <?php if (!$canChangeLearningStatus): ?>
+                <span class="inline-flex items-center rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-700">Bạn chưa có quyền chuyển trạng thái học viên.</span>
+            <?php endif; ?>
+        </div>
+
+        <div id="registration-status-feedback" class="hidden mb-3 rounded-xl border-l-4 p-3 text-sm"></div>
+
+        <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+            <table class="min-w-full border-collapse text-sm">
+                <thead class="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">
+                    <tr>
+                        <th class="px-3 py-2">Học viên</th>
+                        <th class="px-3 py-2">Khóa học</th>
+                        <th class="px-3 py-2">Lớp học</th>
+                        <th class="px-3 py-2">Trạng thái học</th>
+                        <th class="px-3 py-2">Học phí</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (empty($registrationRows)): ?>
+                        <tr>
+                            <td colspan="5">
+                                <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">Chưa có dữ liệu ghi danh.</div>
+                            </td>
+                        </tr>
+                    <?php else: ?>
+                        <?php foreach ($registrationRows as $row): ?>
+                            <?php
+                            $studentId = (int) ($row['student_id'] ?? 0);
+                            $classId = (int) ($row['class_id'] ?? 0);
+                            $learningStatus = (string) ($row['learning_status'] ?? 'official');
+                            if (!in_array($learningStatus, ['trial', 'official'], true)) {
+                                $learningStatus = 'official';
+                            }
+
+                            $learningStatusLabel = (string) ($learningStatusLabels[$learningStatus] ?? $learningStatus);
+                            $badgeClass = $learningStatus === 'trial'
+                                ? 'border-blue-200 bg-blue-50 text-blue-700'
+                                : 'border-emerald-200 bg-emerald-50 text-emerald-700';
+
+                            $tuitionId = (int) ($row['tuition_id'] ?? 0);
+                            $totalAmount = max(0, (float) ($row['total_amount'] ?? 0));
+                            $amountPaid = max(0, (float) ($row['amount_paid'] ?? 0));
+                            $remainingAmount = max(0, $totalAmount - $amountPaid);
+                            $tuitionStatus = strtolower(trim((string) ($row['tuition_status'] ?? 'debt')));
+                            if (!in_array($tuitionStatus, ['paid', 'debt'], true)) {
+                                $tuitionStatus = ($totalAmount > 0 && $amountPaid >= $totalAmount) ? 'paid' : 'debt';
+                            }
+                            $hasPayment = $amountPaid > 0.0001;
+                            ?>
+                            <tr class="border-b border-slate-100 last:border-b-0" data-registration-row="1" data-student-id="<?= $studentId; ?>" data-class-id="<?= $classId; ?>">
+                                <td class="px-3 py-2 align-top font-semibold text-slate-800"><?= e((string) ($row['student_name'] ?? ('Học viên #' . $studentId))); ?></td>
+                                <td class="px-3 py-2 align-top text-slate-700"><?= e((string) ($row['course_name'] ?? '--')); ?></td>
+                                <td class="px-3 py-2 align-top text-slate-700"><?= e((string) ($row['class_name'] ?? '--')); ?></td>
+                                <td class="px-3 py-2 align-top" data-learning-status-cell="1">
+                                    <?php if ($canChangeLearningStatus && in_array($learningStatus, ['trial', 'official'], true)): ?>
+                                        <form method="post" action="/api/tuitions/update-learning-status" class="inline-flex items-center gap-2">
+                                            <?= csrf_input(); ?>
+                                            <input type="hidden" name="student_id" value="<?= $studentId; ?>">
+                                            <input type="hidden" name="class_id" value="<?= $classId; ?>">
+                                            <select
+                                                name="learning_status"
+                                                class="h-9 rounded-md border border-slate-300 bg-white px-2 text-sm font-semibold"
+                                                data-learning-status-select="1"
+                                                data-current-status="<?= e($learningStatus); ?>"
+                                                data-original-status="<?= e($learningStatus); ?>"
+                                                data-has-payment="<?= $hasPayment ? '1' : '0'; ?>"
+                                                <?= $hasPayment ? 'disabled' : ''; ?>
+                                            >
+                                                <option value="official" <?= $learningStatus === 'official' ? 'selected' : ''; ?>>Chính thức</option>
+                                                <option value="trial" <?= $learningStatus === 'trial' ? 'selected' : ''; ?>>Học thử</option>
+                                            </select>
+                                        </form>
+                                    <?php else: ?>
+                                        <span class="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-bold <?= e($badgeClass); ?>"><?= e($learningStatusLabel); ?></span>
+                                    <?php endif; ?>
+                                </td>
+                                <td class="px-3 py-2 align-top" data-tuition-cell="1">
+                                    <?php if ($tuitionId > 0): ?>
+                                        <div class="text-xs text-slate-700 leading-5">
+                                            <div>Tổng: <?= format_money($totalAmount); ?></div>
+                                            <div>Đã thu: <?= format_money($amountPaid); ?></div>
+                                            <div>Còn: <?= format_money($remainingAmount); ?></div>
+                                        </div>
+                                        <div class="mt-1 inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide <?= $tuitionStatus === 'paid' ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-rose-200 bg-rose-50 text-rose-700'; ?>"><?= e($tuitionStatus); ?></div>
+                                    <?php else: ?>
+                                        <span class="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700">Chưa tạo học phí</span>
+                                    <?php endif; ?>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+    </article>
 </div>
 
 <?php if ($canCreateRegistration): ?>
@@ -241,6 +351,8 @@ $adminTitle = 'Đăng ký khóa học';
         const previewBaseAmount = document.getElementById('preview-base-amount');
         const previewDiscountAmount = document.getElementById('preview-discount-amount');
         const previewTotalAmount = document.getElementById('preview-total-amount');
+        const previewInvoiceStatus = document.getElementById('preview-invoice-status');
+        const learningStatusSelect = document.querySelector('#registration-form select[name="learning_status"]');
 
         const courseMap = <?= json_encode($courseMapForJs, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
 
@@ -370,6 +482,9 @@ $adminTitle = 'Đăng ký khóa học';
             const discountPercent = getSelectedDiscountPercent();
             const discountApplied = (baseAmount * discountPercent) / 100;
             const totalAmount = Math.max(0, baseAmount - discountApplied);
+            const selectedLearningStatus = learningStatusSelect ? String(learningStatusSelect.value || 'official') : 'official';
+            const isTrialMode = selectedLearningStatus === 'trial';
+            const invoiceTotal = isTrialMode ? 0 : totalAmount;
 
             if (previewBaseAmount) {
                 previewBaseAmount.textContent = toMoney(baseAmount);
@@ -378,7 +493,16 @@ $adminTitle = 'Đăng ký khóa học';
                 previewDiscountAmount.textContent = toMoney(discountApplied);
             }
             if (previewTotalAmount) {
-                previewTotalAmount.textContent = toMoney(totalAmount);
+                previewTotalAmount.textContent = toMoney(invoiceTotal);
+            }
+            if (previewInvoiceStatus) {
+                if (isTrialMode) {
+                    previewInvoiceStatus.textContent = 'trial | chưa tạo học phí';
+                    previewInvoiceStatus.className = 'mt-1 inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-blue-700';
+                } else {
+                    previewInvoiceStatus.textContent = 'debt | đã thu 0 đ';
+                    previewInvoiceStatus.className = 'mt-1 inline-flex items-center rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-rose-700';
+                }
             }
         }
 
@@ -396,9 +520,194 @@ $adminTitle = 'Đăng ký khóa học';
             updatePreview();
         });
 
+        if (learningStatusSelect) {
+            learningStatusSelect.addEventListener('change', function () {
+                updatePreview();
+            });
+        }
+
         syncClassOptions();
         syncPackageOptions();
         updatePreview();
     })();
 </script>
 <?php endif; ?>
+
+<script>
+    (function () {
+        const feedbackElement = document.getElementById('registration-status-feedback');
+
+        function toMoney(value) {
+            const amount = Number.isFinite(value) ? value : 0;
+            return new Intl.NumberFormat('vi-VN').format(Math.max(0, Math.round(amount))) + ' đ';
+        }
+
+        function showFeedback(message, isSuccess) {
+            if (!(feedbackElement instanceof HTMLElement)) {
+                return;
+            }
+
+            feedbackElement.classList.remove('hidden');
+            feedbackElement.textContent = String(message || '');
+            feedbackElement.classList.remove('border-emerald-500', 'bg-emerald-50', 'text-emerald-700');
+            feedbackElement.classList.remove('border-rose-500', 'bg-rose-50', 'text-rose-700');
+            if (isSuccess) {
+                feedbackElement.classList.add('border-emerald-500', 'bg-emerald-50', 'text-emerald-700');
+            } else {
+                feedbackElement.classList.add('border-rose-500', 'bg-rose-50', 'text-rose-700');
+            }
+        }
+
+        function normalizeLearningStatus(status) {
+            const normalized = String(status || '').toLowerCase();
+            return normalized === 'trial' ? 'trial' : 'official';
+        }
+
+        function statusLabel(status) {
+            return normalizeLearningStatus(status) === 'trial' ? 'Học thử' : 'Chính thức';
+        }
+
+        function statusBadgeClass(status) {
+            return normalizeLearningStatus(status) === 'trial'
+                ? 'border-blue-200 bg-blue-50 text-blue-700'
+                : 'border-emerald-200 bg-emerald-50 text-emerald-700';
+        }
+
+        function renderTuitionCell(cell, rowData) {
+            if (!(cell instanceof HTMLElement) || !rowData || typeof rowData !== 'object') {
+                return;
+            }
+
+            const tuitionId = Number(rowData.tuition_id || 0);
+            const totalAmount = Number(rowData.total_amount || 0);
+            const amountPaid = Number(rowData.amount_paid || 0);
+            const remainingAmount = Number(rowData.remaining_amount || 0);
+            const tuitionStatus = String(rowData.tuition_status || '').toLowerCase() === 'paid' ? 'paid' : 'debt';
+            const badgeClass = tuitionStatus === 'paid'
+                ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                : 'border-rose-200 bg-rose-50 text-rose-700';
+
+            if (tuitionId > 0) {
+                cell.innerHTML = ''
+                    + '<div class="text-xs text-slate-700 leading-5">'
+                    + '<div>Tổng: ' + toMoney(totalAmount) + '</div>'
+                    + '<div>Đã thu: ' + toMoney(amountPaid) + '</div>'
+                    + '<div>Còn: ' + toMoney(remainingAmount) + '</div>'
+                    + '</div>'
+                    + '<div class="mt-1 inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ' + badgeClass + '">' + tuitionStatus + '</div>';
+                return;
+            }
+
+            cell.innerHTML = '<span class="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700">Chưa tạo học phí</span>';
+        }
+
+        function renderLockedStatusCell(cell, status) {
+            if (!(cell instanceof HTMLElement)) {
+                return;
+            }
+
+            const normalized = normalizeLearningStatus(status);
+            cell.innerHTML = '<span class="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-bold ' + statusBadgeClass(normalized) + '">' + statusLabel(normalized) + '</span>';
+        }
+
+        const selects = Array.from(document.querySelectorAll('[data-learning-status-select="1"]'));
+        if (selects.length === 0) {
+            return;
+        }
+
+        selects.forEach(function (selectElement) {
+            if (!(selectElement instanceof HTMLSelectElement)) {
+                return;
+            }
+
+            if (String(selectElement.dataset.hasPayment || '') === '1') {
+                selectElement.disabled = true;
+            }
+
+            selectElement.addEventListener('change', function () {
+                const currentStatus = String(selectElement.dataset.currentStatus || '').toLowerCase();
+                const nextStatus = String(selectElement.value || '').toLowerCase();
+                if (nextStatus === '' || nextStatus === currentStatus) {
+                    return;
+                }
+
+                if (currentStatus === 'official' && nextStatus === 'trial') {
+                    const accepted = window.confirm('Chuyển từ chính thức sang học thử chỉ hợp lệ khi học viên chưa thanh toán. Nếu hợp lệ, hệ thống sẽ xóa học phí của học viên này. Bạn muốn tiếp tục?');
+                    if (!accepted) {
+                        selectElement.value = currentStatus;
+                        return;
+                    }
+                }
+
+                const formElement = selectElement.closest('form');
+                if (!(formElement instanceof HTMLFormElement)) {
+                    return;
+                }
+
+                const formData = new FormData(formElement);
+                const originalStatus = String(selectElement.dataset.originalStatus || currentStatus || 'official').toLowerCase();
+                const rowElement = selectElement.closest('tr');
+                const statusCell = rowElement ? rowElement.querySelector('[data-learning-status-cell="1"]') : null;
+                const tuitionCell = rowElement ? rowElement.querySelector('[data-tuition-cell="1"]') : null;
+
+                selectElement.disabled = true;
+
+                fetch(formElement.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                    },
+                    credentials: 'same-origin',
+                })
+                    .then(function (response) {
+                        return response.json().catch(function () {
+                            return {
+                                status: 'error',
+                                message: 'Không nhận được phản hồi hợp lệ từ máy chủ.',
+                            };
+                        });
+                    })
+                    .then(function (payload) {
+                        const isSuccess = String(payload && payload.status || '').toLowerCase() === 'success';
+                        const message = String(payload && payload.message || (isSuccess ? 'Cập nhật thành công.' : 'Cập nhật thất bại.'));
+
+                        if (!isSuccess) {
+                            selectElement.value = originalStatus;
+                            selectElement.disabled = String(selectElement.dataset.hasPayment || '') === '1';
+                            showFeedback(message, false);
+                            return;
+                        }
+
+                        const data = payload && payload.data && typeof payload.data === 'object' ? payload.data : {};
+                        const rowData = data.row && typeof data.row === 'object' ? data.row : {};
+
+                        const resolvedStatus = normalizeLearningStatus(rowData.learning_status || nextStatus);
+                        selectElement.value = resolvedStatus;
+                        selectElement.dataset.currentStatus = resolvedStatus;
+                        selectElement.dataset.originalStatus = resolvedStatus;
+
+                        const hasPayment = Boolean(rowData.has_payment);
+                        selectElement.dataset.hasPayment = hasPayment ? '1' : '0';
+
+                        if (hasPayment) {
+                            if (statusCell instanceof HTMLElement) {
+                                renderLockedStatusCell(statusCell, resolvedStatus);
+                            }
+                        } else {
+                            selectElement.disabled = false;
+                        }
+
+                        renderTuitionCell(tuitionCell, rowData);
+                        showFeedback(message, true);
+                    })
+                    .catch(function () {
+                        selectElement.value = originalStatus;
+                        selectElement.disabled = String(selectElement.dataset.hasPayment || '') === '1';
+                        showFeedback('Không thể cập nhật trạng thái lúc này. Vui lòng thử lại.', false);
+                    });
+            });
+        });
+    })();
+</script>

@@ -130,6 +130,18 @@ final class PaymentTransactionsTableModel
         $this->executeStatement('DELETE FROM payment_transactions WHERE id = :id', ['id' => $id]);
     }
 
+    public function deleteByTuitionFeeId(int $tuitionId): void
+    {
+        if ($tuitionId <= 0) {
+            return;
+        }
+
+        $this->executeStatement(
+            'DELETE FROM payment_transactions WHERE tuition_fee_id = :tuition_fee_id',
+            ['tuition_fee_id' => $tuitionId]
+        );
+    }
+
     public function insertSuccess(int $tuitionId, string $transactionNo, string $paymentMethod, float $amount): void
     {
         $sql = "INSERT INTO payment_transactions (tuition_fee_id, transaction_no, payment_method, amount, transaction_status, raw_response)

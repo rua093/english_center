@@ -50,7 +50,7 @@ $isEditingStudent = $editingRoleName === 'student';
         <div class="rounded-xl border-l-4 p-3 text-sm border-rose-500 bg-rose-50 text-rose-700"><?= e($error); ?></div>
     <?php endif; ?>
 
-    <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <article class="order-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <h3><?= $editingUser ? 'Cập nhật người dùng' : 'Tạo người dùng mới'; ?></h3>
         <form id="admin-user-form" class="grid gap-3 md:grid-cols-2" method="post" action="/api/users/save" autocomplete="off">
             <?= csrf_input(); ?>
@@ -160,7 +160,7 @@ $isEditingStudent = $editingRoleName === 'student';
         </form>
     </article>
 
-    <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <article class="order-1 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <h3>Danh sách tài khoản</h3>
         <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
             <table class="min-w-full border-collapse text-sm" data-force-row-detail="1">
@@ -273,7 +273,7 @@ $isEditingStudent = $editingRoleName === 'student';
         </div>
     </article>
 
-    <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <article class="order-2 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <h3>Role & Permission Matrix</h3>
         <p>Chọn trực tiếp quyền cho từng vai trò. Guest sử dụng quyền công khai không cần đăng nhập.</p>
         <div class="grid gap-3">

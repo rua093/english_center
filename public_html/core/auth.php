@@ -96,6 +96,21 @@ function fetch_permission_slugs(int $userId): array
 	return array_values(array_unique($slugs));
 }
 
+function sync_auth_permissions(): void
+{
+	if (!is_logged_in()) {
+		return;
+	}
+
+	$user = auth_user();
+	$userId = (int) ($user['id'] ?? 0);
+	if ($userId <= 0) {
+		return;
+	}
+
+	$_SESSION['auth_permissions'] = fetch_permission_slugs($userId);
+}
+
 function auth_permissions(): array
 {
 	return $_SESSION['auth_permissions'] ?? [];
@@ -208,6 +223,10 @@ function can_access_page(string $page): bool
 			return has_permission('finance.payment.view');
 		case 'feedbacks-manage':
 			return has_permission('feedback.view');
+		case 'student-leads-manage':
+			return has_permission('student_lead.manage');
+		case 'job-applications-manage':
+			return has_permission('job_application.manage');
 		case 'approvals-manage':
 			return has_permission('approval.view');
 		case 'activities-manage':
@@ -215,22 +234,19 @@ function can_access_page(string $page): bool
 		case 'bank-manage':
 			return has_permission('bank.view');
 		case 'courses-academic':
+			return has_permission('academic.courses.view');
 		case 'roadmaps-academic':
-			return has_permission('academic.classes.view');
+			return has_permission('academic.roadmaps.view');
 		case 'classes-academic':
 			return has_permission('academic.classes.view');
 		case 'classrooms-academic':
 			return has_permission('academic.classes.view');
-		case 'attendance-academic':
-			return has_permission('academic.schedules.view');
 		case 'schedules-academic':
 			return has_permission('academic.schedules.view');
 		case 'assignments-academic':
 			return has_permission('academic.assignments.view');
 		case 'materials-academic':
 			return has_permission('materials.view');
-		case 'submissions-academic':
-			return has_permission('academic.submissions.view') || has_permission('academic.submissions.grade');
 		default:
 			return false;
 	}

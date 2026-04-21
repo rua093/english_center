@@ -16,21 +16,30 @@ $error = get_flash('error');
         
         <header class="mb-10 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
             <div>
-                <nav class="mb-2 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-blue-600">
-                    <span class="h-1.5 w-1.5 rounded-full bg-blue-600"></span>
-                    Hệ thống quản trị giáo viên
-                </nav>
-                <h1 class="text-3xl font-black text-slate-900 tracking-tight">
-                    Chào buổi sáng, <span class="text-blue-700">Thầy <?= e($user['full_name'] ?? 'Bảo'); ?></span>!
-                </h1>
-                <p class="mt-1 text-slate-500 font-medium">Hôm nay bạn có <span class="text-blue-600 font-bold"><?= count(array_filter($submissions, fn($s) => !isset($s['score']))); ?> bài nộp</span> đang chờ chấm điểm.</p>
+                <h1>Bảng điều khiển giáo viên</h1>
+                <p>Quản lý bài tập, chấm điểm theo lớp và lịch dạy của bạn.</p>
             </div>
-            
-            <div class="flex items-center gap-3">
+            <?php if (can_access_page('assignments-academic')): ?>
+                <a class="inline-flex items-center justify-center rounded-xl bg-blue-700 px-4 py-2.5 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-blue-800" href="<?= e(page_url('assignments-academic')); ?>">Quản lý bài tập</a>
+            <?php endif; ?>
+        </div>
+
+        <div class="flex flex-wrap gap-2">
+            <span class="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold border-emerald-200 bg-emerald-50 text-emerald-700">Hàng chờ chấm điểm</span>
+            <span class="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold border-amber-200 bg-amber-50 text-amber-700">Điều phối bài tập</span>
+            <span class="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold border-rose-200 bg-rose-50 text-rose-700">Góc nhìn giáo viên</span>
+        </div>
+
+        <div class="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-3 md:flex-row md:items-center md:justify-between">
+            <div class="flex flex-wrap gap-2">
+                <?php if (can_access_page('classrooms-academic')): ?>
+                    <a href="<?= e(page_url('classrooms-academic')); ?>"><span class="text-[10px] font-extrabold uppercase tracking-wide text-slate-400">Lớp học</span><span class="text-xs font-bold">Điều phối buổi dạy</span></a>
+                <?php endif; ?>
                 <?php if (can_access_page('assignments-academic')): ?>
-                    <a class="inline-flex items-center justify-center rounded-2xl bg-blue-700 px-6 py-3 text-sm font-black text-white shadow-lg shadow-blue-700/20 transition-all hover:bg-blue-800 hover:-translate-y-1 active:scale-95" href="<?= e(page_url('assignments-academic')); ?>">
-                        + TẠO BÀI TẬP MỚI
-                    </a>
+                    <a href="<?= e(page_url('assignments-academic')); ?>"><span class="text-[10px] font-extrabold uppercase tracking-wide text-slate-400">Học vụ</span><span class="text-xs font-bold">Quản lý bài tập</span></a>
+                <?php endif; ?>
+                <?php if (can_access_page('dashboard-teacher')): ?>
+                    <a href="<?= e(page_url('dashboard-teacher')); ?>"><span class="text-[10px] font-extrabold uppercase tracking-wide text-slate-400">Tổng quan</span><span class="text-xs font-bold">Bảng điều khiển giáo viên</span></a>
                 <?php endif; ?>
             </div>
         </header>

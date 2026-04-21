@@ -21,6 +21,33 @@ function upload_public_base_path(): string
 	return '/assets/uploads';
 }
 
+function normalize_public_file_url(?string $path): string
+{
+	$normalized = trim((string) $path);
+	if ($normalized === '') {
+		return '';
+	}
+
+	$normalized = str_replace('\\', '/', $normalized);
+	$lower = strtolower($normalized);
+
+	if (
+		str_starts_with($lower, 'http://') ||
+		str_starts_with($lower, 'https://') ||
+		str_starts_with($lower, '//') ||
+		str_starts_with($lower, 'data:') ||
+		str_starts_with($lower, 'blob:')
+	) {
+		return $normalized;
+	}
+
+	if (str_starts_with($normalized, '/')) {
+		return $normalized;
+	}
+
+	return upload_public_base_path() . '/' . ltrim($normalized, '/');
+}
+
 function store_uploaded_file(array $file, string $prefix): ?string
 {
 	if (empty($file['name']) || (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {

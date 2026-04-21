@@ -26,7 +26,7 @@ function api_courses_save_action(): void
     api_require_post(page_url('courses-academic'));
 
     $courseId = input_int($_POST, 'id');
-    api_guard_permission($courseId > 0 ? 'academic.classes.update' : 'academic.classes.create');
+    api_guard_permission($courseId > 0 ? 'academic.courses.update' : 'academic.courses.create');
 
     $courseName = input_string($_POST, 'course_name');
     $basePrice = max(0, input_float($_POST, 'base_price'));
@@ -60,7 +60,7 @@ function api_courses_save_action(): void
 
 function api_courses_edit_action(): void
 {
-    api_guard_permission('academic.classes.update');
+    api_guard_permission('academic.courses.update');
 
     $query = courses_manage_redirect_query($_GET);
     $query['edit'] = (int) ($_GET['id'] ?? 0);
@@ -70,7 +70,7 @@ function api_courses_edit_action(): void
 
 function api_courses_delete_action(): void
 {
-    api_guard_permission('academic.classes.delete');
+    api_guard_permission('academic.courses.delete');
     api_require_post(page_url('courses-academic'));
 
     $courseId = (int) ($_GET['id'] ?? 0);
