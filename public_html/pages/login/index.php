@@ -90,14 +90,6 @@ $success = get_flash('success');
                     </button>
                 </form>
 
-                <div class="mt-8 rounded-xl border border-blue-50 bg-blue-50/30 p-4">
-                    <p class="text-xs font-semibold text-blue-600 mb-2 uppercase tracking-wider">Tài khoản mẫu</p>
-                    <div class="grid grid-cols-2 gap-2 text-[13px] text-slate-600">
-                        <div class="bg-white px-3 py-2 rounded-lg border border-slate-100 shadow-sm"><span class="font-bold text-slate-700">admin</span> / 123456</div>
-                        <div class="bg-white px-3 py-2 rounded-lg border border-slate-100 shadow-sm"><span class="font-bold text-slate-700">student</span> / 123456</div>
-                    </div>
-                </div>
-
                 <div class="mt-5 text-center text-sm text-slate-500">
                     Chưa có tài khoản?
                     <a href="<?= e(page_url('register')); ?>" class="font-bold text-blue-600 hover:text-blue-800 hover:underline underline-offset-4">Đăng ký ngay</a>
