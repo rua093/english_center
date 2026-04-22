@@ -68,49 +68,49 @@ INSERT INTO student_profiles (user_id, parent_name, parent_phone, school_name, t
 VALUES (4, 'Tran Thi Parent', '0909999999', 'THPT Demo', 'IELTS 6.5', 1);
 
 INSERT INTO student_leads (
-	full_name,
-	phone,
-	email,
-	age,
-	parent_name,
-	parent_phone,
-	school_name,
-	target_program,
-	target_score,
-	desired_schedule,
-	note,
-	source,
+	student_name,
+	gender,
+	dob,
+	interests,
+	school_info,
+	personality,
+	parent_contact,
+	referral_source,
+	current_level,
+	study_time,
+	parent_expectation,
 	status,
 	admin_note,
 	converted_user_id,
 	converted_at
 ) VALUES
-('Tran Gia Han', '0912345678', 'g.han@example.com', 15, 'Tran Thi Huong', '0911111122', 'THPT Nguyen Hue', 'IELTS Foundation', 'IELTS 6.0', 'Toi T2-T4-T6', 'Can tu van lo trinh 6 thang.', 'website', 'new', 'Da tiep nhan tu form web.', NULL, NULL),
-('Pham Minh Duc', '0923456789', 'phamhduc@example.com', 16, 'Pham Van B', '0922222233', 'THPT Tran Phu', 'IELTS Intensive 6.5+', 'IELTS 6.5', 'Sang T3-T5', 'Da hoan thanh hoc thu va dong y nhap hoc.', 'website', 'official', 'Da test dau vao va hoc thu dat yeu cau.', 4, '2026-03-30 10:00:00'),
-('Le Ngoc Anh', '0931234567', 'le.ngoc.anh@example.com', 14, 'Le Thi C', '0933333444', 'THCS Chu Van An', 'Giao tiep Level 1', 'Giao tiep tu tin', 'Chieu T7-CN', 'Phu huynh muon hoc thu truoc khi dang ky chinh thuc.', 'website', 'entry_tested', 'Da hoan thanh test dau vao, cho xep lop hoc thu.', NULL, NULL),
-('Do Khanh Linh', '0967778899', 'k.linh@example.com', 17, 'Do Van D', '0961112233', 'THPT Le Quy Don', 'IELTS Intensive 6.5+', 'IELTS 7.0', 'Toi T3-T5-T7', 'Da hoc thu 2 buoi, dang cho xac nhan nhap hoc.', 'facebook', 'trial_completed', 'Da hoan thanh hoc thu, sale dang follow.', NULL, NULL),
-('Bui Tuan Kiet', '0978889900', 'kiet.bui@example.com', 13, 'Bui Thi E', '0972223344', 'THCS Nguyen Du', 'Giao tiep Level 1', 'Phat am co ban', 'Sang T7-CN', 'Phu huynh tam hoan vi trung lich hoc chinh.', 'website', 'cancelled', 'Khach tam dung, hen lien he lai vao thang sau.', NULL, NULL);
+('Tran Gia Han', 'female', '2010-07-18', 'IELTS Foundation, speaking', 'THPT Nguyen Hue', 'Can than, tiep thu nhanh', 'Tran Thi Huong | 0911111122 | g.han@example.com', 'website', 'Muc tieu IELTS 6.0', 'Toi T2-T4-T6', 'Can tu van lo trinh 6 thang, uu tien lop si so nho.', 'new', 'Da tiep nhan tu form web.', NULL, NULL),
+('Pham Minh Duc', 'male', '2009-10-02', 'IELTS Intensive 6.5+', 'THPT Tran Phu', 'Tu giac, co nen ngu phap tot', 'Pham Van B | 0922222233 | phamhduc@example.com', 'website', 'Muc tieu IELTS 6.5', 'Sang T3-T5', 'Gia dinh dong y nhap hoc chinh thuc sau hoc thu.', 'official', 'Da test dau vao va hoc thu dat yeu cau.', 4, '2026-03-30 10:00:00'),
+('Le Ngoc Anh', 'female', '2011-03-21', 'Giao tiep Level 1', 'THCS Chu Van An', 'Hoi rut re, can tang phan xa', 'Le Thi C | 0933333444 | le.ngoc.anh@example.com', 'website', 'Giao tiep co ban', 'Chieu T7-CN', 'Phu huynh muon hoc thu truoc khi dang ky chinh thuc.', 'entry_tested', 'Da hoan thanh test dau vao, cho xep lop hoc thu.', NULL, NULL),
+('Do Khanh Linh', 'female', '2008-12-09', 'IELTS Intensive 6.5+', 'THPT Le Quy Don', 'Nang dong, chu dong dat cau hoi', 'Do Van D | 0961112233 | k.linh@example.com', 'facebook', 'Muc tieu IELTS 7.0', 'Toi T3-T5-T7', 'Da hoc thu 2 buoi, dang cho xac nhan nhap hoc.', 'trial_completed', 'Da hoan thanh hoc thu, sale dang follow.', NULL, NULL),
+('Bui Tuan Kiet', 'male', '2012-05-14', 'Giao tiep Level 1', 'THCS Nguyen Du', 'Can ho tro them tu vung nen', 'Bui Thi E | 0972223344 | kiet.bui@example.com', 'website', 'Phat am co ban', 'Sang T7-CN', 'Phu huynh tam hoan vi trung lich hoc chinh.', 'cancelled', 'Khach tam dung, hen lien he lai vao thang sau.', NULL, NULL);
 
 INSERT INTO job_applications (
 	full_name,
-	phone,
-	email,
-	applying_position,
-	degree,
-	experience_years,
-	available_schedule,
-	intro,
-	source,
+	contact_info,
+	position_applied,
+	education_history,
+	work_experience,
+	skills_set,
+	personal_intro,
+	start_date_available,
+	salary_expectation,
+	cv_file_url,
 	status,
-	admin_note,
+	hr_note,
 	converted_user_id,
 	converted_at
 ) VALUES
-('Nguyen Thi Ha', '0934567890', 'ha.teacher@example.com', 'IELTS Teacher', 'Master of TESOL', 5, 'Toi T2-T6', 'Da tung day tai trung tam quoc te va co lop IELTS 6.5+.', 'website', 'new', 'Moi tiep nhan ho so.', NULL, NULL),
-('Le Quang Huy', '0945678901', 'huy.applicant@example.com', 'Speaking Coach', 'CELTA', 3, 'Full-time', 'Tap trung phan xa speaking va lop giao tiep cho nguoi di lam.', 'website', 'interviewed', 'Da phong van vong 1, cho ket qua cuoi.', NULL, NULL),
-('Teacher Demo', '0900000003', 'teacher@ec.local', 'IELTS Teacher', 'Bachelor of English Language', 6, 'Full-time', 'Da trung tuyen va da tao tai khoan giao vien.', 'website', 'official', 'Da phong van va onboard.', 3, '2026-03-25 09:15:00'),
-('Pham Thu Trang', '0956789012', 'trang.pham@example.com', 'Junior English Teacher', 'BA English Linguistics', 2, 'Toi T2-T4-T6', 'Co kinh nghiem tro giang va dung lop thieu nhi.', 'linkedin', 'new', 'Ho so moi tu kenh linkedin.', NULL, NULL),
-('Vo Thanh Son', '0987001122', 'son.vo@example.com', 'Speaking Coach', 'CELTA', 4, 'Part-time T7-CN', 'Phu hop lop giao tiep nguoi di lam cuoi tuan.', 'referral', 'rejected', 'Khong phu hop khung gio trung tam dang can.', NULL, NULL);
+('Nguyen Thi Ha', '0934567890 | ha.teacher@example.com', 'IELTS Teacher', 'Master of TESOL', '5 years teaching IELTS classes', 'IELTS, lesson planning, mentoring', 'Da tung day tai trung tam quoc te va co lop IELTS 6.5+.', '2026-04-20', '18-22 trieu', '/assets/uploads/cv-nguyen-thi-ha.pdf', 'new', 'Moi tiep nhan ho so.', NULL, NULL),
+('Le Quang Huy', '0945678901 | huy.applicant@example.com', 'Speaking Coach', 'CELTA', '3 years coaching speaking and communication', 'Speaking workshop, classroom activities', 'Tap trung phan xa speaking va lop giao tiep cho nguoi di lam.', '2026-04-25', '14-18 trieu', '/assets/uploads/cv-le-quang-huy.pdf', 'interviewed', 'Da phong van vong 1, cho ket qua cuoi.', NULL, NULL),
+('Teacher Demo', '0900000003 | teacher@ec.local', 'IELTS Teacher', 'Bachelor of English Language', '6 years IELTS teaching experience', 'IELTS Writing, IELTS Speaking', 'Da trung tuyen va da tao tai khoan giao vien.', 'Co the di lam ngay', '22-26 trieu', '/assets/uploads/cv-teacher-demo.pdf', 'official', 'Da phong van va onboard.', 3, '2026-03-25 09:15:00'),
+('Pham Thu Trang', '0956789012 | trang.pham@example.com', 'Junior English Teacher', 'BA English Linguistics', '2 years assistant and junior teacher', 'Young learners, classroom management', 'Co kinh nghiem tro giang va dung lop thieu nhi.', '2026-05-01', '12-15 trieu', '/assets/uploads/cv-pham-thu-trang.pdf', 'new', 'Ho so moi tu kenh linkedin.', NULL, NULL),
+('Vo Thanh Son', '0987001122 | son.vo@example.com', 'Speaking Coach', 'CELTA', '4 years part-time speaking coach', 'Corporate communication, speaking drills', 'Phu hop lop giao tiep nguoi di lam cuoi tuan.', 'Cuoi tuan', '13-16 trieu', '/assets/uploads/cv-vo-thanh-son.pdf', 'rejected', 'Khong phu hop khung gio trung tam dang can.', NULL, NULL);
 
 INSERT INTO assignments (lesson_id, title, description, deadline, file_url) VALUES
 (1, 'Write a self-introduction', 'Viet doan van 180-220 tu gioi thieu ban than.', '2026-04-15 23:59:00', '/assets/uploads/assignment-1.pdf');

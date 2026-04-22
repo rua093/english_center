@@ -156,18 +156,25 @@ final class AdminModel
         $password = $providedPassword !== '' ? $providedPassword : '123456';
         $adminNote = trim((string) ($options['admin_note'] ?? ''));
 
+        $parentName = trim((string) ($lead['parent_name'] ?? ''));
+        $leadPhone = trim((string) ($lead['parent_phone'] ?? ''));
+        if ($leadPhone === '') {
+            $leadPhone = $this->extractPhoneFromText((string) ($lead['parent_name'] ?? '') . ' ' . (string) ($lead['school_name'] ?? ''));
+        }
+        $leadEmail = $this->extractEmailFromText((string) ($lead['parent_name'] ?? '') . ' ' . (string) ($lead['school_name'] ?? ''));
+
         $payload = [
             'username' => $username,
             'password' => $password,
-            'full_name' => trim((string) ($lead['full_name'] ?? '')),
+            'full_name' => trim((string) ($lead['student_name'] ?? '')),
             'role_id' => (int) ($studentRole['id'] ?? 0),
-            'phone' => trim((string) ($lead['phone'] ?? '')),
-            'email' => trim((string) ($lead['email'] ?? '')),
+            'phone' => $leadPhone,
+            'email' => $leadEmail,
             'status' => 'active',
-            'student_parent_name' => trim((string) ($lead['parent_name'] ?? '')),
-            'student_parent_phone' => trim((string) ($lead['parent_phone'] ?? '')),
+            'student_parent_name' => trim((string) $parentName),
+            'student_parent_phone' => $leadPhone,
             'student_school_name' => trim((string) ($lead['school_name'] ?? '')),
-            'student_target_score' => trim((string) (($lead['target_score'] ?? '') !== '' ? $lead['target_score'] : ($lead['target_program'] ?? ''))),
+            'student_target_score' => trim((string) (($lead['current_level'] ?? '') !== '' ? $lead['current_level'] : ($lead['study_time'] ?? ''))),
             'student_entry_test_id' => 0,
         ];
 
@@ -247,17 +254,29 @@ final class AdminModel
         $password = $providedPassword !== '' ? $providedPassword : '123456';
         $adminNote = trim((string) ($options['admin_note'] ?? ''));
 
+        $applicationPhone = trim((string) ($application['phone'] ?? ''));
+        if ($applicationPhone === '') {
+            $applicationPhone = $this->extractPhoneFromText((string) ($application['work_history'] ?? ''));
+        }
+
+        $applicationEmail = trim((string) ($application['email'] ?? ''));
+        if ($applicationEmail === '') {
+            $applicationEmail = $this->extractEmailFromText((string) ($application['work_history'] ?? ''));
+        }
+
+        $experienceYears = max(0, (int) ($application['experience_years'] ?? 0));
+
         $payload = [
             'username' => $username,
             'password' => $password,
             'full_name' => trim((string) ($application['full_name'] ?? '')),
             'role_id' => (int) ($teacherRole['id'] ?? 0),
-            'phone' => trim((string) ($application['phone'] ?? '')),
-            'email' => trim((string) ($application['email'] ?? '')),
+            'phone' => $applicationPhone,
+            'email' => $applicationEmail,
             'status' => 'active',
-            'teacher_degree' => trim((string) ($application['degree'] ?? '')),
-            'teacher_experience_years' => max(0, (int) ($application['experience_years'] ?? 0)),
-            'teacher_bio' => trim((string) ($application['intro'] ?? '')),
+            'teacher_degree' => trim((string) ($application['education_detail'] ?? '')),
+            'teacher_experience_years' => $experienceYears,
+            'teacher_bio' => trim((string) ($application['bio_summary'] ?? '')),
             'teacher_intro_video_url' => '',
         ];
 
@@ -283,20 +302,82 @@ final class AdminModel
 
     private function buildUsernameSeed(array $record, string $prefix): string
     {
-        $email = strtolower(trim((string) ($record['email'] ?? '')));
-        if ($email !== '' && str_contains($email, '@')) {
-            $localPart = (string) strstr($email, '@', true);
-            if ($localPart !== '') {
-                return $localPart;
+        $emailCandidates = [
+            strtolower(trim((string) ($record['email'] ?? ''))),
+            $this->extractEmailFromText((string) ($record['work_history'] ?? ($record['bio_summary'] ?? ''))),
+            $this->extractEmailFromText((string) ($record['parent_name'] ?? '')),
+        ];
+
+        foreach ($emailCandidates as $email) {
+            if ($email !== '' && str_contains($email, '@')) {
+                $localPart = (string) strstr($email, '@', true);
+                if ($localPart !== '') {
+                    return $localPart;
+                }
             }
         }
 
-        $phone = preg_replace('/\D+/', '', (string) ($record['phone'] ?? ''));
-        if (is_string($phone) && $phone !== '') {
-            return $prefix . substr($phone, -6);
+        $phoneCandidates = [
+            preg_replace('/\D+/', '', (string) ($record['phone'] ?? '')),
+            preg_replace('/\D+/', '', (string) ($record['parent_phone'] ?? '')),
+            $this->extractPhoneFromText((string) ($record['work_history'] ?? ($record['bio_summary'] ?? ''))),
+            $this->extractPhoneFromText((string) ($record['parent_name'] ?? '')),
+        ];
+
+        foreach ($phoneCandidates as $phone) {
+            if (is_string($phone) && $phone !== '') {
+                return $prefix . substr($phone, -6);
+            }
+        }
+
+        $name = trim((string) ($record['student_name'] ?? ($record['full_name'] ?? '')));
+        if ($name !== '') {
+            return $prefix . '.' . strtolower(preg_replace('/\s+/', '.', $name) ?? $name);
         }
 
         return $prefix . '.' . date('ymdHis');
+    }
+
+    private function extractEmailFromText(string $value): string
+    {
+        $normalized = strtolower(trim($value));
+        if ($normalized === '') {
+            return '';
+        }
+
+        if (preg_match('/[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}/i', $normalized, $matches) === 1) {
+            return strtolower((string) ($matches[0] ?? ''));
+        }
+
+        return '';
+    }
+
+    private function extractPhoneFromText(string $value): string
+    {
+        $normalized = trim($value);
+        if ($normalized === '') {
+            return '';
+        }
+
+        if (preg_match('/(?:\+?\d[\d\s().-]{7,}\d)/', $normalized, $matches) !== 1) {
+            return '';
+        }
+
+        $digits = preg_replace('/\D+/', '', (string) ($matches[0] ?? ''));
+        if (!is_string($digits) || strlen($digits) < 8) {
+            return '';
+        }
+
+        return $digits;
+    }
+
+    private function extractFirstInteger(string $value): int
+    {
+        if (preg_match('/\d+/', $value, $matches) === 1) {
+            return max(0, (int) ($matches[0] ?? 0));
+        }
+
+        return 0;
     }
 
     private function ensureUniqueUsername(string $candidate, string $fallbackPrefix): string

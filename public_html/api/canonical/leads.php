@@ -4,38 +4,113 @@ declare(strict_types=1);
 require_once __DIR__ . '/../../core/api_helpers.php';
 require_once __DIR__ . '/../../models/AdminModel.php';
 
+function api_leads_extract_email(string $value): string
+{
+    $normalized = strtolower(trim($value));
+    if ($normalized === '') {
+        return '';
+    }
+
+    if (preg_match('/[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}/i', $normalized, $matches) === 1) {
+        return strtolower((string) ($matches[0] ?? ''));
+    }
+
+    return '';
+}
+
+function api_leads_extract_phone(string $value): string
+{
+    $normalized = trim($value);
+    if ($normalized === '') {
+        return '';
+    }
+
+    if (preg_match('/(?:\+?\d[\d\s().-]{7,}\d)/', $normalized, $matches) !== 1) {
+        return '';
+    }
+
+    $digits = preg_replace('/\D+/', '', (string) ($matches[0] ?? ''));
+    if (!is_string($digits) || strlen($digits) < 8) {
+        return '';
+    }
+
+    return $digits;
+}
+
 function api_leads_submit_action(): void
 {
     $redirectPath = page_url('home') . '#lien-he';
     api_require_post($redirectPath);
 
+    $studentName = input_string($_POST, 'student_name');
+    if ($studentName === '') {
+        $studentName = input_string($_POST, 'full_name');
+    }
+
+    $legacyPhone = input_string($_POST, 'phone');
+    $legacyEmail = input_string($_POST, 'email');
+
+    $parentName = input_string($_POST, 'parent_name');
+    $parentPhone = input_string($_POST, 'parent_phone');
+
+    $interests = input_string($_POST, 'interests');
+    if ($interests === '') {
+        $interests = input_string($_POST, 'target_program');
+    }
+
+    $schoolName = input_string($_POST, 'school_name');
+
+    $currentGrade = input_string($_POST, 'current_grade');
+    if ($currentGrade === '') {
+        $currentGrade = input_string($_POST, 'class_level');
+    }
+
+    $currentLevel = input_string($_POST, 'current_level');
+    if ($currentLevel === '') {
+        $currentLevel = input_string($_POST, 'target_score');
+    }
+
+    $studyTime = input_string($_POST, 'study_time');
+    if ($studyTime === '') {
+        $studyTime = input_string($_POST, 'desired_schedule');
+    }
+
+    $parentExpectation = input_string($_POST, 'parent_expectation');
+    if ($parentExpectation === '') {
+        $parentExpectation = input_string($_POST, 'note');
+    }
+
+    $referralSource = input_string($_POST, 'referral_source');
+    if ($referralSource === '') {
+        $referralSource = input_string($_POST, 'source', 'website');
+    }
+
     $payload = [
-        'full_name' => input_string($_POST, 'full_name'),
-        'phone' => input_string($_POST, 'phone'),
-        'email' => input_string($_POST, 'email'),
-        'age' => max(0, input_int($_POST, 'age')),
-        'parent_name' => input_string($_POST, 'parent_name'),
-        'parent_phone' => input_string($_POST, 'parent_phone'),
-        'school_name' => input_string($_POST, 'school_name'),
-        'target_program' => input_string($_POST, 'target_program'),
-        'target_score' => input_string($_POST, 'target_score'),
-        'desired_schedule' => input_string($_POST, 'desired_schedule'),
-        'note' => input_string($_POST, 'note'),
-        'source' => 'website',
+        'student_name' => $studentName,
+        'gender' => input_string($_POST, 'gender'),
+        'dob' => input_string($_POST, 'dob'),
+        'interests' => $interests,
+        'school_name' => $schoolName,
+        'current_grade' => $currentGrade,
+        'personality' => input_string($_POST, 'personality'),
+        'parent_name' => $parentName,
+        'parent_phone' => $parentPhone,
+        'referral_source' => $referralSource,
+        'current_level' => $currentLevel,
+        'study_time' => $studyTime,
+        'parent_expectation' => $parentExpectation,
     ];
 
-    if ($payload['full_name'] === '' || $payload['phone'] === '') {
-        set_flash('home_error', 'Vui long nhap ho ten va so dien thoai de gui yeu cau tu van.');
+    // Require name and at least one contact method (phone or email)
+    $contactPhone = api_leads_extract_phone($parentPhone . ' ' . $legacyPhone . ' ' . $parentName);
+    $contactEmail = api_leads_extract_email($legacyEmail . ' ' . $parentName);
+
+    if ($payload['student_name'] === '' || ($contactPhone === '' && $contactEmail === '')) {
+        set_flash('home_error', 'Vui long nhap ten hoc vien va thong tin lien he phu huynh (so dien thoai hoac email).');
         redirect($redirectPath);
     }
 
-    $phoneDigits = preg_replace('/\D+/', '', $payload['phone']);
-    if (!is_string($phoneDigits) || strlen($phoneDigits) < 8) {
-        set_flash('home_error', 'So dien thoai khong hop le.');
-        redirect($redirectPath);
-    }
-
-    if ($payload['email'] !== '' && filter_var($payload['email'], FILTER_VALIDATE_EMAIL) === false) {
+    if ($contactEmail !== '' && filter_var($contactEmail, FILTER_VALIDATE_EMAIL) === false) {
         set_flash('home_error', 'Email khong hop le.');
         redirect($redirectPath);
     }

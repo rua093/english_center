@@ -36,9 +36,11 @@ final class JobApplicationsTableModel
         $params = [];
         $where = $this->buildStatusWhereClause($statusFilter, $params);
 
-        $sql = 'SELECT ja.id, ja.full_name, ja.phone, ja.email, ja.applying_position, ja.degree,
-                    ja.experience_years, ja.available_schedule, ja.intro, ja.source, ja.status,
-                    ja.admin_note, ja.converted_user_id, ja.converted_at, ja.created_at, ja.updated_at,
+        $sql = 'SELECT ja.id, ja.full_name, ja.email, ja.phone, ja.address, ja.position_applied,
+                    ja.work_mode, ja.highest_degree, ja.experience_years, ja.education_detail, ja.work_history, ja.skills_set, ja.bio_summary,
+                    ja.start_date, ja.salary_expectation, ja.cv_file_url,
+                    ja.status, ja.hr_note, ja.converted_user_id, ja.converted_at,
+                    ja.created_at,
                     u.username AS converted_username,
                     u.full_name AS converted_full_name
                 FROM job_applications ja
@@ -53,9 +55,11 @@ final class JobApplicationsTableModel
     public function findById(int $id): ?array
     {
         return $this->fetchOne(
-            'SELECT ja.id, ja.full_name, ja.phone, ja.email, ja.applying_position, ja.degree,
-                    ja.experience_years, ja.available_schedule, ja.intro, ja.source, ja.status,
-                    ja.admin_note, ja.converted_user_id, ja.converted_at, ja.created_at, ja.updated_at,
+            'SELECT ja.id, ja.full_name, ja.email, ja.phone, ja.address, ja.position_applied,
+                    ja.work_mode, ja.highest_degree, ja.experience_years, ja.education_detail, ja.work_history, ja.skills_set, ja.bio_summary,
+                    ja.start_date, ja.salary_expectation, ja.cv_file_url,
+                    ja.status, ja.hr_note, ja.converted_user_id, ja.converted_at,
+                    ja.created_at,
                     u.username AS converted_username,
                     u.full_name AS converted_full_name
              FROM job_applications ja
@@ -69,45 +73,61 @@ final class JobApplicationsTableModel
     public function createFromPublic(array $data): int
     {
         $fullName = trim((string) ($data['full_name'] ?? ''));
-        $phone = trim((string) ($data['phone'] ?? ''));
-        $email = trim((string) ($data['email'] ?? ''));
-        $experienceYears = max(0, (int) ($data['experience_years'] ?? 0));
+        
 
         $sql = 'INSERT INTO job_applications (
                     full_name,
-                    phone,
                     email,
-                    applying_position,
-                    degree,
+                    phone,
+                    address,
+                    position_applied,
+                    work_mode,
+                    highest_degree,
                     experience_years,
-                    available_schedule,
-                    intro,
-                    source,
+                    education_detail,
+                    work_history,
+                    skills_set,
+                    bio_summary,
+                    start_date,
+                    salary_expectation,
+                    cv_file_url,
                     status
                 ) VALUES (
                     :full_name,
-                    :phone,
                     :email,
-                    :applying_position,
-                    :degree,
+                    :phone,
+                    :address,
+                    :position_applied,
+                    :work_mode,
+                    :highest_degree,
                     :experience_years,
-                    :available_schedule,
-                    :intro,
-                    :source,
+                    :education_detail,
+                    :work_history,
+                    :skills_set,
+                    :bio_summary,
+                    :start_date,
+                    :salary_expectation,
+                    :cv_file_url,
                     :status
                 )';
 
         $this->executeStatement($sql, [
             'full_name' => $fullName,
-            'phone' => $phone,
-            'email' => $email !== '' ? $email : null,
-            'applying_position' => $this->nullIfEmpty($data['applying_position'] ?? null),
-            'degree' => $this->nullIfEmpty($data['degree'] ?? null),
-            'experience_years' => $experienceYears,
-            'available_schedule' => $this->nullIfEmpty($data['available_schedule'] ?? null),
-            'intro' => $this->nullIfEmpty($data['intro'] ?? null),
-            'source' => $this->normalizeSource((string) ($data['source'] ?? 'website')),
-            'status' => 'new',
+            'email' => $this->nullIfEmpty($data['email'] ?? null),
+            'phone' => $this->nullIfEmpty($data['phone'] ?? null),
+            'address' => $this->nullIfEmpty($data['address'] ?? null),
+            'position_applied' => $this->nullIfEmpty($data['position_applied'] ?? null),
+            'work_mode' => $this->nullIfEmpty($data['work_mode'] ?? null),
+            'highest_degree' => $this->nullIfEmpty($data['highest_degree'] ?? null),
+            'experience_years' => is_numeric($data['experience_years'] ?? null) ? (int) $data['experience_years'] : null,
+            'education_detail' => $this->nullIfEmpty($data['education_detail'] ?? null),
+            'work_history' => $this->nullIfEmpty($data['work_history'] ?? null),
+            'skills_set' => $this->nullIfEmpty($data['skills_set'] ?? null),
+            'bio_summary' => $this->nullIfEmpty($data['bio_summary'] ?? null),
+            'start_date' => $this->nullIfEmpty($data['start_date'] ?? null),
+            'salary_expectation' => $this->nullIfEmpty($data['salary_expectation'] ?? null),
+            'cv_file_url' => $this->nullIfEmpty($data['cv_file_url'] ?? null),
+            'status' => 'PENDING',
         ]);
 
         return (int) $this->pdo->lastInsertId();
@@ -120,12 +140,12 @@ final class JobApplicationsTableModel
         $this->executeStatement(
             'UPDATE job_applications
              SET status = :status,
-                 admin_note = :admin_note
+                 hr_note = :hr_note
              WHERE id = :id',
             [
                 'id' => $id,
                 'status' => $normalizedStatus,
-                'admin_note' => $this->nullIfEmpty($adminNote),
+                'hr_note' => $this->nullIfEmpty($adminNote),
             ]
         );
     }
@@ -143,7 +163,7 @@ final class JobApplicationsTableModel
              SET status = "official",
                  converted_user_id = :user_id,
                  converted_at = NOW(),
-                 admin_note = COALESCE(:admin_note, admin_note)
+                 hr_note = COALESCE(:admin_note, hr_note)
              WHERE id = :id',
             $params
         );
@@ -168,16 +188,6 @@ final class JobApplicationsTableModel
 
         $params['status'] = $status;
         return ' WHERE ja.status = :status';
-    }
-
-    private function normalizeSource(string $source): string
-    {
-        $normalized = strtolower(trim($source));
-        if ($normalized === '') {
-            return 'website';
-        }
-
-        return substr($normalized, 0, 80);
     }
 
     private function nullIfEmpty(mixed $value): ?string

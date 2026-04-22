@@ -77,7 +77,7 @@ $error = get_flash('error');
                 <?php else: ?>
                     <ul class="m-0 grid list-none gap-2 p-0">
                         <?php foreach (array_slice($pendingSubmissions, 0, 5) as $sub): ?>
-                            <li><?= e((string) $sub['student_name']); ?> - <?= e((string) $sub['assignment_title']); ?></li>
+                            <li><?= e((string) ($sub['full_name'] ?? ($sub['student_name'] ?? ''))); ?> - <?= e((string) $sub['assignment_title']); ?></li>
                         <?php endforeach; ?>
                     </ul>
                 <?php endif; ?>

@@ -659,7 +659,7 @@ if (!is_string($assignmentsJson)) {
             '<div class="rounded-xl border border-slate-200 bg-white p-4" data-submission-id="' + submissionId + '">' +
                 '<div class="grid gap-2 lg:grid-cols-[minmax(220px,1fr)_auto] lg:items-start">' +
                     '<div class="space-y-2">' +
-                        '<div class="text-lg font-semibold text-slate-900">' + escapeHtml(row.student_name || '') + '</div>' +
+                        '<div class="text-lg font-semibold text-slate-900">' + escapeHtml(row.full_name || '') + '</div>' +
                         '<div class="flex flex-wrap items-center gap-2 text-sm text-slate-600">' +
                             '<span>Nộp lúc: ' + escapeHtml(submittedAt) + '</span>' +
                             (deadline === '' ? '' : '<span>Deadline: ' + escapeHtml(deadline) + '</span>') +

@@ -83,7 +83,7 @@ $viewer = auth_user();
         <?php else: ?>
             <?php foreach ($portfolios as $portfolio): ?>
                 <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                    <h3><?= e((string) $portfolio['student_name']); ?></h3>
+                    <h3><?= e((string) $portfolio['full_name']); ?></h3>
                     <p><?= e((string) $portfolio['type']); ?></p>
                     <p><?= e((string) $portfolio['description']); ?></p>
                     <?php if (preg_match('/\.(jpg|jpeg|png|gif|webp)$/i', (string) $portfolio['media_url'])): ?>

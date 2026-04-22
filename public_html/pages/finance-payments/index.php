@@ -65,7 +65,7 @@ $error = get_flash('error');
                         <option value="">-- Chọn hóa đơn --</option>
                         <?php foreach ($tuitionOptions as $fee): ?>
                             <option value="<?= (int) $fee['id']; ?>" <?= (int) ($editingPayment['tuition_fee_id'] ?? 0) === (int) $fee['id'] ? 'selected' : ''; ?>>
-                                #<?= (int) $fee['id']; ?> - <?= e((string) $fee['student_name']); ?> - <?= e((string) $fee['course_name']); ?>
+                                #<?= (int) $fee['id']; ?> - <?= e((string) $fee['full_name']); ?> - <?= e((string) $fee['course_name']); ?>
                             </option>
                         <?php endforeach; ?>
                     </select>
@@ -130,7 +130,7 @@ $error = get_flash('error');
                     <?php else: ?>
                         <?php foreach ($transactions as $txn): ?>
                             <tr>
-                                <td><?= e((string) $txn['student_name']); ?></td>
+                                <td><?= e((string) $txn['full_name']); ?></td>
                                 <td><?= e((string) $txn['course_name']); ?></td>
                                 <td><?= e((string) $txn['transaction_no']); ?></td>
                                 <td><?= format_money((float) $txn['amount']); ?></td>

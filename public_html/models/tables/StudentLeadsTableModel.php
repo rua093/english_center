@@ -37,10 +37,11 @@ final class StudentLeadsTableModel
         $params = [];
         $where = $this->buildStatusWhereClause($statusFilter, $params);
 
-        $sql = 'SELECT sl.id, sl.full_name, sl.phone, sl.email, sl.age, sl.parent_name, sl.parent_phone,
-                    sl.school_name, sl.target_program, sl.target_score, sl.desired_schedule, sl.note,
-                    sl.source, sl.status, sl.admin_note, sl.converted_user_id, sl.converted_at,
-                    sl.created_at, sl.updated_at,
+        $sql = 'SELECT sl.id, sl.student_name, sl.gender, sl.dob, sl.interests, sl.school_name, sl.current_grade,
+                    sl.personality, sl.parent_name, sl.parent_phone, sl.referral_source, sl.current_level,
+                    sl.study_time, sl.parent_expectation, sl.status, sl.admin_note,
+                    sl.converted_user_id, sl.converted_at,
+                    sl.created_at,
                     u.username AS converted_username,
                     u.full_name AS converted_full_name
                 FROM student_leads sl
@@ -55,10 +56,11 @@ final class StudentLeadsTableModel
     public function findById(int $id): ?array
     {
         return $this->fetchOne(
-            'SELECT sl.id, sl.full_name, sl.phone, sl.email, sl.age, sl.parent_name, sl.parent_phone,
-                    sl.school_name, sl.target_program, sl.target_score, sl.desired_schedule, sl.note,
-                    sl.source, sl.status, sl.admin_note, sl.converted_user_id, sl.converted_at,
-                    sl.created_at, sl.updated_at,
+            'SELECT sl.id, sl.student_name, sl.gender, sl.dob, sl.interests, sl.school_name, sl.current_grade,
+                    sl.personality, sl.parent_name, sl.parent_phone, sl.referral_source, sl.current_level,
+                    sl.study_time, sl.parent_expectation, sl.status, sl.admin_note,
+                    sl.converted_user_id, sl.converted_at,
+                    sl.created_at,
                     u.username AS converted_username,
                     u.full_name AS converted_full_name
              FROM student_leads sl
@@ -71,54 +73,67 @@ final class StudentLeadsTableModel
 
     public function createFromPublic(array $data): int
     {
-        $fullName = trim((string) ($data['full_name'] ?? ''));
-        $phone = trim((string) ($data['phone'] ?? ''));
-        $email = trim((string) ($data['email'] ?? ''));
-        $ageRaw = (int) ($data['age'] ?? 0);
+        $studentName = trim((string) ($data['student_name'] ?? $data['full_name'] ?? ''));
+
+        // Prepare parent_name/parent_phone and school_name/current_grade with fallbacks from legacy keys
+        $parentName = trim((string) ($data['parent_name'] ?? ''));
+        $parentPhone = trim((string) ($data['parent_phone'] ?? ''));
+        if ($parentPhone === '' && !empty($data['phone'] ?? '')) {
+            $p = trim((string) ($data['phone'] ?? ''));
+            if (preg_match('/(?:\+?\d[\d\s().-]{7,}\d)/', $p, $m2) === 1) {
+                $parentPhone = preg_replace('/\D+/', '', (string) ($m2[0] ?? ''));
+            }
+        }
+
+        $schoolName = trim((string) ($data['school_name'] ?? ''));
+        $currentGrade = trim((string) ($data['current_grade'] ?? ''));
 
         $sql = 'INSERT INTO student_leads (
-                    full_name,
-                    phone,
-                    email,
-                    age,
+                    student_name,
+                    gender,
+                    dob,
+                    interests,
+                    school_name,
+                    current_grade,
+                    personality,
                     parent_name,
                     parent_phone,
-                    school_name,
-                    target_program,
-                    target_score,
-                    desired_schedule,
-                    note,
-                    source,
+                    referral_source,
+                    current_level,
+                    study_time,
+                    parent_expectation,
                     status
                 ) VALUES (
-                    :full_name,
-                    :phone,
-                    :email,
-                    :age,
+                    :student_name,
+                    :gender,
+                    :dob,
+                    :interests,
+                    :school_name,
+                    :current_grade,
+                    :personality,
                     :parent_name,
                     :parent_phone,
-                    :school_name,
-                    :target_program,
-                    :target_score,
-                    :desired_schedule,
-                    :note,
-                    :source,
+                    :referral_source,
+                    :current_level,
+                    :study_time,
+                    :parent_expectation,
                     :status
                 )';
 
         $this->executeStatement($sql, [
-            'full_name' => $fullName,
-            'phone' => $phone,
-            'email' => $email !== '' ? $email : null,
-            'age' => $ageRaw > 0 ? $ageRaw : null,
-            'parent_name' => $this->nullIfEmpty($data['parent_name'] ?? null),
-            'parent_phone' => $this->nullIfEmpty($data['parent_phone'] ?? null),
-            'school_name' => $this->nullIfEmpty($data['school_name'] ?? null),
-            'target_program' => $this->nullIfEmpty($data['target_program'] ?? null),
-            'target_score' => $this->nullIfEmpty($data['target_score'] ?? null),
-            'desired_schedule' => $this->nullIfEmpty($data['desired_schedule'] ?? null),
-            'note' => $this->nullIfEmpty($data['note'] ?? null),
-            'source' => $this->normalizeSource((string) ($data['source'] ?? 'website')),
+            'student_name' => $studentName,
+            'gender' => $this->nullIfEmpty($data['gender'] ?? null),
+            'dob' => $this->nullIfEmpty($data['dob'] ?? null),
+            'interests' => $this->nullIfEmpty($data['interests'] ?? null),
+            'school_name' => $this->nullIfEmpty($schoolName),
+            'current_grade' => $this->nullIfEmpty($currentGrade),
+            'personality' => $this->nullIfEmpty($data['personality'] ?? null),
+            'parent_name' => $this->nullIfEmpty($parentName),
+            'parent_phone' => $this->nullIfEmpty($parentPhone),
+            'referral_source' => $this->normalizeReferralSource((string) ($data['referral_source'] ?? 'website')),
+            'current_level' => $this->nullIfEmpty($data['current_level'] ?? null),
+            'study_time' => $this->nullIfEmpty($data['study_time'] ?? null),
+            'parent_expectation' => $this->nullIfEmpty($data['parent_expectation'] ?? null),
             'status' => 'new',
         ]);
 
@@ -182,14 +197,14 @@ final class StudentLeadsTableModel
         return ' WHERE sl.status = :status';
     }
 
-    private function normalizeSource(string $source): string
+    private function normalizeReferralSource(string $source): string
     {
         $normalized = strtolower(trim($source));
         if ($normalized === '') {
             return 'website';
         }
 
-        return substr($normalized, 0, 80);
+        return substr($normalized, 0, 120);
     }
 
     private function nullIfEmpty(mixed $value): ?string

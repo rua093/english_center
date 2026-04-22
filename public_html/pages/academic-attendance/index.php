@@ -230,7 +230,7 @@ $adminTitle = 'Học vụ - Điểm danh';
                                 <?php foreach ($attendanceRoster as $studentRow): ?>
                                     <?php $studentId = (int) ($studentRow['student_id'] ?? 0); ?>
                                     <tr>
-                                        <td><strong><?= e((string) ($studentRow['student_name'] ?? ('Học viên #' . $studentId))); ?></strong></td>
+                                        <td><strong><?= e((string) ($studentRow['full_name'] ?? ($studentRow['student_name'] ?? ('Học viên #' . $studentId)))); ?></strong></td>
                                         <td>
                                             <span class="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-bold capitalize is-<?= e((string) ($studentRow['learning_status'] ?? 'official')); ?>">
                                                 <?= e((string) ($studentRow['learning_status'] ?? 'official')); ?>

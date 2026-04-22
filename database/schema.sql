@@ -327,18 +327,19 @@ CREATE TABLE staff_profiles (
 
 CREATE TABLE student_leads (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    full_name VARCHAR(150) NOT NULL,
-    phone VARCHAR(20) NOT NULL,
-    email VARCHAR(150) DEFAULT NULL,
-    age TINYINT UNSIGNED DEFAULT NULL,
+    student_name VARCHAR(150) NOT NULL,
+    gender VARCHAR(20) DEFAULT NULL,
+    dob DATE DEFAULT NULL,
+    interests TEXT,
+    personality TEXT,
     parent_name VARCHAR(150) DEFAULT NULL,
     parent_phone VARCHAR(20) DEFAULT NULL,
     school_name VARCHAR(180) DEFAULT NULL,
-    target_program VARCHAR(180) DEFAULT NULL,
-    target_score VARCHAR(50) DEFAULT NULL,
-    desired_schedule VARCHAR(180) DEFAULT NULL,
-    note TEXT,
-    source VARCHAR(80) NOT NULL DEFAULT 'website',
+    current_grade VARCHAR(120) DEFAULT NULL,
+    referral_source VARCHAR(120) DEFAULT NULL,
+    current_level VARCHAR(120) DEFAULT NULL,
+    study_time VARCHAR(180) DEFAULT NULL,
+    parent_expectation TEXT,
     status ENUM('new', 'entry_tested', 'trial_completed', 'official', 'cancelled') NOT NULL DEFAULT 'new',
     admin_note TEXT,
     converted_user_id BIGINT UNSIGNED DEFAULT NULL,
@@ -347,30 +348,49 @@ CREATE TABLE student_leads (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_student_leads_user FOREIGN KEY (converted_user_id) REFERENCES users(id),
     KEY idx_student_leads_status_created (status, created_at),
-    KEY idx_student_leads_phone (phone)
+    KEY idx_student_leads_parent_phone (parent_phone)
 ) ENGINE=InnoDB;
+
+-- Sample data for student_leads (parent_contact split into parent_name and parent_phone, school_info split)
+INSERT INTO student_leads (student_name, gender, dob, interests, personality, parent_name, parent_phone, school_name, current_grade, referral_source, current_level, study_time, parent_expectation, status, admin_note)
+VALUES
+('Pham Thi Hoa', 'female', '2015-08-12', 'Reading, Singing', 'Outgoing', 'Nguyen Van Hoa', '0911222333', 'Truong Tieu hoc A', 'Grade 4', 'Facebook', 'Giao tiep Level 1', 'Evenings', 'Muon hoc tieng Anh can ban', 'new', NULL),
+('Le Minh Duc', 'male', NULL, 'Football, Games', 'Curious', 'Le Thi B', '0977001122', 'Truong THCS B', 'Grade 7', 'Referral', 'Giao tiep Level 2', 'Weekends', 'Muon them ky nang nghe noi', 'entry_tested', 'Called and scheduled trial'),
+('Tran Thi Lan', 'female', '2012-03-05', 'Drawing', 'Calm', 'Tran Van C', '0909988776', 'Truong Tieu hoc C', 'Grade 6', 'Walk-in', 'Giao tiep Level 1', NULL, 'Tim lop phu hop voi lich hoc', 'trial_completed', NULL);
 
 CREATE TABLE job_applications (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    full_name VARCHAR(150) NOT NULL,
-    phone VARCHAR(20) NOT NULL,
+    full_name VARCHAR(255) NOT NULL,
     email VARCHAR(150) DEFAULT NULL,
-    applying_position VARCHAR(120) DEFAULT NULL,
-    degree VARCHAR(150) DEFAULT NULL,
-    experience_years INT NOT NULL DEFAULT 0,
-    available_schedule VARCHAR(180) DEFAULT NULL,
-    intro TEXT,
-    source VARCHAR(80) NOT NULL DEFAULT 'website',
-    status ENUM('new', 'interviewed', 'official', 'rejected') NOT NULL DEFAULT 'new',
-    admin_note TEXT,
+    phone VARCHAR(20) DEFAULT NULL,
+    address TEXT DEFAULT NULL,
+    position_applied VARCHAR(255) DEFAULT NULL,
+    work_mode VARCHAR(50) DEFAULT NULL,
+    highest_degree VARCHAR(255) DEFAULT NULL,
+    experience_years INT DEFAULT NULL,
+    education_detail TEXT DEFAULT NULL,
+    work_history TEXT DEFAULT NULL,
+    skills_set TEXT DEFAULT NULL,
+    bio_summary TEXT DEFAULT NULL,
+    start_date DATE DEFAULT NULL,
+    salary_expectation VARCHAR(100) DEFAULT NULL,
+    cv_file_url VARCHAR(500) DEFAULT NULL,
+    status ENUM('PENDING','INTERVIEWING','PASSED','REJECTED') NOT NULL DEFAULT 'PENDING',
+    hr_note TEXT DEFAULT NULL,
     converted_user_id BIGINT UNSIGNED DEFAULT NULL,
     converted_at TIMESTAMP NULL DEFAULT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_job_applications_user FOREIGN KEY (converted_user_id) REFERENCES users(id),
-    KEY idx_job_applications_status_created (status, created_at),
-    KEY idx_job_applications_phone (phone)
-) ENGINE=InnoDB;
+    KEY idx_job_applications_converted_user (converted_user_id),
+    UNIQUE KEY ux_job_applications_email (email)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Sample data for job_applications
+INSERT INTO job_applications (full_name, email, phone, address, position_applied, work_mode, highest_degree, experience_years, education_detail, work_history, skills_set, bio_summary, start_date, salary_expectation, cv_file_url, status, hr_note)
+VALUES
+('Nguyen Van A', 'nguyenvana@example.com', '0987654321', '123 Le Loi, District 1', 'IELTS Teacher', 'Full-time', 'Master of TESOL', 4, 'MA TESOL - University X', '2 years at Center Y; 2 years freelance', 'IELTS, Speaking, Curriculum Design', 'Passionate teacher with focus on communicative skills.', '2026-05-01', '1500$', NULL, 'PENDING', 'Initial application'),
+('Tran Thi B', 'tranthib@example.com', '0912345678', '45 Tran Hung Dao, District 3', 'Speaking Coach', 'Part-time', 'Bachelor of English', 2, 'BA English - University Z', '2 years tutoring experience', 'Speaking, Pronunciation', 'Energetic coach specialized in speaking fluency.', '2026-06-15', '800$', NULL, 'PENDING', NULL),
+('Le Hoang C', 'lehoangc@example.com', '0901122334', '78 Nguyen Trai, District 5', 'Curriculum Designer', 'Contract', 'PhD Applied Linguistics', 6, 'PhD Applied Linguistics - University Q', 'Led curriculum projects for institutions A and B', 'Curriculum, Assessment, Training', 'Experienced curriculum designer and trainer.', NULL, NULL, NULL, 'PENDING', 'Senior candidate');
 
 CREATE TABLE assignments (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
