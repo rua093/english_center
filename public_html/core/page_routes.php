@@ -10,6 +10,7 @@ function page_route_definitions(): array
 		'job-apply' => ['directory' => 'job-apply', 'aliases' => ['tuyen-dung', 'ung-tuyen']],
 		'register-consultation' => ['directory' => 'register-consultation', 'aliases' => ['dang-ky-tu-van', 'tu-van']],
 		'login' => ['directory' => 'login', 'aliases' => []],
+		'forgot-password' => ['directory' => 'login/forgot_password', 'aliases' => ['forgot_password']],
 		'register' => ['directory' => 'register', 'aliases' => []],
 		'logout' => ['directory' => 'logout', 'aliases' => []],
 		'admin' => ['directory' => 'admin', 'aliases' => []],
