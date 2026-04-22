@@ -45,6 +45,7 @@ function page_route_definitions(): array
 		'submissions-academic' => ['directory' => 'academic-submissions', 'aliases' => ['academic-submissions']],
 		'activities-student' => ['directory' => 'student-activities', 'aliases' => ['activities']],
 		'activities-details' => ['directory' => 'student-activities/activites-details', 'aliases' => ['activities-details']],
+		'forgot-password' => ['directory' => 'login/forgot_password', 'aliases' => ['forgot_password']],
 	];
 }
 

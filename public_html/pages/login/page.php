@@ -9,4 +9,3 @@ if (isset($__pageContent)) {
     require __DIR__ . '/index.php';
 }
 require_once __DIR__ . '/../partials/footer.php';
-

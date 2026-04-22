@@ -2,103 +2,162 @@
 $error = $error ?? get_flash('error');
 $success = get_flash('success');
 ?>
-<section class="min-h-screen flex items-center justify-center p-4 sm:p-6 bg-gradient-to-br from-blue-500 via-blue-400 to-sky-300 relative overflow-hidden">
+
+<style>
+    /* Custom Animations & Utils - TONE ĐỎ XANH LÁ */
+    .login-background {
+        background:
+            linear-gradient(135deg, rgba(15, 23, 42, 0.58) 0%, rgba(30, 41, 59, 0.42) 52%, rgba(15, 23, 42, 0.54) 100%),
+            url('/assets/images/login_background.jpg');
+        background-position: center;
+        background-size: cover;
+        background-repeat: no-repeat;
+    }
+    .glass-card {
+        background: rgba(255, 255, 255, 0.86);
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+        border: 1px solid rgba(255, 255, 255, 0.7);
+    }
+    .input-focus-ring:focus-within {
+        border-color: #e11d48; /* Màu Đỏ Rose 600 */
+        box-shadow: 0 10px 25px -5px rgba(225, 29, 72, 0.15);
+        transform: translateY(-2px);
+    }
+    .input-focus-ring:focus-within .icon-input {
+        color: #e11d48;
+    }
+    @keyframes floatBlob {
+        0%, 100% { transform: translate(0, 0) scale(1); }
+        33% { transform: translate(30px, -50px) scale(1.1); }
+        66% { transform: translate(-20px, 20px) scale(0.9); }
+    }
+    .animate-blob { animation: floatBlob 10s infinite alternate ease-in-out; }
+    .animation-delay-2000 { animation-delay: 2s; }
+    @keyframes shimmer {
+        100% { transform: translateX(100%); }
+    }
+</style>
+
+<section class="login-background min-h-screen flex items-center justify-center p-4 sm:p-6 relative overflow-hidden font-jakarta">
     
-    <div class="absolute top-[-10%] left-[-10%] w-96 h-96 rounded-full bg-white/20 blur-3xl"></div>
-    <div class="absolute bottom-[-10%] right-[-5%] w-96 h-96 rounded-full bg-sky-200/30 blur-3xl"></div>
+    <div class="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+        <div class="absolute top-[-10%] left-[-10%] w-[460px] h-[460px] rounded-full bg-slate-950/25 blur-[90px] animate-blob"></div>
+        <div class="absolute bottom-[-10%] right-[-5%] w-[560px] h-[560px] rounded-full bg-emerald-950/18 blur-[110px] animate-blob animation-delay-2000"></div>
+        <div class="absolute top-[18%] right-[8%] w-[260px] h-[260px] rounded-full bg-rose-950/18 blur-[90px] animate-blob"></div>
+        <div class="absolute inset-0 opacity-[0.08]" style="background-image: radial-gradient(#ffffff 2px, transparent 2px); background-size: 34px 34px;"></div>
+    </div>
 
-    <div class="w-full max-w-6xl rounded-3xl bg-white/20 backdrop-blur-md shadow-2xl border border-white/30 overflow-hidden grid lg:grid-cols-2 relative z-10">
+    <div class="w-full max-w-[1100px] glass-card rounded-[2.5rem] shadow-[0_25px_50px_rgba(2,6,23,0.18)] overflow-hidden grid lg:grid-cols-12 relative z-10 transition-all duration-500 hover:shadow-[0_30px_60px_rgba(2,6,23,0.22)]">
         
-        <aside class="relative hidden lg:flex flex-col justify-end overflow-hidden group">
-            <img src="/englist-center.jpeg" 
-                alt="Background" 
-                class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
-            <div class="absolute inset-0 bg-gradient-to-t from-blue-600/80 via-blue-500/20 to-transparent"></div>
+        <aside class="relative hidden lg:flex flex-col justify-end overflow-hidden group lg:col-span-5 bg-slate-950/70">
+            <img src="/assets/images/login_background.jpg" 
+                alt="Educational Background" 
+                class="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105 opacity-40 mix-blend-soft-light">
+            <div class="absolute inset-0 bg-gradient-to-t from-slate-950/78 via-emerald-950/28 to-slate-900/12"></div>
+            <div class="absolute inset-0 bg-gradient-to-br from-slate-950/10 via-white/4 to-emerald-100/10"></div>
 
-            <div class="relative z-10 p-12 text-white">
-                <div class="flex flex-wrap gap-2 mb-4">
-                    <span class="inline-flex items-center rounded-full bg-white/20 px-3 py-1 text-xs font-semibold backdrop-blur-md border border-white/30 shadow-sm">
-                        ✨ Bảo mật 2 lớp
+            <div class="relative z-10 p-10 text-white">
+                <div class="flex items-center gap-2 mb-6">
+                    <span class="flex h-3 w-3 relative">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-lime-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-3 w-3 bg-lime-500"></span>
                     </span>
+                    <span class="text-xs font-bold tracking-widest uppercase text-lime-200">Hệ thống học tập Nhuệ Minh</span>
                 </div>
                 
-                <h2 class="text-4xl font-extrabold mb-3 leading-tight tracking-tight drop-shadow-lg">
-                    Nền tảng <br/><span class="text-sky-200">Trung tâm Anh ngữ</span>
+                <h2 class="text-4xl font-black mb-4 leading-tight tracking-tight text-white drop-shadow-md">
+                    Chào mừng <br>
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-lime-300 to-white">Trở lại lớp học!</span>
                 </h2>
                 
-                <p class="text-white/90 text-lg leading-relaxed font-medium max-w-sm drop-shadow-md">
-                    Hệ sinh thái quản trị thông minh dành riêng cho giáo dục hiện đại.
+                <p class="text-emerald-100/90 text-sm leading-relaxed font-medium max-w-sm border-l-2 border-rose-500 pl-4">
+                    Đăng nhập để tiếp tục lộ trình học tập, theo dõi tiến độ và kết nối với giảng viên của bạn.
                 </p>
             </div>
         </aside>
 
-        <article class="bg-white p-10 lg:p-14 lg:rounded-l-3xl flex flex-col justify-center shadow-[-20px_0_50px_rgba(0,0,0,0.05)]">
-            <div class="max-w-md w-full mx-auto">
-                <div class="text-center mb-8">
-                    <h1 class="text-3xl font-bold text-slate-800 mb-2">Đăng nhập</h1>
-                    <p class="text-slate-500 text-sm">Chào mừng bạn quay trở lại với Nhuệ Minh Edu.</p>
+        <article class="p-8 sm:p-12 lg:p-16 flex flex-col justify-center lg:col-span-7 bg-white/88 relative">
+            <div class="max-w-md w-full mx-auto relative z-10">
+                
+                <div class="text-center mb-10">
+                    <!-- <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-rose-50 text-rose-600 mb-6 shadow-inner">
+                        <i class="fa-solid fa-user-graduate text-3xl"></i>
+                    </div> -->
+                    <h1 class="text-3xl font-black text-slate-800 mb-2">Đăng Nhập</h1>
+                    <p class="text-slate-500 text-sm font-medium">Vui lòng điền thông tin tài khoản của bạn.</p>
                 </div>
 
                 <?php if ($error): ?>
-                    <div class="mb-4 rounded-xl border-l-4 border-rose-400 bg-rose-50 p-4 text-sm text-rose-700 flex items-center gap-2">
-                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
+                    <div class="mb-6 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-600 font-bold flex items-center gap-3 animate-fade-in-down">
+                        <div class="w-8 h-8 rounded-full bg-white flex items-center justify-center text-rose-500 shadow-sm shrink-0">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                        </div>
                         <?= e($error); ?>
                     </div>
                 <?php endif; ?>
 
-                <form method="post" action="/api/auth/login" class="grid gap-5">
+                <?php if ($success): ?>
+                    <div class="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-600 font-bold flex items-center gap-3 animate-fade-in-down">
+                        <div class="w-8 h-8 rounded-full bg-white flex items-center justify-center text-emerald-500 shadow-sm shrink-0">
+                            <i class="fa-solid fa-check"></i>
+                        </div>
+                        <?= e($success); ?>
+                    </div>
+                <?php endif; ?>
+
+                <form method="post" action="/api/auth/login" class="space-y-6">
                     <?= csrf_input(); ?>
                     
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1">Tên đăng nhập</label>
-                        <div class="relative">
-                            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"></path></svg>
+                    <div class="group">
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2 ml-1">Tên đăng nhập / Email</label>
+                        <div class="relative flex items-center input-focus-ring rounded-2xl bg-slate-50 border border-slate-200 transition-all duration-300">
+                            <div class="pl-5 pr-3 icon-input text-slate-400 transition-colors">
+                                <i class="fa-regular fa-envelope text-lg"></i>
                             </div>
-                            <input type="text" name="username" required placeholder="admin@ec.local" 
-                                class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400 transition-all">
+                            <input type="text" name="username" required placeholder="nhueminh@edu.vn" 
+                                class="w-full py-4 pr-5 bg-transparent text-slate-800 font-semibold placeholder-slate-400 outline-none">
                         </div>
                     </div>
 
-                    <div>
-                        <div class="flex justify-between items-center mb-1">
-                            <label class="block text-sm font-semibold text-slate-700">Mật khẩu</label>
-                            <a href="#" class="text-xs text-blue-500 hover:text-blue-600 font-medium">Quên mật khẩu?</a>
+                    <div class="group">
+                        <div class="flex justify-between items-center mb-2 ml-1 mr-1">
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide">Mật khẩu</label>
+                            <a href="<?= e(page_url('forgot-password')); ?>" class="text-xs font-bold text-emerald-600 hover:text-rose-600 transition-colors">Quên mật khẩu?</a>
                         </div>
-                        <div class="relative">
-                            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                        <div class="relative flex items-center input-focus-ring rounded-2xl bg-slate-50 border border-slate-200 transition-all duration-300">
+                            <div class="pl-5 pr-3 icon-input text-slate-400 transition-colors">
+                                <i class="fa-solid fa-lock text-lg"></i>
                             </div>
-                            
                             <input type="password" id="passwordInput" name="password" required placeholder="••••••••" 
-                                class="w-full pl-10 pr-10 py-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400 transition-all">
+                                class="w-full py-4 pr-12 bg-transparent text-slate-800 font-semibold placeholder-slate-400 outline-none">
                             
-                            <button type="button" id="togglePasswordBtn" class="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-blue-500 focus:outline-none transition-colors">
-                                <svg id="eyeOpenIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                </svg>
-                                <svg id="eyeClosedIcon" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-                                </svg>
+                            <button type="button" id="togglePasswordBtn" class="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center text-slate-500 hover:text-rose-700 hover:bg-slate-200/60 rounded-full transition-all focus:outline-none">
+                                <i id="eyeOpenIcon" class="fa-solid fa-eye text-base"></i>
+                                <i id="eyeClosedIcon" class="fa-solid fa-eye-slash hidden text-base"></i>
                             </button>
                         </div>
                     </div>
 
-                    <button type="submit" class="w-full mt-2 inline-flex items-center justify-center rounded-xl bg-blue-500 px-4 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-500/30 transition-all hover:-translate-y-0.5 hover:bg-blue-600 hover:shadow-blue-600/40">
-                        Tiếp tục đăng nhập
+                    <div class="flex items-center ml-1">
+                        <label class="flex items-center cursor-pointer group">
+                            <div class="relative">
+                                <input type="checkbox" name="remember" class="sr-only peer">
+                                <div class="w-5 h-5 border-2 border-slate-300 rounded bg-white transition-colors group-hover:border-rose-600 peer-checked:bg-rose-600 peer-checked:border-rose-600 flex items-center justify-center">
+                                    <i class="fa-solid fa-check text-white text-[10px] opacity-100 peer-checked:opacity-100"></i>
+                                </div>
+                            </div>
+                            <span class="ml-3 text-sm font-semibold text-slate-600 group-hover:text-slate-800 transition-colors">Ghi nhớ đăng nhập</span>
+                        </label>
+                    </div>
+
+                    <button type="submit" class="group w-full relative inline-flex items-center justify-center gap-3 rounded-2xl bg-rose-600 hover:bg-rose-700 px-4 py-4 text-sm font-black text-white uppercase tracking-widest shadow-[0_10px_20px_rgba(225,29,72,0.3)] transition-all hover:-translate-y-1 hover:shadow-[0_15px_30px_rgba(225,29,72,0.4)] overflow-hidden">
+                        <span class="relative z-10">Tiếp tục đăng nhập</span>
+                        <div class="relative z-10 w-2 h-2 rounded-full bg-lime-400 group-hover:scale-150 transition-transform"></div>
+                        <div class="absolute inset-0 h-full w-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></div>
                     </button>
                 </form>
 
-                <div class="mt-5 text-center text-sm text-slate-500">
-                    Chưa có tài khoản?
-                    <a href="<?= e(page_url('register')); ?>" class="font-bold text-blue-600 hover:text-blue-800 hover:underline underline-offset-4">Đăng ký ngay</a>
-                </div>
-
-                <div class="mt-5 text-center text-sm text-slate-500">
-                    Chưa có tài khoản?
-                    <a href="<?= e(page_url('register')); ?>" class="font-bold text-blue-600 hover:text-blue-800 hover:underline underline-offset-4">Đăng ký ngay</a>
-                </div>
             </div>
         </article>
     </div>
@@ -110,12 +169,29 @@ $success = get_flash('success');
         const passwordInput = document.getElementById('passwordInput');
         const eyeOpenIcon = document.getElementById('eyeOpenIcon');
         const eyeClosedIcon = document.getElementById('eyeClosedIcon');
+        const checkboxGroup = document.querySelector('input[type="checkbox"]').nextElementSibling;
 
+        // Xử lý ẩn/hiện mật khẩu
         togglePasswordBtn.addEventListener('click', function() {
             const isPassword = passwordInput.type === 'password';
             passwordInput.type = isPassword ? 'text' : 'password';
             eyeOpenIcon.classList.toggle('hidden');
             eyeClosedIcon.classList.toggle('hidden');
+        });
+
+        // Xử lý logic check box custom đồng bộ với màu Đỏ Rose
+        const checkboxInput = document.querySelector('input[name="remember"]');
+        checkboxInput.addEventListener('change', function() {
+            const icon = checkboxGroup.querySelector('i');
+            if (this.checked) {
+                checkboxGroup.classList.add('bg-rose-600', 'border-rose-600');
+                checkboxGroup.classList.remove('bg-white', 'border-slate-300');
+                icon.classList.remove('opacity-0');
+            } else {
+                checkboxGroup.classList.remove('bg-rose-600', 'border-rose-600');
+                checkboxGroup.classList.add('bg-white', 'border-slate-300');
+                icon.classList.add('opacity-0');
+            }
         });
     });
 </script>
