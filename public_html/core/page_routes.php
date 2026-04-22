@@ -8,6 +8,7 @@ function page_route_definitions(): array
 		'courses' => ['directory' => 'main-courses', 'aliases' => ['main-courses', 'khoa-hoc']],
 		'course-detail' => ['directory' => 'main-courses/detail', 'aliases' => ['khoa-hoc-chi-tiet']],
 		'job-apply' => ['directory' => 'job-apply', 'aliases' => ['tuyen-dung', 'ung-tuyen']],
+		'register-consultation' => ['directory' => 'register-consultation', 'aliases' => ['dang-ky-tu-van', 'tu-van']],
 		'login' => ['directory' => 'login', 'aliases' => []],
 		'register' => ['directory' => 'register', 'aliases' => []],
 		'logout' => ['directory' => 'logout', 'aliases' => []],

@@ -45,6 +45,9 @@
                 <a class="text-[16px] font-extrabold text-slate-800 hover:text-[#27318b] transition-colors" href="<?= e(page_url('job-apply')); ?>">
                     Tuyển dụng
                 </a>
+                <a class="text-[16px] font-extrabold text-slate-800 hover:text-[#27318b] transition-colors" href="<?= e(page_url('register-consultation')); ?>">
+                    Đăng ký tư vấn
+                </a>
                 
                 <div class="relative group py-6">
                     <button class="inline-flex items-center gap-1.5 text-[16px] font-extrabold text-slate-800 hover:text-[#27318b] transition-colors" type="button">
@@ -104,6 +107,7 @@
                 <a class="block border-b border-slate-50 px-6 py-4 text-[15px] font-bold text-slate-800 hover:bg-slate-50" href="<?= e(page_url('courses')); ?>">Chương trình học</a>
                 <a class="block border-b border-slate-50 px-6 py-4 text-[15px] font-bold text-slate-800 hover:bg-slate-50" href="#giao-vien">Giáo viên</a>
                 <a class="block border-b border-slate-50 px-6 py-4 text-[15px] font-bold text-slate-800 hover:bg-slate-50" href="<?= e(page_url('job-apply')); ?>">Tuyển dụng</a>
+                <a class="block border-b border-slate-50 px-6 py-4 text-[15px] font-bold text-slate-800 hover:bg-slate-50" href="<?= e(page_url('register-consultation')); ?>">Đăng ký tư vấn</a>
                 
                 <?php if (is_logged_in()): ?>
                     <div class="bg-slate-50 px-6 py-4">
