@@ -27,7 +27,7 @@ final class PaymentTransactionsTableModel
     public function listDetailed(): array
     {
         $sql = "SELECT pt.id, pt.tuition_fee_id, pt.amount, pt.payment_method AS method, pt.created_at AS transaction_date,
-                pt.transaction_no, pt.transaction_status, t.student_id, u.full_name AS student_name, c.class_name AS course_name
+            pt.transaction_no, pt.transaction_status, t.student_id, u.full_name AS full_name, c.class_name AS course_name
             FROM payment_transactions pt
             INNER JOIN tuition_fees t ON t.id = pt.tuition_fee_id
             INNER JOIN users u ON u.id = t.student_id
@@ -43,7 +43,7 @@ final class PaymentTransactionsTableModel
         $offset = ($normalizedPage - 1) * $limit;
 
         $sql = "SELECT pt.id, pt.tuition_fee_id, pt.amount, pt.payment_method AS method, pt.created_at AS transaction_date,
-                pt.transaction_no, pt.transaction_status, t.student_id, u.full_name AS student_name, c.class_name AS course_name
+            pt.transaction_no, pt.transaction_status, t.student_id, u.full_name AS full_name, c.class_name AS course_name
             FROM payment_transactions pt
             INNER JOIN tuition_fees t ON t.id = pt.tuition_fee_id
             INNER JOIN users u ON u.id = t.student_id

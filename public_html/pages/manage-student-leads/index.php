@@ -4,10 +4,50 @@ declare(strict_types=1);
 require_admin_or_staff();
 require_permission('student_lead.manage');
 
+if (!function_exists('student_lead_extract_email')) {
+    function student_lead_extract_email(string $value): string
+    {
+        $normalized = strtolower(trim($value));
+        if ($normalized === '') {
+            return '';
+        }
+
+        if (preg_match('/[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}/i', $normalized, $matches) === 1) {
+            return strtolower((string) ($matches[0] ?? ''));
+        }
+
+        return '';
+    }
+}
+
+if (!function_exists('student_lead_extract_phone')) {
+    function student_lead_extract_phone(string $value): string
+    {
+        $normalized = trim($value);
+        if ($normalized === '') {
+            return '';
+        }
+
+        if (preg_match('/(?:\+?\d[\d\s().-]{7,}\d)/', $normalized, $matches) !== 1) {
+            return '';
+        }
+
+        $digits = preg_replace('/\D+/', '', (string) ($matches[0] ?? ''));
+        if (!is_string($digits) || $digits === '') {
+            return '';
+        }
+
+        return $digits;
+    }
+}
+
 if (!function_exists('student_lead_suggested_username')) {
     function student_lead_suggested_username(array $lead): string
     {
-        $email = strtolower(trim((string) ($lead['email'] ?? '')));
+        $parentName = (string) ($lead['parent_name'] ?? '');
+        $parentPhone = trim((string) ($lead['parent_phone'] ?? ''));
+
+        $email = student_lead_extract_email($parentName);
         if ($email !== '' && str_contains($email, '@')) {
             $localPart = (string) strstr($email, '@', true);
             if ($localPart !== '') {
@@ -15,9 +55,20 @@ if (!function_exists('student_lead_suggested_username')) {
             }
         }
 
-        $phoneDigits = preg_replace('/\D+/', '', (string) ($lead['phone'] ?? ''));
-        if (is_string($phoneDigits) && $phoneDigits !== '') {
+        $phoneDigits = student_lead_extract_phone($parentPhone);
+        if ($phoneDigits === '') {
+            $phoneDigits = student_lead_extract_phone($parentName);
+        }
+        if ($phoneDigits !== '') {
             return 'student' . substr($phoneDigits, -6);
+        }
+
+        $studentName = strtolower(trim((string) ($lead['student_name'] ?? '')));
+        if ($studentName !== '') {
+            $slug = preg_replace('/[^a-z0-9]+/', '', $studentName) ?? '';
+            if ($slug !== '') {
+                return 'student.' . substr($slug, 0, 24);
+            }
         }
 
         return 'student' . date('His');
@@ -59,10 +110,7 @@ if (!function_exists('student_lead_short_text')) {
             return $text;
         }
 
-        $snippet = function_exists('mb_substr')
-            ? mb_substr($text, 0, $limit - 1)
-            : substr($text, 0, $limit - 1);
-
+        $snippet = function_exists('mb_substr') ? mb_substr($text, 0, $limit - 1) : substr($text, 0, $limit - 1);
         return rtrim($snippet) . '…';
     }
 }
@@ -78,6 +126,23 @@ if (!function_exists('student_lead_format_datetime')) {
         try {
             $dt = new DateTimeImmutable($raw);
             return $dt->format('d/m/Y H:i');
+        } catch (Throwable) {
+            return $raw;
+        }
+    }
+}
+
+if (!function_exists('student_lead_format_date')) {
+    function student_lead_format_date(?string $value): string
+    {
+        $raw = trim((string) $value);
+        if ($raw === '') {
+            return '—';
+        }
+
+        try {
+            $dt = new DateTimeImmutable($raw);
+            return $dt->format('d/m/Y');
         } catch (Throwable) {
             return $raw;
         }
@@ -125,7 +190,7 @@ if (!empty($_GET['edit'])) {
 
 $module = 'student-leads';
 $adminTitle = 'Quản lý lead học viên';
-$adminDescription = 'Theo dõi chi tiết pipeline tư vấn học viên từ lúc tiếp nhận, test đầu vào, học thử đến chuyển đổi tài khoản chính thức.';
+$adminDescription = 'Theo dõi chi tiết pipeline tư vấn học viên từ lúc tiếp nhận đến chuyển đổi tài khoản.';
 
 $success = get_flash('success');
 $error = get_flash('error');
@@ -163,8 +228,8 @@ $canConvertLead = has_permission('admin.user.manage');
         <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <div class="mb-4 flex flex-wrap items-start justify-between gap-3">
                 <div>
-                    <h3 class="mb-1">Xử lý lead #<?= (int) ($editingLead['id'] ?? 0); ?> - <?= e((string) ($editingLead['full_name'] ?? '')); ?></h3>
-                    <p class="text-sm text-slate-600">Nguồn: <strong><?= e(student_lead_value_or_dash($editingLead['source'] ?? 'website')); ?></strong> • Tạo lúc: <strong><?= e(student_lead_format_datetime((string) ($editingLead['created_at'] ?? ''))); ?></strong></p>
+                    <h3 class="mb-1">Xử lý lead #<?= (int) ($editingLead['id'] ?? 0); ?> - <?= e((string) ($editingLead['student_name'] ?? '')); ?></h3>
+                    <p class="text-sm text-slate-600">Nguồn: <strong><?= e(student_lead_value_or_dash($editingLead['referral_source'] ?? 'website')); ?></strong> • Tạo lúc: <strong><?= e(student_lead_format_datetime((string) ($editingLead['created_at'] ?? ''))); ?></strong></p>
                 </div>
                 <span class="inline-flex items-center rounded-full border px-3 py-1 text-xs font-extrabold <?= e(student_lead_status_badge_class($editingStatus)); ?>">
                     <?= e($editingStatusLabel); ?>
@@ -175,22 +240,21 @@ $canConvertLead = has_permission('admin.user.manage');
                 <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
                     <h4 class="mb-2 text-sm font-extrabold text-slate-800">Thông tin học viên</h4>
                     <dl class="grid gap-1 text-sm text-slate-700">
-                        <div><dt class="inline font-semibold">Họ tên:</dt> <dd class="inline"><?= e(student_lead_value_or_dash($editingLead['full_name'] ?? '')); ?></dd></div>
-                        <div><dt class="inline font-semibold">Tuổi:</dt> <dd class="inline"><?= e((string) ((int) ($editingLead['age'] ?? 0) > 0 ? (int) $editingLead['age'] : '—')); ?></dd></div>
-                        <div><dt class="inline font-semibold">Điện thoại:</dt> <dd class="inline"><?= e(student_lead_value_or_dash($editingLead['phone'] ?? '')); ?></dd></div>
-                        <div><dt class="inline font-semibold">Email:</dt> <dd class="inline"><?= e(student_lead_value_or_dash($editingLead['email'] ?? '')); ?></dd></div>
-                        <div><dt class="inline font-semibold">Trường học:</dt> <dd class="inline"><?= e(student_lead_value_or_dash($editingLead['school_name'] ?? '')); ?></dd></div>
+                        <div><dt class="inline font-semibold">Họ tên:</dt> <dd class="inline"><?= e(student_lead_value_or_dash($editingLead['student_name'] ?? '')); ?></dd></div>
+                        <div><dt class="inline font-semibold">Giới tính:</dt> <dd class="inline"><?= e(student_lead_value_or_dash($editingLead['gender'] ?? '')); ?></dd></div>
+                        <div><dt class="inline font-semibold">Ngày sinh:</dt> <dd class="inline"><?= e(student_lead_format_date((string) ($editingLead['dob'] ?? ''))); ?></dd></div>
+                        <div><dt class="inline font-semibold">Trình độ hiện tại:</dt> <dd class="inline"><?= e(student_lead_value_or_dash($editingLead['current_level'] ?? '')); ?></dd></div>
+                        <div><dt class="inline font-semibold">Tính cách:</dt> <dd class="inline"><?= e(student_lead_value_or_dash($editingLead['personality'] ?? '')); ?></dd></div>
                     </dl>
                 </div>
 
                 <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
                     <h4 class="mb-2 text-sm font-extrabold text-slate-800">Thông tin phụ huynh & mục tiêu</h4>
                     <dl class="grid gap-1 text-sm text-slate-700">
-                        <div><dt class="inline font-semibold">Phụ huynh:</dt> <dd class="inline"><?= e(student_lead_value_or_dash($editingLead['parent_name'] ?? '')); ?></dd></div>
-                        <div><dt class="inline font-semibold">SĐT phụ huynh:</dt> <dd class="inline"><?= e(student_lead_value_or_dash($editingLead['parent_phone'] ?? '')); ?></dd></div>
-                        <div><dt class="inline font-semibold">Chương trình:</dt> <dd class="inline"><?= e(student_lead_value_or_dash($editingLead['target_program'] ?? '')); ?></dd></div>
-                        <div><dt class="inline font-semibold">Mục tiêu điểm:</dt> <dd class="inline"><?= e(student_lead_value_or_dash($editingLead['target_score'] ?? '')); ?></dd></div>
-                        <div><dt class="inline font-semibold">Lịch mong muốn:</dt> <dd class="inline"><?= e(student_lead_value_or_dash($editingLead['desired_schedule'] ?? '')); ?></dd></div>
+                        <div><dt class="inline font-semibold">Liên hệ:</dt> <dd class="inline"><?= e(student_lead_value_or_dash(trim((string) ($editingLead['parent_name'] ?? '') . ' ' . ($editingLead['parent_phone'] ?? '')))); ?></dd></div>
+                        <div><dt class="inline font-semibold">Trường / Khối:</dt> <dd class="inline"><?= e(student_lead_value_or_dash(trim((string) ($editingLead['school_name'] ?? '') . ' ' . ($editingLead['current_grade'] ?? '')))); ?></dd></div>
+                        <div><dt class="inline font-semibold">Sở thích / Quan tâm:</dt> <dd class="inline"><?= e(student_lead_value_or_dash($editingLead['interests'] ?? '')); ?></dd></div>
+                        <div><dt class="inline font-semibold">Khung giờ mong muốn:</dt> <dd class="inline"><?= e(student_lead_value_or_dash($editingLead['study_time'] ?? '')); ?></dd></div>
                     </dl>
                 </div>
 
@@ -209,7 +273,7 @@ $canConvertLead = has_permission('admin.user.manage');
                         </label>
                         <label>
                             Ghi chú xử lý nội bộ
-                            <textarea name="admin_note" rows="4" placeholder="Ví dụ: Đã gọi phụ huynh, hẹn test đầu vào vào chiều thứ 6..."><?= e((string) ($editingLead['admin_note'] ?? '')); ?></textarea>
+                            <textarea name="admin_note" rows="4" placeholder="Ví dụ: Đã gọi phụ huynh, hẹn test..."><?= e((string) ($editingLead['admin_note'] ?? '')); ?></textarea>
                         </label>
                         <div>
                             <button class="<?= ui_btn_primary_classes('sm'); ?>" type="submit">Lưu cập nhật</button>
@@ -221,7 +285,7 @@ $canConvertLead = has_permission('admin.user.manage');
             <div class="mt-3 grid gap-3 md:grid-cols-2">
                 <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
                     <h4 class="mb-2 text-sm font-extrabold text-slate-800">Ghi chú đăng ký từ khách hàng</h4>
-                    <p class="text-sm leading-relaxed text-slate-700"><?= nl2br(e(student_lead_value_or_dash($editingLead['note'] ?? ''))); ?></p>
+                    <p class="text-sm leading-relaxed text-slate-700"><?= nl2br(e(student_lead_value_or_dash($editingLead['parent_expectation'] ?? ''))); ?></p>
                 </div>
 
                 <?php if ((int) ($editingLead['converted_user_id'] ?? 0) > 0): ?>
@@ -263,7 +327,7 @@ $canConvertLead = has_permission('admin.user.manage');
         <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
             <div>
                 <h3 class="mb-1">Danh sách lead học viên</h3>
-                <p class="text-sm text-slate-600">Bảng chỉ hiển thị thông tin tóm tắt. Bấm Xem chi tiết hoặc Xử lý để xem toàn bộ hồ sơ.</p>
+                <p class="text-sm text-slate-600">Bảng chỉ hiển thị thông tin tóm tắt. Bấm Xem chi tiết hoặc Xử lý để mở hồ sơ đầy đủ.</p>
             </div>
             <span class="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-bold text-slate-600">Tổng: <?= (int) $leadTotal; ?> lead</span>
         </div>
@@ -315,21 +379,20 @@ $canConvertLead = has_permission('admin.user.manage');
                             <tr>
                                 <td class="font-semibold">#<?= (int) $lead['id']; ?></td>
                                 <td>
-                                    <div class="font-bold text-slate-800"><?= e(student_lead_value_or_dash($lead['full_name'] ?? '')); ?></div>
-                                    <div class="text-xs text-slate-600">Liên hệ: <?= e(student_lead_value_or_dash($lead['phone'] ?? '')); ?></div>
-                                    <div class="text-xs text-slate-500">PH: <?= e(student_lead_value_or_dash($lead['parent_name'] ?? '')); ?></div>
+                                    <div class="font-bold text-slate-800"><?= e(student_lead_value_or_dash($lead['student_name'] ?? '')); ?></div>
+                                    <div class="text-xs text-slate-600">Liên hệ: <?= e(student_lead_short_text(trim((string) ($lead['parent_name'] ?? '') . ' ' . ($lead['parent_phone'] ?? '')), 60)); ?></div>
                                 </td>
                                 <td>
-                                    <div class="font-semibold text-slate-700"><?= e(student_lead_short_text($lead['target_program'] ?? '', 45)); ?></div>
-                                    <div class="text-xs text-slate-600">Mục tiêu: <?= e(student_lead_value_or_dash($lead['target_score'] ?? '')); ?></div>
-                                    <div class="text-xs text-slate-500">Lịch: <?= e(student_lead_short_text($lead['desired_schedule'] ?? '', 28)); ?></div>
+                                    <div class="font-semibold text-slate-700">Trình độ: <?= e(student_lead_value_or_dash($lead['current_level'] ?? '')); ?></div>
+                                    <div class="text-xs text-slate-600">Khung giờ: <?= e(student_lead_short_text($lead['study_time'] ?? '', 35)); ?></div>
+                                    <div class="text-xs text-slate-500">Sở thích: <?= e(student_lead_short_text($lead['interests'] ?? '', 35)); ?></div>
                                 </td>
                                 <td>
                                     <span class="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-bold <?= e(student_lead_status_badge_class($statusValue)); ?>"><?= e($statusLabel); ?></span>
                                     <div class="mt-1 text-xs text-slate-500">Tạo lúc: <?= e(student_lead_format_datetime((string) ($lead['created_at'] ?? ''))); ?></div>
                                 </td>
                                 <td>
-                                    <?php $summaryNote = trim((string) ($lead['admin_note'] ?? '')) !== '' ? (string) ($lead['admin_note'] ?? '') : (string) ($lead['note'] ?? ''); ?>
+                                    <?php $summaryNote = trim((string) ($lead['admin_note'] ?? '')) !== '' ? (string) ($lead['admin_note'] ?? '') : (string) ($lead['parent_expectation'] ?? ''); ?>
                                     <div class="text-sm text-slate-700" data-full-value="<?= e($summaryNote); ?>"><?= e(student_lead_short_text($summaryNote, 80)); ?></div>
                                 </td>
                                 <td>
@@ -410,4 +473,3 @@ $canConvertLead = has_permission('admin.user.manage');
         </div>
     </article>
 </div>
-

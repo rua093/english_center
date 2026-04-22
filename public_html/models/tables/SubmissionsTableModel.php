@@ -56,7 +56,7 @@ final class SubmissionsTableModel
         $sql = "SELECT s.id, s.assignment_id, s.student_id, s.file_url, s.submitted_at, s.score, s.teacher_comment,
                 a.title AS assignment_title, a.deadline AS assignment_deadline,
                 l.id AS lesson_id, l.class_id, l.actual_title AS lesson_title, sch.study_date AS lesson_date,
-                c.class_name, u.full_name AS student_name
+                c.class_name, u.full_name AS full_name
             FROM submissions s
             INNER JOIN assignments a ON a.id = s.assignment_id
             INNER JOIN lessons l ON l.id = a.lesson_id
@@ -76,7 +76,7 @@ final class SubmissionsTableModel
         $sql = "SELECT s.id, s.assignment_id, s.student_id, s.file_url, s.submitted_at, s.score, s.teacher_comment,
                 a.title AS assignment_title, a.deadline AS assignment_deadline,
                 l.id AS lesson_id, l.class_id, l.actual_title AS lesson_title, sch.study_date AS lesson_date,
-                c.class_name, u.full_name AS student_name
+                c.class_name, u.full_name AS full_name
             FROM submissions s
             INNER JOIN assignments a ON a.id = s.assignment_id
             INNER JOIN lessons l ON l.id = a.lesson_id
@@ -111,7 +111,7 @@ final class SubmissionsTableModel
 
     public function listRosterByClassAndAssignment(int $classId, int $assignmentId): array
     {
-        $sql = "SELECT u.id AS student_id, u.full_name AS student_name,
+        $sql = "SELECT u.id AS student_id, u.full_name AS full_name,
                 s.id AS submission_id, s.file_url, s.submitted_at, s.score, s.teacher_comment,
                 a.deadline AS assignment_deadline,
                 CASE

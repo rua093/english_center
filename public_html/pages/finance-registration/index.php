@@ -192,13 +192,7 @@ $adminTitle = 'Đăng ký khóa học';
                     <small id="registration-promo-hint" class="mt-1 block text-xs text-slate-500">Chọn khóa học để lọc ưu đãi áp dụng tương ứng.</small>
                 </label>
 
-                <label>
-                    Trạng thái học khi ghi danh
-                    <select name="learning_status">
-                        <option value="official" <?= $formState['learning_status'] === 'official' ? 'selected' : ''; ?>>official</option>
-                        <option value="trial" <?= $formState['learning_status'] === 'trial' ? 'selected' : ''; ?>>trial</option>
-                    </select>
-                </label>
+        
 
                 <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 lg:col-span-2">
                     <h4 class="mb-3 text-sm font-extrabold uppercase tracking-wide text-slate-600">Xem trước hóa đơn sẽ tạo</h4>
@@ -236,108 +230,6 @@ $adminTitle = 'Đăng ký khóa học';
         </article>
     <?php endif; ?>
 
-    <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-            <div>
-                <h3>Danh sách ghi danh & trạng thái học</h3>
-                <p class="text-sm text-slate-500">Chuyển trực tiếp giữa <strong>Học thử</strong> và <strong>Chính thức</strong> trong cột Trạng thái học.</p>
-            </div>
-            <?php if (!$canChangeLearningStatus): ?>
-                <span class="inline-flex items-center rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-700">Bạn chưa có quyền chuyển trạng thái học viên.</span>
-            <?php endif; ?>
-        </div>
-
-        <div id="registration-status-feedback" class="hidden mb-3 rounded-xl border-l-4 p-3 text-sm"></div>
-
-        <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
-            <table class="min-w-full border-collapse text-sm">
-                <thead class="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">
-                    <tr>
-                        <th class="px-3 py-2">Học viên</th>
-                        <th class="px-3 py-2">Khóa học</th>
-                        <th class="px-3 py-2">Lớp học</th>
-                        <th class="px-3 py-2">Trạng thái học</th>
-                        <th class="px-3 py-2">Học phí</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php if (empty($registrationRows)): ?>
-                        <tr>
-                            <td colspan="5">
-                                <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">Chưa có dữ liệu ghi danh.</div>
-                            </td>
-                        </tr>
-                    <?php else: ?>
-                        <?php foreach ($registrationRows as $row): ?>
-                            <?php
-                            $studentId = (int) ($row['student_id'] ?? 0);
-                            $classId = (int) ($row['class_id'] ?? 0);
-                            $learningStatus = (string) ($row['learning_status'] ?? 'official');
-                            if (!in_array($learningStatus, ['trial', 'official'], true)) {
-                                $learningStatus = 'official';
-                            }
-
-                            $learningStatusLabel = (string) ($learningStatusLabels[$learningStatus] ?? $learningStatus);
-                            $badgeClass = $learningStatus === 'trial'
-                                ? 'border-blue-200 bg-blue-50 text-blue-700'
-                                : 'border-emerald-200 bg-emerald-50 text-emerald-700';
-
-                            $tuitionId = (int) ($row['tuition_id'] ?? 0);
-                            $totalAmount = max(0, (float) ($row['total_amount'] ?? 0));
-                            $amountPaid = max(0, (float) ($row['amount_paid'] ?? 0));
-                            $remainingAmount = max(0, $totalAmount - $amountPaid);
-                            $tuitionStatus = strtolower(trim((string) ($row['tuition_status'] ?? 'debt')));
-                            if (!in_array($tuitionStatus, ['paid', 'debt'], true)) {
-                                $tuitionStatus = ($totalAmount > 0 && $amountPaid >= $totalAmount) ? 'paid' : 'debt';
-                            }
-                            $hasPayment = $amountPaid > 0.0001;
-                            ?>
-                            <tr class="border-b border-slate-100 last:border-b-0" data-registration-row="1" data-student-id="<?= $studentId; ?>" data-class-id="<?= $classId; ?>">
-                                <td class="px-3 py-2 align-top font-semibold text-slate-800"><?= e((string) ($row['student_name'] ?? ('Học viên #' . $studentId))); ?></td>
-                                <td class="px-3 py-2 align-top text-slate-700"><?= e((string) ($row['course_name'] ?? '--')); ?></td>
-                                <td class="px-3 py-2 align-top text-slate-700"><?= e((string) ($row['class_name'] ?? '--')); ?></td>
-                                <td class="px-3 py-2 align-top" data-learning-status-cell="1">
-                                    <?php if ($canChangeLearningStatus && in_array($learningStatus, ['trial', 'official'], true)): ?>
-                                        <form method="post" action="/api/tuitions/update-learning-status" class="inline-flex items-center gap-2">
-                                            <?= csrf_input(); ?>
-                                            <input type="hidden" name="student_id" value="<?= $studentId; ?>">
-                                            <input type="hidden" name="class_id" value="<?= $classId; ?>">
-                                            <select
-                                                name="learning_status"
-                                                class="h-9 rounded-md border border-slate-300 bg-white px-2 text-sm font-semibold"
-                                                data-learning-status-select="1"
-                                                data-current-status="<?= e($learningStatus); ?>"
-                                                data-original-status="<?= e($learningStatus); ?>"
-                                                data-has-payment="<?= $hasPayment ? '1' : '0'; ?>"
-                                                <?= $hasPayment ? 'disabled' : ''; ?>
-                                            >
-                                                <option value="official" <?= $learningStatus === 'official' ? 'selected' : ''; ?>>Chính thức</option>
-                                                <option value="trial" <?= $learningStatus === 'trial' ? 'selected' : ''; ?>>Học thử</option>
-                                            </select>
-                                        </form>
-                                    <?php else: ?>
-                                        <span class="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-bold <?= e($badgeClass); ?>"><?= e($learningStatusLabel); ?></span>
-                                    <?php endif; ?>
-                                </td>
-                                <td class="px-3 py-2 align-top" data-tuition-cell="1">
-                                    <?php if ($tuitionId > 0): ?>
-                                        <div class="text-xs text-slate-700 leading-5">
-                                            <div>Tổng: <?= format_money($totalAmount); ?></div>
-                                            <div>Đã thu: <?= format_money($amountPaid); ?></div>
-                                            <div>Còn: <?= format_money($remainingAmount); ?></div>
-                                        </div>
-                                        <div class="mt-1 inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide <?= $tuitionStatus === 'paid' ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-rose-200 bg-rose-50 text-rose-700'; ?>"><?= e($tuitionStatus); ?></div>
-                                    <?php else: ?>
-                                        <span class="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700">Chưa tạo học phí</span>
-                                    <?php endif; ?>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
-                </tbody>
-            </table>
-        </div>
-    </article>
 </div>
 
 <?php if ($canCreateRegistration): ?>

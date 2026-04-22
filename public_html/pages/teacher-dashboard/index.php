@@ -170,27 +170,32 @@ $error = get_flash('error');
                 </article>
             </div>
 
-            <div class="lg:col-span-4 space-y-8">
-                
-                <article class="rounded-[2rem] border border-white bg-blue-900 p-8 text-white shadow-xl shadow-blue-900/20">
-                    <h3 class="mb-6 text-lg font-black tracking-tight">Lịch dạy 7 ngày tới</h3>
-                    <div class="space-y-4">
-                        <?php if (empty($teacherSchedules)): ?>
-                            <p class="text-center text-xs text-blue-300 italic py-4">Bạn đang có thời gian nghỉ ngơi!</p>
-                        <?php else: ?>
-                            <?php foreach ($teacherSchedules as $schedule): ?>
-                                <div class="relative pl-4 before:absolute before:left-0 before:top-1 before:h-2 before:w-2 before:rounded-full before:bg-blue-400">
-                                    <h5 class="text-sm font-bold leading-tight"><?= e((string) $schedule['class_name']); ?></h5>
-                                    <div class="mt-1 flex flex-wrap gap-x-3 text-[10px] font-bold text-blue-300 uppercase">
-                                        <span><?= e((string) $schedule['study_date']); ?></span>
-                                        <span><?= e((string) $schedule['start_time']); ?> - <?= e((string) $schedule['end_time']); ?></span>
-                                    </div>
-                                    <p class="mt-1 text-[10px] font-medium text-blue-400">Phòng: <?= e((string) $schedule['room_name']); ?></p>
-                                </div>
-                            <?php endforeach; ?>
-                        <?php endif; ?>
-                    </div>
-                </article>
+        <div class="grid gap-4 grid-cols-1 lg:grid-cols-2">
+            <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                <h3>Bài tập gần đây</h3>
+                <?php if (empty($assignments)): ?>
+                    <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">Chưa có bài tập nào.</div>
+                <?php else: ?>
+                    <ul class="m-0 grid list-none gap-2 p-0">
+                        <?php foreach (array_slice($assignments, 0, 5) as $a): ?>
+                            <li><?= e((string) $a['title']); ?> - <?= e((string) $a['deadline']); ?></li>
+                        <?php endforeach; ?>
+                    </ul>
+                <?php endif; ?>
+            </article>
+            <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                <h3>Bài nộp cần chấm</h3>
+                <?php $pendingSubmissions = array_values(array_filter($submissions, fn($s) => !isset($s['score']) || $s['score'] === null)); ?>
+                <?php if (empty($pendingSubmissions)): ?>
+                    <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">Không còn bài nộp cần chấm.</div>
+                <?php else: ?>
+                    <ul class="m-0 grid list-none gap-2 p-0">
+                        <?php foreach (array_slice($pendingSubmissions, 0, 5) as $sub): ?>
+                            <li><?= e((string) ($sub['full_name'] ?? ($sub['student_name'] ?? ''))); ?> - <?= e((string) $sub['assignment_title']); ?></li>
+                        <?php endforeach; ?>
+                    </ul>
+                <?php endif; ?>
+            </article>
 
                 <article class="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-xl shadow-slate-900/5">
                     <h3 class="mb-4 text-base font-black text-slate-800 tracking-tight">Yêu cầu dời lịch dạy</h3>

@@ -15,7 +15,7 @@ final class FeedbacksTableModel
     public function listDetailed(): array
     {
         $sql = "SELECT f.id, f.sender_id AS student_id, f.teacher_id, f.class_id, f.class_id AS course_id, f.rating, f.content AS comment, f.status, f.created_at,
-                u.full_name AS student_name, t.full_name AS teacher_name, c.class_name AS course_name
+                u.full_name AS full_name, t.full_name AS teacher_name, c.class_name AS course_name
             FROM feedbacks f
             INNER JOIN users u ON u.id = f.sender_id
             LEFT JOIN users t ON t.id = f.teacher_id
@@ -31,7 +31,7 @@ final class FeedbacksTableModel
         $offset = ($normalizedPage - 1) * $limit;
 
         $sql = "SELECT f.id, f.sender_id AS student_id, f.teacher_id, f.class_id, f.class_id AS course_id, f.rating, f.content AS comment, f.status, f.created_at,
-                u.full_name AS student_name, t.full_name AS teacher_name, c.class_name AS course_name
+                u.full_name AS full_name, t.full_name AS teacher_name, c.class_name AS course_name
             FROM feedbacks f
             INNER JOIN users u ON u.id = f.sender_id
             LEFT JOIN users t ON t.id = f.teacher_id

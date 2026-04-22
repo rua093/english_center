@@ -58,7 +58,7 @@ $error = get_flash('error');
                     <?php else: ?>
                         <?php foreach ($feedbacks as $fb): ?>
                             <tr>
-                                <td><?= e((string) $fb['student_name']); ?></td>
+                                <td><?= e((string) ($fb['full_name'] ?? ($fb['student_name'] ?? ''))); ?></td>
                                 <td><?= $fb['teacher_name'] ? e((string) $fb['teacher_name']) : '-'; ?></td>
                                 <td><?= e((string) $fb['course_name']); ?></td>
                                 <td><?= (int) $fb['rating']; ?>/5</td>

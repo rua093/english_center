@@ -41,7 +41,7 @@ foreach ($classStudentRows as $row) {
 
     $classStudentMap[$classId][] = [
         'id' => $studentId,
-        'name' => (string) ($row['student_name'] ?? ($studentNameMap[$studentId] ?? ('Học viên #' . $studentId))),
+        'name' => (string) ($row['full_name'] ?? ($studentNameMap[$studentId] ?? ('Học viên #' . $studentId))),
     ];
 }
 
@@ -190,7 +190,7 @@ $error = get_flash('error');
                     <?php else: ?>
                         <?php foreach ($tuitionFees as $fee): ?>
                             <tr>
-                                <td><?= e((string) $fee['student_name']); ?></td>
+                                <td><?= e((string) $fee['full_name']); ?></td>
                                 <td><?= e((string) $fee['course_name']); ?></td>
                                 <td><?= format_money((float) $fee['total_amount']); ?></td>
                                 <td><?= format_money((float) $fee['amount_paid']); ?></td>
@@ -267,7 +267,7 @@ $error = get_flash('error');
                         <option value="">-- Chọn hóa đơn --</option>
                         <?php foreach ($tuitionOptions as $fee): ?>
                             <option value="<?= (int) $fee['id']; ?>">
-                                #<?= (int) $fee['id']; ?> - <?= e((string) $fee['student_name']); ?> - <?= e((string) $fee['course_name']); ?>
+                                #<?= (int) $fee['id']; ?> - <?= e((string) $fee['full_name']); ?> - <?= e((string) $fee['course_name']); ?>
                             </option>
                         <?php endforeach; ?>
                     </select>
