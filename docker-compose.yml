@@ -1,11 +1,10 @@
-version: "3.8"
 
 services:
   php-apache:
     build: . # Thay vì dùng image gốc, ta gọi Dockerfile vừa tạo
     container_name: php_app
     ports:
-      - "8080:80"
+      - "0.0.0.0:8080:80"
     volumes:
       - ./public_html:/var/www/html
       - ./src:/var/www/src
@@ -22,7 +21,7 @@ services:
       MYSQL_ROOT_PASSWORD: root_password
       MYSQL_DATABASE: english_center_db
       MYSQL_USER: user
-      MYSQL_PASSWORD: user_password
+      MYSQL_PASSWORD: 123456
     ports:
       - "3308:3306"
     volumes:

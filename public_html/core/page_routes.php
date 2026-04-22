@@ -5,7 +5,12 @@ function page_route_definitions(): array
 {
 	return [
 		'home' => ['directory' => 'home', 'aliases' => []],
+		'courses' => ['directory' => 'main-courses', 'aliases' => ['main-courses', 'khoa-hoc']],
+		'course-detail' => ['directory' => 'main-courses/detail', 'aliases' => ['khoa-hoc-chi-tiet']],
+		'job-apply' => ['directory' => 'job-apply', 'aliases' => ['tuyen-dung', 'ung-tuyen']],
+		'register-consultation' => ['directory' => 'register-consultation', 'aliases' => ['dang-ky-tu-van', 'tu-van']],
 		'login' => ['directory' => 'login', 'aliases' => []],
+		'register' => ['directory' => 'register', 'aliases' => []],
 		'logout' => ['directory' => 'logout', 'aliases' => []],
 		'admin' => ['directory' => 'admin', 'aliases' => []],
 		'profile' => ['directory' => 'profile', 'aliases' => []],
@@ -37,6 +42,10 @@ function page_route_definitions(): array
 		'materials-academic' => ['directory' => 'academic-materials', 'aliases' => ['academic-materials']],
 		'materials-academic-edit' => ['directory' => 'academic-material-edit', 'aliases' => ['academic-material-edit']],
 		'portfolios-academic' => ['directory' => 'academic-portfolios', 'aliases' => ['academic-portfolios']],
+		'submissions-academic' => ['directory' => 'academic-submissions', 'aliases' => ['academic-submissions']],
+		'activities-student' => ['directory' => 'student-activities', 'aliases' => ['activities']],
+		'activities-details' => ['directory' => 'student-activities/activites-details', 'aliases' => ['activities-details']],
+		'forgot-password' => ['directory' => 'login/forgot_password', 'aliases' => ['forgot_password']],
 	];
 }
 
@@ -58,7 +67,7 @@ function resolve_page_slug(string $page): string
 			return $canonicalSlug;
 		}
 	}
-
+	
 	return $normalized;
 }
 
