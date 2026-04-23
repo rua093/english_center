@@ -61,7 +61,7 @@ $error = get_flash('error');
                 <input type="hidden" name="id" value="<?= (int) ($editingPayment['id'] ?? 0); ?>">
                 <label>
                     Hóa đơn học phí
-                    <select name="tuition_fee_id" required>
+                    <select id="payment-tuition-select" name="tuition_fee_id" required>
                         <option value="">-- Chọn hóa đơn --</option>
                         <?php foreach ($tuitionOptions as $fee): ?>
                             <option value="<?= (int) $fee['id']; ?>" <?= (int) ($editingPayment['tuition_fee_id'] ?? 0) === (int) $fee['id'] ? 'selected' : ''; ?>>
@@ -188,6 +188,5 @@ $error = get_flash('error');
         </div>
     </article>
 </div>
-
 
 

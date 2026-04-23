@@ -9,7 +9,56 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
     <?php require_once __DIR__ . '/tailwind_cdn.php'; ?>
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
     <style>
+        .ts-wrapper {
+            margin-top: 0.45rem !important;
+            width: 100% !important;
+        }
+        .ts-wrapper .ts-control {
+            border-radius: 0.75rem !important;
+            border: 1px solid #cbd5e1 !important;
+            background: #ffffff !important;
+            padding: 0.62rem 0.78rem !important;
+            font-size: 0.92rem !important;
+            line-height: 1.35 !important;
+            color: #0f172a !important;
+            box-shadow: none !important;
+            min-height: auto !important;
+        }
+        .ts-wrapper.focus .ts-control {
+            border-color: #60a5fa !important;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18) !important;
+            background: #f8fbff !important;
+        }
+        .ts-wrapper .ts-control > input {
+            font-size: 0.92rem !important;
+            line-height: 1.35 !important;
+            color: #0f172a !important;
+        }
+        .ts-dropdown {
+            border-radius: 0.75rem !important;
+            border: 1px solid #cbd5e1 !important;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.07) !important;
+            font-size: 0.92rem !important;
+            color: #0f172a !important;
+            margin-top: 0.25rem !important;
+            overflow: hidden !important;
+        }
+        .ts-dropdown .ts-dropdown-content {
+            max-height: 250px !important;
+        }
+        .ts-dropdown .option {
+            padding: 0.6rem 0.8rem !important;
+            cursor: pointer !important;
+            transition: background-color 120ms ease, color 120ms ease !important;
+        }
+        .ts-dropdown .option.active,
+        .ts-dropdown .option:hover {
+            background-color: #eff6ff !important;
+            color: #1d4ed8 !important;
+        }
+
         .admin-ui article > h3 {
             margin-bottom: 0.9rem;
             font-family: "Sora", ui-sans-serif, system-ui, sans-serif;
@@ -1203,6 +1252,15 @@ if ($displayAdminDescription === '') {
                         <svg viewBox="0 0 24 24"><path d="M3 7h6l2 2h10v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><path d="M3 7V5a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2"></path></svg>
                     </span>
                     <span class="admin-sidebar-link-label">Tài liệu</span>
+                </a>
+            <?php endif; ?>
+
+            <?php if (can_access_page('portfolios-academic')): ?>
+                <a class="admin-sidebar-link<?= $activeModule === 'portfolios' ? ' is-active' : ''; ?>" href="<?= e(page_url('portfolios-academic')); ?>" title="Portfolio Học Viên">
+                    <span class="admin-sidebar-link-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24"><path d="M12 2a2 2 0 0 1 2 2v2h4v12H4V6h4V4a2 2 0 0 1 2-2z"></path><path d="M8 10h8"></path><path d="M8 14h8"></path></svg>
+                    </span>
+                    <span class="admin-sidebar-link-label">Portfolio</span>
                 </a>
             <?php endif; ?>
 

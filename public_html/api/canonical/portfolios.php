@@ -13,6 +13,7 @@ function api_portfolios_save_action(): void
 	$user = auth_user();
 	$academicModel = new AcademicModel();
 	$portfolioId = input_int($_POST, 'id');
+	$existing = null;
 
 	if ($portfolioId > 0) {
 		$existing = $academicModel->findPortfolio($portfolioId);
@@ -27,7 +28,7 @@ function api_portfolios_save_action(): void
 		$_POST['student_id'] = (string) $user['id'];
 	}
 
-	$uploadPath = input_string($_POST, 'media_url');
+	$uploadPath = trim((string) (($existing['media_url'] ?? '')));
 	if (!empty($_FILES['portfolio_file']['name'])) {
 		$fileUpload = store_uploaded_file($_FILES['portfolio_file'], 'portfolio');
 		if ($fileUpload === null) {
@@ -35,6 +36,15 @@ function api_portfolios_save_action(): void
 			redirect(page_url('portfolios-academic'));
 		}
 		$uploadPath = $fileUpload;
+	}
+
+	if ($uploadPath === '') {
+		set_flash('error', 'Vui lòng tải lên media cho portfolio.');
+		if ($portfolioId > 0) {
+			redirect(page_url('portfolios-academic', ['edit' => $portfolioId]));
+		}
+
+		redirect(page_url('portfolios-academic'));
 	}
 
 	$_POST['media_url'] = $uploadPath;

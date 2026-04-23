@@ -1643,6 +1643,25 @@
             });
         }
 
+        function initGlobalTomSelect(rootElement) {
+            const selects = (rootElement || document).querySelectorAll('.admin-ui form select, .admin-edit-modal-dialog form select');
+            selects.forEach(function (select) {
+                if (select.name && select.name.endsWith('per_page')) {
+                    return;
+                }
+                if (select.tomselect || select.dataset.noSearch === '1' || select.readOnly || select.classList.contains('no-search')) {
+                    return;
+                }
+                new TomSelect(select, {
+                    create: false,
+                    sortField: {
+                        field: "text",
+                        direction: "asc"
+                    }
+                });
+            });
+        }
+
         async function bootstrapAdminUi() {
             clearCreateSaveForms();
             try {
@@ -1656,6 +1675,25 @@
             restorePaginationScroll();
             bindGlobalRowDetailButtons();
             bindGlobalEditModal();
+            initGlobalTomSelect(document);
+
+            // Observe for dynamically added selects (e.g. inside modals)
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    if (mutation.addedNodes && mutation.addedNodes.length > 0) {
+                        mutation.addedNodes.forEach(function(node) {
+                            if (node instanceof HTMLElement) {
+                                if (node.tagName === 'SELECT') {
+                                    initGlobalTomSelect(node.parentElement || node);
+                                } else if (node.querySelectorAll) {
+                                    initGlobalTomSelect(node);
+                                }
+                            }
+                        });
+                    }
+                });
+            });
+            observer.observe(document.body, { childList: true, subtree: true });
         }
 
         if (document.readyState === 'loading') {
@@ -1667,5 +1705,6 @@
         }
     })();
 </script>
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
 </body>
 </html>

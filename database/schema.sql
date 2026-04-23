@@ -394,12 +394,12 @@ VALUES
 
 CREATE TABLE assignments (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    lesson_id BIGINT UNSIGNED NOT NULL,
+    schedule_id BIGINT UNSIGNED NOT NULL,
     title VARCHAR(200) NOT NULL,
     description TEXT,
     deadline DATETIME NOT NULL,
     file_url VARCHAR(255) DEFAULT NULL,
-    CONSTRAINT fk_assignments_lesson FOREIGN KEY (lesson_id) REFERENCES lessons(id)
+    CONSTRAINT fk_assignments_schedule FOREIGN KEY (schedule_id) REFERENCES schedules(id)
 ) ENGINE=InnoDB;
 
 CREATE TABLE submissions (

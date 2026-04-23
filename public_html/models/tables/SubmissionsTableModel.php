@@ -31,8 +31,8 @@ final class SubmissionsTableModel
                     END) AS late_assignments
             FROM class_students cs
             INNER JOIN users u ON u.id = cs.student_id AND u.deleted_at IS NULL
-            LEFT JOIN lessons l ON l.class_id = cs.class_id
-            LEFT JOIN assignments a ON a.lesson_id = l.id
+            LEFT JOIN schedules sch ON sch.class_id = cs.class_id
+            LEFT JOIN assignments a ON a.schedule_id = sch.id
             LEFT JOIN submissions s ON s.assignment_id = a.id AND s.student_id = cs.student_id
             WHERE cs.class_id = :class_id
             GROUP BY cs.student_id
@@ -55,13 +55,19 @@ final class SubmissionsTableModel
     {
         $sql = "SELECT s.id, s.assignment_id, s.student_id, s.file_url, s.submitted_at, s.score, s.teacher_comment,
                 a.title AS assignment_title, a.deadline AS assignment_deadline,
-                l.id AS lesson_id, l.class_id, l.actual_title AS lesson_title, sch.study_date AS lesson_date,
+                sch.id AS schedule_id, sch.class_id, sch.study_date AS lesson_date,
+                l.actual_title AS lesson_title,
                 c.class_name, u.full_name AS full_name
             FROM submissions s
             INNER JOIN assignments a ON a.id = s.assignment_id
-            INNER JOIN lessons l ON l.id = a.lesson_id
-            LEFT JOIN schedules sch ON sch.id = l.schedule_id
-            INNER JOIN classes c ON c.id = l.class_id
+            INNER JOIN schedules sch ON sch.id = a.schedule_id
+            LEFT JOIN (
+                SELECT schedule_id, MIN(actual_title) AS actual_title
+                FROM lessons
+                WHERE schedule_id IS NOT NULL
+                GROUP BY schedule_id
+            ) l ON l.schedule_id = sch.id
+            INNER JOIN classes c ON c.id = sch.class_id
             INNER JOIN users u ON u.id = s.student_id
             ORDER BY s.submitted_at DESC";
         return $this->fetchAll($sql);
@@ -75,13 +81,19 @@ final class SubmissionsTableModel
 
         $sql = "SELECT s.id, s.assignment_id, s.student_id, s.file_url, s.submitted_at, s.score, s.teacher_comment,
                 a.title AS assignment_title, a.deadline AS assignment_deadline,
-                l.id AS lesson_id, l.class_id, l.actual_title AS lesson_title, sch.study_date AS lesson_date,
+                sch.id AS schedule_id, sch.class_id, sch.study_date AS lesson_date,
+                l.actual_title AS lesson_title,
                 c.class_name, u.full_name AS full_name
             FROM submissions s
             INNER JOIN assignments a ON a.id = s.assignment_id
-            INNER JOIN lessons l ON l.id = a.lesson_id
-            LEFT JOIN schedules sch ON sch.id = l.schedule_id
-            INNER JOIN classes c ON c.id = l.class_id
+            INNER JOIN schedules sch ON sch.id = a.schedule_id
+            LEFT JOIN (
+                SELECT schedule_id, MIN(actual_title) AS actual_title
+                FROM lessons
+                WHERE schedule_id IS NOT NULL
+                GROUP BY schedule_id
+            ) l ON l.schedule_id = sch.id
+            INNER JOIN classes c ON c.id = sch.class_id
             INNER JOIN users u ON u.id = s.student_id
             ORDER BY s.submitted_at DESC
             LIMIT {$limit} OFFSET {$offset}";
@@ -123,8 +135,8 @@ final class SubmissionsTableModel
                     ELSE 0
                 END AS is_late_submission
             FROM assignments a
-            INNER JOIN lessons l ON l.id = a.lesson_id AND l.class_id = :class_id
-            INNER JOIN class_students cs ON cs.class_id = l.class_id
+            INNER JOIN schedules sch ON sch.id = a.schedule_id AND sch.class_id = :class_id
+            INNER JOIN class_students cs ON cs.class_id = sch.class_id
             INNER JOIN users u ON u.id = cs.student_id AND u.deleted_at IS NULL
             LEFT JOIN submissions s ON s.assignment_id = a.id AND s.student_id = cs.student_id
             WHERE a.id = :assignment_id

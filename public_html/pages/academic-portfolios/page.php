@@ -1,11 +1,21 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . '/../partials/header.php';
+if (is_admin_or_staff()) {
+    require_once __DIR__ . '/../partials/admin_header.php';
+} else {
+    require_once __DIR__ . '/../partials/header.php';
+}
+
 if (isset($__pageContent)) {
     echo $__pageContent;
 } else {
     require __DIR__ . '/index.php';
 }
-require_once __DIR__ . '/../partials/footer.php';
+
+if (is_admin_or_staff()) {
+    require_once __DIR__ . '/../partials/admin_footer.php';
+} else {
+    require_once __DIR__ . '/../partials/footer.php';
+}
 

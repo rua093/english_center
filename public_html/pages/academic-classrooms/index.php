@@ -24,9 +24,6 @@ if ($classReturnPerPage > 0) {
 }
 
 $classroomBackToClassesUrl = page_url('classes-academic', $classroomReturnQuery);
-if ($prefillScheduleId <= 0 && $focusedScheduleId > 0) {
-    $prefillScheduleId = $focusedScheduleId;
-}
 
 $weekRefInput = trim((string) ($_GET['week_ref'] ?? ''));
 $weekStartInput = trim((string) ($_GET['week_start'] ?? ''));
@@ -108,11 +105,11 @@ $editingLesson = null;
 $unscheduledLessons = [];
 $lessonByScheduleId = [];
 $scheduleById = [];
-$assignmentDefaultByLesson = [];
-$lessonStatsById = [];
+$assignmentDefaultBySchedule = [];
+$scheduleStatsById = [];
 $classroomLessonsById = [];
 $classroomScheduleOptions = [];
-$classroomAssignmentsByLesson = [];
+$classroomAssignmentsBySchedule = [];
 $weekSchedules = [];
 $weekTimeSlots = [];
 $weekScheduleGrid = [];
@@ -130,11 +127,6 @@ if ($selectedClassId > 0) {
         }
 
         $lessonIdMap[$lessonId] = true;
-        $lessonStatsById[$lessonId] = [
-            'assignment_count' => 0,
-            'submission_count' => 0,
-            'ungraded_count' => 0,
-        ];
         $classroomLessonsById[$lessonId] = [
             'id' => $lessonId,
             'roadmap_id' => (int) ($lessonRow['roadmap_id'] ?? 0),
@@ -165,6 +157,11 @@ if ($selectedClassId > 0) {
         $scheduleId = (int) ($scheduleRow['id'] ?? 0);
         if ($scheduleId > 0) {
             $scheduleById[$scheduleId] = $scheduleRow;
+            $scheduleStatsById[$scheduleId] = [
+                'assignment_count' => 0,
+                'submission_count' => 0,
+                'ungraded_count' => 0,
+            ];
         }
     }
 
@@ -178,22 +175,22 @@ if ($selectedClassId > 0) {
 
     $assignmentSubmissionStats = [];
     foreach ($academicModel->listAssignments() as $assignmentRow) {
-        $lessonId = (int) ($assignmentRow['lesson_id'] ?? 0);
+        $scheduleId = (int) ($assignmentRow['schedule_id'] ?? 0);
         $assignmentId = (int) ($assignmentRow['id'] ?? 0);
-        if ($lessonId <= 0 || $assignmentId <= 0 || !isset($lessonIdMap[$lessonId])) {
+        if ($scheduleId <= 0 || $assignmentId <= 0 || !isset($scheduleById[$scheduleId])) {
             continue;
         }
 
-        if (!isset($assignmentDefaultByLesson[$lessonId])) {
-            $assignmentDefaultByLesson[$lessonId] = $assignmentId;
+        if (!isset($assignmentDefaultBySchedule[$scheduleId])) {
+            $assignmentDefaultBySchedule[$scheduleId] = $assignmentId;
         }
 
-        $lessonStatsById[$lessonId]['assignment_count']++;
-        if (!isset($classroomAssignmentsByLesson[$lessonId])) {
-            $classroomAssignmentsByLesson[$lessonId] = [];
+        $scheduleStatsById[$scheduleId]['assignment_count']++;
+        if (!isset($classroomAssignmentsBySchedule[$scheduleId])) {
+            $classroomAssignmentsBySchedule[$scheduleId] = [];
         }
 
-        $classroomAssignmentsByLesson[$lessonId][] = [
+        $classroomAssignmentsBySchedule[$scheduleId][] = [
             'id' => $assignmentId,
             'title' => (string) ($assignmentRow['title'] ?? ('Bài tập #' . $assignmentId)),
             'deadline' => (string) ($assignmentRow['deadline'] ?? ''),
@@ -221,11 +218,11 @@ if ($selectedClassId > 0) {
         }
     }
 
-    foreach ($classroomAssignmentsByLesson as $lessonId => $assignmentRows) {
+    foreach ($classroomAssignmentsBySchedule as $scheduleId => $assignmentRows) {
         foreach ($assignmentRows as $assignmentRow) {
             $assignmentId = (int) ($assignmentRow['id'] ?? 0);
-            $lessonStatsById[$lessonId]['submission_count'] += (int) ($assignmentSubmissionStats[$assignmentId]['submitted'] ?? 0);
-            $lessonStatsById[$lessonId]['ungraded_count'] += (int) ($assignmentSubmissionStats[$assignmentId]['ungraded'] ?? 0);
+            $scheduleStatsById[$scheduleId]['submission_count'] += (int) ($assignmentSubmissionStats[$assignmentId]['submitted'] ?? 0);
+            $scheduleStatsById[$scheduleId]['ungraded_count'] += (int) ($assignmentSubmissionStats[$assignmentId]['ungraded'] ?? 0);
         }
     }
 
@@ -341,9 +338,9 @@ $canCreateAssignment = has_permission('academic.assignments.create');
 $canGradeSubmission = has_permission('academic.submissions.grade');
 $canManageExams = $canGradeSubmission;
 
-$classroomAssignmentsByLessonJson = json_encode($classroomAssignmentsByLesson, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-if (!is_string($classroomAssignmentsByLessonJson)) {
-    $classroomAssignmentsByLessonJson = '{}';
+$classroomAssignmentsByScheduleJson = json_encode($classroomAssignmentsBySchedule, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+if (!is_string($classroomAssignmentsByScheduleJson)) {
+    $classroomAssignmentsByScheduleJson = '{}';
 }
 
 $classroomLessonsByIdJson = json_encode($classroomLessonsById, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
@@ -545,14 +542,12 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
                                                     $absentCount = is_array($linkedLesson) ? (int) ($linkedLesson['absent_count'] ?? 0) : 0;
                                                     $totalMarked = is_array($linkedLesson) ? (int) ($linkedLesson['total_marked'] ?? 0) : 0;
 
-                                                    $lessonStats = $hasLesson
-                                                        ? ($lessonStatsById[$assignedLessonId] ?? ['assignment_count' => 0, 'submission_count' => 0, 'ungraded_count' => 0])
-                                                        : ['assignment_count' => 0, 'submission_count' => 0, 'ungraded_count' => 0];
-                                                    $assignmentCount = (int) ($lessonStats['assignment_count'] ?? 0);
-                                                    $submissionCount = (int) ($lessonStats['submission_count'] ?? 0);
-                                                    $ungradedCount = (int) ($lessonStats['ungraded_count'] ?? 0);
+                                                    $scheduleStats = $scheduleStatsById[$scheduleId] ?? ['assignment_count' => 0, 'submission_count' => 0, 'ungraded_count' => 0];
+                                                    $assignmentCount = (int) ($scheduleStats['assignment_count'] ?? 0);
+                                                    $submissionCount = (int) ($scheduleStats['submission_count'] ?? 0);
+                                                    $ungradedCount = (int) ($scheduleStats['ungraded_count'] ?? 0);
 
-                                                    $defaultAssignmentId = $hasLesson ? (int) ($assignmentDefaultByLesson[$assignedLessonId] ?? 0) : 0;
+                                                    $defaultAssignmentId = (int) ($assignmentDefaultBySchedule[$scheduleId] ?? 0);
 
                                                     $chipClasses = $hasLesson
                                                         ? 'border-emerald-300 bg-emerald-50 text-emerald-800'
@@ -913,7 +908,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
             <input type="hidden" name="class_id" value="<?= (int) $selectedClassId; ?>">
             <?php if ($classReturnPage > 0): ?><input type="hidden" name="class_page" value="<?= (int) $classReturnPage; ?>"><?php endif; ?>
             <?php if ($classReturnPerPage > 0): ?><input type="hidden" name="class_per_page" value="<?= (int) $classReturnPerPage; ?>"><?php endif; ?>
-            <input id="classroom-assignment-lesson-id" type="hidden" name="lesson_id" value="0">
+
             <input id="classroom-assignment-schedule-id" type="hidden" name="schedule_id" value="0">
             <input id="classroom-assignment-focus-schedule-id" type="hidden" name="focus_schedule_id" value="0">
             <input type="hidden" name="week_start" value="<?= e($weekStartValue); ?>">
@@ -961,7 +956,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
             <input id="classroom-grading-class-id" type="hidden" name="class_id" value="<?= (int) $selectedClassId; ?>">
             <?php if ($classReturnPage > 0): ?><input type="hidden" name="class_page" value="<?= (int) $classReturnPage; ?>"><?php endif; ?>
             <?php if ($classReturnPerPage > 0): ?><input type="hidden" name="class_per_page" value="<?= (int) $classReturnPerPage; ?>"><?php endif; ?>
-            <input id="classroom-grading-lesson-id" type="hidden" name="lesson_id" value="0">
+
             <input id="classroom-grading-schedule-id" type="hidden" name="schedule_id" value="0">
             <input id="classroom-grading-focus-schedule-id" type="hidden" name="focus_schedule_id" value="0">
             <input type="hidden" name="week_start" value="<?= e($weekStartValue); ?>">
@@ -973,7 +968,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
             <label class="max-w-md">
                 Bài tập cần chấm
                 <select id="classroom-grading-assignment-select" name="assignment_id" required>
-                    <option value="0">-- Chọn bài tập --</option>
+                    <option value="" disabled selected hidden>-- Chọn bài tập --</option>
                 </select>
             </label>
 
@@ -1209,7 +1204,6 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
     overflow-x: auto;
     overflow-y: hidden;
     --exams-student-col-width: 190px;
-    --exams-status-col-width: 118px;
     --exams-metric-col-width: 126px;
     --exams-score-col-width: 126px;
     --exams-cell-padding-y: 9px;
@@ -1380,11 +1374,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
     max-width: var(--exams-metric-col-width);
 }
 
-.classroom-exams-status-head-cell,
-.classroom-exams-status-cell {
-    min-width: var(--exams-status-col-width);
-    max-width: var(--exams-status-col-width);
-}
+/* Status column removed — styles for status cells intentionally omitted */
 
 .classroom-exams-metric-cell {
     font-variant-numeric: tabular-nums;
@@ -1642,7 +1632,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
     const assignmentCancelButton = document.getElementById('classroom-assignment-cancel');
     const assignmentContext = document.getElementById('classroom-assignment-context');
     const assignmentTitleInput = document.getElementById('classroom-assignment-title');
-    const assignmentLessonIdInput = document.getElementById('classroom-assignment-lesson-id');
+
     const assignmentScheduleIdInput = document.getElementById('classroom-assignment-schedule-id');
     const assignmentFocusScheduleIdInput = document.getElementById('classroom-assignment-focus-schedule-id');
 
@@ -1653,7 +1643,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
     const gradingContext = document.getElementById('classroom-grading-context');
     const gradingAssignmentSelect = document.getElementById('classroom-grading-assignment-select');
     const gradingClassIdInput = document.getElementById('classroom-grading-class-id');
-    const gradingLessonIdInput = document.getElementById('classroom-grading-lesson-id');
+
     const gradingScheduleIdInput = document.getElementById('classroom-grading-schedule-id');
     const gradingFocusScheduleIdInput = document.getElementById('classroom-grading-focus-schedule-id');
     const gradingState = document.getElementById('classroom-grading-state');
@@ -1680,7 +1670,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
     const selectedCourseId = <?= (int) $selectedCourseId; ?>;
     const selectedClassId = <?= (int) $selectedClassId; ?>;
     const lessonsById = <?= $classroomLessonsByIdJson; ?>;
-    const assignmentsByLesson = <?= $classroomAssignmentsByLessonJson; ?>;
+    const assignmentsBySchedule = <?= $classroomAssignmentsByScheduleJson; ?>;
     const hasSuccessFlash = <?= $success ? 'true' : 'false'; ?>;
     const initialLessonId = <?= (int) ($editingLesson['id'] ?? 0); ?>;
     const initialPrefillScheduleId = <?= (int) $prefillScheduleId; ?>;
@@ -2362,7 +2352,6 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
         examsTableWrap.setAttribute('data-density', density);
 
         let studentWidth = 190;
-        let statusWidth = 118;
         let metricWidth = 126;
         let scoreMinWidth = 112;
         let scoreMaxWidth = 140;
@@ -2371,7 +2360,6 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
 
         if (density === 'compact') {
             studentWidth = 178;
-            statusWidth = 110;
             metricWidth = 116;
             scoreMinWidth = 102;
             scoreMaxWidth = 124;
@@ -2379,7 +2367,6 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
             cellPadX = 7;
         } else if (density === 'tight') {
             studentWidth = 160;
-            statusWidth = 100;
             metricWidth = 104;
             scoreMinWidth = 92;
             scoreMaxWidth = 112;
@@ -2387,7 +2374,6 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
             cellPadX = 6;
         } else if (density === 'ultra') {
             studentWidth = 145;
-            statusWidth = 92;
             metricWidth = 92;
             scoreMinWidth = 82;
             scoreMaxWidth = 98;
@@ -2396,7 +2382,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
         }
 
         const visibleMetricColumns = getVisibleMetricColumnsCount();
-        const reservedWidth = studentWidth + statusWidth + (metricWidth * visibleMetricColumns) + 18;
+        const reservedWidth = studentWidth + (metricWidth * visibleMetricColumns) + 18;
         const availableWidth = Math.max(0, wrapWidth - reservedWidth);
         const autoScoreWidth = count > 0 && availableWidth > 0
             ? Math.floor(availableWidth / count)
@@ -2404,7 +2390,6 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
         const scoreWidth = clampNumber(autoScoreWidth, scoreMinWidth, scoreMaxWidth);
 
         examsTableWrap.style.setProperty('--exams-student-col-width', studentWidth + 'px');
-        examsTableWrap.style.setProperty('--exams-status-col-width', statusWidth + 'px');
         examsTableWrap.style.setProperty('--exams-metric-col-width', metricWidth + 'px');
         examsTableWrap.style.setProperty('--exams-score-col-width', scoreWidth + 'px');
         examsTableWrap.style.setProperty('--exams-cell-padding-y', cellPadY + 'px');
@@ -2725,11 +2710,6 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
         studentHeader.className = 'classroom-exams-head-cell classroom-exams-sticky-col whitespace-nowrap px-3 py-2 text-left text-[11px] font-bold uppercase tracking-wide text-slate-800';
         headerRow.appendChild(studentHeader);
 
-        const learningStatusHeader = document.createElement('th');
-        learningStatusHeader.textContent = 'Trạng thái';
-        learningStatusHeader.className = 'classroom-exams-head-cell classroom-exams-status-head-cell whitespace-nowrap px-3 py-2 text-center text-[11px] font-bold uppercase tracking-wide text-slate-700';
-        headerRow.appendChild(learningStatusHeader);
-
         headerRow.appendChild(createExamMetricHeaderCell(metricAttendanceColumnKey, 'Chuyên cần', '% có mặt/muộn'));
         headerRow.appendChild(createExamMetricHeaderCell(metricSubmissionColumnKey, 'Nộp bài', '% đúng hạn'));
 
@@ -2753,8 +2733,6 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
                 + String(studentId)
                 + '">' + escapeHtml(studentName !== '' ? studentName : ('Học viên #' + studentId)) + '</button>';
             tr.appendChild(nameTd);
-
-            tr.appendChild(createStudentLearningStatusCell(student && student.learning_status));
 
             tr.appendChild(createStudentMetricCell(student && student.attendance, 'attendance', metricAttendanceColumnKey));
             tr.appendChild(createStudentMetricCell(student && student.submission, 'submission', metricSubmissionColumnKey));
@@ -2847,11 +2825,6 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
             studentHeader.textContent = 'Học viên';
             studentHeader.className = 'classroom-exams-head-cell classroom-exams-sticky-col whitespace-nowrap px-3 py-2 text-left text-[11px] font-bold uppercase tracking-wide text-slate-800';
             headerRow.appendChild(studentHeader);
-
-            const learningStatusHeader = document.createElement('th');
-            learningStatusHeader.textContent = 'Trạng thái';
-            learningStatusHeader.className = 'classroom-exams-head-cell classroom-exams-status-head-cell whitespace-nowrap px-3 py-2 text-center text-[11px] font-bold uppercase tracking-wide text-slate-700';
-            headerRow.appendChild(learningStatusHeader);
 
             headerRow.appendChild(createExamMetricHeaderCell(metricAttendanceColumnKey, 'Chuyên cần', '% có mặt/muộn'));
             headerRow.appendChild(createExamMetricHeaderCell(metricSubmissionColumnKey, 'Nộp bài', '% đúng hạn'));
@@ -3599,14 +3572,14 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
                 ? 'Bạn chưa có quyền cập nhật giáo án buổi học.'
                 : 'Bạn chưa có quyền soạn giáo án buổi học.');
 
-        const canOpenAssignment = canCreateAssignment && activeSlotContext.hasLesson && activeSlotContext.lessonId > 0;
-        const canOpenGrading = canGradeSubmission && activeSlotContext.hasLesson && activeSlotContext.lessonId > 0;
+        const canOpenAssignment = canCreateAssignment && activeSlotContext.scheduleId > 0;
+        const canOpenGrading = canGradeSubmission && activeSlotContext.scheduleId > 0;
 
         setMenuItemDisabled(itemLessonInfo, !canOpenLessonInfo, 'Không xác định được lịch học cho buổi này.');
         setMenuItemDisabled(itemAttendance, !canOpenAttendance, canViewAttendance ? 'Không xác định được lịch học cho buổi này.' : 'Bạn chưa có quyền xem điểm danh.');
         setMenuItemDisabled(itemDetail, !canOpenLesson, lessonReason);
-        setMenuItemDisabled(itemAssignment, !canOpenAssignment, canCreateAssignment ? 'Cần soạn giáo án buổi học trước khi giao bài tập.' : 'Bạn chưa có quyền giao bài tập.');
-        setMenuItemDisabled(itemGrading, !canOpenGrading, canGradeSubmission ? 'Cần soạn giáo án buổi học trước khi chấm điểm.' : 'Bạn chưa có quyền chấm điểm.');
+        setMenuItemDisabled(itemAssignment, !canOpenAssignment, canCreateAssignment ? 'Chưa xác định được buổi học để giao bài tập.' : 'Bạn chưa có quyền giao bài tập.');
+        setMenuItemDisabled(itemGrading, !canOpenGrading, canGradeSubmission ? 'Chưa xác định được buổi học để chấm điểm.' : 'Bạn chưa có quyền chấm điểm.');
 
         slotElement.setAttribute('aria-expanded', 'true');
         contextMenu.classList.remove('hidden');
@@ -4507,7 +4480,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
     }
 
     function openAssignmentModal(context) {
-        if (!canCreateAssignment || !context.hasLesson || context.lessonId <= 0) {
+        if (!canCreateAssignment || context.scheduleId <= 0) {
             return;
         }
 
@@ -4516,9 +4489,6 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
         }
 
         assignmentForm.reset();
-        if (assignmentLessonIdInput instanceof HTMLInputElement) {
-            assignmentLessonIdInput.value = String(context.lessonId);
-        }
         if (assignmentScheduleIdInput instanceof HTMLInputElement) {
             assignmentScheduleIdInput.value = String(context.scheduleId);
         }
@@ -4542,53 +4512,73 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
             return 0;
         }
 
-        const lessonIdKey = String(context.lessonId);
-        const assignmentRows = Array.isArray(assignmentsByLesson[lessonIdKey]) ? assignmentsByLesson[lessonIdKey] : [];
-        gradingAssignmentSelect.innerHTML = '';
+        const scheduleIdKey = String(context.scheduleId);
+        const assignmentRows = Array.isArray(assignmentsBySchedule[scheduleIdKey]) ? assignmentsBySchedule[scheduleIdKey] : [];
+        
+        const ts = gradingAssignmentSelect.tomselect;
 
-        const placeholderOption = document.createElement('option');
-        placeholderOption.value = '0';
-        placeholderOption.textContent = '-- Chọn bài tập --';
-        gradingAssignmentSelect.appendChild(placeholderOption);
+        if (ts) {
+            ts.clear();
+            ts.clearOptions();
 
-        let firstAssignmentId = 0;
-        assignmentRows.forEach(function (assignmentRow) {
-            const assignmentId = toInt(assignmentRow.id);
-            if (assignmentId <= 0) {
-                return;
+            ts.settings.placeholder = '-- Chọn bài tập --';
+            if (ts.control_input) {
+                ts.control_input.placeholder = '-- Chọn bài tập --';
             }
 
-            if (firstAssignmentId <= 0) {
-                firstAssignmentId = assignmentId;
+            assignmentRows.forEach(function (assignmentRow) {
+                const assignmentId = String(assignmentRow.id);
+                const title = assignmentRow.title || ('Bài tập #' + assignmentId);
+                const deadline = assignmentRow.deadline || '';
+                const label = deadline !== '' ? (title + ' | Hạn: ' + deadline) : title;
+
+                ts.addOption({
+                    value: assignmentId,
+                    text: label
+                });
+            });
+
+            ts.setValue('');
+            
+            if (assignmentRows.length === 0) {
+                ts.disable();
+            } else {
+                ts.enable();
             }
+        } else {
+            gradingAssignmentSelect.innerHTML = '';
+            const placeholderOption = document.createElement('option');
+            placeholderOption.value = '';
+            placeholderOption.disabled = true;
+            placeholderOption.selected = true;
+            placeholderOption.hidden = true;
+            placeholderOption.textContent = '-- Chọn bài tập --';
+            gradingAssignmentSelect.appendChild(placeholderOption);
 
-            const option = document.createElement('option');
-            option.value = String(assignmentId);
+            assignmentRows.forEach(function (assignmentRow) {
+                const option = document.createElement('option');
+                option.value = String(assignmentRow.id);
+                const assignmentId = String(assignmentRow.id);
+                const title = assignmentRow.title || ('Bài tập #' + assignmentId);
+                const deadline = assignmentRow.deadline || '';
+                option.textContent = deadline !== '' ? (title + ' | Hạn: ' + deadline) : title;
+                gradingAssignmentSelect.appendChild(option);
+            });
+            
+            gradingAssignmentSelect.value = '';
+            gradingAssignmentSelect.disabled = assignmentRows.length === 0;
+        }
 
-            const title = normalizeText(assignmentRow.title) || ('Bài tập #' + assignmentId);
-            const deadline = normalizeText(assignmentRow.deadline);
-            option.textContent = deadline !== '' ? (title + ' | Hạn: ' + deadline) : title;
-
-            gradingAssignmentSelect.appendChild(option);
-        });
-
-        const defaultAssignmentId = context.defaultAssignmentId > 0 ? context.defaultAssignmentId : firstAssignmentId;
-        gradingAssignmentSelect.value = defaultAssignmentId > 0 ? String(defaultAssignmentId) : '0';
-        gradingAssignmentSelect.disabled = assignmentRows.length === 0;
         return toInt(gradingAssignmentSelect.value);
     }
 
     function openGradingModal(context) {
-        if (!canGradeSubmission || !context.hasLesson || context.lessonId <= 0) {
+        if (!canGradeSubmission || context.scheduleId <= 0) {
             return;
         }
 
         if (!(gradingModal instanceof HTMLElement) || !(gradingForm instanceof HTMLFormElement)) {
             return;
-        }
-
-        if (gradingLessonIdInput instanceof HTMLInputElement) {
-            gradingLessonIdInput.value = String(context.lessonId);
         }
         if (gradingScheduleIdInput instanceof HTMLInputElement) {
             gradingScheduleIdInput.value = String(context.scheduleId);
@@ -4614,7 +4604,16 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
                 gradingList.innerHTML = '';
             }
             resetGradingSummary();
-            renderGradingState('Buổi học này chưa có bài tập. Hãy tạo bài tập trước khi chấm điểm.', false);
+            
+            const scheduleIdKey = String(context.scheduleId);
+            const assignmentRows = Array.isArray(assignmentsBySchedule[scheduleIdKey]) ? assignmentsBySchedule[scheduleIdKey] : [];
+            
+            if (assignmentRows.length === 0) {
+                renderGradingState('Buổi học này chưa có bài tập. Hãy tạo bài tập trước khi chấm điểm.', false);
+            } else {
+                renderGradingState('Vui lòng chọn bài tập từ danh sách bên trên để chấm điểm.', false);
+            }
+            
             if (gradingSubmitButton instanceof HTMLButtonElement) {
                 gradingSubmitButton.disabled = true;
             }
