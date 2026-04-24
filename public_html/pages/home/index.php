@@ -40,6 +40,9 @@ foreach ($courseRows as $row) {
 	];
 }
 
+$homeActivities = $academicModel->listActivitiesPage(1, 4);
+$homeTeachers = $academicModel->feedbackLookups()['teachers'] ?? [];
+
 if (is_logged_in()) {
 	$user = auth_user();
 	if ($user) {

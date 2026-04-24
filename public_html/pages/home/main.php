@@ -466,25 +466,45 @@ $homeCourses = $homeCourses ?? [];
                 <p class="text-slate-600 font-medium text-sm md:text-base">Khám phá các hoạt động ngoại khóa nổi bật trong tháng này.</p>
             </div>
 
+            <?php $activities = $homeActivities ?? []; ?>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
-                <?php
-                $activities = [
-                    ['img' => 'https://images.unsplash.com/photo-1577896851231-70ef18881754?q=80&w=800', 'title' => 'Tăng tốc Anh ngữ', 'desc' => '8 tuần – làm chủ nửa năm kiến thức'],
-                    ['img' => 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?q=80&w=800', 'title' => 'Niềm vui trọn vẹn', 'desc' => 'Bạn thật – trải nghiệm thật – ký ức thật'],
-                    ['img' => 'https://images.unsplash.com/photo-1587691592099-24045742c181?q=80&w=800', 'title' => 'Bước ngoặt trưởng thành', 'desc' => 'Dám nghĩ – dám nói – dám kết nối'],
-                    ['img' => 'https://images.unsplash.com/photo-1609220136736-443140cffec6?q=80&w=800', 'title' => 'Điểm chạm gia đình', 'desc' => 'Cùng con lớn lên trong từng khoảnh khắc']
-                ];
-                foreach ($activities as $act): ?>
-                <div class="group bg-white/80 backdrop-blur-md hover:bg-white rounded-3xl p-3 border border-white shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-2 cursor-pointer flex flex-col">
-                    <div class="relative w-full aspect-[4/3] rounded-2xl overflow-hidden mb-4">
-                        <img src="<?= $act['img'] ?>" alt="<?= $act['title'] ?>" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                <?php if (empty($activities)): ?>
+                    <div class="sm:col-span-2 lg:col-span-4 rounded-[2rem] border border-dashed border-slate-300 bg-white/70 px-6 py-14 text-center text-slate-500 font-medium">
+                        Hiện chưa có hoạt động ngoại khoá nào trong hệ thống.
                     </div>
-                    <div class="px-2 pb-3 text-center flex-1 flex flex-col justify-start">
-                        <h3 class="text-[#0d3b66] font-bold text-lg leading-tight mb-2 group-hover:text-blue-600 transition-colors"><?= $act['title'] ?></h3>
-                        <p class="text-slate-500 text-sm font-medium leading-snug px-1"><?= $act['desc'] ?></p>
-                    </div>
-                </div>
-                <?php endforeach; ?>
+                <?php else: ?>
+                    <?php foreach ($activities as $act): ?>
+                        <?php
+                        $activityTitle = (string) ($act['activity_name'] ?? '');
+                        $activityDesc = trim((string) ($act['description'] ?? ''));
+                        $activityImage = trim((string) ($act['image_thumbnail'] ?? ''));
+                        $activityLink = page_url('activities-home-detail', ['id' => (int) ($act['id'] ?? 0)]);
+                        ?>
+                        <a href="<?= e($activityLink); ?>" class="group bg-white/80 backdrop-blur-md hover:bg-white rounded-3xl p-3 border border-white shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-2 cursor-pointer flex flex-col">
+                            <div class="relative w-full aspect-[4/3] rounded-2xl overflow-hidden mb-4 bg-slate-100">
+                                <?php if ($activityImage !== ''): ?>
+                                    <img src="<?= e($activityImage); ?>" alt="<?= e($activityTitle); ?>" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                                <?php else: ?>
+                                    <div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-sky-100 via-white to-lime-100 text-slate-400">
+                                        <i class="fa-solid fa-rocket text-3xl"></i>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                            <div class="px-2 pb-3 text-center flex-1 flex flex-col justify-start">
+                                <h3 class="text-[#0d3b66] font-bold text-lg leading-tight mb-2 group-hover:text-blue-600 transition-colors"><?= e($activityTitle); ?></h3>
+                                <p class="text-slate-500 text-sm font-medium leading-snug px-1">
+                                    <?= e($activityDesc !== '' ? $activityDesc : 'Khám phá hoạt động ngoại khoá hấp dẫn dành cho học viên.'); ?>
+                                </p>
+                            </div>
+                        </a>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </div>
+
+            <div class="mt-8 flex justify-center">
+                <a href="<?= e(page_url('activities-home')); ?>" class="inline-flex items-center justify-center gap-2 rounded-full bg-[#2e3192] px-6 py-3.5 text-sm font-bold text-white shadow-md transition-transform hover:-translate-y-0.5 hover:bg-blue-600">
+                    Xem thêm <i class="fa-solid fa-arrow-right text-xs"></i>
+                </a>
             </div>
         </div>
     </section>
@@ -514,34 +534,52 @@ $homeCourses = $homeCourses ?? [];
         <div class="w-full" data-aos="fade-up" data-aos-delay="100">
             <div class="swiper teacherSwiper pb-16">
                 <div class="swiper-wrapper">
-                    <?php 
-                    // Dữ liệu mẫu cập nhật tên và chức danh theo ảnh của bạn
-                    $sample_teachers = [
-                        ['name' => 'Linzi Mary Dickson', 'role' => 'Giáo viên', 'img' => 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=600&h=800&fit=crop'],
-                        ['name' => 'Pavel Kukikov', 'role' => 'Giáo viên', 'img' => 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=600&h=800&fit=crop'],
-                        ['name' => 'Jonathan Bourdon', 'role' => 'Giáo viên', 'img' => 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=600&h=800&fit=crop'],
-                        ['name' => 'Carolina De Castro', 'role' => 'Giám đốc học vụ cụm', 'img' => 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=600&h=800&fit=crop'],
-                        ['name' => 'Michael Vance', 'role' => 'Giáo viên', 'img' => 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=600&h=800&fit=crop'],
-                    ];
-                    foreach ($sample_teachers as $t): 
+                    <?php
+                    $teachers = array_slice($homeTeachers ?? [], 0, 5);
+                    if (empty($teachers)):
+                    ?>
+                    <div class="swiper-slide h-auto">
+                        <div class="rounded-3xl border border-dashed border-slate-200 bg-white/80 p-8 text-center text-slate-500 font-medium">
+                            Hiện chưa có giáo viên nào trong hệ thống.
+                        </div>
+                    </div>
+                    <?php else: ?>
+                    <?php foreach ($teachers as $teacher): ?>
+                    <?php
+                    $teacherName = (string) ($teacher['full_name'] ?? '');
+                    $teacherRole = 'Giáo viên';
+                    $teacherAvatar = trim((string) ($teacher['avatar'] ?? ''));
+                    if ($teacherAvatar !== '' && function_exists('normalize_public_file_url')) {
+                        $teacherAvatar = normalize_public_file_url($teacherAvatar);
+                    }
+                    if ($teacherAvatar === '') {
+                        $teacherAvatar = 'https://ui-avatars.com/api/?name=' . urlencode($teacherName !== '' ? $teacherName : 'Teacher') . '&background=2e3192&color=fff&size=600&bold=true';
+                    }
                     ?>
                     <div class="swiper-slide h-auto">
                         <article class="flex flex-col gap-4 group cursor-pointer">
                             <div class="relative w-full aspect-[4/5] rounded-3xl overflow-hidden bg-slate-200 shadow-[0_10px_30px_rgba(0,0,0,0.05)]">
-                                <img src="<?= $t['img'] ?>" alt="<?= $t['name'] ?>" class="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105">
+                                <img src="<?= e($teacherAvatar) ?>" alt="<?= e($teacherName) ?>" class="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105">
                                 <div class="absolute inset-0 bg-blue-900/0 group-hover:bg-blue-900/10 transition-colors duration-300"></div>
                             </div>
                             <div class="px-1 text-left">
-                                <h4 class="text-lg md:text-xl font-extrabold text-slate-800 group-hover:text-blue-600 transition-colors"><?= $t['name'] ?></h4>
-                                <p class="text-sm font-medium text-slate-500 mt-1"><?= $t['role'] ?></p>
+                                <h4 class="text-lg md:text-xl font-extrabold text-slate-800 group-hover:text-blue-600 transition-colors"><?= e($teacherName) ?></h4>
+                                <p class="text-sm font-medium text-slate-500 mt-1"><?= e($teacherRole) ?></p>
                             </div>
                         </article>
                     </div>
                     <?php endforeach; ?>
+                    <?php endif; ?>
                 </div>
                 
                 <div class="swiper-pagination-teacher mt-8 flex justify-center"></div>
             </div>
+        </div>
+
+        <div class="mt-8 flex justify-center">
+            <a href="<?= e(page_url('dashboard-teacher')); ?>" class="inline-flex items-center justify-center gap-2 rounded-full bg-[#2e3192] px-6 py-3.5 text-sm font-bold text-white shadow-md transition-transform hover:-translate-y-0.5 hover:bg-blue-600">
+                Xem thêm <i class="fa-solid fa-arrow-right text-xs"></i>
+            </a>
         </div>
 
     </div>
