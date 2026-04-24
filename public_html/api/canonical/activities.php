@@ -3,7 +3,9 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../../core/api_helpers.php';
 require_once __DIR__ . '/../../core/file_storage.php';
+require_once __DIR__ . '/../../core/auth.php';
 require_once __DIR__ . '/../../models/AcademicModel.php';
+require_once __DIR__ . '/../../models/tables/ExtracurricularActivitiesTableModel.php';
 
 function api_activities_save_action(): void
 {
@@ -43,4 +45,86 @@ function api_activities_delete_action(): void
 	(new AcademicModel())->deleteActivity((int) ($_GET['id'] ?? 0));
 	set_flash('success', 'Đã xóa hoạt động ngoại khóa.');
 	redirect(page_url('activities-manage'));
+}
+
+function api_activities_join_action(): void
+{
+	require_role(['student', 'admin']);
+	api_require_post(page_url('activities-student'));
+
+	$user = auth_user() ?? [];
+	$userId = (int) ($user['id'] ?? 0);
+	$activityId = input_int($_POST, 'activity_id');
+	$redirectPath = $activityId > 0 ? page_url('activities-details', ['id' => $activityId]) : page_url('activities-student');
+
+	if ($userId <= 0 || $activityId <= 0) {
+		if (api_expects_json()) {
+			api_error('Dữ liệu đăng ký không hợp lệ.', ['code' => 'INVALID_PAYLOAD'], 422);
+		}
+
+		set_flash('error', 'Dữ liệu đăng ký không hợp lệ.');
+		redirect($redirectPath);
+	}
+
+	$model = new ExtracurricularActivitiesTableModel();
+	$activity = $model->findById($activityId);
+	if (!is_array($activity)) {
+		if (api_expects_json()) {
+			api_error('Không tìm thấy hoạt động ngoại khoá.', ['code' => 'ACTIVITY_NOT_FOUND'], 404);
+		}
+
+		set_flash('error', 'Không tìm thấy hoạt động ngoại khoá.');
+		redirect(page_url('activities-student'));
+	}
+
+	$registration = $model->findStudentRegistration($activityId, $userId);
+	if (is_array($registration)) {
+		if (api_expects_json()) {
+			api_success('Bạn đã đăng ký hoạt động này rồi.', [
+				'activity_id' => $activityId,
+				'registration_id' => (int) ($registration['id'] ?? 0),
+				'payment_status' => (string) ($registration['payment_status'] ?? 'unpaid'),
+			]);
+		}
+
+		set_flash('info', 'Bạn đã đăng ký hoạt động này rồi.');
+		redirect($redirectPath);
+	}
+
+	$model->joinActivity($activityId, $userId);
+
+	if (api_expects_json()) {
+		api_success('Đăng ký hoạt động ngoại khoá thành công.', [
+			'activity_id' => $activityId,
+			'payment_status' => 'unpaid',
+		]);
+	}
+
+	set_flash('success', 'Đăng ký hoạt động ngoại khoá thành công.');
+	redirect($redirectPath);
+}
+
+function api_activities_pay_action(): void
+{
+	require_role(['student', 'admin']);
+	api_require_post(page_url('activities-student'));
+
+	/*
+	$payment flow is intentionally commented out until the payment gateway is integrated.
+	$user = auth_user() ?? [];
+	$userId = (int) ($user['id'] ?? 0);
+	$activityId = input_int($_POST, 'activity_id');
+	$redirectPath = $activityId > 0 ? page_url('activities-details', ['id' => $activityId]) : page_url('activities-student');
+	...
+	$model->markActivityPaid($activityId, $userId);
+	set_flash('success', 'Thanh toán hoạt động ngoại khoá thành công.');
+	redirect($redirectPath);
+	*/
+
+	if (api_expects_json()) {
+		api_error('Thanh toán hiện chưa được tích hợp.', ['code' => 'PAYMENT_NOT_IMPLEMENTED'], 501);
+	}
+
+	set_flash('info', 'Thanh toán hiện chưa được tích hợp.');
+	redirect(page_url('activities-student'));
 }

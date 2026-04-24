@@ -18,6 +18,9 @@ $studentDashboardActiveTab = 'classes-my';
 $user = auth_user() ?? [];
 $studentId = (int) ($user['id'] ?? 0);
 $myClasses = [];
+$classPage = max(1, (int) ($_GET['class_page'] ?? 1));
+$classPerPage = ui_pagination_resolve_per_page('class_per_page', 4);
+$classPerPageOptions = ui_pagination_per_page_options();
 
 if ($studentId > 0) {
 	foreach ($classStudentsTable->listMyClassesForStudent($studentId) as $row) {
@@ -68,6 +71,15 @@ if ($studentId > 0) {
 	}
 }
 
+$classTotal = count($myClasses);
+$classTotalPages = max(1, (int) ceil($classTotal / $classPerPage));
+if ($classPage > $classTotalPages) {
+	$classPage = $classTotalPages;
+}
+
+$classOffset = ($classPage - 1) * $classPerPage;
+$pagedClasses = array_slice($myClasses, $classOffset, $classPerPage);
+
 ?>
 <section class="min-h-screen bg-[#f8fafc] py-8 px-2 sm:px-4 lg:px-6 xl:px-8">
 	<div class="mx-auto w-full max-w-[1800px]">
@@ -79,8 +91,8 @@ if ($studentId > 0) {
 			<div class="min-w-0 space-y-8">
 				<header class="flex flex-col gap-2">
 					<div>
-			 			<h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">Lớp học <span class="text-blue-600">Của tôi</span></h1>
-			 			<p class="mt-2 text-slate-500">Quản lý tiến độ, bài tập và học phí theo từng môn học.</p>
+						<h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">Lớp học <span class="text-blue-600">Của tôi</span></h1>
+						<p class="mt-2 text-slate-500">Quản lý tiến độ, bài tập và học phí theo từng môn học.</p>
 					</div>
 				</header>
 
@@ -91,95 +103,95 @@ if ($studentId > 0) {
 						<p class="mt-2 text-sm text-slate-500">Danh sách lớp sẽ xuất hiện ở đây khi học viên đã được gán vào lớp trong database.</p>
 					</div>
 				<?php endif; ?>
-			<?php foreach ($myClasses as $class): ?>
-			<div class="bg-white rounded-3xl overflow-hidden border border-slate-200 shadow-sm hover:shadow-md transition">
-				<div class="bg-slate-800 px-6 py-4 flex justify-between items-center text-white">
+				<?php foreach ($pagedClasses as $class): ?>
+				<div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md">
+					<div class="flex items-center justify-between gap-3 bg-slate-800 px-4 py-3 text-white">
 					<div>
-						<h2 class="text-xl font-bold"><?= $class['name'] ?></h2>
-						<p class="text-sm text-slate-300 font-medium">Giảng viên: <?= $class['teacher'] ?></p>
+							<h2 class="text-lg font-bold leading-tight"><?= e($class['name']); ?></h2>
+							<p class="text-xs font-medium text-slate-300">Giảng viên: <?= e($class['teacher']); ?></p>
 					</div>
-					<span class="px-3 py-1 bg-blue-600/30 text-blue-200 rounded-full text-xs font-bold border border-blue-500/50">Đang học</span>
+						<span class="rounded-full border border-blue-500/50 bg-blue-600/30 px-2.5 py-1 text-[11px] font-bold text-blue-200">Đang học</span>
 				</div>
 
-				<div class="grid grid-cols-1 lg:grid-cols-3 divide-y lg:divide-y-0 lg:divide-x divide-slate-100">
+					<div class="grid grid-cols-1 divide-y divide-slate-100 lg:grid-cols-3 lg:divide-x lg:divide-y-0">
                     
-					<div class="p-6 space-y-6">
+						<div class="space-y-4 p-4">
 						<div>
-							<h4 class="text-sm font-bold text-slate-700 uppercase tracking-wide mb-3 flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-amber-500"></div> Tỉ lệ chuyên cần</h4>
+								<h4 class="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-slate-700"><div class="h-2 w-2 rounded-full bg-amber-500"></div> Tỉ lệ chuyên cần</h4>
 							<?php 
 							$total = $class['attendance']['total'];
 							$p_rate = round(($class['attendance']['present'] / $total) * 100);
 							$a_rate = round(($class['attendance']['absent'] / $total) * 100);
 							?>
-							<div class="flex gap-4 text-center">
-								<div class="flex-1 bg-emerald-50 rounded-xl p-3 border border-emerald-100">
-									<span class="block text-2xl font-black text-emerald-600"><?= $class['attendance']['present'] ?></span>
-									<span class="text-[10px] uppercase text-emerald-800 font-semibold">Có mặt</span>
+								<div class="flex gap-3 text-center">
+									<div class="flex-1 rounded-xl border border-emerald-100 bg-emerald-50 p-2.5">
+										<span class="block text-xl font-black text-emerald-600"><?= (int) $class['attendance']['present']; ?></span>
+										<span class="text-[10px] font-semibold uppercase text-emerald-800">Có mặt</span>
 								</div>
-								<div class="flex-1 bg-rose-50 rounded-xl p-3 border border-rose-100">
-									<span class="block text-2xl font-black text-rose-600"><?= $class['attendance']['absent'] ?></span>
-									<span class="text-[10px] uppercase text-rose-800 font-semibold">Vắng (<?= $a_rate ?>%)</span>
+									<div class="flex-1 rounded-xl border border-rose-100 bg-rose-50 p-2.5">
+										<span class="block text-xl font-black text-rose-600"><?= (int) $class['attendance']['absent']; ?></span>
+										<span class="text-[10px] font-semibold uppercase text-rose-800">Vắng (<?= (int) $a_rate; ?>%)</span>
 								</div>
 							</div>
 						</div>
 
-						<div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-							<h4 class="text-sm font-bold text-slate-700 uppercase tracking-wide mb-2">Học phí môn này</h4>
+							<div class="rounded-2xl border border-slate-100 bg-slate-50 p-3.5">
+								<h4 class="mb-2 text-xs font-bold uppercase tracking-wide text-slate-700">Học phí môn này</h4>
 							<div class="flex justify-between items-end">
 								<div>
-									<p class="text-xs text-slate-500">Đã đóng / Tổng:</p>
-									<p class="font-bold text-slate-800"><?= number_format($class['tuition']['paid']) ?> / <span class="text-blue-600"><?= number_format($class['tuition']['amount']) ?></span> đ</p>
+										<p class="text-[11px] text-slate-500">Đã đóng / Tổng:</p>
+										<p class="font-bold text-slate-800"><?= number_format($class['tuition']['paid']); ?> / <span class="text-blue-600"><?= number_format($class['tuition']['amount']); ?></span> đ</p>
 								</div>
-								<span class="text-xs font-bold px-2 py-1 rounded bg-amber-100 text-amber-700"><?= $class['tuition']['status'] ?></span>
+									<span class="rounded bg-amber-100 px-2 py-1 text-[11px] font-bold text-amber-700"><?= e($class['tuition']['status']); ?></span>
 							</div>
 						</div>
 					</div>
 
-					<div class="p-6 lg:col-span-2">
-						<div class="flex justify-between items-center mb-4">
-							<h4 class="text-sm font-bold text-slate-700 uppercase tracking-wide flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-blue-500"></div> Bài tập & Điểm số</h4>
-							<button type="button" class="text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-xl transition shadow-sm" data-homework-open="1" data-homework-class="<?= e($class['name']); ?>" data-homework-empty="<?= $class['assignments'] === [] ? '1' : '0'; ?>">
+						<div class="p-4 lg:col-span-2">
+							<div class="mb-4 flex items-center justify-between gap-3">
+								<h4 class="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-slate-700"><div class="h-2 w-2 rounded-full bg-blue-500"></div> Bài tập & Điểm số</h4>
+								<button type="button" class="rounded-xl bg-blue-600 px-3 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-blue-700" data-homework-open="1" data-homework-class="<?= e($class['name']); ?>" data-homework-empty="<?= $class['assignments'] === [] ? '1' : '0'; ?>">
 								+ Nộp bài mới
 							</button>
 						</div>
                         
 						<div class="overflow-x-auto">
-							<table class="w-full text-left text-sm text-slate-600">
-								<thead class="bg-slate-50 text-xs uppercase font-semibold text-slate-500 border-b border-slate-200">
+								<table class="w-full text-left text-xs text-slate-600">
+									<thead class="border-b border-slate-200 bg-slate-50 text-[11px] font-semibold uppercase text-slate-500">
 									<tr>
-										<th class="px-4 py-3 rounded-tl-xl">Tên bài tập</th>
-										<th class="px-4 py-3">Trạng thái</th>
-										<th class="px-4 py-3">Deadline</th>
-										<th class="px-4 py-3 text-right">Điểm</th>
-										<th class="px-4 py-3 text-right rounded-tr-xl">Nộp bài</th>
+											<th class="rounded-tl-xl px-3 py-2.5">Tên bài tập</th>
+											<th class="px-3 py-2.5">Trạng thái</th>
+											<th class="px-3 py-2.5">Deadline</th>
+											<th class="px-3 py-2.5 text-right">Điểm</th>
+											<th class="rounded-tr-xl px-3 py-2.5 text-right">Nộp bài</th>
 									</tr>
 								</thead>
 								<tbody class="divide-y divide-slate-100">
 									<?php if ($class['assignments'] === []): ?>
 									<tr>
-										<td colspan="5" class="px-4 py-8 text-center text-sm font-semibold text-slate-500">
+											<td colspan="5" class="px-3 py-6 text-center text-sm font-semibold text-slate-500">
 											Chưa có bài tập được giao
 										</td>
 									</tr>
 								<?php else: ?>
 									<?php foreach ($class['assignments'] as $asm): ?>
 									<tr class="hover:bg-slate-50 transition">
-										<td class="px-4 py-3 font-medium text-slate-800"><?= $asm['title'] ?></td>
-										<td class="px-4 py-3">
+											<td class="px-3 py-2.5 font-medium text-slate-800"><?= e($asm['title']); ?></td>
+											<td class="px-3 py-2.5">
 											<?php if($asm['status'] == 'Đã nộp'): ?>
-												<span class="bg-emerald-100 text-emerald-700 px-2 py-1 rounded text-xs font-bold">Đã nộp</span>
+													<span class="rounded bg-emerald-100 px-2 py-1 text-[11px] font-bold text-emerald-700">Đã nộp</span>
 											<?php else: ?>
-												<span class="bg-rose-100 text-rose-700 px-2 py-1 rounded text-xs font-bold">Chưa nộp</span>
+													<span class="rounded bg-rose-100 px-2 py-1 text-[11px] font-bold text-rose-700">Chưa nộp</span>
 											<?php endif; ?>
 										</td>
-										<td class="px-4 py-3 text-xs text-slate-500"><?= $asm['deadline'] ?? '---' ?></td>
-										<td class="px-4 py-3 text-right font-black <?= $asm['score'] ? 'text-blue-600 text-lg' : 'text-slate-300' ?>">
-											<?= $asm['score'] ?? '-' ?>
+											<td class="px-3 py-2.5 text-xs text-slate-500"><?= e((string) ($asm['deadline'] ?? '---')); ?></td>
+											<td class="px-3 py-2.5 text-right font-black <?= $asm['score'] ? 'text-blue-600' : 'text-slate-300'; ?>">
+												<?= $asm['score'] !== null ? e((string) $asm['score']) : '-'; ?>
 										</td>
-										<td class="px-4 py-3 text-right">
+											<td class="px-3 py-2.5 text-right">
 											<button
 												type="button"
-												class="inline-flex items-center justify-center rounded-xl bg-slate-800 px-4 py-2 text-xs font-bold text-white transition hover:bg-blue-600"
+													class="inline-flex items-center justify-center rounded-xl bg-slate-800 px-3 py-2 text-[11px] font-bold text-white transition hover:bg-blue-600"
 												data-homework-open="1"
 												data-homework-class="<?= e($class['name']); ?>"
 												data-homework-assignment="<?= e($asm['title']); ?>"
@@ -200,6 +212,37 @@ if ($studentId > 0) {
 				</div>
 			</div>
 				<?php endforeach; ?>
+
+				<?php if ($classTotalPages > 1): ?>
+					<div class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+						<div class="text-xs font-semibold text-slate-500">
+							Trang <?= (int) $classPage; ?>/<?= (int) $classTotalPages; ?> · Tổng <?= (int) $classTotal; ?> lớp
+						</div>
+						<form class="flex items-center gap-2" method="get" action="<?= e(page_url('classes-my')); ?>">
+							<input type="hidden" name="page" value="classes-my">
+							<input type="hidden" name="class_page" value="1">
+							<label for="class-per-page" class="text-xs font-semibold text-slate-500">Số dòng</label>
+							<select id="class-per-page" name="class_per_page" class="h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 shadow-sm" onchange="this.form.submit()">
+								<?php foreach ($classPerPageOptions as $option): ?>
+									<option value="<?= (int) $option; ?>" <?= $classPerPage === (int) $option ? 'selected' : ''; ?>><?= (int) $option; ?></option>
+								<?php endforeach; ?>
+							</select>
+						</form>
+						<div class="flex items-center gap-2 text-xs font-semibold text-slate-600">
+							<?php if ($classPage > 1): ?>
+								<a class="inline-flex h-8 items-center rounded-md border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('classes-my', ['class_page' => $classPage - 1, 'class_per_page' => $classPerPage])); ?>">Trước</a>
+							<?php else: ?>
+								<span class="inline-flex h-8 items-center rounded-md border border-slate-200 bg-slate-100 px-3 text-xs font-semibold text-slate-400">Trước</span>
+							<?php endif; ?>
+
+							<?php if ($classPage < $classTotalPages): ?>
+								<a class="inline-flex h-8 items-center rounded-md border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('classes-my', ['class_page' => $classPage + 1, 'class_per_page' => $classPerPage])); ?>">Sau</a>
+							<?php else: ?>
+								<span class="inline-flex h-8 items-center rounded-md border border-slate-200 bg-slate-100 px-3 text-xs font-semibold text-slate-400">Sau</span>
+							<?php endif; ?>
+						</div>
+					</div>
+				<?php endif; ?>
 				</div>
 			</div>
 		</div>

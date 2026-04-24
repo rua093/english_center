@@ -47,6 +47,152 @@ final class ExtracurricularActivitiesTableModel
         );
     }
 
+    public function listForStudentActivities(int $userId): array
+    {
+        if ($userId <= 0) {
+            return [];
+        }
+
+        $sql = "SELECT a.id, a.title AS activity_name, a.description, a.content, a.image_thumbnail, a.start_date,
+                COALESCE(a.location, '') AS location, a.status, a.fee,
+                COUNT(DISTINCT r.id) AS registered_count,
+                (
+                    SELECT ar.id
+                    FROM activity_registrations ar
+                    WHERE ar.activity_id = a.id AND ar.user_id = :user_id_registration_id
+                    LIMIT 1
+                ) AS registration_id,
+                COALESCE((
+                    SELECT ar.payment_status
+                    FROM activity_registrations ar
+                    WHERE ar.activity_id = a.id AND ar.user_id = :user_id_payment_status
+                    LIMIT 1
+                ), '') AS payment_status,
+                (
+                    SELECT ar.registration_date
+                    FROM activity_registrations ar
+                    WHERE ar.activity_id = a.id AND ar.user_id = :user_id_registration_date
+                    LIMIT 1
+                ) AS registration_date,
+                CASE WHEN EXISTS (
+                    SELECT 1
+                    FROM activity_registrations ar
+                    WHERE ar.activity_id = a.id AND ar.user_id = :user_id_exists
+                ) THEN 1 ELSE 0 END AS is_registered
+            FROM extracurricular_activities a
+            LEFT JOIN activity_registrations r ON r.activity_id = a.id
+            GROUP BY a.id, a.title, a.description, a.content, a.image_thumbnail, a.start_date, a.location, a.status, a.fee
+            ORDER BY a.start_date DESC, a.id DESC";
+
+        return $this->fetchAll($sql, [
+            'user_id_registration_id' => $userId,
+            'user_id_payment_status' => $userId,
+            'user_id_registration_date' => $userId,
+            'user_id_exists' => $userId,
+        ]);
+    }
+
+    public function findStudentActivityById(int $id, int $userId): ?array
+    {
+        if ($id <= 0) {
+            return null;
+        }
+
+        $sql = "SELECT a.id, a.title AS activity_name, a.description, a.content, a.image_thumbnail, a.start_date,
+                COALESCE(a.location, '') AS location, a.status, a.fee,
+                COUNT(DISTINCT r.id) AS registered_count,
+                (
+                    SELECT ar.id
+                    FROM activity_registrations ar
+                    WHERE ar.activity_id = a.id AND ar.user_id = :user_id_registration_id
+                    LIMIT 1
+                ) AS registration_id,
+                COALESCE((
+                    SELECT ar.payment_status
+                    FROM activity_registrations ar
+                    WHERE ar.activity_id = a.id AND ar.user_id = :user_id_payment_status
+                    LIMIT 1
+                ), '') AS payment_status,
+                (
+                    SELECT ar.registration_date
+                    FROM activity_registrations ar
+                    WHERE ar.activity_id = a.id AND ar.user_id = :user_id_registration_date
+                    LIMIT 1
+                ) AS registration_date,
+                CASE WHEN EXISTS (
+                    SELECT 1
+                    FROM activity_registrations ar
+                    WHERE ar.activity_id = a.id AND ar.user_id = :user_id_exists
+                ) THEN 1 ELSE 0 END AS is_registered
+            FROM extracurricular_activities a
+            LEFT JOIN activity_registrations r ON r.activity_id = a.id
+            WHERE a.id = :id
+            GROUP BY a.id, a.title, a.description, a.content, a.image_thumbnail, a.start_date, a.location, a.status, a.fee
+            LIMIT 1";
+
+        return $this->fetchOne($sql, [
+            'id' => $id,
+            'user_id_registration_id' => $userId,
+            'user_id_payment_status' => $userId,
+            'user_id_registration_date' => $userId,
+            'user_id_exists' => $userId,
+        ]);
+    }
+
+    public function findStudentRegistration(int $activityId, int $userId): ?array
+    {
+        if ($activityId <= 0 || $userId <= 0) {
+            return null;
+        }
+
+        return $this->fetchOne(
+            'SELECT id, activity_id, user_id, payment_status, registration_date FROM activity_registrations WHERE activity_id = :activity_id AND user_id = :user_id LIMIT 1',
+            [
+                'activity_id' => $activityId,
+                'user_id' => $userId,
+            ]
+        );
+    }
+
+    public function joinActivity(int $activityId, int $userId, string $paymentStatus = 'unpaid'): void
+    {
+        if ($activityId <= 0 || $userId <= 0) {
+            return;
+        }
+
+        $existing = $this->findStudentRegistration($activityId, $userId);
+        if (is_array($existing)) {
+            return;
+        }
+
+        $this->executeStatement(
+            'INSERT INTO activity_registrations (activity_id, user_id, payment_status) VALUES (:activity_id, :user_id, :payment_status)',
+            [
+                'activity_id' => $activityId,
+                'user_id' => $userId,
+                'payment_status' => $paymentStatus,
+            ]
+        );
+    }
+
+    public function markActivityPaid(int $activityId, int $userId): bool
+    {
+        if ($activityId <= 0 || $userId <= 0) {
+            return false;
+        }
+
+        $affected = $this->executeStatement(
+            'UPDATE activity_registrations SET payment_status = :payment_status WHERE activity_id = :activity_id AND user_id = :user_id',
+            [
+                'activity_id' => $activityId,
+                'user_id' => $userId,
+                'payment_status' => 'paid',
+            ]
+        );
+
+        return $affected > 0;
+    }
+
     public function save(array $data): void
     {
         $activityTitle = (string) ($data['activity_name'] ?? $data['title'] ?? 'Untitled Activity');
