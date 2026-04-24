@@ -1,212 +1,364 @@
 <?php
 require_login();
 
-$user = auth_user();
-$homeWidgets = (new UserModel())->homeWidgetData((int) ($user['id'] ?? 0), (string) ($user['role'] ?? ''));
+$authUser = auth_user() ?? [];
+$academicModel = new AcademicModel();
+$profileUser = (int) ($authUser['id'] ?? 0) > 0
+    ? ($academicModel->findActiveUser((int) $authUser['id']) ?? [])
+    : [];
+
+$homeWidgets = (new UserModel())->homeWidgetData(
+    (int) ($authUser['id'] ?? 0),
+    (string) ($authUser['role'] ?? ($profileUser['role_name'] ?? ''))
+);
 $studentProgress = $homeWidgets['student_progress'] ?? null;
 $teacherSchedules = $homeWidgets['teacher_schedules'] ?? [];
 
-// Chuẩn bị dữ liệu hiển thị (Có fallback nếu DB chưa có)
-$fullName = (string) ($user['full_name'] ?? 'Nguyễn Duy Bảo');
-$role = (string) ($user['role'] ?? 'student');
-$email = (string) ($user['email'] ?? 'contact@example.com');
-$phone = (string) ($user['phone'] ?? '+84 123 456 789');
-$address = (string) ($user['address'] ?? 'Dĩ An, Bình Dương');
+$username = (string) ($profileUser['username'] ?? $authUser['username'] ?? '');
+$fullName = (string) ($profileUser['full_name'] ?? $authUser['full_name'] ?? '');
+$role = (string) ($profileUser['role_name'] ?? $authUser['role'] ?? '');
+$email = (string) ($profileUser['email'] ?? '');
+$phone = (string) ($profileUser['phone'] ?? '');
+$status = (string) ($profileUser['status'] ?? '');
+$createdAt = isset($profileUser['created_at']) && $profileUser['created_at'] !== null
+    ? date('d/m/Y', strtotime((string) $profileUser['created_at']))
+    : '';
 
-// Dịch Role sang tiếng Việt
 $roleDisplay = match($role) {
     'teacher' => 'Giảng viên',
     'admin' => 'Quản trị viên',
-    default => 'Học viên IT',
+    default => 'Học viên',
 };
 
-// Tạo Avatar mặc định từ tên nếu user chưa upload ảnh
-$avatarUrl = $user['avatar'] ?? 'https://ui-avatars.com/api/?name=' . urlencode($fullName) . '&background=0D8ABC&color=fff&size=256&bold=true';
+$avatarUrl = trim((string) ($profileUser['avatar'] ?? ''));
+if ($avatarUrl === '') {
+    $displayNameForAvatar = trim($fullName !== '' ? $fullName : $username);
+    $avatarUrl = 'https://ui-avatars.com/api/?name=' . urlencode($displayNameForAvatar !== '' ? $displayNameForAvatar : 'User') . '&background=10b981&color=fff&size=256&bold=true';
+}
 ?>
 
-<section class="min-h-screen bg-[#f1f5f9] pb-12">
-    <div class="h-64 w-full bg-gradient-to-r from-blue-900 via-indigo-800 to-blue-900 relative overflow-hidden">
-        <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(#fff 1px, transparent 1px); background-size: 20px 20px;"></div>
+<style>
+    .glass-panel { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.5); }
+    .nav-tab.active { background: #e11d48; color: white; box-shadow: 0 4px 15px rgba(225, 29, 72, 0.25); }
+    .nav-tab.inactive { background: transparent; color: #64748b; }
+    .nav-tab.inactive:hover { background: #f1f5f9; color: #e11d48; }
+    .focus-emerald:focus { border-color: #10b981; box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1); }
+    /* Anim cho Modal */
+    .modal-overlay { transition: opacity 0.3s ease; }
+    .modal-content { transition: transform 0.3s ease, opacity 0.3s ease; }
+</style>
+
+<section class="min-h-screen bg-slate-50 pb-16">
+    <div class="h-[200px] w-full bg-gradient-to-r from-slate-900 via-emerald-900 to-rose-900 relative overflow-hidden">
+        <div class="absolute inset-0 opacity-[0.05]" style="background-image: radial-gradient(#ffffff 2px, transparent 2px); background-size: 20px 20px;"></div>
+        <div class="absolute -top-20 -right-20 w-64 h-64 bg-emerald-500/20 rounded-full blur-[60px]"></div>
+        <div class="absolute bottom-0 left-0 w-full h-20 bg-gradient-to-t from-slate-50 to-transparent"></div>
         
-        <div class="absolute top-6 right-6 lg:right-10">
-            <a class="group flex items-center gap-2 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:bg-white hover:text-blue-900" href="<?= e(page_url('home')); ?>">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transition-transform group-hover:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
-                Về trang chủ
+        <div class="absolute top-4 right-4 lg:right-8 z-20">
+            <a class="group flex items-center gap-2 rounded-lg bg-white/10 backdrop-blur-md border border-white/20 px-4 py-2 text-xs font-bold text-white shadow-sm transition-all hover:bg-white hover:text-emerald-700" href="/">
+                <i class="fa-solid fa-house transition-transform group-hover:-translate-y-0.5"></i> Về trang chủ
             </a>
         </div>
     </div>
 
-    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div class="relative -mt-24 grid grid-cols-1 items-start gap-8 lg:grid-cols-12">
+    <div class="mx-auto max-w-6xl px-4 sm:px-6 relative z-10 -mt-20">
+        <div class="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
             
-            <aside class="lg:col-span-4 space-y-6 lg:sticky lg:top-8">
-                <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-xl text-center">
-                    <div class="relative mx-auto -mt-16 h-32 w-32 rounded-full border-4 border-white shadow-lg bg-white">
-                        <img src="<?= e($avatarUrl) ?>" alt="Avatar" class="h-full w-full rounded-full object-cover" />
-                        <button class="absolute bottom-1 right-1 flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-white shadow hover:bg-blue-700 transition" title="Đổi ảnh đại diện">
-                            <i class="fa-solid fa-camera text-xs"></i>
-                        </button>
+            <aside class="lg:col-span-4 space-y-5 lg:sticky lg:top-6" data-aos="fade-right">
+                <div class="rounded-3xl border border-slate-100 bg-white p-6 shadow-xl shadow-slate-200/50 text-center relative overflow-hidden">
+                    
+                    <?php if($status === 'active'): ?>
+                        <div class="absolute top-4 right-4 flex items-center gap-1.5 bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider border border-emerald-100">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Hoạt động
+                        </div>
+                    <?php endif; ?>
+
+                    <div class="relative mx-auto mt-2 h-24 w-24 rounded-full border-[4px] border-white shadow-md bg-slate-100 overflow-hidden">
+                        <img id="sidebarAvatar" src="<?= e($avatarUrl) ?>" alt="Avatar" class="h-full w-full rounded-full object-cover" />
                     </div>
 
-                    <div class="mt-4">
-                        <h1 class="text-2xl font-black text-slate-800 tracking-tight"><?= e($fullName) ?></h1>
-                        <span class="mt-1 inline-flex items-center gap-1 rounded-full bg-blue-50 px-3 py-1 text-xs font-bold uppercase tracking-wider text-blue-700 border border-blue-100">
-                            <?= $role === 'teacher' ? '<i class="fa-solid fa-chalkboard-user"></i>' : '<i class="fa-solid fa-laptop-code"></i>' ?>
-                            <?= $roleDisplay ?>
-                        </span>
-                    </div>
+                    <button onclick="openAvatarModal()" class="mt-4 inline-flex items-center gap-2 bg-slate-50 hover:bg-emerald-50 text-slate-500 hover:text-emerald-600 text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-xl transition-colors border border-slate-200 hover:border-emerald-200 shadow-sm">
+                        <i class="fa-solid fa-camera"></i> Đổi ảnh đại diện
+                    </button>
 
-                    <hr class="my-6 border-slate-100" />
-
-                    <div class="space-y-4 text-left">
-                        <h3 class="text-xs font-black uppercase tracking-widest text-slate-400">Thông tin liên hệ</h3>
-                        
-                        <div class="flex items-center gap-3 text-sm font-medium text-slate-600">
-                            <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-50 text-slate-400">
-                                <i class="fa-solid fa-envelope"></i>
-                            </div>
-                            <span class="truncate"><?= e($email) ?></span>
-                        </div>
-                        
-                        <div class="flex items-center gap-3 text-sm font-medium text-slate-600">
-                            <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-50 text-slate-400">
-                                <i class="fa-solid fa-phone"></i>
-                            </div>
-                            <span><?= e($phone) ?></span>
-                        </div>
-
-                        <div class="flex items-center gap-3 text-sm font-medium text-slate-600">
-                            <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-50 text-slate-400">
-                                <i class="fa-solid fa-location-dot"></i>
-                            </div>
-                            <span><?= e($address) ?></span>
+                    <div class="mt-5">
+                        <h1 class="text-xl font-black text-slate-800 tracking-tight"><?= e($fullName) ?></h1>
+                        <p class="text-[11px] font-bold text-slate-400">@<?= e($username) ?></p>
+                        <div class="mt-3">
+                            <span class="inline-flex items-center gap-1.5 rounded-lg bg-rose-50 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-rose-600 border border-rose-100">
+                                <?= $role === 'teacher' ? '<i class="fa-solid fa-chalkboard-user"></i>' : '<i class="fa-solid fa-laptop-code"></i>' ?>
+                                <?= e($roleDisplay) ?>
+                            </span>
                         </div>
                     </div>
 
-                    <div class="mt-8 flex gap-3">
-                        <button class="flex-1 rounded-xl bg-slate-800 px-4 py-2.5 text-sm font-bold text-white shadow hover:bg-blue-600 transition-colors">
-                            Chỉnh sửa
-                        </button>
-                        <button class="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-600 shadow-sm hover:bg-slate-50 transition-colors" title="Cài đặt bảo mật">
-                            <i class="fa-solid fa-gear"></i>
-                        </button>
+                    <hr class="my-5 border-slate-100" />
+
+                    <div class="space-y-3 text-left">
+                        <div class="flex items-center gap-3 text-xs font-medium text-slate-600 group">
+                            <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-slate-50 text-slate-400 group-hover:bg-emerald-50 group-hover:text-emerald-600 transition-colors"><i class="fa-solid fa-envelope"></i></div>
+                            <div class="truncate">
+                                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Email</p>
+                                <span class="font-bold text-slate-700"><?= e($email) ?></span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 text-xs font-medium text-slate-600 group">
+                            <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-slate-50 text-slate-400 group-hover:bg-emerald-50 group-hover:text-emerald-600 transition-colors"><i class="fa-solid fa-phone"></i></div>
+                            <div>
+                                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Điện thoại</p>
+                                <span class="font-bold text-slate-700"><?= e($phone) ?></span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 text-xs font-medium text-slate-600 group">
+                            <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-slate-50 text-slate-400 group-hover:bg-emerald-50 group-hover:text-emerald-600 transition-colors"><i class="fa-solid fa-calendar-check"></i></div>
+                            <div>
+                                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Ngày tham gia</p>
+                                <span class="font-bold text-slate-700"><?= e($createdAt) ?></span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </aside>
 
-            <div class="lg:col-span-8 space-y-6 mt-16 lg:mt-0">
+            <div class="lg:col-span-8 space-y-5" data-aos="fade-up" data-aos-delay="100">
                 
-                <div class="hidden lg:block mb-8">
-                    <h2 class="text-3xl font-black text-white drop-shadow-md">Hồ sơ cá nhân</h2>
-                    <p class="text-blue-100 font-medium mt-1 drop-shadow">Quản lý thông tin và tiến trình học tập của bạn.</p>
+                <div class="glass-panel p-1.5 rounded-xl flex gap-1 w-full md:w-max shadow-sm">
+                    <button onclick="switchTab('overview')" id="tab-overview" class="nav-tab active flex-1 md:flex-none px-5 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-chart-pie"></i> Tổng quan
+                    </button>
+                    <button onclick="switchTab('settings')" id="tab-settings" class="nav-tab inactive flex-1 md:flex-none px-5 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-user-pen"></i> Cập nhật hồ sơ
+                    </button>
                 </div>
 
-                <?php if (($user['role'] ?? '') === 'student'): ?>
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                        <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm text-center">
-                            <div class="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 text-blue-600 mb-2"><i class="fa-solid fa-book"></i></div>
-                            <p class="text-2xl font-black text-slate-800">12</p>
-                            <p class="text-[10px] font-bold uppercase text-slate-400">Môn đang học</p>
-                        </div>
-                        <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm text-center">
-                            <div class="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 mb-2"><i class="fa-solid fa-check-double"></i></div>
-                            <p class="text-2xl font-black text-slate-800">95%</p>
-                            <p class="text-[10px] font-bold uppercase text-slate-400">Chuyên cần</p>
-                        </div>
-                        <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm text-center">
-                            <div class="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-amber-50 text-amber-600 mb-2"><i class="fa-solid fa-star"></i></div>
-                            <p class="text-2xl font-black text-slate-800">8.5</p>
-                            <p class="text-[10px] font-bold uppercase text-slate-400">Điểm TB</p>
-                        </div>
-                        <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm text-center">
-                            <div class="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-rose-50 text-rose-600 mb-2"><i class="fa-solid fa-award"></i></div>
-                            <p class="text-2xl font-black text-slate-800">N5</p>
-                            <p class="text-[10px] font-bold uppercase text-slate-400">Cấp độ</p>
-                        </div>
-                    </div>
-
-                    <?php if(is_array($studentProgress)): ?>
-                    <article class="relative overflow-hidden rounded-[2rem] border border-blue-100 bg-white p-8 shadow-xl">
-                        <div class="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-gradient-to-br from-blue-50 to-indigo-50 opacity-50"></div>
-                        
-                        <div class="relative flex flex-col md:flex-row md:items-center justify-between gap-6">
-                            <div class="flex-1">
-                                <h3 class="flex items-center gap-3 text-xl font-bold text-slate-800">
-                                    <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white shadow-md shadow-blue-200">
-                                        <i class="fa-solid fa-route"></i>
-                                    </span>
-                                    Tiến độ khóa học
-                                </h3>
-                                <p class="mt-2 text-sm text-slate-500">Bạn đã đi được một quãng đường tuyệt vời! Hãy tiếp tục phát huy nhé.</p>
-                                <div class="mt-4 flex items-baseline gap-2">
-                                    <span class="text-4xl font-black text-blue-600 tracking-tighter"><?= (int) ($studentProgress['completed_lessons'] ?? 0); ?></span>
-                                    <span class="text-sm font-bold text-slate-400 uppercase">/ <?= (int) ($studentProgress['total_lessons'] ?? 0); ?> buổi học</span>
-                                </div>
+                <div id="content-overview" class="space-y-5 block animate-fade-in">
+                    <?php if ($role === 'student'): ?>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                            <div class="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm text-center hover:-translate-y-1 transition-transform">
+                                <div class="mx-auto flex h-10 w-10 items-center justify-center rounded-xl bg-rose-50 text-rose-600 mb-2"><i class="fa-solid fa-book-open text-sm"></i></div>
+                                <p class="text-xl font-black text-slate-800">12</p>
+                                <p class="text-[9px] font-bold uppercase tracking-widest text-slate-400">Môn học</p>
                             </div>
-
-                            <div class="w-full md:w-72 bg-slate-50 p-5 rounded-2xl border border-slate-100">
-                                <div class="mb-3 flex items-center justify-between text-xs font-black uppercase tracking-wider text-slate-500">
-                                    <span>Hoàn thành</span>
-                                    <span class="text-blue-600 text-lg"><?= (int) ($studentProgress['progress_percent'] ?? 0); ?>%</span>
-                                </div>
-                                <div class="h-3 w-full overflow-hidden rounded-full bg-slate-200 shadow-inner">
-                                    <div class="h-full rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 shadow-md transition-all duration-1000" style="width: <?= (int) ($studentProgress['progress_percent'] ?? 0); ?>%"></div>
-                                </div>
+                            <div class="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm text-center hover:-translate-y-1 transition-transform">
+                                <div class="mx-auto flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 mb-2"><i class="fa-solid fa-check-double text-sm"></i></div>
+                                <p class="text-xl font-black text-slate-800">95%</p>
+                                <p class="text-[9px] font-bold uppercase tracking-widest text-slate-400">Chuyên cần</p>
+                            </div>
+                            <div class="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm text-center hover:-translate-y-1 transition-transform">
+                                <div class="mx-auto flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 text-amber-500 mb-2"><i class="fa-solid fa-star text-sm"></i></div>
+                                <p class="text-xl font-black text-slate-800">8.5</p>
+                                <p class="text-[9px] font-bold uppercase tracking-widest text-slate-400">Điểm TB</p>
+                            </div>
+                            <div class="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm text-center hover:-translate-y-1 transition-transform">
+                                <div class="mx-auto flex h-10 w-10 items-center justify-center rounded-xl bg-sky-50 text-sky-500 mb-2"><i class="fa-solid fa-award text-sm"></i></div>
+                                <p class="text-xl font-black text-slate-800">IELTS</p>
+                                <p class="text-[9px] font-bold uppercase tracking-widest text-slate-400">Chương trình</p>
                             </div>
                         </div>
-                    </article>
+
+                        <?php if(is_array($studentProgress)): ?>
+                        <article class="relative overflow-hidden rounded-3xl border border-slate-100 bg-white p-6 md:p-8 shadow-sm">
+                            <div class="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-gradient-to-br from-emerald-50 to-lime-50 opacity-50 blur-xl"></div>
+                            <div class="relative flex flex-col md:flex-row md:items-center justify-between gap-6">
+                                <div class="flex-1">
+                                    <h3 class="flex items-center gap-3 text-lg font-black text-slate-800">
+                                        <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500 text-white shadow-md shadow-emerald-200"><i class="fa-solid fa-route text-sm"></i></div>
+                                        Tiến độ khóa học
+                                    </h3>
+                                    <p class="mt-2 text-xs text-slate-500 font-medium">Tiếp tục duy trì ngọn lửa học tập này nhé!</p>
+                                    <div class="mt-4 flex items-baseline gap-2 border-t border-slate-50 pt-4">
+                                        <span class="text-3xl font-black text-emerald-600 tracking-tighter"><?= (int) ($studentProgress['completed_lessons'] ?? 0); ?></span>
+                                        <span class="text-xs font-bold text-slate-400 uppercase">/ <?= (int) ($studentProgress['total_lessons'] ?? 0); ?> buổi</span>
+                                    </div>
+                                </div>
+                                <div class="w-full md:w-64 bg-slate-50 p-5 rounded-2xl border border-slate-100">
+                                    <div class="mb-3 flex items-center justify-between">
+                                        <span class="text-[10px] font-black uppercase tracking-widest text-slate-500">Hoàn thành</span>
+                                        <span class="text-rose-600 font-black text-lg"><?= (int) ($studentProgress['progress_percent'] ?? 0); ?>%</span>
+                                    </div>
+                                    <div class="h-3 w-full overflow-hidden rounded-full bg-slate-200 shadow-inner">
+                                        <div class="h-full rounded-full bg-gradient-to-r from-rose-500 to-red-500 transition-all duration-1000 relative" style="width: <?= (int) ($studentProgress['progress_percent'] ?? 0); ?>%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </article>
+                        <?php endif; ?>
                     <?php endif; ?>
-                <?php endif; ?>
 
-                <?php if (($user['role'] ?? '') === 'teacher'): ?>
-                    <article class="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-xl">
-                        <div class="mb-6 flex items-center justify-between">
-                            <h3 class="flex items-center gap-3 text-xl font-bold text-slate-800">
-                                <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-md shadow-indigo-200">
-                                    <i class="fa-solid fa-calendar-check"></i>
-                                </span>
+                    <?php if ($role === 'teacher'): ?>
+                        <article class="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
+                            <h3 class="flex items-center gap-3 text-lg font-black text-slate-800 mb-6">
+                                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-500 text-white shadow-md shadow-rose-200"><i class="fa-solid fa-calendar-day text-sm"></i></div>
                                 Lịch dạy 7 ngày tới
                             </h3>
+                            <?php if (empty($teacherSchedules)): ?>
+                                <div class="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-100 bg-slate-50 py-12 text-center">
+                                    <div class="mb-3 rounded-full bg-white p-4 shadow-sm text-slate-300"><i class="fa-regular fa-calendar-xmark text-3xl"></i></div>
+                                    <p class="text-xs font-black text-slate-400 uppercase tracking-widest">Lịch trống</p>
+                                </div>
+                            <?php else: ?>
+                                <div class="grid gap-4 sm:grid-cols-2">
+                                    <?php foreach ($teacherSchedules as $schedule): ?>
+                                        <div class="group relative rounded-2xl border border-slate-100 bg-slate-50 p-4 transition-all hover:bg-white hover:shadow-md hover:border-emerald-200 cursor-pointer">
+                                            <div class="mb-3 flex items-start justify-between">
+                                                <div class="rounded-lg bg-emerald-100 px-2 py-1 text-[9px] font-black uppercase text-emerald-700"><?= e((string) $schedule['room_name']); ?></div>
+                                                <span class="text-[10px] font-bold text-slate-500 bg-white px-2 py-1 rounded-lg shadow-sm border border-slate-100"><?= e((string) $schedule['study_date']); ?></span>
+                                            </div>
+                                            <h4 class="text-sm font-black text-slate-800 group-hover:text-emerald-600 transition-colors line-clamp-1"><?= e((string) $schedule['class_name']); ?></h4>
+                                            <div class="mt-3 pt-3 border-t border-slate-200/60 flex items-center gap-2 text-xs font-bold text-slate-500">
+                                                <i class="fa-regular fa-clock text-slate-400"></i> <?= e((string) $schedule['start_time']); ?> - <?= e((string) $schedule['end_time']); ?>
+                                            </div>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php endif; ?>
+                        </article>
+                    <?php endif; ?>
+                </div>
+
+                <div id="content-settings" class="hidden animate-fade-in">
+                    <article class="rounded-3xl border border-slate-100 bg-white p-6 md:p-8 shadow-sm">
+                        <div class="mb-6 border-b border-slate-50 pb-4">
+                            <h2 class="text-xl font-black text-slate-800">Thông tin cá nhân</h2>
                         </div>
 
-                        <?php if (empty($teacherSchedules)): ?>
-                            <div class="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50 py-16 text-center">
-                                <div class="mb-4 rounded-full bg-white p-4 shadow-sm text-slate-300">
-                                    <i class="fa-regular fa-calendar-xmark text-4xl"></i>
-                                </div>
-                                <p class="text-sm font-bold text-slate-400 uppercase tracking-widest">Lịch trình trống</p>
-                            </div>
-                        <?php else: ?>
-                            <div class="grid gap-4 sm:grid-cols-2">
-                                <?php foreach ($teacherSchedules as $schedule): ?>
-                                    <div class="group relative rounded-2xl border border-slate-100 bg-slate-50/50 p-5 transition-all hover:bg-white hover:shadow-xl hover:border-blue-100 cursor-pointer">
-                                        <div class="mb-3 flex items-start justify-between">
-                                            <div class="rounded-md bg-blue-100 px-2 py-1 text-[10px] font-black uppercase tracking-wider text-blue-700">
-                                                <?= e((string) $schedule['room_name']); ?>
-                                            </div>
-                                            <span class="text-xs font-bold text-slate-400 bg-white px-2 py-1 rounded shadow-sm border border-slate-100">
-                                                <?= e((string) $schedule['study_date']); ?>
-                                            </span>
-                                        </div>
-                                        <h4 class="text-lg font-black text-slate-800 group-hover:text-blue-600 transition-colors">
-                                            <?= e((string) $schedule['class_name']); ?>
-                                        </h4>
-                                        <div class="mt-4 flex items-center gap-2 text-sm font-bold text-slate-500">
-                                            <i class="fa-regular fa-clock text-slate-400"></i>
-                                            <?= e((string) $schedule['start_time']); ?> - <?= e((string) $schedule['end_time']); ?>
-                                        </div>
+                        <form action="api_update_profile.php" method="POST" class="space-y-5">
+                            <div class="grid md:grid-cols-2 gap-5">
+                                <div class="space-y-1.5">
+                                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Tên đăng nhập</label>
+                                    <div class="relative">
+                                        <i class="fa-solid fa-user-lock absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
+                                        <input type="text" value="<?= e($username) ?>" readonly class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 text-slate-500 text-sm font-bold border border-slate-100 cursor-not-allowed">
                                     </div>
-                                <?php endforeach; ?>
+                                </div>
+                                <div class="space-y-1.5">
+                                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Họ và tên *</label>
+                                    <div class="relative">
+                                        <i class="fa-regular fa-id-card absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                                        <input type="text" name="full_name" value="<?= e($fullName) ?>" required class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white text-slate-800 text-sm font-bold border border-slate-200 outline-none focus-emerald transition-all">
+                                    </div>
+                                </div>
                             </div>
-                        <?php endif; ?>
+                            <div class="grid md:grid-cols-2 gap-5">
+                                <div class="space-y-1.5">
+                                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Email liên hệ *</label>
+                                    <div class="relative">
+                                        <i class="fa-regular fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                                        <input type="email" name="email" value="<?= e($email) ?>" required class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white text-slate-800 text-sm font-bold border border-slate-200 outline-none focus-emerald transition-all">
+                                    </div>
+                                </div>
+                                <div class="space-y-1.5">
+                                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Số điện thoại *</label>
+                                    <div class="relative">
+                                        <i class="fa-solid fa-phone absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                                        <input type="tel" name="phone" value="<?= e($phone) ?>" required class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white text-slate-800 text-sm font-bold border border-slate-200 outline-none focus-emerald transition-all">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="pt-4 flex gap-3">
+                                <button type="submit" class="bg-rose-600 hover:bg-rose-700 text-white font-black px-6 py-2.5 rounded-xl shadow-md transition-all text-sm flex items-center gap-2">
+                                    <i class="fa-solid fa-floppy-disk"></i> Lưu thay đổi
+                                </button>
+                            </div>
+                        </form>
+
+                        <div class="mt-8 pt-6 border-t border-slate-100">
+                            <h3 class="text-sm font-black text-rose-600 mb-1"><i class="fa-solid fa-shield-halved"></i> Bảo mật tài khoản</h3>
+                            <a href="/change-password" class="inline-flex items-center gap-2 border border-slate-200 text-slate-600 text-xs font-bold px-4 py-2 rounded-lg mt-3 hover:border-rose-500 hover:text-rose-600 transition-colors">
+                                Cập nhật mật khẩu mới <i class="fa-solid fa-arrow-right-long"></i>
+                            </a>
+                        </div>
                     </article>
-                <?php endif; ?>
+                </div>
 
             </div>
         </div>
-
-        <footer class="mt-16 text-center pb-8">
-            <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">© 2026 B6 Team Platform</p>
-        </footer>
     </div>
 </section>
+
+<div id="avatarModal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 modal-overlay opacity-0">
+    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden transform scale-95 modal-content" id="avatarModalContent">
+        <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+            <h3 class="text-sm font-black text-slate-800 uppercase tracking-widest">Đổi ảnh đại diện</h3>
+            <button onclick="closeAvatarModal()" class="text-slate-400 hover:text-rose-500 transition-colors">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+        <div class="p-6">
+            <form action="api_update_avatar.php" method="POST" enctype="multipart/form-data" class="flex flex-col items-center">
+                <div class="relative h-32 w-32 rounded-full border-4 border-slate-100 mb-6 overflow-hidden bg-slate-50 shadow-inner">
+                    <img id="modalAvatarPreview" src="<?= e($avatarUrl) ?>" class="w-full h-full object-cover">
+                </div>
+                
+                <div class="w-full">
+                    <label class="group relative w-full border-2 border-dashed border-slate-200 rounded-2xl p-4 flex flex-col items-center justify-center hover:border-emerald-400 hover:bg-emerald-50 transition-colors cursor-pointer bg-slate-50">
+                        <input type="file" name="avatar" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer z-10" onchange="previewImage(this)">
+                        <div class="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-emerald-500 mb-2 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-cloud-arrow-up text-lg"></i>
+                        </div>
+                        <p class="text-xs font-bold text-slate-600">Chọn ảnh mới từ máy</p>
+                    </label>
+                </div>
+                
+                <button type="submit" class="mt-6 w-full bg-rose-600 hover:bg-rose-700 text-white font-black py-3.5 rounded-xl shadow-md transition-all text-xs uppercase tracking-widest flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-floppy-disk"></i> Lưu hình ảnh
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Xử lý Tabs
+    function switchTab(tabName) {
+        document.getElementById('tab-overview').className = 'nav-tab flex-1 md:flex-none px-5 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 ' + (tabName === 'overview' ? 'active' : 'inactive');
+        document.getElementById('tab-settings').className = 'nav-tab flex-1 md:flex-none px-5 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 ' + (tabName === 'settings' ? 'active' : 'inactive');
+        
+        document.getElementById('content-overview').style.display = tabName === 'overview' ? 'block' : 'none';
+        document.getElementById('content-settings').style.display = tabName === 'settings' ? 'block' : 'none';
+    }
+
+    // Xử lý Modal Avatar
+    function openAvatarModal() {
+        const modal = document.getElementById('avatarModal');
+        const content = document.getElementById('avatarModalContent');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        
+        // Trigger animation
+        requestAnimationFrame(() => {
+            modal.classList.remove('opacity-0');
+            content.classList.remove('scale-95');
+            content.classList.add('scale-100');
+        });
+    }
+
+    function closeAvatarModal() {
+        const modal = document.getElementById('avatarModal');
+        const content = document.getElementById('avatarModalContent');
+        
+        modal.classList.add('opacity-0');
+        content.classList.remove('scale-100');
+        content.classList.add('scale-95');
+        
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }, 300); // Đợi CSS transition chạy xong
+    }
+
+    // Xem trước ảnh khi vừa chọn file
+    function previewImage(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                // Thay đổi ảnh trong Modal
+                document.getElementById('modalAvatarPreview').src = e.target.result;
+                
+                // Thay đổi luôn ảnh ngoài màn hình Sidebar để người dùng xem thử
+                document.getElementById('sidebarAvatar').src = e.target.result;
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+</script>

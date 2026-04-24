@@ -1,22 +1,69 @@
 <?php
-$catalog = require __DIR__ . '/../catalog.php';
-$requestedSlug = strtolower(trim((string) ($_GET['course'] ?? '')));
+$academicModel = new AcademicModel();
+$courseTotal = $academicModel->countCourses();
+$courseRows = $courseTotal > 0
+    ? $academicModel->listCoursesPage(1, $courseTotal)
+    : [];
 
-if ($requestedSlug === '') {
-    $requestedSlug = array_key_first($catalog) ?: '';
+$buildCourseSlug = static function (string $value): string {
+    $slug = strtolower(trim($value));
+    $slug = preg_replace('/[^a-z0-9\s-]/u', '', $slug) ?? $slug;
+    $slug = preg_replace('/[\s-]+/', '-', $slug) ?? $slug;
+    return trim($slug, '-');
+};
+
+$dbCourses = [];
+foreach ($courseRows as $row) {
+    $courseName = trim((string) ($row['course_name'] ?? ''));
+    if ($courseName === '') {
+        continue;
+    }
+
+    $slug = $buildCourseSlug($courseName);
+    $priceValue = number_format((float) ($row['base_price'] ?? 0), 0, ',', '.') . 'đ';
+
+    $dbCourses[$slug] = [
+        'slug' => $slug,
+        'title' => $courseName,
+        'tag' => '',
+        'short_desc' => (string) ($row['description'] ?? ''),
+        'price' => $priceValue,
+        'original_price' => '',
+        'duration' => ((int) ($row['total_sessions'] ?? 0)) . ' buổi',
+        'level' => '',
+        'lessons_count' => (int) ($row['total_sessions'] ?? 0),
+        'rating' => 0.0,
+        'students' => 0,
+        'image' => '',
+        'instructor' => [
+            'name' => '',
+            'role' => '',
+        ],
+        'benefits' => [],
+        'outline' => [],
+        'suitable_for' => [],
+        'outcomes' => [],
+    ];
 }
 
-if ($requestedSlug === '' || !isset($catalog[$requestedSlug])) {
+$requestedSlug = strtolower(trim((string) ($_GET['course'] ?? '')));
+if ($requestedSlug === '') {
+    $requestedSlug = array_key_first($dbCourses) ?: '';
+}
+
+if ($requestedSlug !== '' && isset($dbCourses[$requestedSlug])) {
+    $course = $dbCourses[$requestedSlug];
+} else {
     http_response_code(404);
-    $requestedSlug = array_key_first($catalog) ?: '';
+    $requestedSlug = array_key_first($dbCourses) ?: '';
     if ($requestedSlug === '') {
         echo '404 Not Found';
         return;
     }
+    $course = $dbCourses[$requestedSlug];
 }
 
-$course = $catalog[$requestedSlug];
-$relatedCourses = array_values(array_filter($catalog, static fn(array $item): bool => $item['slug'] !== $course['slug']));
+$relatedCourses = array_values(array_filter($dbCourses, static fn(array $item): bool => ($item['slug'] ?? '') !== ($course['slug'] ?? '')));
 $relatedCourses = array_slice($relatedCourses, 0, 4);
 ?>
 
@@ -349,7 +396,7 @@ $relatedCourses = array_slice($relatedCourses, 0, 4);
                         <input type="email" placeholder="Email" class="rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-slate-900 outline-none transition focus:border-rose-300 focus:bg-white">
                         <select class="sm:col-span-2 rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-slate-900 outline-none transition focus:border-rose-300 focus:bg-white">
                             <option><?= e($course['title']); ?></option>
-                            <?php foreach ($catalog as $item): ?>
+                            <?php foreach ($dbCourses as $item): ?>
                                 <option><?= e($item['title']); ?></option>
                             <?php endforeach; ?>
                         </select>

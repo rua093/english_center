@@ -3,47 +3,71 @@ declare(strict_types=1);
 
 require_role(['student', 'admin']);
 
+require_once __DIR__ . '/../../models/tables/ClassStudentsTableModel.php';
+require_once __DIR__ . '/../../models/tables/AttendanceTableModel.php';
+require_once __DIR__ . '/../../models/tables/TuitionFeesTableModel.php';
+require_once __DIR__ . '/../../models/tables/AssignmentsTableModel.php';
+
+$classStudentsTable = new ClassStudentsTableModel();
+$attendanceTable = new AttendanceTableModel();
+$tuitionFeesTable = new TuitionFeesTableModel();
+$assignmentsTable = new AssignmentsTableModel();
+
 $studentDashboardActiveTab = 'classes-my';
 
-$myClasses = [
-	[
-		'name' => 'Java Spring Boot Advanced',
-		'teacher' => 'Nguyễn Văn A',
-		'attendance' => ['present' => 15, 'late' => 2, 'absent' => 1, 'total' => 18],
-		'tuition' => ['amount' => 5000000, 'paid' => 2500000, 'status' => 'Đang nợ'],
-		'assignments' => [
-			['title' => 'Design REST API', 'score' => 9.5, 'status' => 'Đã nộp'],
-			['title' => 'Security with JWT', 'score' => null, 'status' => 'Chưa nộp', 'deadline' => '20/05/2026']
-		]
-	],
-    [
-		'name' => 'Java Spring Boot Advanced',
-		'teacher' => 'Nguyễn Văn A',
-		'attendance' => ['present' => 15, 'late' => 2, 'absent' => 1, 'total' => 18],
-		'tuition' => ['amount' => 5000000, 'paid' => 2500000, 'status' => 'Đang nợ'],
-		'assignments' => [
-			['title' => 'Design REST API', 'score' => 9.5, 'status' => 'Đã nộp'],
-			['title' => 'Security with JWT', 'score' => null, 'status' => 'Chưa nộp', 'deadline' => '20/05/2026']
-		]
-	],
-    [
-		'name' => 'Java Spring Boot Advanced',
-		'teacher' => 'Nguyễn Văn A',
-		'attendance' => ['present' => 15, 'late' => 2, 'absent' => 1, 'total' => 18],
-		'tuition' => ['amount' => 5000000, 'paid' => 2500000, 'status' => 'Đang nợ'],
-		'assignments' => [
-			['title' => 'Design REST API', 'score' => 9.5, 'status' => 'Đã nộp'],
-			['title' => 'Security with JWT', 'score' => null, 'status' => 'Chưa nộp', 'deadline' => '20/05/2026']
-		]
-	],
-	// ... data lớp khác
-];
+$user = auth_user() ?? [];
+$studentId = (int) ($user['id'] ?? 0);
+$myClasses = [];
 
-$submissionClasses = [];
-foreach ($myClasses as $classItem) {
-	$submissionClasses[] = (string) ($classItem['name'] ?? '');
+if ($studentId > 0) {
+	foreach ($classStudentsTable->listMyClassesForStudent($studentId) as $row) {
+		$classId = (int) ($row['class_id'] ?? 0);
+		if ($classId <= 0) {
+			continue;
+		}
+
+		$attendance = $attendanceTable->summaryByStudentForClass($studentId, $classId);
+		$tuition = $tuitionFeesTable->findByStudentAndClass($studentId, $classId) ?? [];
+		$assignments = [];
+		foreach ($assignmentsTable->listForStudentByClass($studentId, $classId) as $assignmentRow) {
+			$assignments[] = [
+				'title' => (string) ($assignmentRow['title'] ?? ''),
+				'note' => (string) ($assignmentRow['description'] ?? ''),
+				'score' => $assignmentRow['score'] !== null ? (float) $assignmentRow['score'] : null,
+				'status' => (string) ($assignmentRow['submission_status'] ?? 'Chưa nộp'),
+				'deadline' => !empty($assignmentRow['deadline']) ? date('d/m/Y', strtotime((string) $assignmentRow['deadline'])) : '---',
+				'deadline_raw' => (string) ($assignmentRow['deadline'] ?? ''),
+			];
+		}
+
+		$attendanceTotal = (int) ($attendance['total_sessions'] ?? 0);
+		if ($attendanceTotal <= 0) {
+			$attendanceTotal = (int) ($attendance['present_count'] ?? 0) + (int) ($attendance['late_count'] ?? 0) + (int) ($attendance['absent_count'] ?? 0);
+		}
+		if ($attendanceTotal <= 0) {
+			$attendanceTotal = 1;
+		}
+
+		$myClasses[] = [
+			'name' => (string) ($row['class_name'] ?? ''),
+			'teacher' => (string) ($row['teacher_name'] ?? ''),
+			'status' => (string) ($row['class_status'] ?? 'upcoming'),
+			'attendance' => [
+				'present' => (int) ($attendance['present_count'] ?? 0),
+				'late' => (int) ($attendance['late_count'] ?? 0),
+				'absent' => (int) ($attendance['absent_count'] ?? 0),
+				'total' => $attendanceTotal,
+			],
+			'tuition' => [
+				'amount' => (float) ($tuition['total_amount'] ?? 0),
+				'paid' => (float) ($tuition['amount_paid'] ?? 0),
+				'status' => ((string) ($tuition['status'] ?? 'debt')) === 'paid' ? 'Đã đóng' : 'Đang nợ',
+			],
+			'assignments' => $assignments,
+		];
+	}
 }
-$submissionClasses = array_values(array_filter(array_unique($submissionClasses), static fn (string $value): bool => $value !== ''));
+
 ?>
 <section class="min-h-screen bg-[#f8fafc] py-8 px-2 sm:px-4 lg:px-6 xl:px-8">
 	<div class="mx-auto w-full max-w-[1800px]">
@@ -61,6 +85,12 @@ $submissionClasses = array_values(array_filter(array_unique($submissionClasses),
 				</header>
 
 				<div class="space-y-8">
+				<?php if ($myClasses === []): ?>
+					<div class="rounded-3xl border border-dashed border-slate-200 bg-white p-10 text-center shadow-sm">
+						<p class="text-sm font-bold uppercase tracking-widest text-slate-400">Chưa có lớp học nào</p>
+						<p class="mt-2 text-sm text-slate-500">Danh sách lớp sẽ xuất hiện ở đây khi học viên đã được gán vào lớp trong database.</p>
+					</div>
+				<?php endif; ?>
 			<?php foreach ($myClasses as $class): ?>
 			<div class="bg-white rounded-3xl overflow-hidden border border-slate-200 shadow-sm hover:shadow-md transition">
 				<div class="bg-slate-800 px-6 py-4 flex justify-between items-center text-white">
@@ -108,7 +138,7 @@ $submissionClasses = array_values(array_filter(array_unique($submissionClasses),
 					<div class="p-6 lg:col-span-2">
 						<div class="flex justify-between items-center mb-4">
 							<h4 class="text-sm font-bold text-slate-700 uppercase tracking-wide flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-blue-500"></div> Bài tập & Điểm số</h4>
-							<button type="button" class="text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-xl transition shadow-sm" data-homework-open="1">
+							<button type="button" class="text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-xl transition shadow-sm" data-homework-open="1" data-homework-class="<?= e($class['name']); ?>" data-homework-empty="<?= $class['assignments'] === [] ? '1' : '0'; ?>">
 								+ Nộp bài mới
 							</button>
 						</div>
@@ -125,6 +155,13 @@ $submissionClasses = array_values(array_filter(array_unique($submissionClasses),
 									</tr>
 								</thead>
 								<tbody class="divide-y divide-slate-100">
+									<?php if ($class['assignments'] === []): ?>
+									<tr>
+										<td colspan="5" class="px-4 py-8 text-center text-sm font-semibold text-slate-500">
+											Chưa có bài tập được giao
+										</td>
+									</tr>
+								<?php else: ?>
 									<?php foreach ($class['assignments'] as $asm): ?>
 									<tr class="hover:bg-slate-50 transition">
 										<td class="px-4 py-3 font-medium text-slate-800"><?= $asm['title'] ?></td>
@@ -146,7 +183,8 @@ $submissionClasses = array_values(array_filter(array_unique($submissionClasses),
 												data-homework-open="1"
 												data-homework-class="<?= e($class['name']); ?>"
 												data-homework-assignment="<?= e($asm['title']); ?>"
-												data-homework-deadline="<?= e((string) ($asm['deadline'] ?? '')); ?>"
+												data-homework-deadline="<?= e((string) ($asm['deadline_raw'] ?? '')); ?>"
+												data-homework-note="<?= e((string) ($asm['note'] ?? '')); ?>"
 												data-homework-status="<?= e((string) $asm['status']); ?>"
 											>
 												<?= $asm['status'] === 'Đã nộp' ? 'Nộp lại' : 'Nộp bài'; ?>
@@ -154,6 +192,7 @@ $submissionClasses = array_values(array_filter(array_unique($submissionClasses),
 										</td>
 									</tr>
 									<?php endforeach; ?>
+									<?php endif; ?>
 								</tbody>
 							</table>
 						</div>
@@ -164,6 +203,8 @@ $submissionClasses = array_values(array_filter(array_unique($submissionClasses),
 				</div>
 			</div>
 		</div>
+
+		<?php $notifyShowTestButtons = false; require __DIR__ . '/../notification/notification.php'; ?>
 	</div>
 
 	<div id="homework-modal" class="fixed inset-0 z-[60] hidden items-center justify-center bg-slate-950/60 px-4 py-6 backdrop-blur-sm">
@@ -184,27 +225,26 @@ $submissionClasses = array_values(array_filter(array_unique($submissionClasses),
 				<div class="grid gap-5 md:grid-cols-2">
 					<div>
 						<label class="mb-2 block text-sm font-bold text-slate-700">Lớp học</label>
-						<select name="class_name" id="homework-class-name" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100">
-							<option value="">Chọn lớp học</option>
-							<?php foreach ($submissionClasses as $submissionClass): ?>
-								<option value="<?= e($submissionClass); ?>"><?= e($submissionClass); ?></option>
-							<?php endforeach; ?>
-						</select>
+						<input type="hidden" name="class_name" id="homework-class-name" value="">
+						<input type="text" id="homework-class-display" value="" placeholder="Lớp học được chọn" disabled class="w-full rounded-2xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-500 outline-none transition cursor-not-allowed">
 					</div>
 					<div>
 						<label class="mb-2 block text-sm font-bold text-slate-700">Deadline</label>
-						<input type="text" name="assignment_deadline" id="homework-deadline" placeholder="Ví dụ: 20/05/2026" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100">
+						<input type="hidden" name="assignment_deadline" id="homework-deadline" value="">
+						<input type="text" id="homework-deadline-display" placeholder="Ví dụ: 20/05/2026" disabled class="w-full rounded-2xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-500 outline-none transition cursor-not-allowed">
 					</div>
 				</div>
 
 				<div>
 					<label class="mb-2 block text-sm font-bold text-slate-700">Tên bài tập</label>
-					<input type="text" name="assignment_title" id="homework-assignment-title" placeholder="Nhập tên bài tập" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100">
+					<input type="hidden" name="assignment_title" id="homework-assignment-title" value="">
+					<input type="text" id="homework-assignment-title-display" placeholder="Nhập tên bài tập" disabled class="w-full rounded-2xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-500 outline-none transition cursor-not-allowed">
 				</div>
 
 				<div>
 					<label class="mb-2 block text-sm font-bold text-slate-700">Ghi chú</label>
-					<textarea name="note" rows="4" placeholder="Ghi chú thêm cho giáo viên nếu cần" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100"></textarea>
+					<input type="hidden" name="note" id="homework-note" value="">
+					<textarea id="homework-note-display" rows="4" placeholder="Ghi chú thêm cho giáo viên nếu cần" disabled class="w-full rounded-2xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-500 outline-none transition cursor-not-allowed"></textarea>
 				</div>
 
 				<div>
@@ -229,19 +269,39 @@ $submissionClasses = array_values(array_filter(array_unique($submissionClasses),
 			if (!modal) return;
 
 			const classInput = document.getElementById('homework-class-name');
+			const classDisplay = document.getElementById('homework-class-display');
 			const assignmentInput = document.getElementById('homework-assignment-title');
+			const assignmentDisplay = document.getElementById('homework-assignment-title-display');
 			const deadlineInput = document.getElementById('homework-deadline');
+			const deadlineDisplay = document.getElementById('homework-deadline-display');
+			const noteInput = document.getElementById('homework-note');
+			const noteDisplay = document.getElementById('homework-note-display');
 			const fileInput = document.getElementById('homework-file');
 
 			function openModal(button) {
 				if (classInput && button.dataset.homeworkClass) {
 					classInput.value = button.dataset.homeworkClass;
 				}
+				if (classDisplay) {
+					classDisplay.value = button.dataset.homeworkClass || '';
+				}
 				if (assignmentInput && button.dataset.homeworkAssignment) {
 					assignmentInput.value = button.dataset.homeworkAssignment;
 				}
+				if (assignmentDisplay) {
+					assignmentDisplay.value = button.dataset.homeworkAssignment || '';
+				}
 				if (deadlineInput && button.dataset.homeworkDeadline !== undefined) {
 					deadlineInput.value = button.dataset.homeworkDeadline || '';
+				}
+				if (deadlineDisplay) {
+					deadlineDisplay.value = button.dataset.homeworkDeadline || '';
+				}
+				if (noteInput) {
+					noteInput.value = button.dataset.homeworkNote || '';
+				}
+				if (noteDisplay) {
+					noteDisplay.value = button.dataset.homeworkNote || '';
 				}
 				if (fileInput) {
 					fileInput.value = '';
@@ -259,6 +319,10 @@ $submissionClasses = array_values(array_filter(array_unique($submissionClasses),
 
 			document.querySelectorAll('[data-homework-open="1"]').forEach(function (button) {
 				button.addEventListener('click', function () {
+						if (button.dataset.homeworkEmpty === '1') {
+							showNotify('info', 'Chưa có bài tập được giao');
+							return;
+						}
 					openModal(button);
 				});
 			});

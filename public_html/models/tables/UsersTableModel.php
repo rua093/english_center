@@ -17,7 +17,7 @@ final class UsersTableModel extends BaseTableModel
 
     public function listActiveWithRoles(): array
     {
-        $sql = "SELECT u.id, u.username, u.full_name, u.phone, u.email, u.status, u.created_at, u.role_id,
+        $sql = "SELECT u.id, u.username, u.full_name, u.phone, u.email, u.avatar, u.status, u.created_at, u.role_id,
                 r.role_name
             FROM users u
             INNER JOIN roles r ON r.id = u.role_id
@@ -29,7 +29,7 @@ final class UsersTableModel extends BaseTableModel
     public function listActiveWithRolesPage(int $page, int $perPage): array
     {
         $pagination = $this->pagination($page, $perPage, 10, 200);
-        $sql = "SELECT u.id, u.username, u.full_name, u.phone, u.email, u.status, u.created_at, u.role_id,
+        $sql = "SELECT u.id, u.username, u.full_name, u.phone, u.email, u.avatar, u.status, u.created_at, u.role_id,
                 r.role_name
             FROM users u
             INNER JOIN roles r ON r.id = u.role_id
@@ -42,7 +42,7 @@ final class UsersTableModel extends BaseTableModel
     public function findActiveById(int $id): ?array
     {
         $user = $this->fetchOne(
-            "SELECT u.id, u.username, u.full_name, u.role_id, u.phone, u.email, u.status,
+                "SELECT u.id, u.username, u.full_name, u.role_id, u.phone, u.email, u.avatar, u.status,
                     r.role_name
              FROM users u
              INNER JOIN roles r ON r.id = u.role_id

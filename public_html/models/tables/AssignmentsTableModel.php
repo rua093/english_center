@@ -90,4 +90,28 @@ final class AssignmentsTableModel extends BaseTableModel
             'student_id_submission' => $studentId,
         ]);
     }
+
+    public function listForStudentByClass(int $studentId, int $classId): array
+    {
+        if ($studentId <= 0 || $classId <= 0) {
+            return [];
+        }
+
+        $sql = "SELECT a.id, a.title, a.deadline, a.description,
+                sub.submitted_at, sub.score, sub.teacher_comment,
+                CASE WHEN sub.submitted_at IS NOT NULL THEN 'Đã nộp' ELSE 'Chưa nộp' END AS submission_status
+            FROM assignments a
+            INNER JOIN lessons l ON l.id = a.lesson_id
+            INNER JOIN classes c ON c.id = l.class_id
+            INNER JOIN class_students cs ON cs.class_id = c.id AND cs.student_id = :student_id
+            LEFT JOIN submissions sub ON sub.assignment_id = a.id AND sub.student_id = :student_id_submission
+            WHERE c.id = :class_id
+            ORDER BY a.deadline ASC, a.id DESC";
+
+        return $this->fetchAll($sql, [
+            'student_id' => $studentId,
+            'student_id_submission' => $studentId,
+            'class_id' => $classId,
+        ]);
+    }
 }
