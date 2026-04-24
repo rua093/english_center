@@ -3,55 +3,66 @@
     .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(225, 29, 72, 0.1); }
     .step-active { color: #e11d48; border-bottom: 3px solid #e11d48; }
     .step-inactive { color: #cbd5e1; border-bottom: 3px solid #f1f5f9; }
+    .forgot-background {
+        min-height: 100vh;
+        width: 100%;
+        background:
+            linear-gradient(135deg, rgba(15, 23, 42, 0.48) 0%, rgba(15, 23, 42, 0.36) 50%, rgba(15, 23, 42, 0.50) 100%),
+            url('/assets/images/login.jpg');
+        background-color: #0f172a;
+        background-position: center center;
+        background-size: cover;
+        background-repeat: no-repeat;
+    }
 </style>
 
-<main class="py-16 md:py-24 font-jakarta relative overflow-hidden">
+<main class="forgot-background py-16 md:py-24 font-jakarta relative overflow-hidden">
     <div class="absolute top-0 left-0 w-full h-full pointer-events-none -z-10">
         <div class="absolute top-[-10%] right-[-10%] w-96 h-96 bg-rose-100/50 rounded-full blur-3xl"></div>
         <div class="absolute bottom-[-10%] left-[-10%] w-96 h-96 bg-lime-100/50 rounded-full blur-3xl"></div>
     </div>
 
-    <div class="container mx-auto px-4 max-w-xl">
-        <div class="glass-card rounded-[2.5rem] shadow-2xl shadow-rose-900/5 p-8 md:p-12" data-aos="zoom-in">
+    <div class="container mx-auto px-4 max-w-lg">
+        <div class="glass-card rounded-[2rem] shadow-2xl shadow-rose-900/5 p-5 md:p-7" data-aos="zoom-in">
             
-            <div class="text-center mb-10">
-                <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-rose-50 text-rose-600 mb-4">
-                    <i class="fa-solid fa-key text-3xl"></i>
+            <div class="text-center mb-7">
+                <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 mb-3">
+                    <i class="fa-solid fa-key text-2xl"></i>
                 </div>
-                <h1 class="text-3xl font-black text-slate-800 uppercase tracking-tight">Khôi phục mật khẩu</h1>
+                <h1 class="text-2xl md:text-3xl font-black text-slate-800 uppercase tracking-tight">Khôi phục mật khẩu</h1>
                 <p class="text-slate-500 text-sm font-medium mt-2">Đừng lo lắng, chúng tôi sẽ giúp bạn lấy lại quyền truy cập.</p>
             </div>
 
-            <div class="flex justify-between mb-10 px-4">
+            <div class="flex justify-between mb-7 px-2 md:px-4">
                 <div id="step-1-indicator" class="step-active pb-2 flex-1 text-center font-black text-xs uppercase tracking-widest">1. Email</div>
                 <div id="step-2-indicator" class="step-inactive pb-2 flex-1 text-center font-black text-xs uppercase tracking-widest">2. Xác thực</div>
                 <div id="step-3-indicator" class="step-inactive pb-2 flex-1 text-center font-black text-xs uppercase tracking-widest">3. Mật khẩu</div>
             </div>
 
-            <form id="form-step-1" class="space-y-6">
+            <form id="form-step-1" class="space-y-5">
                 <div class="space-y-2">
                     <label class="text-xs font-black text-slate-400 uppercase ml-2">Địa chỉ Email của bạn *</label>
                     <div class="relative">
                         <i class="fa-regular fa-envelope absolute left-5 top-1/2 -translate-y-1/2 text-slate-400"></i>
                         <input type="email" id="email_input" required placeholder="nhueminh@edu.vn" 
-                            class="w-full pl-12 pr-5 py-4 rounded-2xl bg-slate-50 border-2 border-transparent outline-none focus-rose font-bold transition-all">
+                            class="w-full pl-12 pr-5 py-3.5 rounded-2xl bg-slate-50 border-2 border-transparent outline-none focus-rose font-bold transition-all">
                     </div>
                 </div>
-                <button type="button" onclick="sendCodeToEmail()" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-black py-4 rounded-2xl shadow-xl shadow-rose-600/20 transition-all hover:-translate-y-1 uppercase tracking-widest flex items-center justify-center gap-3">
+                <button type="button" onclick="sendCodeToEmail()" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-black py-3.5 rounded-2xl shadow-xl shadow-rose-600/20 transition-all hover:-translate-y-1 uppercase tracking-widest flex items-center justify-center gap-3">
                     Gửi mã xác nhận
                     <div class="w-2 h-2 rounded-full bg-lime-400"></div>
                 </button>
             </form>
 
-            <form id="form-step-2" class="space-y-6 hidden animate-fade-in">
-                <div class="text-center bg-lime-50 p-4 rounded-2xl mb-6">
+            <form id="form-step-2" class="space-y-5 hidden animate-fade-in">
+                <div class="text-center bg-lime-50 p-3.5 rounded-2xl mb-5">
                     <p class="text-xs font-bold text-emerald-700">Mã xác thực đã được gửi tới email của bạn. Vui lòng kiểm tra hộp thư đến (hoặc spam).</p>
                 </div>
                 <div class="space-y-2 text-center">
                     <label class="text-xs font-black text-slate-400 uppercase">Nhập mã 6 chữ số *</label>
-                    <div class="flex justify-center gap-3 mt-4">
+                    <div class="flex justify-center gap-3 mt-3">
                         <input type="text" maxlength="6" id="verify_code" placeholder="000000" 
-                            class="w-full text-center tracking-[1em] text-2xl px-5 py-4 rounded-2xl bg-slate-50 border-2 border-transparent outline-none focus-rose font-black transition-all">
+                            class="w-full text-center tracking-[1em] text-2xl px-5 py-3.5 rounded-2xl bg-slate-50 border-2 border-transparent outline-none focus-rose font-black transition-all">
                     </div>
                 </div>
                 
@@ -61,20 +72,20 @@
                     </button>
                 </div>
 
-                <button type="button" onclick="validateCode()" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-black py-4 rounded-2xl shadow-xl shadow-rose-600/20 transition-all hover:-translate-y-1 uppercase tracking-widest flex items-center justify-center gap-3">
+                <button type="button" onclick="validateCode()" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-black py-3.5 rounded-2xl shadow-xl shadow-rose-600/20 transition-all hover:-translate-y-1 uppercase tracking-widest flex items-center justify-center gap-3">
                     Xác thực mã
                     <div class="w-2 h-2 rounded-full bg-lime-400"></div>
                 </button>
             </form>
 
-            <form id="form-step-3" action="api_update_password.php" method="POST" class="space-y-6 hidden animate-fade-in">
-                <div class="space-y-4">
+            <form id="form-step-3" action="api_update_password.php" method="POST" class="space-y-5 hidden animate-fade-in">
+                <div class="space-y-3">
                     <div class="space-y-1.5">
                         <label class="text-xs font-black text-slate-400 uppercase ml-2">Mật khẩu mới *</label>
                         <div class="relative">
                             <i class="fa-solid fa-lock absolute left-5 top-1/2 -translate-y-1/2 text-slate-400"></i>
                             <input type="password" id="new_password" name="new_password" required placeholder="••••••••" 
-                                class="w-full pl-12 pr-12 py-4 rounded-2xl bg-slate-50 border-2 border-transparent outline-none focus-rose font-bold transition-all">
+                                class="w-full pl-12 pr-12 py-3.5 rounded-2xl bg-slate-50 border-2 border-transparent outline-none focus-rose font-bold transition-all">
                             <button type="button" onclick="togglePass('new_password', this)" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-rose-600">
                                 <i class="fa-regular fa-eye"></i>
                             </button>
@@ -85,7 +96,7 @@
                         <div class="relative">
                             <i class="fa-solid fa-shield-check absolute left-5 top-1/2 -translate-y-1/2 text-slate-400"></i>
                             <input type="password" id="confirm_password" name="confirm_password" required placeholder="••••••••" 
-                                class="w-full pl-12 pr-12 py-4 rounded-2xl bg-slate-50 border-2 border-transparent outline-none focus-rose font-bold transition-all">
+                                class="w-full pl-12 pr-12 py-3.5 rounded-2xl bg-slate-50 border-2 border-transparent outline-none focus-rose font-bold transition-all">
                             <button type="button" onclick="togglePass('confirm_password', this)" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-rose-600">
                                 <i class="fa-regular fa-eye"></i>
                             </button>
@@ -93,13 +104,13 @@
                     </div>
                 </div>
 
-                <button type="submit" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-black py-4 rounded-2xl shadow-xl shadow-rose-600/20 transition-all hover:-translate-y-1 uppercase tracking-widest flex items-center justify-center gap-3">
+                <button type="submit" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-black py-3.5 rounded-2xl shadow-xl shadow-rose-600/20 transition-all hover:-translate-y-1 uppercase tracking-widest flex items-center justify-center gap-3">
                     Cập nhật mật khẩu
                     <div class="w-2 h-2 rounded-full bg-lime-400"></div>
                 </button>
             </form>
 
-            <div class="mt-8 text-center">
+            <div class="mt-6 text-center">
                 <a href="/login" class="text-sm font-black text-slate-400 hover:text-rose-600 transition-colors uppercase tracking-widest">
                     <i class="fa-solid fa-arrow-left-long mr-2"></i> Quay lại đăng nhập
                 </a>
