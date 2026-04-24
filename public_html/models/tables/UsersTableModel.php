@@ -168,6 +168,22 @@ final class UsersTableModel extends BaseTableModel
         ]);
     }
 
+    public function findPasswordHashById(int $id): ?string
+    {
+        if ($id <= 0) {
+            return null;
+        }
+
+        $hash = $this->fetchScalar(
+            'SELECT password FROM users WHERE id = :id AND deleted_at IS NULL LIMIT 1',
+            ['id' => $id],
+            'password',
+            null
+        );
+
+        return $hash !== null ? (string) $hash : null;
+    }
+
     public function countByRoleName(string $roleName): int
     {
         return (int) $this->fetchScalar(

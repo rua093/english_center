@@ -48,6 +48,9 @@ INSERT INTO schedules (class_id, room_id, teacher_id, study_date, start_time, en
 (1, 1, 3, '2026-04-14', '19:00:00', '21:00:00'),
 (1, 1, 3, '2026-04-16', '19:00:00', '21:00:00');
 
+INSERT INTO schedules (class_id, room_id, teacher_id, study_date, start_time, end_time)
+VALUES (1, 1, 3, CURDATE(), '19:00:00', '21:00:00');
+
 UPDATE lessons
 SET schedule_id = (
 	SELECT s.id

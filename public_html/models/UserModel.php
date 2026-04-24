@@ -75,7 +75,7 @@ final class UserModel
         if ($role === 'teacher') {
             return [
                 'student_progress' => null,
-                'teacher_schedules' => $this->teacherUpcomingSchedules($userId),
+                'teacher_schedules' => $this->teacherUpcomingSchedulesFromNow($userId),
             ];
         }
 
@@ -87,8 +87,20 @@ final class UserModel
 
     public function teacherUpcomingSchedules(int $teacherId, int $days = 7): array
     {
-        $endDate = (new DateTimeImmutable('+' . max(1, $days) . ' days'))->format('Y-m-d');
+        $endDate = (new DateTimeImmutable('now'))
+            ->modify('+' . max(1, $days) . ' days')
+            ->format('Y-m-d');
+
         return $this->schedulesTable->listUpcomingForTeacher($teacherId, $endDate, 10);
+    }
+
+    public function teacherUpcomingSchedulesFromNow(int $teacherId, int $days = 7): array
+    {
+        $endAt = (new DateTimeImmutable('now'))
+            ->modify('+' . max(1, $days) . ' days')
+            ->format('Y-m-d H:i:s');
+
+        return $this->schedulesTable->listUpcomingForTeacherFromNow($teacherId, $endAt, 10);
     }
 
     private function studentProgress(int $studentId): array

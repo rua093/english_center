@@ -24,6 +24,36 @@ function api_users_update_action(): void
 	}
 
 	$updateMode = strtolower(trim((string) ($_POST['update_mode'] ?? 'profile')));
+	if ($updateMode === 'password') {
+		$currentPassword = (string) ($_POST['current_password'] ?? '');
+		$newPassword = (string) ($_POST['new_password'] ?? '');
+		$confirmPassword = (string) ($_POST['confirm_password'] ?? '');
+
+		if ($currentPassword === '' || $newPassword === '' || $confirmPassword === '') {
+			set_flash('error', 'Vui lòng nhập đầy đủ mật khẩu hiện tại, mật khẩu mới và xác nhận mật khẩu.');
+			redirect(page_url('profile'));
+		}
+
+		if ($newPassword !== $confirmPassword) {
+			set_flash('error', 'Mật khẩu mới và xác nhận mật khẩu không khớp.');
+			redirect(page_url('profile'));
+		}
+
+		if (mb_strlen($newPassword) < 6) {
+			set_flash('error', 'Mật khẩu mới phải có ít nhất 6 ký tự.');
+			redirect(page_url('profile'));
+		}
+
+		$passwordHash = $usersTable->findPasswordHashById($userId);
+		if ($passwordHash === null || !password_verify($currentPassword, $passwordHash)) {
+			set_flash('error', 'Mật khẩu hiện tại không đúng.');
+			redirect(page_url('profile'));
+		}
+
+		$usersTable->updatePassword($userId, $newPassword);
+		set_flash('success', 'Đã cập nhật mật khẩu thành công.');
+		redirect(page_url('profile'));
+	}
 	$email = trim((string) ($_POST['email'] ?? ''));
 	$phone = trim((string) ($_POST['phone'] ?? ''));
 
