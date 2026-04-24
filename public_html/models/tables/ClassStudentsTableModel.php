@@ -7,6 +7,24 @@ final class ClassStudentsTableModel
 {
     use TableModelUtils;
 
+    public function countByStudent(int $studentId): int
+    {
+        if ($studentId <= 0) {
+            return 0;
+        }
+
+        return (int) $this->fetchScalar(
+            'SELECT COUNT(*) AS total
+             FROM class_students cs
+             INNER JOIN users u ON u.id = cs.student_id
+             WHERE cs.student_id = :student_id
+               AND u.deleted_at IS NULL',
+            ['student_id' => $studentId],
+            'total',
+            0
+        );
+    }
+
     public function listStudentsForClass(int $classId): array
     {
         if ($classId <= 0) {

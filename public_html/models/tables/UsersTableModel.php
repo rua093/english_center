@@ -42,7 +42,7 @@ final class UsersTableModel extends BaseTableModel
     public function findActiveById(int $id): ?array
     {
         $user = $this->fetchOne(
-                "SELECT u.id, u.username, u.full_name, u.role_id, u.phone, u.email, u.avatar, u.status,
+                "SELECT u.id, u.username, u.full_name, u.role_id, u.phone, u.email, u.avatar, u.status, u.created_at,
                     r.role_name
              FROM users u
              INNER JOIN roles r ON r.id = u.role_id
@@ -57,6 +57,32 @@ final class UsersTableModel extends BaseTableModel
 
         $user['role_profile'] = $this->findRoleProfile((int) ($user['id'] ?? 0), (string) ($user['role_name'] ?? ''));
         return $user;
+    }
+
+    public function updateProfile(int $userId, array $data): void
+    {
+        $email = trim((string) ($data['email'] ?? ''));
+        $phone = trim((string) ($data['phone'] ?? ''));
+        $avatar = trim((string) ($data['avatar'] ?? ''));
+
+        $params = [
+            'id' => $userId,
+            'phone' => $phone !== '' ? $phone : null,
+            'email' => $email !== '' ? $email : null,
+        ];
+
+        $sql = 'UPDATE users
+             SET phone = :phone,
+                 email = :email';
+
+        if ($avatar !== '') {
+            $sql .= ', avatar = :avatar';
+            $params['avatar'] = $avatar;
+        }
+
+        $sql .= ' WHERE id = :id AND deleted_at IS NULL';
+
+        $this->executeStatement($sql, $params);
     }
 
     public function save(array $data): int

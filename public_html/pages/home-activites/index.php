@@ -1,25 +1,49 @@
 <?php
-$activities = [
-    [
-        'id' => 1,
-        'title' => 'Trại hè Tiếng Anh: Khám phá rừng xanh 2026',
-        'category' => 'Trại hè',
-        'date' => '15/06/2026',
-        'location' => 'Khu du lịch sinh thái, Đà Nẵng',
-        'image' => 'https://images.unsplash.com/photo-1533227268428-f9ed0900fb3b?w=600&q=80',
-        'tag' => 'Hot'
-    ],
-    [
-        'id' => 2,
-        'title' => 'Cuộc thi Hùng biện Tiếng Anh - Nhuệ Minh Cup',
-        'category' => 'Cuộc thi',
-        'date' => '20/07/2026',
-        'location' => 'Hội trường Trung tâm',
-        'image' => 'https://images.unsplash.com/photo-1475721027785-f74eccf877e2?w=600&q=80',
-        'tag' => 'Giải thưởng lớn'
-    ],
-    // Thêm các hoạt động khác tại đây...
-];
+declare(strict_types=1);
+
+require_once __DIR__ . '/../../models/AcademicModel.php';
+
+$academicModel = new AcademicModel();
+$activityPage = max(1, (int) ($_GET['activity_page'] ?? 1));
+$activityPerPage = ui_pagination_resolve_per_page('activity_per_page', 8);
+$activityPerPageOptions = ui_pagination_per_page_options();
+$activityStatusFilter = strtolower(trim((string) ($_GET['status'] ?? 'all')));
+
+$activities = $academicModel->listActivities();
+
+$activityStatuses = ['all' => 'Tất cả', 'upcoming' => 'Sắp diễn ra', 'ongoing' => 'Đang diễn ra', 'finished' => 'Đã kết thúc'];
+if (!array_key_exists($activityStatusFilter, $activityStatuses)) {
+	$activityStatusFilter = 'all';
+}
+
+$resolveActivityImagePath = static function (string $imagePath): string {
+    $imagePath = trim($imagePath);
+    if ($imagePath === '') {
+        return 'https://images.unsplash.com/photo-1533227268428-f9ed0900fb3b?w=600&q=80';
+    }
+
+    if (preg_match('#^(?:https?://|/)#i', $imagePath)) {
+        return $imagePath;
+    }
+
+    return '/assets/uploads/' . ltrim($imagePath, '/');
+};
+
+$activities = array_values(array_filter($activities, static function (array $activity) use ($activityStatusFilter): bool {
+	if ($activityStatusFilter === 'all') {
+		return true;
+	}
+
+	return (string) ($activity['status'] ?? '') === $activityStatusFilter;
+}));
+
+$activityTotal = count($activities);
+$activityTotalPages = max(1, (int) ceil($activityTotal / $activityPerPage));
+if ($activityPage > $activityTotalPages) {
+    $activityPage = $activityTotalPages;
+}
+
+$pageActivities = array_slice($activities, ($activityPage - 1) * $activityPerPage, $activityPerPage);
 ?>
 
 <style>
@@ -38,34 +62,56 @@ $activities = [
             <p class="text-slate-500 max-w-xl mx-auto font-medium text-sm md:text-base">Khám phá thế giới, rèn luyện kỹ năng mềm và tự tin giao tiếp cùng bạn bè quốc tế.</p>
         </div>
 
-        <div class="flex flex-wrap justify-center gap-3 mb-10">
-            <button class="px-6 py-2.5 rounded-2xl bg-rose-600 text-white font-black text-[10px] uppercase shadow-lg shadow-rose-600/20">Tất cả</button>
-            <button class="px-6 py-2.5 rounded-2xl bg-slate-50 text-slate-600 font-bold text-[10px] uppercase hover:bg-emerald-50 hover:text-emerald-600 transition-all">Dã ngoại</button>
-            <button class="px-6 py-2.5 rounded-2xl bg-slate-50 text-slate-600 font-bold text-[10px] uppercase hover:bg-emerald-50 hover:text-emerald-600 transition-all">Kỹ năng sống</button>
-            <button class="px-6 py-2.5 rounded-2xl bg-slate-50 text-slate-600 font-bold text-[10px] uppercase hover:bg-emerald-50 hover:text-emerald-600 transition-all">Từ thiện</button>
+        <div class="mb-10 flex flex-wrap justify-center gap-3">
+            <?php foreach ($activityStatuses as $statusKey => $statusLabel): ?>
+                <a href="<?= e(page_url('activities-home', ['status' => $statusKey, 'activity_page' => 1, 'activity_per_page' => $activityPerPage])); ?>" class="px-6 py-2.5 rounded-2xl font-black text-[10px] uppercase shadow-lg transition-all <?= $activityStatusFilter === $statusKey ? 'bg-rose-600 text-white shadow-rose-600/20' : 'bg-slate-50 text-slate-600 hover:bg-emerald-50 hover:text-emerald-600'; ?>">
+                    <?= e($statusLabel); ?>
+                </a>
+            <?php endforeach; ?>
         </div>
 
+        <?php if ($pageActivities === []): ?>
+            <div class="rounded-[2rem] border border-dashed border-slate-200 bg-white p-10 text-center text-sm font-semibold text-slate-500 shadow-sm">
+                Chưa có hoạt động ngoại khoá nào phù hợp với bộ lọc hiện tại.
+            </div>
+        <?php else: ?>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <?php foreach($activities as $act): ?>
+            <?php foreach($pageActivities as $act): ?>
+                <?php
+                    $activityTitle = (string) ($act['activity_name'] ?? '');
+                    $activityDate = !empty($act['start_date']) ? date('d/m/Y', strtotime((string) $act['start_date'])) : '---';
+                    $activityLocation = (string) ($act['location'] ?? '');
+                    $activityStatus = (string) ($act['status'] ?? 'upcoming');
+                    $activityTag = match ($activityStatus) {
+                        'ongoing' => 'Đang diễn ra',
+                        'finished' => 'Đã kết thúc',
+                        default => 'Sắp diễn ra',
+                    };
+                    $activityImage = $resolveActivityImagePath((string) ($act['image_thumbnail'] ?? ''));
+                    $activityFee = (float) ($act['fee'] ?? 0);
+                ?>
             <a href="<?= e(page_url('activities-home-detail', ['id' => (int) $act['id']])); ?>" class="activity-card group block h-full bg-white rounded-[2rem] overflow-hidden border border-slate-100 shadow-xl shadow-slate-200/40 transition-all duration-500 hover:shadow-2xl focus:outline-none focus-visible:ring-4 focus-visible:ring-rose-100">
                 <article>
                 <div class="relative h-52 overflow-hidden">
-                    <img src="<?= $act['image'] ?>" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                    <img src="<?= e($activityImage); ?>" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
                     <div class="absolute top-4 left-4">
                         <span class="bg-white/90 backdrop-blur-md text-rose-600 px-3 py-1 rounded-full text-[10px] font-black uppercase shadow-sm">
-                            <?= $act['category'] ?>
+                            <?= e($activityTag); ?>
                         </span>
                     </div>
                 </div>
                 <div class="p-6">
                     <div class="flex items-center gap-3 text-emerald-600 text-[11px] font-bold mb-3">
-                        <i class="fa-solid fa-calendar-day"></i> <?= $act['date'] ?>
+                        <i class="fa-solid fa-calendar-day"></i> <?= e($activityDate); ?>
                     </div>
                     <h3 class="text-lg font-black text-slate-800 mb-3 leading-tight group-hover:text-rose-600 transition-colors">
-                        <?= $act['title'] ?>
+                        <?= e($activityTitle); ?>
                     </h3>
                     <p class="text-slate-400 text-xs font-medium mb-5 flex items-center gap-2">
-                        <i class="fa-solid fa-location-dot"></i> <?= $act['location'] ?>
+                        <i class="fa-solid fa-location-dot"></i> <?= e($activityLocation !== '' ? $activityLocation : '---'); ?>
+                    </p>
+                    <p class="mb-5 text-xs font-semibold text-slate-500">
+                        Phí tham gia: <?= $activityFee > 0 ? number_format($activityFee) . ' đ' : 'Miễn phí'; ?>
                     </p>
                     <div class="inline-flex items-center gap-2 font-black text-slate-900 text-sm">
                         Xem chi tiết
@@ -78,11 +124,24 @@ $activities = [
             </a>
             <?php endforeach; ?>
         </div>
+        <?php endif; ?>
 
-        <div class="mt-14 flex justify-center gap-2">
-            <button class="w-11 h-11 rounded-2xl bg-rose-600 text-white font-black shadow-lg">1</button>
-            <button class="w-11 h-11 rounded-2xl bg-white border border-slate-100 text-slate-400 font-bold hover:text-emerald-600 transition-all">2</button>
-            <button class="w-11 h-11 rounded-2xl bg-white border border-slate-100 text-slate-400 font-bold hover:text-emerald-600 transition-all"><i class="fa-solid fa-chevron-right text-xs"></i></button>
-        </div>
+        <?php if ($activityTotalPages > 1): ?>
+            <div class="mt-14 flex flex-wrap items-center justify-center gap-2">
+                <?php if ($activityPage > 1): ?>
+                    <a class="flex h-11 items-center justify-center rounded-2xl bg-white border border-slate-100 px-4 text-sm font-bold text-slate-500 hover:text-rose-600 transition-all" href="<?= e(page_url('activities-home', ['status' => $activityStatusFilter, 'activity_page' => $activityPage - 1, 'activity_per_page' => $activityPerPage])); ?>">Trước</a>
+                <?php endif; ?>
+
+                <?php for ($page = max(1, $activityPage - 1); $page <= min($activityTotalPages, $activityPage + 1); $page++): ?>
+                    <a class="w-11 h-11 rounded-2xl font-black shadow-lg flex items-center justify-center <?= $page === $activityPage ? 'bg-rose-600 text-white' : 'bg-white border border-slate-100 text-slate-400 hover:text-emerald-600'; ?> transition-all" href="<?= e(page_url('activities-home', ['status' => $activityStatusFilter, 'activity_page' => $page, 'activity_per_page' => $activityPerPage])); ?>">
+                        <?= (int) $page; ?>
+                    </a>
+                <?php endfor; ?>
+
+                <?php if ($activityPage < $activityTotalPages): ?>
+                    <a class="flex h-11 items-center justify-center rounded-2xl bg-white border border-slate-100 px-4 text-sm font-bold text-slate-500 hover:text-rose-600 transition-all" href="<?= e(page_url('activities-home', ['status' => $activityStatusFilter, 'activity_page' => $activityPage + 1, 'activity_per_page' => $activityPerPage])); ?>">Sau</a>
+                <?php endif; ?>
+            </div>
+        <?php endif; ?>
     </div>
 </section>

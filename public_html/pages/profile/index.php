@@ -23,6 +23,13 @@ $status = (string) ($profileUser['status'] ?? '');
 $createdAt = isset($profileUser['created_at']) && $profileUser['created_at'] !== null
     ? date('d/m/Y', strtotime((string) $profileUser['created_at']))
     : '';
+$studentSubjectCount = (int) ($studentProgress['subject_count'] ?? 0);
+$studentAttendancePercent = (int) ($studentProgress['attendance_percent'] ?? 0);
+$studentProgressPercent = (int) ($studentProgress['progress_percent'] ?? 0);
+$studentCompletedLessons = (int) ($studentProgress['completed_lessons'] ?? 0);
+$studentTotalLessons = (int) ($studentProgress['total_lessons'] ?? 0);
+$studentProgramScore = trim((string) (($profileUser['role_profile']['student_target_score'] ?? '') ?: ($profileUser['student_target_score'] ?? '')));
+$studentProgramScoreLabel = $studentProgramScore !== '' ? $studentProgramScore : 'Chưa cập nhật';
 
 $roleDisplay = match($role) {
     'teacher' => 'Giảng viên',
@@ -34,7 +41,12 @@ $avatarUrl = trim((string) ($profileUser['avatar'] ?? ''));
 if ($avatarUrl === '') {
     $displayNameForAvatar = trim($fullName !== '' ? $fullName : $username);
     $avatarUrl = 'https://ui-avatars.com/api/?name=' . urlencode($displayNameForAvatar !== '' ? $displayNameForAvatar : 'User') . '&background=10b981&color=fff&size=256&bold=true';
+} else if (function_exists('normalize_public_file_url')) {
+    $avatarUrl = normalize_public_file_url($avatarUrl);
 }
+
+$success = get_flash('success');
+$error = get_flash('error');
 ?>
 
 <style>
@@ -62,6 +74,21 @@ if ($avatarUrl === '') {
     </div>
 
     <div class="mx-auto max-w-6xl px-4 sm:px-6 relative z-10 -mt-20">
+        <?php if ($success || $error): ?>
+            <div class="mb-6 space-y-3" data-aos="fade-up">
+                <?php if ($success): ?>
+                    <div class="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700 shadow-sm">
+                        <?= e($success); ?>
+                    </div>
+                <?php endif; ?>
+                <?php if ($error): ?>
+                    <div class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700 shadow-sm">
+                        <?= e($error); ?>
+                    </div>
+                <?php endif; ?>
+            </div>
+        <?php endif; ?>
+
         <div class="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
             
             <aside class="lg:col-span-4 space-y-5 lg:sticky lg:top-6" data-aos="fade-right">
@@ -136,23 +163,23 @@ if ($avatarUrl === '') {
                         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                             <div class="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm text-center hover:-translate-y-1 transition-transform">
                                 <div class="mx-auto flex h-10 w-10 items-center justify-center rounded-xl bg-rose-50 text-rose-600 mb-2"><i class="fa-solid fa-book-open text-sm"></i></div>
-                                <p class="text-xl font-black text-slate-800">12</p>
+                                <p class="text-xl font-black text-slate-800"><?= (int) $studentSubjectCount; ?></p>
                                 <p class="text-[9px] font-bold uppercase tracking-widest text-slate-400">Môn học</p>
                             </div>
                             <div class="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm text-center hover:-translate-y-1 transition-transform">
                                 <div class="mx-auto flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 mb-2"><i class="fa-solid fa-check-double text-sm"></i></div>
-                                <p class="text-xl font-black text-slate-800">95%</p>
+                                <p class="text-xl font-black text-slate-800"><?= (int) $studentAttendancePercent; ?>%</p>
                                 <p class="text-[9px] font-bold uppercase tracking-widest text-slate-400">Chuyên cần</p>
                             </div>
                             <div class="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm text-center hover:-translate-y-1 transition-transform">
                                 <div class="mx-auto flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 text-amber-500 mb-2"><i class="fa-solid fa-star text-sm"></i></div>
-                                <p class="text-xl font-black text-slate-800">8.5</p>
-                                <p class="text-[9px] font-bold uppercase tracking-widest text-slate-400">Điểm TB</p>
+                                <p class="text-lg font-black text-slate-800 leading-tight"><?= e($studentProgramScoreLabel); ?></p>
+                                <p class="text-[9px] font-bold uppercase tracking-widest text-slate-400">Điểm chương trình</p>
                             </div>
                             <div class="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm text-center hover:-translate-y-1 transition-transform">
                                 <div class="mx-auto flex h-10 w-10 items-center justify-center rounded-xl bg-sky-50 text-sky-500 mb-2"><i class="fa-solid fa-award text-sm"></i></div>
-                                <p class="text-xl font-black text-slate-800">IELTS</p>
-                                <p class="text-[9px] font-bold uppercase tracking-widest text-slate-400">Chương trình</p>
+                                <p class="text-xl font-black text-slate-800"><?= (int) $studentProgressPercent; ?>%</p>
+                                <p class="text-[9px] font-bold uppercase tracking-widest text-slate-400">Tiến độ khóa học</p>
                             </div>
                         </div>
 
@@ -167,17 +194,17 @@ if ($avatarUrl === '') {
                                     </h3>
                                     <p class="mt-2 text-xs text-slate-500 font-medium">Tiếp tục duy trì ngọn lửa học tập này nhé!</p>
                                     <div class="mt-4 flex items-baseline gap-2 border-t border-slate-50 pt-4">
-                                        <span class="text-3xl font-black text-emerald-600 tracking-tighter"><?= (int) ($studentProgress['completed_lessons'] ?? 0); ?></span>
-                                        <span class="text-xs font-bold text-slate-400 uppercase">/ <?= (int) ($studentProgress['total_lessons'] ?? 0); ?> buổi</span>
+                                        <span class="text-3xl font-black text-emerald-600 tracking-tighter"><?= (int) $studentCompletedLessons; ?></span>
+                                        <span class="text-xs font-bold text-slate-400 uppercase">/ <?= (int) $studentTotalLessons; ?> buổi</span>
                                     </div>
                                 </div>
                                 <div class="w-full md:w-64 bg-slate-50 p-5 rounded-2xl border border-slate-100">
                                     <div class="mb-3 flex items-center justify-between">
                                         <span class="text-[10px] font-black uppercase tracking-widest text-slate-500">Hoàn thành</span>
-                                        <span class="text-rose-600 font-black text-lg"><?= (int) ($studentProgress['progress_percent'] ?? 0); ?>%</span>
+                                        <span class="text-rose-600 font-black text-lg"><?= (int) $studentProgressPercent; ?>%</span>
                                     </div>
                                     <div class="h-3 w-full overflow-hidden rounded-full bg-slate-200 shadow-inner">
-                                        <div class="h-full rounded-full bg-gradient-to-r from-rose-500 to-red-500 transition-all duration-1000 relative" style="width: <?= (int) ($studentProgress['progress_percent'] ?? 0); ?>%"></div>
+                                        <div class="h-full rounded-full bg-gradient-to-r from-rose-500 to-red-500 transition-all duration-1000 relative" style="width: <?= (int) $studentProgressPercent; ?>%"></div>
                                     </div>
                                 </div>
                             </div>
@@ -222,23 +249,9 @@ if ($avatarUrl === '') {
                             <h2 class="text-xl font-black text-slate-800">Thông tin cá nhân</h2>
                         </div>
 
-                        <form action="api_update_profile.php" method="POST" class="space-y-5">
-                            <div class="grid md:grid-cols-2 gap-5">
-                                <div class="space-y-1.5">
-                                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Tên đăng nhập</label>
-                                    <div class="relative">
-                                        <i class="fa-solid fa-user-lock absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
-                                        <input type="text" value="<?= e($username) ?>" readonly class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 text-slate-500 text-sm font-bold border border-slate-100 cursor-not-allowed">
-                                    </div>
-                                </div>
-                                <div class="space-y-1.5">
-                                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Họ và tên *</label>
-                                    <div class="relative">
-                                        <i class="fa-regular fa-id-card absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-                                        <input type="text" name="full_name" value="<?= e($fullName) ?>" required class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white text-slate-800 text-sm font-bold border border-slate-200 outline-none focus-emerald transition-all">
-                                    </div>
-                                </div>
-                            </div>
+                        <form id="profileUpdateForm" action="/api/index.php?resource=users&method=update" method="POST" class="space-y-5">
+                            <?= csrf_input(); ?>
+                            <input type="hidden" name="update_mode" value="profile">
                             <div class="grid md:grid-cols-2 gap-5">
                                 <div class="space-y-1.5">
                                     <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Email liên hệ *</label>
@@ -252,6 +265,22 @@ if ($avatarUrl === '') {
                                     <div class="relative">
                                         <i class="fa-solid fa-phone absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
                                         <input type="tel" name="phone" value="<?= e($phone) ?>" required class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white text-slate-800 text-sm font-bold border border-slate-200 outline-none focus-emerald transition-all">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="grid md:grid-cols-2 gap-5">
+                                <div class="space-y-1.5">
+                                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Tên đăng nhập</label>
+                                    <div class="relative">
+                                        <i class="fa-solid fa-user-lock absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
+                                        <input type="text" value="<?= e($username) ?>" readonly class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 text-slate-500 text-sm font-bold border border-slate-100 cursor-not-allowed">
+                                    </div>
+                                </div>
+                                <div class="space-y-1.5">
+                                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Họ và tên</label>
+                                    <div class="relative">
+                                        <i class="fa-regular fa-id-card absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                                        <input type="text" value="<?= e($fullName) ?>" readonly class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 text-slate-500 text-sm font-bold border border-slate-100 cursor-not-allowed">
                                     </div>
                                 </div>
                             </div>
@@ -285,7 +314,9 @@ if ($avatarUrl === '') {
             </button>
         </div>
         <div class="p-6">
-            <form action="api_update_avatar.php" method="POST" enctype="multipart/form-data" class="flex flex-col items-center">
+            <form id="avatarUpdateForm" action="/api/index.php?resource=users&method=update" method="POST" enctype="multipart/form-data" class="flex flex-col items-center">
+                <?= csrf_input(); ?>
+                <input type="hidden" name="update_mode" value="avatar">
                 <div class="relative h-32 w-32 rounded-full border-4 border-slate-100 mb-6 overflow-hidden bg-slate-50 shadow-inner">
                     <img id="modalAvatarPreview" src="<?= e($avatarUrl) ?>" class="w-full h-full object-cover">
                 </div>
@@ -300,13 +331,15 @@ if ($avatarUrl === '') {
                     </label>
                 </div>
                 
-                <button type="submit" class="mt-6 w-full bg-rose-600 hover:bg-rose-700 text-white font-black py-3.5 rounded-xl shadow-md transition-all text-xs uppercase tracking-widest flex items-center justify-center gap-2">
+                <button id="avatarSaveButton" type="submit" disabled class="mt-6 w-full bg-rose-600 hover:bg-rose-700 text-white font-black py-3.5 rounded-xl shadow-md transition-all text-xs uppercase tracking-widest flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
                     <i class="fa-solid fa-floppy-disk"></i> Lưu hình ảnh
                 </button>
             </form>
         </div>
     </div>
 </div>
+
+<?php require __DIR__ . '/../notification/confirm_modal.php'; ?>
 
 <script>
     // Xử lý Tabs
@@ -322,6 +355,10 @@ if ($avatarUrl === '') {
     function openAvatarModal() {
         const modal = document.getElementById('avatarModal');
         const content = document.getElementById('avatarModalContent');
+        const saveButton = document.getElementById('avatarSaveButton');
+        if (saveButton) {
+            saveButton.disabled = true;
+        }
         modal.classList.remove('hidden');
         modal.classList.add('flex');
         
@@ -357,8 +394,29 @@ if ($avatarUrl === '') {
                 
                 // Thay đổi luôn ảnh ngoài màn hình Sidebar để người dùng xem thử
                 document.getElementById('sidebarAvatar').src = e.target.result;
+
+                const saveButton = document.getElementById('avatarSaveButton');
+                if (saveButton) {
+                    saveButton.disabled = false;
+                }
             }
             reader.readAsDataURL(input.files[0]);
         }
+    }
+
+    const profileUpdateForm = document.getElementById('profileUpdateForm');
+    if (profileUpdateForm) {
+        profileUpdateForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            showConfirm('success', 'Cập nhật hồ sơ?', 'Bạn có chắc muốn lưu các thay đổi thông tin liên hệ này không?', () => profileUpdateForm.submit());
+        });
+    }
+
+    const avatarUpdateForm = document.getElementById('avatarUpdateForm');
+    if (avatarUpdateForm) {
+        avatarUpdateForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            showConfirm('success', 'Cập nhật ảnh đại diện?', 'Bạn có chắc muốn lưu ảnh đại diện mới này không?', () => avatarUpdateForm.submit());
+        });
     }
 </script>

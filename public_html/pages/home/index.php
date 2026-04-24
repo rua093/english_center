@@ -5,6 +5,41 @@ $homeWidgets = [
 	'student_progress' => null,
 	'teacher_schedules' => [],
 ];
+
+$academicModel = new AcademicModel();
+$courseTotal = $academicModel->countCourses();
+$courseRows = $courseTotal > 0
+	? $academicModel->listCoursesPage(1, $courseTotal)
+	: [];
+
+$buildCourseSlug = static function (string $value): string {
+	$slug = strtolower(trim($value));
+	$slug = preg_replace('/[^a-z0-9\s-]/u', '', $slug) ?? $slug;
+	$slug = preg_replace('/[\s-]+/', '-', $slug) ?? $slug;
+	return trim($slug, '-');
+};
+
+$homeCourses = [];
+foreach ($courseRows as $row) {
+	$courseName = trim((string) ($row['course_name'] ?? ''));
+	if ($courseName === '') {
+		continue;
+	}
+
+	$slug = $buildCourseSlug($courseName);
+	$homeCourses[] = [
+		'slug' => $slug,
+		'title' => $courseName,
+		'short_desc' => (string) ($row['description'] ?? 'Chương trình học được xây dựng theo lộ trình rõ ràng, phù hợp cho từng học viên.'),
+		'price' => number_format((float) ($row['base_price'] ?? 0), 0, ',', '.') . 'đ',
+		'total_sessions' => max(0, (int) ($row['total_sessions'] ?? 0)),
+		'level' => 'Đang cập nhật',
+		'image' => trim((string) ($row['image_url'] ?? '')),
+		'roadmap_count' => max(0, (int) ($row['roadmap_count'] ?? 0)),
+		'class_count' => max(0, (int) ($row['class_count'] ?? 0)),
+	];
+}
+
 if (is_logged_in()) {
 	$user = auth_user();
 	if ($user) {
