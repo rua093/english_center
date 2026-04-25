@@ -36,6 +36,26 @@ final class ExamsTableModel extends BaseTableModel
         return $this->fetchAll($sql, ['class_id' => $classId]);
     }
 
+    public function listExamRowsByClassAndStudent(int $classId, int $studentId): array
+    {
+        if ($classId <= 0 || $studentId <= 0) {
+            return [];
+        }
+
+        $sql = "SELECT id, class_id, student_id, exam_name, exam_type, exam_date,
+                score_listening, score_speaking, score_reading, score_writing,
+                result, teacher_comment
+            FROM exams
+            WHERE class_id = :class_id
+              AND student_id = :student_id
+            ORDER BY exam_date ASC, exam_name ASC, id ASC";
+
+        return $this->fetchAll($sql, [
+            'class_id' => $classId,
+            'student_id' => $studentId,
+        ]);
+    }
+
     public function countExamRowsForColumn(int $classId, string $examName, string $examType, string $examDate): int
     {
         if ($classId <= 0) {

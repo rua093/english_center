@@ -18,6 +18,7 @@ function page_route_definitions(): array
 		'admin' => ['directory' => 'admin', 'aliases' => []],
 		'profile' => ['directory' => 'profile', 'aliases' => []],
 		'classes-my' => ['directory' => 'my-classes', 'aliases' => ['my-classes']],
+		'classes-my-details' => ['directory' => 'my-classes/my-classes-details', 'aliases' => ['my-classes-details']],
 		'assignments-my' => ['directory' => 'assignments', 'aliases' => ['assignments']],
 		'dashboard-student' => ['directory' => 'student-dashboard', 'aliases' => ['student-dashboard']],
 		'dashboard-teacher' => ['directory' => 'teacher-dashboard', 'aliases' => ['teacher-dashboard']],

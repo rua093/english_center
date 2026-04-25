@@ -176,20 +176,30 @@ function api_assignments_delete_action(): void
 
 function api_assignments_submit_action(): void
 {
-	api_guard_permission('student.assignment.submit');
 	api_require_post(page_url('dashboard-student'));
 
 	$assignmentId = input_int($_POST, 'assignment_id');
 	$fileUrl = input_string($_POST, 'file_url');
+	$redirectTo = safe_referer_path(input_string($_POST, 'redirect_to'));
+	if ($redirectTo === '') {
+		$redirectTo = page_url('dashboard-student');
+	}
 	$user = auth_user();
+	$userRole = (string) ($user['role'] ?? '');
+	$canSubmitAssignment = has_permission('student.assignment.submit') || in_array($userRole, ['student', 'admin'], true);
+
+	if (!$canSubmitAssignment) {
+		set_flash('error', 'Bạn không có quyền nộp bài tập.');
+		redirect($redirectTo);
+	}
 
 	if ($assignmentId > 0 && $user) {
 		$uploadPath = $fileUrl;
 		if (!empty($_FILES['submission_file']['name'])) {
-			$fileUpload = store_uploaded_file($_FILES['submission_file'], sprintf('submission-%d-%d', (int) $user['id'], $assignmentId));
+			$fileUpload = store_uploaded_file($_FILES['submission_file'], sprintf('submission-%d-%d', (int) $user['id'], $assignmentId), 'homeworks');
 			if ($fileUpload === null) {
 				set_flash('error', 'Tải lên bài làm thất bại. Vui lòng thử lại.');
-				redirect(page_url('dashboard-student'));
+				redirect($redirectTo);
 			}
 			$uploadPath = $fileUpload;
 		}
@@ -202,7 +212,7 @@ function api_assignments_submit_action(): void
 		}
 	}
 
-	redirect(page_url('dashboard-student'));
+	redirect($redirectTo);
 }
 
 function api_assignments_edit_action(): void
