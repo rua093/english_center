@@ -41,11 +41,7 @@ function submissions_grade_resolve_redirect_query(array $source, string $redirec
 			$query['class_per_page'] = $classPerPage;
 		}
 
-		$lessonId = max(0, (int) ($source['lesson_id'] ?? 0));
-		if ($lessonId > 0) {
-			$query['lesson_id'] = $lessonId;
-		}
-
+		// Don't include schedule_id when redirecting to classrooms — it triggers lesson modal auto-open.
 		$scheduleId = max(0, (int) ($source['schedule_id'] ?? 0));
 		$focusScheduleId = max(0, (int) ($source['focus_schedule_id'] ?? 0));
 		if ($focusScheduleId <= 0) {
@@ -94,7 +90,7 @@ $commentMapRaw = $_POST['teacher_comment'] ?? [];
 $commentMap = is_array($commentMapRaw) ? $commentMapRaw : [];
 
 $classId = max(0, (int) ($_POST['class_id'] ?? 0));
-$lessonId = max(0, (int) ($_POST['lesson_id'] ?? 0));
+$scheduleId = max(0, (int) ($_POST['schedule_id'] ?? 0));
 $assignmentId = max(0, (int) ($_POST['assignment_id'] ?? 0));
 $submissionPage = max(1, (int) ($_POST['submission_page'] ?? 1));
 $submissionPerPage = max(1, (int) ($_POST['submission_per_page'] ?? 10));

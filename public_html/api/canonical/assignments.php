@@ -6,7 +6,7 @@ require_once __DIR__ . '/../../core/page_actions.php';
 require_once __DIR__ . '/../../models/AcademicModel.php';
 require_once __DIR__ . '/../../models/UserModel.php';
 
-function assignments_manage_redirect_query(array $source): array
+function assignments_manage_redirect_query(array $source, string $redirectPage = ''): array
 {
 	$query = [];
 
@@ -30,13 +30,11 @@ function assignments_manage_redirect_query(array $source): array
 		$query['class_per_page'] = $classPerPage;
 	}
 
-	$lessonId = input_int($source, 'lesson_id');
-	if ($lessonId > 0) {
-		$query['lesson_id'] = $lessonId;
-	}
-
 	$scheduleId = input_int($source, 'schedule_id');
-	if ($scheduleId > 0) {
+
+	// On classrooms page, schedule_id in URL triggers lesson modal auto-open.
+	// Only include it for assignments-academic page; use focus_schedule_id for classrooms.
+	if ($scheduleId > 0 && $redirectPage !== 'classrooms-academic') {
 		$query['schedule_id'] = $scheduleId;
 	}
 
@@ -80,7 +78,7 @@ function api_assignments_save_action(): void
 	$assignmentId = input_int($_POST, 'id');
 	api_guard_permission($assignmentId > 0 ? 'academic.assignments.update' : 'academic.assignments.create');
 	$redirectPage = assignments_manage_redirect_page($_POST, 'assignments-academic');
-	$redirectQuery = assignments_manage_redirect_query($_POST);
+	$redirectQuery = assignments_manage_redirect_query($_POST, $redirectPage);
 	$listPath = page_url($redirectPage, $redirectQuery);
 
 	$editPath = $listPath;
@@ -126,12 +124,12 @@ function api_assignments_save_action(): void
 	]);
 
 	$classId = input_int($payload, 'class_id');
-	$lessonId = input_int($payload, 'lesson_id');
+	$scheduleId = input_int($payload, 'schedule_id');
 	if ($classId <= 0) {
 		$requiredErrors['class_id'] = 'Lớp học';
 	}
-	if (input_int($payload, 'lesson_id') <= 0) {
-		$requiredErrors['lesson_id'] = 'Buổi học';
+	if ($scheduleId <= 0) {
+		$requiredErrors['schedule_id'] = 'Buổi học';
 	}
 
 	if (!empty($requiredErrors)) {
@@ -139,17 +137,17 @@ function api_assignments_save_action(): void
 		redirect($editPath);
 	}
 
-	$lessonBelongsToClass = false;
-	foreach ($academicModel->assignmentLookups() as $lessonRow) {
-		if ((int) ($lessonRow['id'] ?? 0) !== $lessonId) {
+	$scheduleBelongsToClass = false;
+	foreach ($academicModel->assignmentLookups() as $scheduleRow) {
+		if ((int) ($scheduleRow['id'] ?? 0) !== $scheduleId) {
 			continue;
 		}
 
-		$lessonBelongsToClass = (int) ($lessonRow['class_id'] ?? 0) === $classId;
+		$scheduleBelongsToClass = (int) ($scheduleRow['class_id'] ?? 0) === $classId;
 		break;
 	}
 
-	if (!$lessonBelongsToClass) {
+	if (!$scheduleBelongsToClass) {
 		set_flash('error', 'Buổi học không thuộc lớp đã chọn. Vui lòng chọn lại.');
 		redirect($editPath);
 	}
@@ -173,7 +171,7 @@ function api_assignments_delete_action(): void
 	}
 
 	$redirectPage = assignments_manage_redirect_page($_GET, 'assignments-academic');
-	redirect(page_url($redirectPage, assignments_manage_redirect_query($_GET)));
+	redirect(page_url($redirectPage, assignments_manage_redirect_query($_GET, $redirectPage)));
 }
 
 function api_assignments_submit_action(): void

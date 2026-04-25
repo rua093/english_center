@@ -192,7 +192,6 @@ $adminTitle = 'Đăng ký khóa học';
                     <small id="registration-promo-hint" class="mt-1 block text-xs text-slate-500">Chọn khóa học để lọc ưu đãi áp dụng tương ứng.</small>
                 </label>
 
-        
 
                 <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 lg:col-span-2">
                     <h4 class="mb-3 text-sm font-extrabold uppercase tracking-wide text-slate-600">Xem trước hóa đơn sẽ tạo</h4>
@@ -248,6 +247,9 @@ $adminTitle = 'Đăng ký khóa học';
 
         const courseMap = <?= json_encode($courseMapForJs, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
 
+        const allClassOptions = classSelect ? Array.from(classSelect.options).map(function(o) { return o.cloneNode(true); }) : [];
+        const allPackageOptions = packageSelect ? Array.from(packageSelect.options).map(function(o) { return o.cloneNode(true); }) : [];
+
         if (!courseSelect || !classSelect || !packageSelect) {
             return;
         }
@@ -259,26 +261,35 @@ $adminTitle = 'Đăng ký khóa học';
 
         function syncClassOptions() {
             const selectedCourseId = Number(courseSelect.value || 0);
-            const options = Array.from(classSelect.options || []);
             let visibleCount = 0;
 
-            options.forEach(function (option) {
-                if (!option.value) {
-                    option.hidden = false;
+            classSelect.innerHTML = '';
+            allClassOptions.forEach(function (option) {
+                const clone = option.cloneNode(true);
+                if (!clone.value) {
+                    classSelect.appendChild(clone);
                     return;
                 }
 
-                const optionCourseId = Number(option.dataset.courseId || 0);
+                const optionCourseId = Number(clone.dataset.courseId || 0);
                 const show = selectedCourseId > 0 && optionCourseId === selectedCourseId;
-                option.hidden = !show;
                 if (show) {
+                    classSelect.appendChild(clone);
                     visibleCount += 1;
                 }
             });
 
+            if (classSelect.tomselect) {
+                classSelect.tomselect.sync();
+            }
+
             if (selectedCourseId <= 0) {
                 classSelect.value = '';
                 classSelect.disabled = true;
+                if (classSelect.tomselect) {
+                    classSelect.tomselect.setValue('');
+                    classSelect.tomselect.disable();
+                }
                 if (classHint) {
                     classHint.textContent = 'Vui lòng chọn khóa học trước để lọc lớp phù hợp.';
                 }
@@ -288,6 +299,10 @@ $adminTitle = 'Đăng ký khóa học';
             if (visibleCount <= 0) {
                 classSelect.value = '';
                 classSelect.disabled = true;
+                if (classSelect.tomselect) {
+                    classSelect.tomselect.setValue('');
+                    classSelect.tomselect.disable();
+                }
                 if (classHint) {
                     classHint.textContent = 'Khóa học này chưa có lớp khả dụng để đăng ký.';
                 }
@@ -297,11 +312,17 @@ $adminTitle = 'Đăng ký khóa học';
             const selectedOption = classSelect.selectedOptions && classSelect.selectedOptions[0]
                 ? classSelect.selectedOptions[0]
                 : null;
-            if (selectedOption && selectedOption.hidden) {
+            if (!selectedOption || !selectedOption.value) {
                 classSelect.value = '';
+                if (classSelect.tomselect) {
+                    classSelect.tomselect.setValue('');
+                }
             }
 
             classSelect.disabled = false;
+            if (classSelect.tomselect) {
+                classSelect.tomselect.enable();
+            }
             if (classHint) {
                 classHint.textContent = 'Chỉ hiển thị lớp thuộc khóa học đã chọn.';
             }
@@ -309,26 +330,35 @@ $adminTitle = 'Đăng ký khóa học';
 
         function syncPackageOptions() {
             const selectedCourseId = Number(courseSelect.value || 0);
-            const options = Array.from(packageSelect.options || []);
             let visibleCount = 0;
 
-            options.forEach(function (option) {
-                if (!option.value || Number(option.value) === 0) {
-                    option.hidden = false;
+            packageSelect.innerHTML = '';
+            allPackageOptions.forEach(function (option) {
+                const clone = option.cloneNode(true);
+                if (!clone.value || Number(clone.value) === 0) {
+                    packageSelect.appendChild(clone);
                     return;
                 }
 
-                const optionCourseId = Number(option.dataset.courseId || 0);
+                const optionCourseId = Number(clone.dataset.courseId || 0);
                 const show = selectedCourseId > 0 && (optionCourseId === 0 || optionCourseId === selectedCourseId);
-                option.hidden = !show;
                 if (show) {
+                    packageSelect.appendChild(clone);
                     visibleCount += 1;
                 }
             });
 
+            if (packageSelect.tomselect) {
+                packageSelect.tomselect.sync();
+            }
+
             if (selectedCourseId <= 0) {
                 packageSelect.value = '0';
                 packageSelect.disabled = true;
+                if (packageSelect.tomselect) {
+                    packageSelect.tomselect.setValue('0');
+                    packageSelect.tomselect.disable();
+                }
                 if (promoHint) {
                     promoHint.textContent = 'Vui lòng chọn khóa học trước khi chọn ưu đãi.';
                 }
@@ -338,11 +368,17 @@ $adminTitle = 'Đăng ký khóa học';
             const selectedOption = packageSelect.selectedOptions && packageSelect.selectedOptions[0]
                 ? packageSelect.selectedOptions[0]
                 : null;
-            if (selectedOption && selectedOption.hidden) {
+            if (!selectedOption || !selectedOption.value) {
                 packageSelect.value = '0';
+                if (packageSelect.tomselect) {
+                    packageSelect.tomselect.setValue('0');
+                }
             }
 
             packageSelect.disabled = false;
+            if (packageSelect.tomselect) {
+                packageSelect.tomselect.enable();
+            }
             if (promoHint) {
                 promoHint.textContent = visibleCount > 0
                     ? 'Đang hiển thị ưu đãi toàn trung tâm và ưu đãi theo khóa học đã chọn.'
@@ -603,3 +639,5 @@ $adminTitle = 'Đăng ký khóa học';
         });
     })();
 </script>
+
+

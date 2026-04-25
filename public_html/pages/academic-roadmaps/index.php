@@ -66,7 +66,7 @@ $selectedOutlineContent = trim((string) ($editingRoadmap['outline_content'] ?? '
             <label>
                 Khóa học
                 <select name="course_id">
-                    <option value="0">-- Chọn khóa học --</option>
+                    <option value="">-- Chọn khóa học --</option>
                     <?php foreach ($courseOptions as $course): ?>
                         <?php $courseId = (int) ($course['id'] ?? 0); ?>
                         <option value="<?= $courseId; ?>" <?= $selectedCourseId === $courseId ? 'selected' : ''; ?>><?= e((string) ($course['course_name'] ?? ('Khóa #' . $courseId))); ?></option>

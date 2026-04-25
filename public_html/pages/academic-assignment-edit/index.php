@@ -13,6 +13,9 @@ $editingAssignment = $assignmentId > 0 ? $academicModel->findAssignment($assignm
 $lessonRows = $academicModel->assignmentLookups();
 $lessons = array_map(static function (array $lesson): array {
     $title = trim((string) ($lesson['actual_title'] ?? ''));
+    if ($title === '') {
+        $title = 'Buổi học ' . ($lesson['study_date'] ?? '') . ' ' . ($lesson['start_time'] ?? '');
+    }
     $className = trim((string) ($lesson['class_name'] ?? ''));
     return [
         'id' => (int) ($lesson['id'] ?? 0),
@@ -36,11 +39,11 @@ foreach ($lessons as $lesson) {
 }
 
 $selectedAssignmentClassId = 0;
-$selectedAssignmentLessonId = 0;
+$selectedAssignmentScheduleId = 0;
 if (is_array($editingAssignment)) {
-    $selectedAssignmentLessonId = (int) ($editingAssignment['lesson_id'] ?? 0);
+    $selectedAssignmentScheduleId = (int) ($editingAssignment['schedule_id'] ?? 0);
     foreach ($lessons as $lesson) {
-        if ((int) ($lesson['id'] ?? 0) !== $selectedAssignmentLessonId) {
+        if ((int) ($lesson['id'] ?? 0) !== $selectedAssignmentScheduleId) {
             continue;
         }
 
@@ -49,15 +52,15 @@ if (is_array($editingAssignment)) {
     }
 } else {
     $requestedClassId = max(0, (int) ($_GET['class_id'] ?? 0));
-    $requestedLessonId = max(0, (int) ($_GET['lesson_id'] ?? 0));
+    $requestedScheduleId = max(0, (int) ($_GET['schedule_id'] ?? 0));
 
     if ($requestedClassId > 0 && isset($assignmentClasses[$requestedClassId])) {
         $selectedAssignmentClassId = $requestedClassId;
     }
 
-    if ($requestedLessonId > 0) {
+    if ($requestedScheduleId > 0) {
         foreach ($lessons as $lesson) {
-            if ((int) ($lesson['id'] ?? 0) !== $requestedLessonId) {
+            if ((int) ($lesson['id'] ?? 0) !== $requestedScheduleId) {
                 continue;
             }
 
@@ -67,7 +70,7 @@ if (is_array($editingAssignment)) {
             }
 
             $selectedAssignmentClassId = $lessonClassId;
-            $selectedAssignmentLessonId = $requestedLessonId;
+            $selectedAssignmentScheduleId = $requestedScheduleId;
             break;
         }
     }
@@ -95,10 +98,10 @@ $adminTitle = $editingAssignment ? 'Học vụ - Sửa bài tập' : 'Học vụ
                     </select>
                 </label>
                 <label>Buổi học
-                    <select id="assignment-lesson-select" name="lesson_id" required>
+                    <select id="assignment-lesson-select" name="schedule_id" required>
                         <option value="">-- Chọn buổi học --</option>
                         <?php foreach ($lessons as $lesson): ?>
-                            <option data-class-id="<?= (int) ($lesson['class_id'] ?? 0); ?>" value="<?= (int) $lesson['id']; ?>" <?= $selectedAssignmentLessonId === (int) $lesson['id'] ? 'selected' : ''; ?>><?= e((string) $lesson['title']); ?></option>
+                            <option data-class-id="<?= (int) ($lesson['class_id'] ?? 0); ?>" value="<?= (int) $lesson['id']; ?>" <?= $selectedAssignmentScheduleId === (int) $lesson['id'] ? 'selected' : ''; ?>><?= e((string) $lesson['title']); ?></option>
                         <?php endforeach; ?>
                     </select>
                 </label>
@@ -142,13 +145,7 @@ $adminTitle = $editingAssignment ? 'Học vụ - Sửa bài tập' : 'Học vụ
         placeholder.textContent = '-- Chọn buổi học --';
         lessonSelect.appendChild(placeholder);
 
-        if (selectedClassId === '') {
-            lessonSelect.value = '';
-            lessonSelect.disabled = true;
-            return;
-        }
-
-        const matchingLessons = lessonOptions.filter(function (lesson) {
+        const matchingLessons = selectedClassId === '' ? [] : lessonOptions.filter(function (lesson) {
             return lesson.classId === selectedClassId;
         });
 
@@ -159,11 +156,36 @@ $adminTitle = $editingAssignment ? 'Học vụ - Sửa bài tập' : 'Học vụ
             lessonSelect.appendChild(option);
         });
 
-        lessonSelect.disabled = matchingLessons.length === 0;
+        if (lessonSelect.tomselect) {
+            lessonSelect.tomselect.sync();
+        }
+
+        if (selectedClassId === '' || matchingLessons.length === 0) {
+            lessonSelect.value = '';
+            lessonSelect.disabled = true;
+            if (lessonSelect.tomselect) {
+                lessonSelect.tomselect.setValue('');
+                lessonSelect.tomselect.disable();
+            }
+            return;
+        }
+
+        lessonSelect.disabled = false;
+        if (lessonSelect.tomselect) {
+            lessonSelect.tomselect.enable();
+        }
 
         const safePreferredValue = String(preferredValue || '');
         if (safePreferredValue !== '' && matchingLessons.some(function (lesson) { return lesson.value === safePreferredValue; })) {
             lessonSelect.value = safePreferredValue;
+            if (lessonSelect.tomselect) {
+                lessonSelect.tomselect.setValue(safePreferredValue);
+            }
+        } else {
+            lessonSelect.value = '';
+            if (lessonSelect.tomselect) {
+                lessonSelect.tomselect.setValue('');
+            }
         }
     }
 

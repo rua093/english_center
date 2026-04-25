@@ -3,7 +3,7 @@ require_permission('academic.submissions.view');
 
 $academicModel = new AcademicModel();
 $selectedClassId = max(0, (int) ($_GET['class_id'] ?? 0));
-$selectedLessonId = max(0, (int) ($_GET['lesson_id'] ?? 0));
+$selectedScheduleId = max(0, (int) ($_GET['schedule_id'] ?? 0));
 $selectedAssignmentId = max(0, (int) ($_GET['assignment_id'] ?? 0));
 $gradeStatus = trim((string) ($_GET['grade_status'] ?? 'all'));
 if (!in_array($gradeStatus, ['pending', 'graded', 'all', 'missing'], true)) {
@@ -28,35 +28,35 @@ foreach ($lessons as $lesson) {
 
 if ($selectedClassId > 0 && !isset($classOptions[$selectedClassId])) {
     $selectedClassId = 0;
-    $selectedLessonId = 0;
+    $selectedScheduleId = 0;
     $selectedAssignmentId = 0;
 }
 
-$lessonOptions = [];
+$scheduleOptions = [];
 foreach ($lessons as $lesson) {
     $classId = (int) ($lesson['class_id'] ?? 0);
     if ($selectedClassId > 0 && $classId !== $selectedClassId) {
         continue;
     }
-    $lessonOptions[] = $lesson;
+    $scheduleOptions[] = $lesson;
 }
 
-$isValidLesson = false;
-foreach ($lessonOptions as $lesson) {
-    if ((int) ($lesson['id'] ?? 0) === $selectedLessonId) {
-        $isValidLesson = true;
+$isValidSchedule = false;
+foreach ($scheduleOptions as $lesson) {
+    if ((int) ($lesson['id'] ?? 0) === $selectedScheduleId) {
+        $isValidSchedule = true;
         break;
     }
 }
-if ($selectedLessonId > 0 && !$isValidLesson) {
-    $selectedLessonId = 0;
+if ($selectedScheduleId > 0 && !$isValidSchedule) {
+    $selectedScheduleId = 0;
     $selectedAssignmentId = 0;
 }
 
 $assignmentOptions = [];
-if ($selectedLessonId > 0) {
+if ($selectedScheduleId > 0) {
     foreach ($assignments as $assignment) {
-        if ((int) ($assignment['lesson_id'] ?? 0) !== $selectedLessonId) {
+        if ((int) ($assignment['schedule_id'] ?? 0) !== $selectedScheduleId) {
             continue;
         }
         $assignmentOptions[] = $assignment;
@@ -130,25 +130,25 @@ if (!is_string($assignmentsJson)) {
 
             <label class="block rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
                 <span class="block text-sm font-semibold text-slate-700">Buổi học</span>
-                <select id="grading-lesson-select" name="lesson_id" class="mt-2 h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-base font-medium text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400" <?= $selectedClassId > 0 ? '' : 'disabled'; ?>>
+                <select id="grading-lesson-select" name="schedule_id" class="mt-2 h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-base font-medium text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400" <?= $selectedClassId > 0 ? '' : 'disabled'; ?>>
                     <option value="0">-- Chọn buổi --</option>
-                    <?php foreach ($lessonOptions as $lesson): ?>
+                    <?php foreach ($scheduleOptions as $lesson): ?>
                         <?php
-                        $lessonId = (int) ($lesson['id'] ?? 0);
-                        $lessonTitle = (string) ($lesson['actual_title'] ?? ('Buổi #' . $lessonId));
-                        $lessonDate = trim((string) ($lesson['lesson_date'] ?? ''));
+                        $scheduleId = (int) ($lesson['id'] ?? 0);
+                        $lessonTitle = (string) ($lesson['actual_title'] ?? ('Buổi #' . $scheduleId));
+                        $lessonDate = trim((string) ($lesson['study_date'] ?? ''));
                         if ($lessonDate !== '') {
                             $lessonTitle .= ' (' . $lessonDate . ')';
                         }
                         ?>
-                        <option value="<?= $lessonId; ?>" <?= $selectedLessonId === $lessonId ? 'selected' : ''; ?>><?= e($lessonTitle); ?></option>
+                        <option value="<?= $scheduleId; ?>" <?= $selectedScheduleId === $scheduleId ? 'selected' : ''; ?>><?= e($lessonTitle); ?></option>
                     <?php endforeach; ?>
                 </select>
             </label>
 
             <label class="block rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
                 <span class="block text-sm font-semibold text-slate-700">Bài tập</span>
-                <select id="grading-assignment-select" name="assignment_id" class="mt-2 h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-base font-medium text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400" <?= $selectedLessonId > 0 ? '' : 'disabled'; ?>>
+                <select id="grading-assignment-select" name="assignment_id" class="mt-2 h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-base font-medium text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400" <?= $selectedScheduleId > 0 ? '' : 'disabled'; ?>>
                     <option value="0">-- Chọn bài tập --</option>
                     <?php foreach ($assignmentOptions as $assignment): ?>
                         <?php
@@ -196,7 +196,7 @@ if (!is_string($assignmentsJson)) {
         <form id="batch-grade-form" class="mt-3 grid gap-3" method="post" action="/api/submissions/grade">
             <?= csrf_input(); ?>
             <input id="context-class-id" type="hidden" name="class_id" value="<?= (int) $selectedClassId; ?>">
-            <input id="context-lesson-id" type="hidden" name="lesson_id" value="<?= (int) $selectedLessonId; ?>">
+            <input id="context-lesson-id" type="hidden" name="schedule_id" value="<?= (int) $selectedScheduleId; ?>">
             <input id="context-assignment-id" type="hidden" name="assignment_id" value="<?= (int) $selectedAssignmentId; ?>">
             <input id="context-grade-status" type="hidden" name="grade_status" value="<?= e($gradeStatus); ?>">
             <input type="hidden" name="submission_page" value="1">
@@ -256,7 +256,7 @@ if (!is_string($assignmentsJson)) {
 
     const state = {
         classId: <?= (int) $selectedClassId; ?>,
-        lessonId: <?= (int) $selectedLessonId; ?>,
+        scheduleId: <?= (int) $selectedScheduleId; ?>,
         assignmentId: <?= (int) $selectedAssignmentId; ?>,
         gradeStatus: <?= json_encode($gradeStatus, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
         roster: [],
@@ -304,7 +304,7 @@ if (!is_string($assignmentsJson)) {
             contextClassId.value = String(state.classId);
         }
         if (contextLessonId) {
-            contextLessonId.value = String(state.lessonId);
+            contextLessonId.value = String(state.scheduleId);
         }
         if (contextAssignmentId) {
             contextAssignmentId.value = String(state.assignmentId);
@@ -324,10 +324,10 @@ if (!is_string($assignmentsJson)) {
             currentUrl.searchParams.delete('class_id');
         }
 
-        if (state.lessonId > 0) {
-            currentUrl.searchParams.set('lesson_id', String(state.lessonId));
+        if (state.scheduleId > 0) {
+            currentUrl.searchParams.set('schedule_id', String(state.scheduleId));
         } else {
-            currentUrl.searchParams.delete('lesson_id');
+            currentUrl.searchParams.delete('schedule_id');
         }
 
         if (state.assignmentId > 0) {
@@ -349,8 +349,8 @@ if (!is_string($assignmentsJson)) {
         return lessons.filter((lesson) => toInt(lesson.class_id) === classId);
     }
 
-    function assignmentsByLesson(lessonId) {
-        return assignments.filter((assignment) => toInt(assignment.lesson_id) === lessonId);
+    function assignmentsBySchedule(scheduleId) {
+        return assignments.filter((assignment) => toInt(assignment.schedule_id) === scheduleId);
     }
 
     function buildLessonLabel(lesson) {
@@ -393,20 +393,20 @@ if (!is_string($assignmentsJson)) {
         }
 
         const availableLessons = lessonsByClass(state.classId);
-        if (!availableLessons.some((lesson) => toInt(lesson.id) === state.lessonId)) {
-            state.lessonId = 0;
+        if (!availableLessons.some((lesson) => toInt(lesson.id) === state.scheduleId)) {
+            state.scheduleId = 0;
         }
 
         setSelectOptions(
             lessonSelect,
             availableLessons,
             '-- Chọn buổi học --',
-            state.lessonId,
+            state.scheduleId,
             buildLessonLabel
         );
         lessonSelect.disabled = state.classId <= 0;
 
-        const availableAssignments = assignmentsByLesson(state.lessonId);
+        const availableAssignments = assignmentsBySchedule(state.scheduleId);
         if (!availableAssignments.some((assignment) => toInt(assignment.id) === state.assignmentId)) {
             state.assignmentId = 0;
         }
@@ -687,7 +687,7 @@ if (!is_string($assignmentsJson)) {
             return;
         }
 
-        if (state.lessonId <= 0) {
+        if (state.scheduleId <= 0) {
             setStateMessage('Chọn buổi học để tiếp tục.', 'info');
             return;
         }
@@ -726,7 +726,7 @@ if (!is_string($assignmentsJson)) {
         updateHiddenContext();
         syncUrlWithoutReload();
 
-        if (state.classId <= 0 || state.lessonId <= 0 || state.assignmentId <= 0) {
+        if (state.classId <= 0 || state.scheduleId <= 0 || state.assignmentId <= 0) {
             state.loading = false;
             state.errorMessage = '';
             state.lastLoadedKey = '';
@@ -778,7 +778,7 @@ if (!is_string($assignmentsJson)) {
 
     function syncStateFromControls() {
         state.classId = toInt(classSelect.value);
-        state.lessonId = toInt(lessonSelect.value);
+        state.scheduleId = toInt(lessonSelect.value);
         state.assignmentId = toInt(assignmentSelect.value);
         state.gradeStatus = normalizeText(statusSelect.value) || 'all';
         updateHiddenContext();
@@ -788,7 +788,7 @@ if (!is_string($assignmentsJson)) {
     classSelect.addEventListener('change', () => {
         captureDraftsFromDom();
         state.classId = toInt(classSelect.value);
-        state.lessonId = 0;
+        state.scheduleId = 0;
         state.assignmentId = 0;
         state.lastLoadedKey = '';
         state.roster = [];
@@ -800,7 +800,7 @@ if (!is_string($assignmentsJson)) {
 
     lessonSelect.addEventListener('change', () => {
         captureDraftsFromDom();
-        state.lessonId = toInt(lessonSelect.value);
+        state.scheduleId = toInt(lessonSelect.value);
         state.assignmentId = 0;
         state.lastLoadedKey = '';
         state.roster = [];

@@ -396,7 +396,7 @@ final class AcademicModel
 
     public function assignmentLookups(): array
     {
-        return $this->lessonsTable->listForAssignmentLookup();
+        return $this->schedulesTable->listForAssignmentLookup();
     }
 
     public function classroomLookups(): array

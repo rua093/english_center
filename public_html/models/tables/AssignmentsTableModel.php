@@ -17,11 +17,11 @@ final class AssignmentsTableModel extends BaseTableModel
 
     public function listDetailed(): array
     {
-        $sql = "SELECT a.id, a.lesson_id, a.title, a.description, a.deadline, a.file_url,
-                l.actual_title AS lesson_title, c.class_name
+        $sql = "SELECT a.id, a.schedule_id, a.title, a.description, a.deadline, a.file_url,
+                s.study_date AS lesson_date, c.class_name
             FROM assignments a
-            INNER JOIN lessons l ON l.id = a.lesson_id
-            INNER JOIN classes c ON c.id = l.class_id
+            INNER JOIN schedules s ON s.id = a.schedule_id
+            INNER JOIN classes c ON c.id = s.class_id
             ORDER BY a.deadline DESC";
         return $this->fetchAll($sql);
     }
@@ -29,11 +29,11 @@ final class AssignmentsTableModel extends BaseTableModel
     public function listDetailedPage(int $page, int $perPage): array
     {
         $pagination = $this->pagination($page, $perPage, 10, 200);
-        $sql = "SELECT a.id, a.lesson_id, a.title, a.description, a.deadline, a.file_url,
-                l.actual_title AS lesson_title, c.class_name
+        $sql = "SELECT a.id, a.schedule_id, a.title, a.description, a.deadline, a.file_url,
+                s.study_date AS lesson_date, c.class_name
             FROM assignments a
-            INNER JOIN lessons l ON l.id = a.lesson_id
-            INNER JOIN classes c ON c.id = l.class_id
+            INNER JOIN schedules s ON s.id = a.schedule_id
+            INNER JOIN classes c ON c.id = s.class_id
             ORDER BY a.deadline DESC
             LIMIT {$pagination['limit']} OFFSET {$pagination['offset']}";
         return $this->fetchAll($sql);
@@ -41,14 +41,14 @@ final class AssignmentsTableModel extends BaseTableModel
 
     public function findById(int $id): ?array
     {
-        return $this->findByIdFrom('assignments', $id, 'id, lesson_id, title, description, deadline, file_url');
+        return $this->findByIdFrom('assignments', $id, 'id, schedule_id, title, description, deadline, file_url');
     }
 
     public function save(array $data): void
     {
         $id = (int) ($data['id'] ?? 0);
         $payload = [
-            'lesson_id' => (int) ($data['lesson_id'] ?? 0),
+            'schedule_id' => (int) ($data['schedule_id'] ?? 0),
             'title' => trim((string) ($data['title'] ?? '')),
             'description' => (string) ($data['description'] ?? ''),
             'deadline' => (string) ($data['deadline'] ?? $data['due_date'] ?? ''),
@@ -56,15 +56,15 @@ final class AssignmentsTableModel extends BaseTableModel
         ];
 
         if ($id > 0) {
-            $sql = 'UPDATE assignments SET lesson_id=:lesson_id, title=:title, description=:description,
+            $sql = 'UPDATE assignments SET schedule_id=:schedule_id, title=:title, description=:description,
                 deadline=:deadline, file_url=:file_url WHERE id=:id';
             $payload['id'] = $id;
             $this->executeStatement($sql, $payload);
             return;
         }
 
-        $sql = 'INSERT INTO assignments (lesson_id, title, description, deadline, file_url)
-            VALUES (:lesson_id, :title, :description, :deadline, :file_url)';
+        $sql = 'INSERT INTO assignments (schedule_id, title, description, deadline, file_url)
+            VALUES (:schedule_id, :title, :description, :deadline, :file_url)';
         $this->executeStatement($sql, $payload);
     }
 
@@ -79,8 +79,8 @@ final class AssignmentsTableModel extends BaseTableModel
         $sql = "SELECT a.id, a.title, a.deadline, a.description,
                 sub.submitted_at, sub.score, sub.teacher_comment
             FROM assignments a
-            INNER JOIN lessons l ON l.id = a.lesson_id
-            INNER JOIN classes c ON c.id = l.class_id
+            INNER JOIN schedules s ON s.id = a.schedule_id
+            INNER JOIN classes c ON c.id = s.class_id
             INNER JOIN class_students cs ON cs.class_id = c.id AND cs.student_id = :student_id_class
             LEFT JOIN submissions sub ON sub.assignment_id = a.id AND sub.student_id = :student_id_submission
             ORDER BY a.deadline ASC

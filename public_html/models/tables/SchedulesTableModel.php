@@ -24,6 +24,22 @@ final class SchedulesTableModel
         return $this->fetchAll($sql);
     }
 
+    public function listForAssignmentLookup(): array
+    {
+        $sql = "SELECT s.id, s.class_id, c.class_name, s.study_date, s.start_time, s.end_time,
+                l.actual_title
+            FROM schedules s
+            INNER JOIN classes c ON c.id = s.class_id
+            LEFT JOIN (
+                SELECT schedule_id, MIN(actual_title) AS actual_title
+                FROM lessons
+                WHERE schedule_id IS NOT NULL
+                GROUP BY schedule_id
+            ) l ON l.schedule_id = s.id
+            ORDER BY c.class_name ASC, s.study_date DESC, s.start_time DESC";
+        return $this->fetchAll($sql);
+    }
+
     public function listByClass(int $classId): array
     {
         $sql = "SELECT s.id, s.class_id, s.room_id, s.teacher_id, s.study_date, s.start_time, s.end_time,

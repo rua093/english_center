@@ -1751,3 +1751,100 @@ SELECT r.id, p.id
 FROM roles r
 INNER JOIN permissions p ON p.slug IN ('student_lead.manage', 'job_application.manage')
 WHERE r.role_name = 'admin';
+
+-- Migrate assignments.lesson_id to assignments.schedule_id
+SET @has_assignments := (
+    SELECT COUNT(*)
+    FROM information_schema.tables
+    WHERE table_schema = DATABASE()
+      AND table_name = 'assignments'
+);
+
+SET @has_assignments_lesson_id := (
+    SELECT COUNT(*)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'assignments'
+      AND column_name = 'lesson_id'
+);
+
+SET @has_assignments_schedule_id := (
+    SELECT COUNT(*)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'assignments'
+      AND column_name = 'schedule_id'
+);
+
+SET @sql := IF(
+    @has_assignments = 1 AND @has_assignments_lesson_id = 1 AND @has_assignments_schedule_id = 0,
+    "ALTER TABLE assignments ADD COLUMN schedule_id BIGINT UNSIGNED NULL AFTER id",
+    "SELECT 'Skip: assignments.schedule_id exists or table missing' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @sql := IF(
+    @has_assignments = 1 AND @has_assignments_lesson_id = 1 AND @has_assignments_schedule_id = 0,
+    "UPDATE assignments a INNER JOIN lessons l ON l.id = a.lesson_id SET a.schedule_id = l.schedule_id",
+    "SELECT 'Skip: assignments.schedule_id backfill not required' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @has_fk_assignments_lesson := (
+    SELECT COUNT(*)
+    FROM information_schema.table_constraints
+    WHERE table_schema = DATABASE()
+      AND table_name = 'assignments'
+      AND constraint_name = 'fk_assignments_lesson'
+      AND constraint_type = 'FOREIGN KEY'
+);
+
+SET @sql := IF(
+    @has_assignments = 1 AND @has_fk_assignments_lesson = 1,
+    "ALTER TABLE assignments DROP FOREIGN KEY fk_assignments_lesson",
+    "SELECT 'Skip: assignments.fk_assignments_lesson missing' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @sql := IF(
+    @has_assignments = 1 AND @has_assignments_lesson_id = 1,
+    "ALTER TABLE assignments DROP COLUMN lesson_id",
+    "SELECT 'Skip: assignments.lesson_id missing' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @has_fk_assignments_schedule := (
+    SELECT COUNT(*)
+    FROM information_schema.table_constraints
+    WHERE table_schema = DATABASE()
+      AND table_name = 'assignments'
+      AND constraint_name = 'fk_assignments_schedule'
+      AND constraint_type = 'FOREIGN KEY'
+);
+
+SET @sql := IF(
+    @has_assignments = 1 AND @has_fk_assignments_schedule = 0 AND @has_assignments_schedule_id = 1,
+    "ALTER TABLE assignments ADD CONSTRAINT fk_assignments_schedule FOREIGN KEY (schedule_id) REFERENCES schedules(id)",
+    "SELECT 'Skip: assignments.fk_assignments_schedule exists' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @sql := IF(
+    @has_assignments = 1 AND @has_assignments_schedule_id = 1,
+    "ALTER TABLE assignments MODIFY COLUMN schedule_id BIGINT UNSIGNED NOT NULL",
+    "SELECT 'Skip: assignments table missing' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+

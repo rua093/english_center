@@ -177,5 +177,30 @@ SELECT COUNT(*) INTO @c FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='engl
 SET @s = IF(@c>0, 'ALTER TABLE job_applications DROP COLUMN available_schedule', 'SELECT "skip"');
 PREPARE stmt FROM @s; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
+-- assignments: migrate lesson_id to schedule_id
+SELECT COUNT(*) INTO @c FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='english_center_db' AND TABLE_NAME='assignments' AND COLUMN_NAME='schedule_id';
+SET @s = IF(@c=0, 'ALTER TABLE assignments ADD COLUMN schedule_id BIGINT UNSIGNED NULL AFTER id', 'SELECT "skip"');
+PREPARE stmt FROM @s; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SELECT COUNT(*) INTO @c FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='english_center_db' AND TABLE_NAME='assignments' AND COLUMN_NAME='lesson_id';
+SET @s = IF(@c>0, 'UPDATE assignments a INNER JOIN lessons l ON l.id = a.lesson_id SET a.schedule_id = l.schedule_id', 'SELECT "skip"');
+PREPARE stmt FROM @s; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SELECT COUNT(*) INTO @c FROM information_schema.table_constraints WHERE TABLE_SCHEMA='english_center_db' AND TABLE_NAME='assignments' AND CONSTRAINT_NAME='fk_assignments_lesson';
+SET @s = IF(@c>0, 'ALTER TABLE assignments DROP FOREIGN KEY fk_assignments_lesson', 'SELECT "skip"');
+PREPARE stmt FROM @s; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SELECT COUNT(*) INTO @c FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='english_center_db' AND TABLE_NAME='assignments' AND COLUMN_NAME='lesson_id';
+SET @s = IF(@c>0, 'ALTER TABLE assignments DROP COLUMN lesson_id', 'SELECT "skip"');
+PREPARE stmt FROM @s; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SELECT COUNT(*) INTO @c FROM information_schema.table_constraints WHERE TABLE_SCHEMA='english_center_db' AND TABLE_NAME='assignments' AND CONSTRAINT_NAME='fk_assignments_schedule';
+SET @s = IF(@c=0, 'ALTER TABLE assignments ADD CONSTRAINT fk_assignments_schedule FOREIGN KEY (schedule_id) REFERENCES schedules(id)', 'SELECT "skip"');
+PREPARE stmt FROM @s; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SELECT COUNT(*) INTO @c FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='english_center_db' AND TABLE_NAME='assignments' AND COLUMN_NAME='schedule_id';
+SET @s = IF(@c>0, 'ALTER TABLE assignments MODIFY COLUMN schedule_id BIGINT UNSIGNED NOT NULL', 'SELECT "skip"');
+PREPARE stmt FROM @s; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
 -- Done
 SELECT 'migration_complete' as status;
