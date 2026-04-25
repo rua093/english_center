@@ -30,6 +30,7 @@ $studentCompletedLessons = (int) ($studentProgress['completed_lessons'] ?? 0);
 $studentTotalLessons = (int) ($studentProgress['total_lessons'] ?? 0);
 $studentProgramScore = trim((string) (($profileUser['role_profile']['student_target_score'] ?? '') ?: ($profileUser['student_target_score'] ?? '')));
 $studentProgramScoreLabel = $studentProgramScore !== '' ? $studentProgramScore : 'Chưa cập nhật';
+$openPasswordModal = !empty($_GET['open_password']);
 
 $roleDisplay = match($role) {
     'teacher' => 'Giảng viên',
@@ -169,6 +170,44 @@ $error = get_flash('error');
 
                 <div id="content-overview" class="space-y-6 block animate-fade-in">
                     <?php if ($role === 'student'): ?>
+                        <article class="rounded-[1.5rem] border border-slate-200/60 bg-white p-4 md:p-5 shadow-sm">
+                            <div class="flex items-center gap-3 mb-4">
+                                <div class="flex h-11 w-11 items-center justify-center rounded-[0.9rem] bg-blue-500 text-white shadow-lg shadow-blue-500/30">
+                                    <i class="fa-solid fa-layer-group text-base"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-black text-slate-800">Lối tắt học viên</h3>
+                                    <p class="text-xs font-medium text-slate-500 mt-1">Đi nhanh tới các khu vực bạn dùng thường xuyên.</p>
+                                </div>
+                            </div>
+
+                            <div class="grid gap-3 sm:grid-cols-3">
+                                <a href="<?= e(page_url('dashboard-student')); ?>" class="group rounded-[1.25rem] border border-slate-200/70 bg-slate-50 p-4 text-left transition-all hover:-translate-y-1 hover:border-blue-300 hover:bg-blue-50 hover:shadow-md">
+                                    <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-lg shadow-blue-600/20 transition-transform group-hover:scale-110">
+                                        <i class="fa-solid fa-calendar-days text-sm"></i>
+                                    </div>
+                                    <p class="text-[10px] font-black uppercase tracking-widest text-blue-500">Thêm thời khoá biểu</p>
+                                    <h4 class="mt-1.5 text-sm font-black text-slate-800 group-hover:text-blue-700">Thời khoá biểu</h4>
+                                </a>
+
+                                <a href="<?= e(page_url('classes-my')); ?>" class="group rounded-[1.25rem] border border-slate-200/70 bg-slate-50 p-4 text-left transition-all hover:-translate-y-1 hover:border-emerald-300 hover:bg-emerald-50 hover:shadow-md">
+                                    <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-600 text-white shadow-lg shadow-emerald-600/20 transition-transform group-hover:scale-110">
+                                        <i class="fa-solid fa-book-open text-sm"></i>
+                                    </div>
+                                    <p class="text-[10px] font-black uppercase tracking-widest text-emerald-500">Lớp học của tôi</p>
+                                    <h4 class="mt-1.5 text-sm font-black text-slate-800 group-hover:text-emerald-700">Mở danh sách lớp</h4>
+                                </a>
+
+                                <a href="<?= e(page_url('activities-student')); ?>" class="group rounded-[1.25rem] border border-slate-200/70 bg-slate-50 p-4 text-left transition-all hover:-translate-y-1 hover:border-rose-300 hover:bg-rose-50 hover:shadow-md">
+                                    <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-rose-600 text-white shadow-lg shadow-rose-600/20 transition-transform group-hover:scale-110">
+                                        <i class="fa-solid fa-people-group text-sm"></i>
+                                    </div>
+                                    <p class="text-[10px] font-black uppercase tracking-widest text-rose-500">Ngoại khoá</p>
+                                    <h4 class="mt-1.5 text-sm font-black text-slate-800 group-hover:text-rose-700">Xem hoạt động</h4>
+                                </a>
+                            </div>
+                        </article>
+
                         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
                             <div class="rounded-[1.5rem] border border-slate-200/60 bg-white p-6 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all text-center group">
                                 <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-50 text-rose-500 mb-4 group-hover:scale-110 transition-transform"><i class="fa-solid fa-book-open text-xl"></i></div>
@@ -494,6 +533,16 @@ $error = get_flash('error');
             content.classList.remove('scale-95');
             content.classList.add('scale-100');
         });
+    }
+
+    const shouldOpenPasswordModal = <?= $openPasswordModal ? 'true' : 'false' ?>;
+    if (shouldOpenPasswordModal) {
+        openPasswordModal();
+        if (window.history && window.history.replaceState) {
+            const url = new URL(window.location.href);
+            url.searchParams.delete('open_password');
+            window.history.replaceState({}, document.title, url.pathname + url.search + url.hash);
+        }
     }
 
     function closePasswordModal() {
