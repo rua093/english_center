@@ -20,11 +20,11 @@ if (!empty($_GET['edit'])) {
 }
 
 $paymentMethodOptions = [
-    'bank_transfer' => 'bank_transfer',
-    'cash' => 'cash',
-    'ewallet' => 'ewallet',
-    'card' => 'card',
-    'other' => 'other',
+    'bank_transfer' => 'Chuyển khoản', // Đổi chữ hiển thị
+    'cash'          => 'Tiền mặt',               // Đổi chữ hiển thị
+    'ewallet'       => 'Ví điện tử',
+    'card'          => 'Thẻ tín dụng',
+    'other'         => 'Phương thức khác',
 ];
 $selectedPaymentMethod = (string) ($editingPayment['payment_method'] ?? 'bank_transfer');
 if ($selectedPaymentMethod !== '' && !isset($paymentMethodOptions[$selectedPaymentMethod])) {
@@ -134,7 +134,7 @@ $error = get_flash('error');
                                 <td><?= e((string) $txn['course_name']); ?></td>
                                 <td><?= e((string) $txn['transaction_no']); ?></td>
                                 <td><?= format_money((float) $txn['amount']); ?></td>
-                                <td><span class="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-bold capitalize text-blue-700"><?= e((string) $txn['method']); ?></span></td>
+                                <td><span class="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-bold capitalize text-blue-700 whitespace-nowrap"><?= e((string) ($paymentMethodOptions[$txn['method']] ?? $txn['method'])); ?></span></td>
                                 <td><span class="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-bold capitalize is-<?= e((string) $txn['transaction_status']); ?>"><?= e((string) $txn['transaction_status']); ?></span></td>
                                 <td><?= e((string) ($txn['transaction_date'] ?? '')); ?></td>
                                 <td>

@@ -8,10 +8,10 @@ final class JobApplicationsTableModel
     use TableModelUtils;
 
     private const ALLOWED_STATUSES = [
-        'new',
-        'interviewed',
-        'official',
-        'rejected',
+        'PENDING',
+        'INTERVIEWING',
+        'PASSED',
+        'REJECTED',
     ];
 
     public function countDetailed(?string $statusFilter = null): int
@@ -160,7 +160,7 @@ final class JobApplicationsTableModel
 
         $this->executeStatement(
             'UPDATE job_applications
-             SET status = "official",
+             SET status = "PASSED",
                  converted_user_id = :user_id,
                  converted_at = NOW(),
                  hr_note = COALESCE(:admin_note, hr_note)
@@ -171,9 +171,9 @@ final class JobApplicationsTableModel
 
     private function normalizeStatus(string $status): string
     {
-        $normalized = strtolower(trim($status));
+        $normalized = strtoupper(trim($status));
         if (!in_array($normalized, self::ALLOWED_STATUSES, true)) {
-            return 'new';
+            return 'PENDING';
         }
 
         return $normalized;
@@ -181,7 +181,7 @@ final class JobApplicationsTableModel
 
     private function buildStatusWhereClause(?string $statusFilter, array &$params): string
     {
-        $status = strtolower(trim((string) $statusFilter));
+        $status = strtoupper(trim((string) $statusFilter));
         if ($status === '' || !in_array($status, self::ALLOWED_STATUSES, true)) {
             return '';
         }

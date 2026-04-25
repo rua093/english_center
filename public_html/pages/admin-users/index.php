@@ -122,10 +122,7 @@ $isEditingStudent = $editingRoleName === 'student';
                         Giới thiệu
                         <textarea name="teacher_bio" rows="3" <?= $isEditingTeacher ? '' : 'disabled'; ?>><?= e((string) ($editingRoleProfile['teacher_bio'] ?? '')); ?></textarea>
                     </label>
-                    <label class="md:col-span-2">
-                        URL video giới thiệu
-                        <input type="text" name="teacher_intro_video_url" value="<?= e((string) ($editingRoleProfile['teacher_intro_video_url'] ?? '')); ?>" <?= $isEditingTeacher ? '' : 'disabled'; ?> placeholder="https://...">
-                    </label>
+                
                 </div>
 
                 <div class="grid gap-3 md:grid-cols-2 <?= $isEditingStudent ? '' : 'hidden'; ?>" data-role-profile="student">
@@ -145,10 +142,7 @@ $isEditingStudent = $editingRoleName === 'student';
                         Mục tiêu điểm
                         <input type="text" name="student_target_score" value="<?= e((string) ($editingRoleProfile['student_target_score'] ?? '')); ?>" <?= $isEditingStudent ? '' : 'disabled'; ?> placeholder="Ví dụ: IELTS 6.5">
                     </label>
-                    <label class="md:col-span-2">
-                        Entry Test ID (nếu có)
-                        <input type="number" step="1" min="0" name="student_entry_test_id" value="<?= e((string) ((int) ($editingRoleProfile['student_entry_test_id'] ?? 0))); ?>" <?= $isEditingStudent ? '' : 'disabled'; ?> placeholder="0 để bỏ trống">
-                    </label>
+                    
                 </div>
             </div>
             <div class="inline-flex flex-wrap items-center gap-2 md:col-span-2">

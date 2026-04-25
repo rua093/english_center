@@ -29,14 +29,13 @@ $canUpdateApproval = $isAdmin || has_any_permission(['approval.manage', 'approva
 $canDeleteApproval = $isAdmin || has_any_permission(['approval.manage', 'approval.delete']);
 
 $approvalTypeOptions = [
-    'schedule_change' => 'schedule_change',
-    'teacher_leave' => 'teacher_leave',
-    'finance_adjust' => 'finance_adjust',
-    'tuition_discount' => 'tuition_discount',
-    'tuition_delete' => 'tuition_delete',
-    'other' => 'other (khác)',
+    'schedule_change'  => 'Thay đổi lịch học',
+    'teacher_leave'    => 'Giáo viên xin nghỉ',
+    'finance_adjust'   => 'Điều chỉnh tài chính',
+    'tuition_discount' => 'Miễn giảm học phí',
+    'tuition_delete'   => 'Hủy hóa đơn học phí',
+    'other'            => 'Lý do khác',
 ];
-
 $approvalType = 'schedule_change';
 $approvalContentValue = '';
 if (is_array($editingApproval)) {
@@ -148,7 +147,7 @@ $error = get_flash('error');
                                 }
                             ?>
                             <tr>
-                                <td><?= e($displayType); ?></td>
+                                <td><?= e((string) ($approvalTypeOptions[$displayType] ?? $displayType)); ?></td>
                                 <td><?= e($displayContent); ?></td>
                                 <td><span class="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-bold capitalize is-<?= e((string) $app['status']); ?>"><?= e((string) $app['status']); ?></span></td>
                                 <td><?= e((string) ($app['requester_name'] ?? '-')); ?></td>

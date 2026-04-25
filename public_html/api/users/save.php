@@ -1,12 +1,65 @@
 <?php
+die('TÔI ĐANG Ở FILE SAVE.PHP ĐÂY!');
+declare(strict_types=1);
 declare(strict_types=1);
 
 require_admin_or_staff();
 require_permission('admin.user.manage');
+// Bước 1: Import thư viện xử lý file
+require_once __DIR__ . '/../../core/file_storage.php';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    echo "<div style='background:#fff; padding:20px; border:2px solid red; z-index:9999; position:relative;'>";
+    echo "<h2>KIỂM TRA DỮ LIỆU NHẬN ĐƯỢC:</h2>";
+    echo "<h3>1. Dữ liệu chữ (POST):</h3><pre>"; print_r($_POST); echo "</pre>";
+    echo "<h3>2. Dữ liệu file (FILES):</h3><pre>"; print_r($_FILES); echo "</pre>";
+    echo "</div>";
+    die('DỪNG CHƯƠNG TRÌNH ĐỂ KIỂM TRA!');
+}
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 	redirect(page_url('users-admin'));
 }
+
+// Bước 2: Xử lý Upload Video trước khi tạo payload
+// Lấy URL cũ từ trường hidden (đã dặn bạn thêm vào index.php)
+// Lấy URL cũ từ trường hidden
+$videoUrl = trim((string) ($_POST['teacher_intro_video_url_hidden'] ?? ''));
+
+// Kiểm tra chi tiết mảng $_FILES
+if (isset($_FILES['teacher_intro_video_file'])) {
+    $uploadErrorCode = (int) $_FILES['teacher_intro_video_file']['error'];
+    
+    if ($uploadErrorCode === UPLOAD_ERR_OK) {
+        // Tải lên thành công tới thư mục tạm của server, tiến hành lưu vật lý
+        try {
+            $uploadedPath = file_storage_save_from_upload($_FILES['teacher_intro_video_file'], 'teacher_videos');
+            if ($uploadedPath) {
+                $videoUrl = $uploadedPath;
+            }
+        } catch (Throwable $e) {
+            set_flash('error', 'Lỗi xử lý file video: ' . $e->getMessage());
+            redirect(page_url('users-admin'));
+        }
+    } elseif ($uploadErrorCode !== UPLOAD_ERR_NO_FILE) {
+        // BẮT CÁC LỖI TẢI LÊN ẨN CỦA PHP
+        $uploadErrorMessages = [
+            UPLOAD_ERR_INI_SIZE   => 'Dung lượng video vượt quá giới hạn cho phép của máy chủ (upload_max_filesize).',
+            UPLOAD_ERR_FORM_SIZE  => 'Dung lượng video quá lớn.',
+            UPLOAD_ERR_PARTIAL    => 'Video chỉ được tải lên một phần, do mạng chập chờn.',
+            UPLOAD_ERR_NO_TMP_DIR => 'Thiếu thư mục tạm trên máy chủ (Server error).',
+            UPLOAD_ERR_CANT_WRITE => 'Không có quyền ghi file lên đĩa (Permission denied).',
+            UPLOAD_ERR_EXTENSION  => 'Một extension PHP đã chặn tiến trình tải lên.',
+        ];
+        $errorMessage = $uploadErrorMessages[$uploadErrorCode] ?? 'Lỗi tải video không xác định (Mã lỗi: ' . $uploadErrorCode . ')';
+        
+        // Báo lỗi ra màn hình
+        set_flash('error', $errorMessage);
+        redirect(page_url('users-admin'));
+    }
+}
+
+// ... tiếp tục với $payload = [ ... ]
 
 $payload = [
 	'id' => (int) ($_POST['id'] ?? 0),
@@ -22,10 +75,8 @@ $payload = [
 	'teacher_degree' => trim((string) ($_POST['teacher_degree'] ?? '')),
 	'teacher_experience_years' => (int) ($_POST['teacher_experience_years'] ?? 0),
 	'teacher_bio' => trim((string) ($_POST['teacher_bio'] ?? '')),
-	'teacher_intro_video_url' => trim((string) ($_POST['teacher_intro_video_url'] ?? '')),
-	'student_parent_name' => trim((string) ($_POST['student_parent_name'] ?? '')),
-	'student_parent_phone' => trim((string) ($_POST['student_parent_phone'] ?? '')),
-	'student_school_name' => trim((string) ($_POST['student_school_name'] ?? '')),
+    // Sử dụng biến $videoUrl đã xử lý ở trên
+	'teacher_intro_video_url' => $videoUrl, 
 	'student_target_score' => trim((string) ($_POST['student_target_score'] ?? '')),
 	'student_entry_test_id' => (int) ($_POST['student_entry_test_id'] ?? 0),
 ];
@@ -53,15 +104,20 @@ if (!$role) {
 
 $roleName = (string) ($role['role_name'] ?? '');
 if ($roleName === 'staff' && $payload['staff_position'] === '') {
-	set_flash('error', 'Vai trò staff bắt buộc nhập chức vụ.');
-	redirect(page_url('users-admin', ['edit' => (int) $payload['id']]));
+	set_flash('error', 'Vui lòng nhập vị trí công tác cho nhân viên.');
+	redirect(page_url('users-admin'));
 }
 
 try {
-	$adminModel->saveUser($payload);
-	set_flash('success', 'Đã lưu thông tin người dùng.');
+	if ($payload['id'] > 0) {
+		$adminModel->updateUser($payload['id'], $payload);
+		set_flash('success', 'Đã cập nhật thông tin người dùng: ' . $payload['username']);
+	} else {
+		$adminModel->createUser($payload);
+		set_flash('success', 'Đã tạo người dùng mới: ' . $payload['username']);
+	}
 } catch (Throwable $exception) {
-	set_flash('error', 'Lưu người dùng thất bại: ' . $exception->getMessage());
+	set_flash('error', 'Không thể lưu người dùng: ' . $exception->getMessage());
 }
 
 redirect(page_url('users-admin'));

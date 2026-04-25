@@ -234,8 +234,8 @@ final class AdminModel
             throw new RuntimeException('Ho so nay da duoc chuyen thanh tai khoan giao vien.');
         }
 
-        $applicationStatus = strtolower(trim((string) ($application['status'] ?? 'new')));
-        if (!in_array($applicationStatus, ['interviewed', 'official'], true)) {
+        $applicationStatus = strtoupper(trim((string) ($application['status'] ?? 'PENDING')));
+        if (!in_array($applicationStatus, ['INTERVIEWING', 'PASSED'], true)) {
             throw new RuntimeException('Chi duoc tao tai khoan sau khi phong van dat.');
         }
 
