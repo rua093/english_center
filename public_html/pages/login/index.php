@@ -51,11 +51,11 @@ $success = get_flash('success');
     <div class="w-full max-w-[1100px] glass-card rounded-[2.5rem] shadow-[0_25px_50px_rgba(2,6,23,0.18)] overflow-hidden grid lg:grid-cols-12 relative z-10 transition-all duration-500 hover:shadow-[0_30px_60px_rgba(2,6,23,0.22)]">
         
         <aside class="relative hidden lg:flex flex-col justify-end overflow-hidden group lg:col-span-5 bg-slate-950/70">
-            <img src="/assets/images/login_background.jpg" 
+            <img src="/assets/images/login3.jpg" 
                 alt="Educational Background" 
-                class="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105 opacity-40 mix-blend-soft-light">
-            <div class="absolute inset-0 bg-gradient-to-t from-slate-950/78 via-emerald-950/28 to-slate-900/12"></div>
-            <div class="absolute inset-0 bg-gradient-to-br from-slate-950/10 via-white/4 to-emerald-100/10"></div>
+                class="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105 opacity-90">
+            <div class="absolute inset-0 bg-gradient-to-t from-slate-950/55 via-emerald-950/18 to-slate-900/8"></div>
+            <div class="absolute inset-0 bg-gradient-to-br from-slate-950/6 via-white/2 to-emerald-100/6"></div>
 
             <div class="relative z-10 p-10 text-white">
                 <div class="flex items-center gap-2 mb-6">

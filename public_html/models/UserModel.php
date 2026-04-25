@@ -91,17 +91,42 @@ final class UserModel
         return $this->schedulesTable->listUpcomingForTeacher($teacherId, $endDate, 10);
     }
 
+    public function teacherUpcomingSchedulesFromNow(int $teacherId, int $days = 7): array
+    {
+        $endAt = (new DateTimeImmutable('now'))
+            ->modify('+' . max(1, $days) . ' days')
+            ->format('Y-m-d H:i:s');
+
+        return $this->schedulesTable->listUpcomingForTeacherFromNow($teacherId, $endAt, 10);
+    }
+
     private function studentProgress(int $studentId): array
     {
+        $subjectCount = $this->classStudentsTable->countByStudent($studentId);
+        $attendanceSummary = $this->attendanceTable->summaryByStudent($studentId);
         $totalLessons = $this->lessonsTable->countByStudent($studentId);
         $completedLessons = $this->lessonsTable->countCompletedByStudent($studentId);
         $classes = $this->classStudentsTable->listRecentClassNamesForStudent($studentId, 3);
+
+        $attendanceTotal = (int) ($attendanceSummary['total_sessions'] ?? 0);
+        if ($attendanceTotal <= 0) {
+            $attendanceTotal = (int) ($attendanceSummary['present_count'] ?? 0)
+                + (int) ($attendanceSummary['late_count'] ?? 0)
+                + (int) ($attendanceSummary['absent_count'] ?? 0);
+        }
+
+        $attendanceRate = $attendanceTotal > 0
+            ? (int) min(100, round(((int) ($attendanceSummary['present_count'] ?? 0) + (int) ($attendanceSummary['late_count'] ?? 0)) / $attendanceTotal * 100))
+            : 0;
 
         $progressPercent = $totalLessons > 0
             ? (int) min(100, round(($completedLessons / $totalLessons) * 100))
             : 0;
 
         return [
+            'subject_count' => $subjectCount,
+            'attendance_total' => $attendanceTotal,
+            'attendance_percent' => $attendanceRate,
             'total_lessons' => $totalLessons,
             'completed_lessons' => $completedLessons,
             'progress_percent' => $progressPercent,

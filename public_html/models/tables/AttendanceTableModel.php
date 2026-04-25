@@ -38,6 +38,7 @@ final class AttendanceTableModel
     public function summaryByStudent(int $studentId): array
     {
         $sql = "SELECT
+                COUNT(*) AS total_sessions,
                 SUM(CASE WHEN status = 'present' THEN 1 ELSE 0 END) AS present_count,
                 SUM(CASE WHEN status = 'late' THEN 1 ELSE 0 END) AS late_count,
                 SUM(CASE WHEN status = 'absent' THEN 1 ELSE 0 END) AS absent_count
@@ -45,9 +46,43 @@ final class AttendanceTableModel
             WHERE student_id = :student_id";
         $row = $this->fetchOne($sql, ['student_id' => $studentId]);
         return $row ?: [
+            'total_sessions' => 0,
             'present_count' => 0,
             'late_count' => 0,
             'absent_count' => 0,
+        ];
+    }
+
+    public function summaryByStudentForClass(int $studentId, int $classId): array
+    {
+        if ($studentId <= 0 || $classId <= 0) {
+            return [
+                'present_count' => 0,
+                'late_count' => 0,
+                'absent_count' => 0,
+                'total_sessions' => 0,
+            ];
+        }
+
+        $sql = "SELECT
+                SUM(CASE WHEN a.status = 'present' THEN 1 ELSE 0 END) AS present_count,
+                SUM(CASE WHEN a.status = 'late' THEN 1 ELSE 0 END) AS late_count,
+                SUM(CASE WHEN a.status = 'absent' THEN 1 ELSE 0 END) AS absent_count,
+                COUNT(s.id) AS total_sessions
+            FROM schedules s
+            LEFT JOIN attendance a ON a.schedule_id = s.id AND a.student_id = :student_id
+            WHERE s.class_id = :class_id";
+
+        $row = $this->fetchOne($sql, [
+            'student_id' => $studentId,
+            'class_id' => $classId,
+        ]);
+
+        return $row ?: [
+            'present_count' => 0,
+            'late_count' => 0,
+            'absent_count' => 0,
+            'total_sessions' => 0,
         ];
     }
 

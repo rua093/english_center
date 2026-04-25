@@ -256,6 +256,24 @@ final class SchedulesTableModel
         ]);
     }
 
+    public function listUpcomingForTeacherFromNow(int $teacherId, string $endAt, int $limit = 10): array
+    {
+        $limit = $this->clampLimit($limit, 10, 100);
+        $sql = "SELECT s.id AS schedule_id, c.class_name, s.study_date, s.start_time, s.end_time, COALESCE(r.room_name, 'Online') AS room_name
+            FROM schedules s
+            INNER JOIN classes c ON c.id = s.class_id
+            LEFT JOIN rooms r ON r.id = s.room_id
+            WHERE s.teacher_id = :teacher_id
+                AND TIMESTAMP(s.study_date, s.start_time) >= NOW()
+                AND TIMESTAMP(s.study_date, s.start_time) <= :end_at
+            ORDER BY s.study_date ASC, s.start_time ASC
+            LIMIT " . $limit;
+        return $this->fetchAll($sql, [
+            'teacher_id' => $teacherId,
+            'end_at' => $endAt,
+        ]);
+    }
+
     public function listUpcomingForStudent(int $studentId, int $limit = 5): array
     {
         $limit = $this->clampLimit($limit, 5, 100);

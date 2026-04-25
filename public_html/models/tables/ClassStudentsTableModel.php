@@ -7,6 +7,24 @@ final class ClassStudentsTableModel
 {
     use TableModelUtils;
 
+    public function countByStudent(int $studentId): int
+    {
+        if ($studentId <= 0) {
+            return 0;
+        }
+
+        return (int) $this->fetchScalar(
+            'SELECT COUNT(*) AS total
+             FROM class_students cs
+             INNER JOIN users u ON u.id = cs.student_id
+             WHERE cs.student_id = :student_id
+               AND u.deleted_at IS NULL',
+            ['student_id' => $studentId],
+            'total',
+            0
+        );
+    }
+
     public function listStudentsForClass(int $classId): array
     {
         if ($classId <= 0) {
@@ -126,6 +144,68 @@ final class ClassStudentsTableModel
             WHERE cs.student_id = :student_id
             ORDER BY c.id DESC
             LIMIT " . $limit;
+        return $this->fetchAll($sql, ['student_id' => $studentId]);
+    }
+
+    public function listMyClassesForStudent(int $studentId): array
+    {
+        if ($studentId <= 0) {
+            return [];
+        }
+
+        $sql = "SELECT c.id AS class_id,
+                c.class_name,
+                c.status AS class_status,
+                c.start_date,
+                c.end_date,
+                cs.learning_status,
+                co.course_name,
+                u.full_name AS teacher_name,
+                COALESCE(sched.total_schedules, 0) AS total_schedules,
+                COALESCE(lesson_count.total_lessons, 0) AS total_lessons
+            FROM class_students cs
+            INNER JOIN classes c ON c.id = cs.class_id
+            INNER JOIN courses co ON co.id = c.course_id
+            INNER JOIN users u ON u.id = c.teacher_id
+            LEFT JOIN (
+                SELECT class_id, COUNT(*) AS total_schedules
+                FROM schedules
+                GROUP BY class_id
+            ) sched ON sched.class_id = c.id
+            LEFT JOIN (
+                SELECT class_id, COUNT(*) AS total_lessons
+                FROM lessons
+                GROUP BY class_id
+            ) lesson_count ON lesson_count.class_id = c.id
+            WHERE cs.student_id = :student_id
+              AND u.deleted_at IS NULL
+            ORDER BY c.id DESC, c.class_name ASC";
+
+        return $this->fetchAll($sql, ['student_id' => $studentId]);
+    }
+
+    public function listSchedulesForStudent(int $studentId): array
+    {
+        if ($studentId <= 0) {
+            return [];
+        }
+
+        $sql = "SELECT s.id AS schedule_id,
+                s.class_id,
+                s.study_date,
+                s.start_time,
+                s.end_time,
+                c.class_name,
+                COALESCE(r.room_name, 'Online') AS room_name,
+                u.full_name AS teacher_name
+            FROM class_students cs
+            INNER JOIN classes c ON c.id = cs.class_id
+            INNER JOIN schedules s ON s.class_id = c.id
+            INNER JOIN users u ON u.id = s.teacher_id
+            LEFT JOIN rooms r ON r.id = s.room_id
+            WHERE cs.student_id = :student_id
+            ORDER BY s.study_date ASC, s.start_time ASC, c.class_name ASC, s.id ASC";
+
         return $this->fetchAll($sql, ['student_id' => $studentId]);
     }
 

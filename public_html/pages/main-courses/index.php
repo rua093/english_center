@@ -1,5 +1,62 @@
 <?php
-$courses = require __DIR__ . '/catalog.php';
+$academicModel = new AcademicModel();
+$courseTotal = $academicModel->countCourses();
+$courseRows = $courseTotal > 0
+    ? $academicModel->listCoursesPage(1, $courseTotal)
+    : [];
+
+$buildCourseSlug = static function (string $value): string {
+    $slug = strtolower(trim($value));
+    $slug = preg_replace('/[^a-z0-9\s-]/u', '', $slug) ?? $slug;
+    $slug = preg_replace('/[\s-]+/', '-', $slug) ?? $slug;
+    return trim($slug, '-');
+};
+
+$courseFallbackImages = [
+    'mam-non' => 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=1200&q=80',
+    'tieu-hoc' => 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=1200&q=80',
+    'giao-tiep-phan-xa' => 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1200&q=80',
+    'ielts-foundation' => 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1200&q=80',
+    'ielts-intensive' => 'https://images.unsplash.com/photo-1513258496099-48168024aec0?auto=format&fit=crop&w=1200&q=80',
+    'ielts-advance' => 'https://images.unsplash.com/photo-1543269865-cbf427effbad?auto=format&fit=crop&w=1200&q=80',
+    'tieng-anh-he' => 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=1200&q=80',
+    'tieng-anh-doanh-nghiep' => 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1200&q=80',
+];
+
+$courses = [];
+foreach ($courseRows as $row) {
+    $courseName = trim((string) ($row['course_name'] ?? ''));
+    if ($courseName === '') {
+        continue;
+    }
+
+    $slug = $buildCourseSlug($courseName);
+    $image = (string) ($courseFallbackImages[$slug] ?? 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1200&q=80');
+    $priceValue = number_format((float) ($row['base_price'] ?? 0), 0, ',', '.') . 'đ';
+
+    $courses[] = [
+        'slug' => $slug,
+        'title' => $courseName,
+        'tag' => 'Khóa học',
+        'short_desc' => (string) ($row['description'] ?? 'Chương trình học được xây dựng theo lộ trình rõ ràng, phù hợp cho từng học viên.'),
+        'price' => $priceValue,
+        'original_price' => $priceValue,
+        'duration' => ((int) ($row['total_sessions'] ?? 0)) . ' buổi',
+        'level' => 'Đang cập nhật',
+        'lessons_count' => (int) ($row['total_sessions'] ?? 0),
+        'rating' => 5.0,
+        'students' => 0,
+        'image' => $image,
+        'instructor' => [
+            'name' => 'Đội ngũ giáo viên',
+            'role' => 'Academic Team',
+        ],
+        'benefits' => [],
+        'outline' => [],
+        'suitable_for' => [],
+        'outcomes' => [],
+    ];
+}
 
 $stats = [
     ['value' => '12+', 'label' => 'Chương trình học'],
