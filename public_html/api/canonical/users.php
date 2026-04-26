@@ -56,6 +56,7 @@ function api_users_update_action(): void
 	}
 	$email = trim((string) ($_POST['email'] ?? ''));
 	$phone = trim((string) ($_POST['phone'] ?? ''));
+	$teacherIntroVideoUrl = trim((string) ($_POST['teacher_intro_video_url_hidden'] ?? ''));
 
 	$avatarPath = null;
 	if (isset($_FILES['avatar']) && (int) ($_FILES['avatar']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
@@ -77,6 +78,31 @@ function api_users_update_action(): void
 		if ($avatarPath === null) {
 			set_flash('error', 'Tải ảnh đại diện thất bại. Vui lòng thử lại với tệp ảnh hợp lệ.');
 			redirect(page_url('profile'));
+		}
+	}
+
+	if ($existingProfile && (string) ($existingProfile['role_name'] ?? '') === 'teacher') {
+		if (isset($_FILES['teacher_intro_video_file']) && (int) ($_FILES['teacher_intro_video_file']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
+			$teacherVideoError = (int) ($_FILES['teacher_intro_video_file']['error'] ?? UPLOAD_ERR_NO_FILE);
+			if ($teacherVideoError !== UPLOAD_ERR_OK) {
+				$errorMessage = match ($teacherVideoError) {
+					UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE => 'Video giới thiệu quá lớn. Vui lòng chọn tệp nhỏ hơn giới hạn cho phép.',
+					UPLOAD_ERR_PARTIAL => 'Video giới thiệu chỉ được tải lên một phần. Vui lòng thử lại.',
+					UPLOAD_ERR_NO_TMP_DIR => 'Máy chủ đang thiếu thư mục tạm để xử lý video.',
+					UPLOAD_ERR_CANT_WRITE => 'Máy chủ không thể ghi video lên đĩa.',
+					UPLOAD_ERR_EXTENSION => 'Một tiện ích mở rộng của máy chủ đã chặn video này.',
+					default => 'Tải video giới thiệu thất bại. Vui lòng thử lại.',
+				};
+				set_flash('error', $errorMessage);
+				redirect(page_url('profile'));
+			}
+
+			$teacherVideoPath = store_uploaded_file($_FILES['teacher_intro_video_file'], 'teacher-video', 'teacher-videos');
+			if ($teacherVideoPath === null) {
+				set_flash('error', 'Tải video giới thiệu thất bại. Vui lòng thử lại với tệp video hợp lệ.');
+				redirect(page_url('profile'));
+			}
+			$teacherIntroVideoUrl = $teacherVideoPath;
 		}
 	}
 
@@ -111,11 +137,20 @@ function api_users_update_action(): void
 		'avatar' => $avatarPath,
 	]);
 
+	if ((string) ($existingProfile['role_name'] ?? '') === 'teacher') {
+		$usersTable->updateTeacherProfile($userId, [
+			'teacher_intro_video_url' => $teacherIntroVideoUrl,
+		]);
+	}
+
 	if (isset($_SESSION['auth_user']) && is_array($_SESSION['auth_user'])) {
 		$_SESSION['auth_user']['email'] = $email;
 		$_SESSION['auth_user']['phone'] = $phone;
 		if ($avatarPath !== null) {
 			$_SESSION['auth_user']['avatar'] = $avatarPath;
+		}
+		if ((string) ($existingProfile['role_name'] ?? '') === 'teacher') {
+			$_SESSION['auth_user']['role_profile']['teacher_intro_video_url'] = $teacherIntroVideoUrl;
 		}
 	}
 

@@ -8,6 +8,8 @@ function page_route_definitions(): array
 		'courses' => ['directory' => 'main-courses', 'aliases' => ['main-courses', 'khoa-hoc']],
 		'course-detail' => ['directory' => 'main-courses/detail', 'aliases' => ['khoa-hoc-chi-tiet']],
 		'job-apply' => ['directory' => 'job-apply', 'aliases' => ['tuyen-dung', 'ung-tuyen']],
+		'teacher-introduce' => ['directory' => 'teacher-introduce', 'aliases' => ['giao-vien', 'teacher', 'teachers']],
+		'teacher-detail' => ['directory' => 'teacher-introduce/teacher-introduce-details', 'aliases' => ['teacher-introduce-details', 'teacher-detail']],
 		'register-consultation' => ['directory' => 'register-consultation', 'aliases' => ['dang-ky-tu-van', 'tu-van']],
 		'documents' => ['directory' => 'documents', 'aliases' => ['tai-lieu-hoc-tap', 'tai-lieu']],
 		'activities-home' => ['directory' => 'home-activites', 'aliases' => ['home-activities', 'hoat-dong-ngoai-khoa', 'ngoai-khoa']],

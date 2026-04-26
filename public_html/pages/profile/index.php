@@ -30,7 +30,16 @@ $studentCompletedLessons = (int) ($studentProgress['completed_lessons'] ?? 0);
 $studentTotalLessons = (int) ($studentProgress['total_lessons'] ?? 0);
 $studentProgramScore = trim((string) (($profileUser['role_profile']['student_target_score'] ?? '') ?: ($profileUser['student_target_score'] ?? '')));
 $studentProgramScoreLabel = $studentProgramScore !== '' ? $studentProgramScore : 'Chưa cập nhật';
+$teacherIntroVideoUrl = trim((string) ($profileUser['role_profile']['teacher_intro_video_url'] ?? ''));
+if ($teacherIntroVideoUrl === '' && isset($profileUser['teacher_intro_video_url'])) {
+    $teacherIntroVideoUrl = trim((string) $profileUser['teacher_intro_video_url']);
+}
+$teacherIntroVideoUrl = $teacherIntroVideoUrl !== '' && function_exists('normalize_public_file_url')
+    ? normalize_public_file_url($teacherIntroVideoUrl)
+    : $teacherIntroVideoUrl;
 $openPasswordModal = !empty($_GET['open_password']);
+$isTeacher = $role === 'teacher';
+$teacherVideoMaxBytes = 64 * 1024 * 1024;
 
 $roleDisplay = match($role) {
     'teacher' => 'Giảng viên',
@@ -159,6 +168,7 @@ $error = get_flash('error');
 
             <div class="lg:col-span-8 space-y-6" data-aos="fade-up" data-aos-delay="100">
                 
+                <?php if (!$isTeacher): ?>
                 <div class="bg-white/80 backdrop-blur-md p-2 rounded-2xl flex flex-wrap gap-2 w-full md:w-max shadow-sm border border-slate-200/60">
                     <button onclick="switchTab('overview')" id="tab-overview" class="nav-tab active flex-1 md:flex-none px-6 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2">
                         <i class="fa-solid fa-chart-pie"></i> Tổng quan
@@ -319,8 +329,9 @@ $error = get_flash('error');
                         </article>
                     <?php endif; ?>
                 </div>
+                <?php endif; ?>
 
-                <div id="content-settings" class="hidden animate-fade-in">
+                <div id="content-settings" class="<?= $isTeacher ? 'block' : 'hidden'; ?> animate-fade-in">
                     <article class="rounded-[2rem] border border-slate-200/60 bg-white p-8 md:p-10 shadow-sm">
                         <div class="mb-8 border-b border-slate-100 pb-6 flex items-center gap-4">
                             <div class="w-12 h-12 rounded-[1rem] bg-emerald-50 text-emerald-500 flex items-center justify-center text-xl"><i class="fa-solid fa-user-pen"></i></div>
@@ -330,7 +341,7 @@ $error = get_flash('error');
                             </div>
                         </div>
 
-                        <form id="profileUpdateForm" action="/api/index.php?resource=users&method=update" method="POST" class="space-y-6">
+                        <form id="profileUpdateForm" action="/api/index.php?resource=users&method=update" method="POST" enctype="multipart/form-data" class="space-y-6">
                             <?= csrf_input(); ?>
                             <input type="hidden" name="update_mode" value="profile">
                             
@@ -367,6 +378,38 @@ $error = get_flash('error');
                                     </div>
                                 </div>
                             </div>
+
+                            <?php if ($isTeacher): ?>
+                            <div class="rounded-[1.75rem] border border-slate-200/70 bg-slate-50 p-5 md:p-6">
+                                <div class="flex items-center gap-3 mb-4">
+                                    <div class="w-11 h-11 rounded-2xl bg-rose-50 text-rose-500 flex items-center justify-center"><i class="fa-solid fa-video"></i></div>
+                                    <div>
+                                        <h3 class="text-base font-black text-slate-800">Video giới thiệu giáo viên</h3>
+                                        <p class="text-xs font-medium text-slate-500 mt-1">Tải video demo để học viên xem trước phong cách giảng dạy của bạn.</p>
+                                    </div>
+                                </div>
+
+                                <input type="hidden" name="teacher_intro_video_url_hidden" value="<?= e($teacherIntroVideoUrl) ?>">
+
+                                <div id="teacherVideoPreviewWrap" class="mb-4 <?= $teacherIntroVideoUrl !== '' ? '' : 'hidden'; ?> overflow-hidden rounded-[1.25rem] border border-slate-200 bg-white shadow-sm">
+                                    <video id="teacherVideoPreview" class="w-full max-h-72 bg-black" controls playsinline preload="metadata" <?= $teacherIntroVideoUrl !== '' ? '' : 'muted'; ?>>
+                                        <source id="teacherVideoPreviewSource" src="<?= e($teacherIntroVideoUrl) ?>">
+                                    </video>
+                                </div>
+                                <div id="teacherVideoEmptyState" class="mb-4 <?= $teacherIntroVideoUrl !== '' ? 'hidden' : ''; ?> rounded-[1.25rem] border border-dashed border-slate-300 bg-white px-4 py-8 text-center text-sm font-medium text-slate-500">
+                                    Chưa có video giới thiệu.
+                                </div>
+
+                                <label class="group relative flex flex-col items-center justify-center rounded-[1.5rem] border-2 border-dashed border-slate-300 bg-white p-6 text-center transition-all hover:border-rose-500 hover:bg-rose-50 cursor-pointer">
+                                    <input id="teacherIntroVideoInput" type="file" name="teacher_intro_video_file" accept="video/*" class="absolute inset-0 z-10 cursor-pointer opacity-0" onchange="previewTeacherIntroVideo(this, <?= (int) $teacherVideoMaxBytes; ?>)">
+                                    <div id="teacherVideoUploadIcon" class="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-50 text-rose-500 group-hover:scale-110 transition-transform">
+                                        <i class="fa-solid fa-cloud-arrow-up text-xl"></i>
+                                    </div>
+                                    <p id="teacherVideoUploadTitle" class="text-sm font-black text-slate-700">Tải video mới từ thiết bị</p>
+                                    <p id="teacherVideoUploadMeta" class="mt-1 text-xs font-medium text-slate-400">MP4, MOV, WEBM · Tối đa 64MB</p>
+                                </label>
+                            </div>
+                            <?php endif; ?>
 
                             <div class="pt-4">
                                 <button type="submit" class="bg-rose-600 hover:bg-rose-700 text-white font-black px-8 py-4 rounded-2xl shadow-lg shadow-rose-600/20 transition-all hover:-translate-y-1 text-sm flex items-center justify-center gap-2 w-full sm:w-auto">
@@ -497,6 +540,11 @@ $error = get_flash('error');
 
 <script>
     function switchTab(tabName) {
+        const tabOverview = document.getElementById('tab-overview');
+        const contentOverview = document.getElementById('content-overview');
+        if (!tabOverview || !contentOverview) {
+            return;
+        }
         document.getElementById('tab-overview').className = 'nav-tab flex-1 md:flex-none px-6 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 ' + (tabName === 'overview' ? 'active' : 'inactive');
         document.getElementById('tab-settings').className = 'nav-tab flex-1 md:flex-none px-6 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 ' + (tabName === 'settings' ? 'active' : 'inactive');
         
@@ -584,6 +632,53 @@ $error = get_flash('error');
                 if (saveButton) saveButton.disabled = false;
             }
             reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function previewTeacherIntroVideo(input, maxBytes) {
+        const previewWrap = document.getElementById('teacherVideoPreviewWrap');
+        const preview = document.getElementById('teacherVideoPreview');
+        const previewSource = document.getElementById('teacherVideoPreviewSource');
+        const emptyState = document.getElementById('teacherVideoEmptyState');
+        const uploadTitle = document.getElementById('teacherVideoUploadTitle');
+        const uploadMeta = document.getElementById('teacherVideoUploadMeta');
+
+        if (!input || !input.files || !input.files[0]) {
+            return;
+        }
+
+        const file = input.files[0];
+        if (typeof maxBytes === 'number' && maxBytes > 0 && file.size > maxBytes) {
+            input.value = '';
+            if (uploadTitle) {
+                uploadTitle.textContent = 'Tải video mới từ thiết bị';
+            }
+            if (uploadMeta) {
+                uploadMeta.textContent = 'MP4, MOV, WEBM · Tối đa 64MB';
+            }
+            alert('Video vượt quá 64MB. Vui lòng chọn file nhỏ hơn để upload.');
+            return;
+        }
+
+        const objectUrl = URL.createObjectURL(file);
+
+        if (previewSource && preview) {
+            previewSource.src = objectUrl;
+            preview.load();
+            previewWrap?.classList.remove('hidden');
+        }
+
+        if (emptyState) {
+            emptyState.classList.add('hidden');
+        }
+
+        if (uploadTitle) {
+            uploadTitle.textContent = 'Đã chọn: ' + file.name;
+        }
+
+        if (uploadMeta) {
+            const fileSizeMb = (file.size / (1024 * 1024)).toFixed(2);
+            uploadMeta.textContent = fileSizeMb + ' MB - nhấn Lưu thay đổi hồ sơ để tải lên';
         }
     }
 

@@ -80,6 +80,11 @@ final class AcademicModel
         return $this->classStudentsTable->listStudentsForClass($classId);
     }
 
+    public function findUser(int $userId): ?array
+    {
+        return $this->usersTable->findActiveById($userId);
+    }
+
     public function summarizeAttendanceRateByClass(int $classId): array
     {
         return $this->attendanceTable->summarizeAttendanceRateByClass($classId);
@@ -480,6 +485,16 @@ final class AcademicModel
     public function findActiveUser(int $userId): ?array
     {
         return $this->usersTable->findActiveById($userId);
+    }
+
+    public function listActiveTeachers(): array
+    {
+        return $this->usersTable->listActiveByRoleNames(['teacher']);
+    }
+
+    public function listTeacherCertificatesByUserId(int $userId): array
+    {
+        return $this->usersTable->listTeacherCertificatesByUserId($userId);
     }
 
     public function findCourse(int $id): ?array

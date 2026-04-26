@@ -5,8 +5,8 @@ RUN docker-php-ext-install pdo pdo_mysql mysqli
 
 # Nới giới hạn upload để ảnh đại diện thực tế không bị chặn quá sớm
 RUN { \
-	echo 'upload_max_filesize=10M'; \
-	echo 'post_max_size=12M'; \
+	echo 'upload_max_filesize=64M'; \
+	echo 'post_max_size=72M'; \
 	echo 'max_file_uploads=20'; \
 } > /usr/local/etc/php/conf.d/uploads.ini
 

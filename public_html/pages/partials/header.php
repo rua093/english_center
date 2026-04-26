@@ -44,7 +44,7 @@
                     </a>
                 </div>
 
-                <a class="text-[16px] font-extrabold text-slate-800 hover:text-[#27318b] transition-colors" href="#giao-vien">
+                <a class="text-[16px] font-extrabold text-slate-800 hover:text-[#27318b] transition-colors" href="<?= e(page_url('teacher-introduce')); ?>">
                     Giáo viên
                 </a>
                 <a class="text-[16px] font-extrabold text-slate-800 hover:text-[#27318b] transition-colors" href="<?= e(page_url('activities-home')); ?>">
@@ -121,7 +121,7 @@
             <nav id="main-nav" class="absolute left-0 right-0 top-full z-50 hidden flex-col border-t border-slate-100 bg-white shadow-xl lg:hidden origin-top" aria-label="Menu mobile">
                 <a class="block border-b border-slate-50 px-6 py-4 text-[15px] font-bold text-slate-800 hover:bg-slate-50" href="/">Trang chủ</a>
                 <a class="block border-b border-slate-50 px-6 py-4 text-[15px] font-bold text-slate-800 hover:bg-slate-50" href="<?= e(page_url('courses')); ?>">Chương trình học</a>
-                <a class="block border-b border-slate-50 px-6 py-4 text-[15px] font-bold text-slate-800 hover:bg-slate-50" href="#giao-vien">Giáo viên</a>
+                <a class="block border-b border-slate-50 px-6 py-4 text-[15px] font-bold text-slate-800 hover:bg-slate-50" href="<?= e(page_url('teacher-introduce')); ?>">Giáo viên</a>
                 <a class="block border-b border-slate-50 px-6 py-4 text-[15px] font-bold text-slate-800 hover:bg-slate-50" href="<?= e(page_url('activities-home')); ?>">Hoạt động ngoại khoá</a>
                 <a class="block border-b border-slate-50 px-6 py-4 text-[15px] font-bold text-slate-800 hover:bg-slate-50" href="<?= e(page_url('job-apply')); ?>">Tuyển dụng</a>
                 <a class="block border-b border-slate-50 px-6 py-4 text-[15px] font-bold text-slate-800 hover:bg-slate-50" href="<?= e(page_url('register-consultation')); ?>">Đăng ký tư vấn</a>

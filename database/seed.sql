@@ -15,10 +15,13 @@ INSERT INTO users (username, password, full_name, role_id, phone, email, status)
 ('student@ec.local', '$2y$10$5luD5xfAGFeqHwRdPWq1ZezZW43r.qwE2wFcaXCanvh1O0DR8XYum', 'Nguyen Van Student', 4, '0900000004', 'student@ec.local', 'active');
 
 INSERT INTO teacher_profiles (user_id, degree, experience_years, bio, intro_video_url)
-VALUES (3, 'Bachelor of English Language', 6, 'Teacher chuyen luyen IELTS va giao tiep.', 'https://example.com/intro-teacher.mp4');
+VALUES (3, 'Bachelor of English Language', 6, 'Teacher demo phu trach IELTS, giao tiep va phat am. Tap trung xay dung phan xa, tu vung hoc thuat va ky nang viet luan.', 'https://example.com/intro-teacher.mp4');
 
 INSERT INTO teacher_certificates (teacher_id, certificate_name, score, image_url)
-VALUES (1, 'IELTS', '8.0', 'https://example.com/cert-ielts.png');
+VALUES
+((SELECT tp.id FROM teacher_profiles tp INNER JOIN users u ON u.id = tp.user_id WHERE u.username = 'teacher@ec.local' LIMIT 1), 'IELTS Academic', '8.0 Overall', 'https://example.com/cert-ielts-academic.png'),
+((SELECT tp.id FROM teacher_profiles tp INNER JOIN users u ON u.id = tp.user_id WHERE u.username = 'teacher@ec.local' LIMIT 1), 'TESOL', 'Merit', 'https://example.com/cert-tesol.png'),
+((SELECT tp.id FROM teacher_profiles tp INNER JOIN users u ON u.id = tp.user_id WHERE u.username = 'teacher@ec.local' LIMIT 1), 'Cambridge Speaking Workshop', 'Completed', 'https://example.com/cert-speaking-workshop.png');
 
 INSERT INTO courses (course_name, description, base_price, total_sessions) VALUES
 ('IELTS Foundation', 'Luyen tap 4 ky nang va chien luoc lam bai.', 5800000, 24);
@@ -525,6 +528,14 @@ INSERT INTO materials (course_id, title, description, file_path) VALUES
 ((SELECT id FROM courses WHERE course_name = 'Business English Intensive' ORDER BY id DESC LIMIT 1), 'Negotiation Roleplay Video', 'Video thuc hanh dam phan trong boi canh cong viec.', '/assets/uploads/material-business-negotiation.mp4'),
 ((SELECT id FROM courses WHERE course_name = 'TOEIC Sprint B1-B2' ORDER BY id DESC LIMIT 1), 'TOEIC Listening Part 2 Audio', 'File nghe luyen dang cau hoi dap ngan.', '/assets/uploads/material-toeic-part2.mp3'),
 ((SELECT id FROM courses WHERE course_name = 'Kids Speaking Starter' ORDER BY id DESC LIMIT 1), 'Kids Color Flashcards', 'Bo the mau sac ho tro tu vung cho tre em.', '/assets/uploads/material-kids-flashcards.pdf');
+
+INSERT INTO materials (course_id, title, description, file_path) VALUES
+((SELECT id FROM courses WHERE course_name = 'Business English Intensive' ORDER BY id DESC LIMIT 1), 'Email Writing Templates', 'Mau email chuyen nghiep cho moi tinh huong cong viec.', '/assets/uploads/material-business-email-writing.pdf'),
+((SELECT id FROM courses WHERE course_name = 'TOEIC Sprint B1-B2' ORDER BY id DESC LIMIT 1), 'TOEIC Vocabulary Pack', 'Danh sach tu vung TOEIC theo chu de va bai tap on luuyen.', '/assets/uploads/material-toeic-vocab-pack.pdf'),
+((SELECT id FROM courses WHERE course_name = 'Kids Speaking Starter' ORDER BY id DESC LIMIT 1), 'Kids Pronunciation Warmup', 'Hoat dong khop am va lop noi cho hoc vien nhi dong.', '/assets/uploads/material-kids-pronunciation.mp4'),
+((SELECT id FROM courses WHERE course_name = 'Business English Intensive' ORDER BY id DESC LIMIT 1), 'Meeting Phrases Cheat Sheet', 'Cum tu dung nhanh khi hop va trao doi cong viec.', '/assets/uploads/material-meeting-phrases.pdf'),
+((SELECT id FROM courses WHERE course_name = 'TOEIC Sprint B1-B2' ORDER BY id DESC LIMIT 1), 'Reading Strategy Notes', 'Ghi chu chien luoc doc hieu va tim y chinh.', '/assets/uploads/material-reading-strategy.pdf'),
+((SELECT id FROM courses WHERE course_name = 'Kids Speaking Starter' ORDER BY id DESC LIMIT 1), 'Story Time Audio', 'File nghe ke chuyen ngan danh cho hoc vien nhi.', '/assets/uploads/material-story-time.mp3');
 
 INSERT INTO feedbacks (sender_id, class_id, teacher_id, rating, content, status) VALUES
 ((SELECT id FROM users WHERE username = 'student2@ec.local' LIMIT 1), (SELECT id FROM classes WHERE class_name = 'TOEIC-K11-Sang-2-4-6' LIMIT 1), (SELECT id FROM users WHERE username = 'teacher3@ec.local' LIMIT 1), 4, 'Lop hoc ro rang, can them bai tap speaking.', 'pending'),
