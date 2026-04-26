@@ -17,6 +17,7 @@ function page_route_definitions(): array
 		'logout' => ['directory' => 'logout', 'aliases' => []],
 		'admin' => ['directory' => 'admin', 'aliases' => []],
 		'profile' => ['directory' => 'profile', 'aliases' => []],
+		'feedback' => ['directory' => 'feedback', 'aliases' => ['feedback-form', 'feedback-center', 'danh-gia-trung-tam']],
 		'classes-my' => ['directory' => 'my-classes', 'aliases' => ['my-classes']],
 		'classes-my-details' => ['directory' => 'my-classes/my-classes-details', 'aliases' => ['my-classes-details']],
 		'assignments-my' => ['directory' => 'assignments', 'aliases' => ['assignments']],

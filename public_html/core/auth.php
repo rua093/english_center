@@ -204,6 +204,7 @@ function can_access_page(string $page): bool
 		case 'profile':
 		case 'classes-my':
 		case 'assignments-my':
+		case 'feedback':
 			return true;
 		case 'admin':
 			return in_array($role, ['admin', 'staff'], true);

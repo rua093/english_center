@@ -584,6 +584,89 @@ $homeCourses = $homeCourses ?? [];
 
     </div>
 </section>
+ <section id="danh-gia" class="relative py-20 md:py-28 overflow-hidden bg-transparent">
+        <div class="absolute inset-0 pointer-events-none">
+            <div class="absolute -top-24 -right-24 h-80 w-80 rounded-full bg-cyan-200/30 blur-3xl"></div>
+            <div class="absolute -bottom-24 -left-24 h-80 w-80 rounded-full bg-rose-200/30 blur-3xl"></div>
+        </div>
+
+        <div class="mx-auto w-full max-w-[1400px] px-4 sm:px-6 relative z-10">
+            <div class="mb-10 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between" data-aos="fade-up">
+                <div class="max-w-2xl">
+                    <div class="inline-flex items-center gap-2 rounded-full border border-emerald-100 bg-white/80 px-4 py-2 text-[10px] font-black uppercase tracking-[0.35em] text-emerald-600 shadow-sm">
+                        <i class="fa-regular fa-comment-dots"></i> Đánh giá từ người dùng
+                    </div>
+                    <h2 class="mt-4 text-3xl md:text-5xl font-black tracking-tight text-slate-900">Học viên nói gì về <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-cyan-500">trung tâm</span></h2>
+                    <p class="mt-4 text-slate-600 font-medium text-base md:text-lg leading-relaxed">Những phản hồi thật từ học viên và phụ huynh là thước đo rõ nhất cho chất lượng đào tạo và trải nghiệm học tập tại trung tâm.</p>
+                </div>
+                <div class="grid grid-cols-2 gap-3 sm:gap-4">
+                    <div class="rounded-[1.5rem] bg-white/90 border border-emerald-100 p-4 shadow-sm">
+                        <p class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Tổng đánh giá</p>
+                        <p class="mt-2 text-2xl font-black text-slate-900"><?= (int) count($homeFeedbacks); ?></p>
+                    </div>
+                    <div class="rounded-[1.5rem] bg-white/90 border border-cyan-100 p-4 shadow-sm">
+                        <p class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Điểm trung bình</p>
+                        <p class="mt-2 text-2xl font-black text-slate-900"><?= $homeFeedbackAverage > 0 ? number_format($homeFeedbackAverage, 1) . '/5' : '--'; ?></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="swiper feedbackSwiper" data-aos="fade-up" data-aos-delay="120">
+                <div class="swiper-wrapper pb-14">
+                    <?php if (empty($homeFeedbacks)): ?>
+                        <div class="swiper-slide h-auto">
+                            <div class="rounded-[2rem] border border-dashed border-slate-300 bg-white/80 p-8 text-center text-slate-500 font-medium">
+                                Hiện chưa có đánh giá nào được duyệt để hiển thị.
+                            </div>
+                        </div>
+                    <?php else: ?>
+                        <?php foreach ($homeFeedbacks as $feedback): ?>
+                            <?php
+                            $feedbackName = (string) ($feedback['full_name'] ?? 'Học viên');
+                            $feedbackClass = (string) ($feedback['course_name'] ?? '');
+                            $feedbackTeacher = (string) ($feedback['teacher_name'] ?? '');
+                            $feedbackContent = trim((string) ($feedback['comment'] ?? ''));
+                            $feedbackRating = max(0, min(5, (int) ($feedback['rating'] ?? 0)));
+                            $avatarUrl = 'https://ui-avatars.com/api/?name=' . urlencode($feedbackName !== '' ? $feedbackName : 'User') . '&background=0f766e&color=fff&size=256&bold=true';
+                            ?>
+                            <div class="swiper-slide h-auto">
+                                <article class="h-full rounded-[2rem] border border-white bg-white/90 p-6 md:p-7 shadow-[0_15px_40px_rgba(15,23,42,0.08)] transition-all hover:-translate-y-1">
+                                    <div class="flex items-start justify-between gap-4">
+                                        <div class="flex items-center gap-4 min-w-0">
+                                            <img src="<?= e($avatarUrl); ?>" alt="<?= e($feedbackName); ?>" class="h-14 w-14 rounded-2xl object-cover ring-4 ring-emerald-50 shrink-0">
+                                            <div class="min-w-0">
+                                                <h3 class="truncate text-lg font-black text-slate-900"><?= e($feedbackName); ?></h3>
+                                                <p class="text-xs font-semibold uppercase tracking-[0.25em] text-emerald-600">Học viên / Phụ huynh</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center gap-1 text-amber-400">
+                                            <?php for ($i = 1; $i <= 5; $i++): ?>
+                                                <i class="<?= $i <= $feedbackRating ? 'fa-solid' : 'fa-regular'; ?> fa-star text-sm"></i>
+                                            <?php endfor; ?>
+                                        </div>
+                                    </div>
+
+                                    <p class="mt-5 text-base leading-relaxed text-slate-600">
+                                        “<?= e($feedbackContent !== '' ? $feedbackContent : 'Trải nghiệm học tập tại trung tâm rất tốt.'); ?>”
+                                    </p>
+
+                                    <div class="mt-6 flex flex-wrap items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-slate-500">
+                                        <?php if ($feedbackClass !== ''): ?>
+                                            <span class="rounded-full bg-emerald-50 px-3 py-1 text-emerald-700"><?= e($feedbackClass); ?></span>
+                                        <?php endif; ?>
+                                        <?php if ($feedbackTeacher !== ''): ?>
+                                            <span class="rounded-full bg-cyan-50 px-3 py-1 text-cyan-700">GV: <?= e($feedbackTeacher); ?></span>
+                                        <?php endif; ?>
+                                    </div>
+                                </article>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </div>
+                <div class="swiper-pagination-feedback flex justify-center"></div>
+            </div>
+        </div>
+    </section>
 
 	<!-- <section id="portal" class="relative py-20 md:py-32 overflow-hidden bg-transparent border-t border-white/30">
 		<div class="relative z-10 mx-auto w-full max-w-6xl px-4 sm:px-6">

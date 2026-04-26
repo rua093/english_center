@@ -88,6 +88,7 @@
                             <div class="rounded-xl border border-slate-100 bg-white shadow-[0_10px_30px_rgba(0,0,0,0.08)] py-2">
                                 <?php if (can_access_page('profile')): ?><a class="block px-5 py-2.5 text-[14px] font-bold text-slate-700 hover:bg-slate-50 hover:text-[#27318b]" href="<?= e(page_url('profile')); ?>">Trang cá nhân</a><?php endif; ?>
                                 <?php if (can_access_page('profile')): ?><a class="block px-5 py-2.5 text-[14px] font-bold text-slate-700 hover:bg-slate-50 hover:text-[#27318b]" href="<?= e(page_url('profile', ['open_password' => 1])); ?>">Thay đổi mật khẩu</a><?php endif; ?>
+                                    <?php if (can_access_page('feedback')): ?><a class="block px-5 py-2.5 text-[14px] font-bold text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800" href="<?= e(page_url('feedback')); ?>">Đánh giá trung tâm</a><?php endif; ?>
                                 <?php if ($isStudentUser): ?>
                                     <?php if (can_access_page('dashboard-student')): ?><a class="block px-5 py-2.5 text-[14px] font-bold text-slate-700 hover:bg-slate-50 hover:text-[#27318b]" href="<?= e(page_url('dashboard-student')); ?>">Thời khoá biểu</a><?php endif; ?>
                                     <?php if (can_access_page('classes-my')): ?><a class="block px-5 py-2.5 text-[14px] font-bold text-slate-700 hover:bg-slate-50 hover:text-[#27318b]" href="<?= e(page_url('classes-my')); ?>">Lớp học của tôi</a><?php endif; ?>
@@ -131,6 +132,7 @@
                         <div class="grid gap-2">
                             <a class="text-[15px] font-bold text-[#27318b]" href="<?= e(page_url('profile')); ?>">Trang cá nhân</a>
                             <a class="text-[15px] font-bold text-[#27318b]" href="<?= e(page_url('profile', ['open_password' => 1])); ?>">Thay đổi mật khẩu</a>
+                            <a class="text-[15px] font-bold text-emerald-700" href="<?= e(page_url('feedback')); ?>">Đánh giá trung tâm</a>
                             <?php if ($isStudentUser): ?>
                                 <a class="text-[15px] font-bold text-[#27318b]" href="<?= e(page_url('dashboard-student')); ?>">Thời khoá biểu</a>
                                 <a class="text-[15px] font-bold text-[#27318b]" href="<?= e(page_url('classes-my')); ?>">Lớp học của tôi</a>

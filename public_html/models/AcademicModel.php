@@ -827,6 +827,11 @@ final class AcademicModel
         return $this->feedbacksTable->listDetailedPage($page, $perPage);
     }
 
+    public function listPublicFeedbacks(int $limit = 6): array
+    {
+        return $this->feedbacksTable->listPublicReviews($limit);
+    }
+
     public function saveFeedback(array $data): void
     {
         $this->feedbacksTable->save($data);
