@@ -1,18 +1,18 @@
 USE english_center_db;
 
 -- Demo password for local environment only: 123456 (bcrypt hashed)
-INSERT INTO roles (role_name, description) VALUES
+INSERT IGNORE INTO roles (role_name, description) VALUES
 ('admin', 'Quan tri he thong'),
 ('staff', 'Giao vu va tu van'),
 ('teacher', 'Giao vien'),
 ('student', 'Hoc vien'),
 ('parent', 'Phu huynh');
 
-INSERT INTO users (username, password, full_name, role_id, phone, email, status) VALUES
-('admin@ec.local', '$2y$10$5luD5xfAGFeqHwRdPWq1ZezZW43r.qwE2wFcaXCanvh1O0DR8XYum', 'System Admin', 1, '0900000001', 'admin@ec.local', 'active'),
-('staff@ec.local', '$2y$10$5luD5xfAGFeqHwRdPWq1ZezZW43r.qwE2wFcaXCanvh1O0DR8XYum', 'Academic Staff', 2, '0900000002', 'staff@ec.local', 'active'),
-('teacher@ec.local', '$2y$10$5luD5xfAGFeqHwRdPWq1ZezZW43r.qwE2wFcaXCanvh1O0DR8XYum', 'Teacher Demo', 3, '0900000003', 'teacher@ec.local', 'active'),
-('student@ec.local', '$2y$10$5luD5xfAGFeqHwRdPWq1ZezZW43r.qwE2wFcaXCanvh1O0DR8XYum', 'Nguyen Van Student', 4, '0900000004', 'student@ec.local', 'active');
+INSERT IGNORE INTO users (username, password, full_name, role_id, phone, email, status) VALUES
+('admin@ec.local', '$2y$10$5luD5xfAGFeqHwRdPWq1ZezZW43r.qwE2wFcaXCanvh1O0DR8XYum', 'System Admin', (SELECT id FROM roles WHERE role_name = 'admin' LIMIT 1), '0900000001', 'admin@ec.local', 'active'),
+('staff@ec.local', '$2y$10$5luD5xfAGFeqHwRdPWq1ZezZW43r.qwE2wFcaXCanvh1O0DR8XYum', 'Academic Staff', (SELECT id FROM roles WHERE role_name = 'staff' LIMIT 1), '0900000002', 'staff@ec.local', 'active'),
+('teacher@ec.local', '$2y$10$5luD5xfAGFeqHwRdPWq1ZezZW43r.qwE2wFcaXCanvh1O0DR8XYum', 'Teacher Demo', (SELECT id FROM roles WHERE role_name = 'teacher' LIMIT 1), '0900000003', 'teacher@ec.local', 'active'),
+('student@ec.local', '$2y$10$5luD5xfAGFeqHwRdPWq1ZezZW43r.qwE2wFcaXCanvh1O0DR8XYum', 'Nguyen Van Student', (SELECT id FROM roles WHERE role_name = 'student' LIMIT 1), '0900000004', 'student@ec.local', 'active');
 
 INSERT INTO teacher_profiles (user_id, degree, experience_years, bio, intro_video_url)
 VALUES (3, 'Bachelor of English Language', 6, 'Teacher demo phu trach IELTS, giao tiep va phat am. Tap trung xay dung phan xa, tu vung hoc thuat va ky nang viet luan.', 'https://example.com/intro-teacher.mp4');
@@ -149,7 +149,7 @@ VALUES (1, 4, 'unpaid');
 INSERT INTO student_portfolios (student_id, type, media_url, description, is_public_web)
 VALUES (4, 'progress_video', 'https://example.com/student-progress.mp4', 'Tien bo speaking sau 8 tuan.', 1);
 
-INSERT INTO permissions (permission_name, slug) VALUES
+INSERT IGNORE INTO permissions (permission_name, slug) VALUES
 ('Xem dashboard hoc vien', 'student.dashboard.view'),
 ('Xem bai tap hoc vien', 'student.assignment.view'),
 ('Xem hoc phi hoc vien', 'student.tuition.view'),
@@ -206,7 +206,7 @@ INSERT INTO permissions (permission_name, slug) VALUES
 ('Quan ly dau moi hoc vien', 'student_lead.manage'),
 ('Quan ly ho so ung tuyen giao vien', 'job_application.manage');
 
-INSERT INTO role_permissions (role_id, permission_id)
+INSERT IGNORE INTO role_permissions (role_id, permission_id)
 SELECT r.id, p.id
 FROM roles r
 INNER JOIN permissions p ON p.slug IN (
@@ -245,7 +245,7 @@ INNER JOIN permissions p ON p.slug IN (
 )
 WHERE r.role_name = 'admin';
 
-INSERT INTO role_permissions (role_id, permission_id)
+INSERT IGNORE INTO role_permissions (role_id, permission_id)
 SELECT r.id, p.id
 FROM roles r
 INNER JOIN permissions p ON p.slug IN (
@@ -277,7 +277,7 @@ INNER JOIN permissions p ON p.slug IN (
 )
 WHERE r.role_name = 'teacher';
 
-INSERT INTO role_permissions (role_id, permission_id)
+INSERT IGNORE INTO role_permissions (role_id, permission_id)
 SELECT r.id, p.id
 FROM roles r
 INNER JOIN permissions p ON p.slug IN (
@@ -304,7 +304,7 @@ INNER JOIN permissions p ON p.slug IN (
 )
 WHERE r.role_name = 'staff';
 
-INSERT INTO role_permissions (role_id, permission_id)
+INSERT IGNORE INTO role_permissions (role_id, permission_id)
 SELECT r.id, p.id
 FROM roles r
 INNER JOIN permissions p ON p.slug IN (
@@ -321,7 +321,17 @@ INSERT INTO notifications (user_id, title, message, is_read) VALUES
 (4, 'Lich hoc toi nay', 'Lop IELTS-K20 bat dau luc 19:00 tai Phong 101.', 0);
 
 INSERT INTO materials (course_id, title, description, file_path)
-VALUES (1, 'Listening Practice Set 01', 'Bo bai nghe co dap an cho hoc vien moi bat dau.', '/assets/uploads/material-listening-1.pdf');
+SELECT src.course_id, src.title, src.description, src.file_path
+FROM (
+	SELECT 1 AS course_id, 'Listening Practice Set 01' AS title, 'Bo bai nghe co dap an cho hoc vien moi bat dau.' AS description, '/assets/uploads/material-listening-1.pdf' AS file_path
+) AS src
+WHERE NOT EXISTS (
+	SELECT 1
+	FROM materials m
+	WHERE m.course_id = src.course_id
+	  AND m.title = src.title
+	  AND m.file_path = src.file_path
+);
 
 INSERT INTO feedbacks (sender_id, class_id, teacher_id, rating, content, status)
 VALUES (4, 1, 3, 5, 'Giao vien day de hieu, co dong luc hoc.', 'reviewed');
@@ -524,18 +534,47 @@ INSERT INTO notifications (user_id, title, message, is_read) VALUES
 ((SELECT id FROM users WHERE username = 'teacher2@ec.local' LIMIT 1), 'Co yeu cau nghi day', 'Yeu cau nghi day cua ban dang cho duyet.', 1),
 ((SELECT id FROM users WHERE username = 'staff.finance@ec.local' LIMIT 1), 'Don dieu chinh tai chinh', 'Co 1 don finance_adjust moi can xu ly.', 0);
 
-INSERT INTO materials (course_id, title, description, file_path) VALUES
-((SELECT id FROM courses WHERE course_name = 'Business English Intensive' ORDER BY id DESC LIMIT 1), 'Negotiation Roleplay Video', 'Video thuc hanh dam phan trong boi canh cong viec.', '/assets/uploads/material-business-negotiation.mp4'),
-((SELECT id FROM courses WHERE course_name = 'TOEIC Sprint B1-B2' ORDER BY id DESC LIMIT 1), 'TOEIC Listening Part 2 Audio', 'File nghe luyen dang cau hoi dap ngan.', '/assets/uploads/material-toeic-part2.mp3'),
-((SELECT id FROM courses WHERE course_name = 'Kids Speaking Starter' ORDER BY id DESC LIMIT 1), 'Kids Color Flashcards', 'Bo the mau sac ho tro tu vung cho tre em.', '/assets/uploads/material-kids-flashcards.pdf');
+INSERT INTO materials (course_id, title, description, file_path)
+SELECT src.course_id, src.title, src.description, src.file_path
+FROM (
+		SELECT (SELECT id FROM courses WHERE course_name = 'Business English Intensive' ORDER BY id DESC LIMIT 1) AS course_id, 'Negotiation Roleplay Video' AS title, 'Video thuc hanh dam phan trong boi canh cong viec.' AS description, '/assets/uploads/material-business-negotiation.mp4' AS file_path
+		UNION ALL
+		SELECT (SELECT id FROM courses WHERE course_name = 'TOEIC Sprint B1-B2' ORDER BY id DESC LIMIT 1), 'TOEIC Listening Part 2 Audio', 'File nghe luyen dang cau hoi dap ngan.', '/assets/uploads/material-toeic-part2.mp3'
+		UNION ALL
+		SELECT (SELECT id FROM courses WHERE course_name = 'Kids Speaking Starter' ORDER BY id DESC LIMIT 1), 'Kids Color Flashcards', 'Bo the mau sac ho tro tu vung cho tre em.', '/assets/uploads/material-kids-flashcards.pdf'
+) AS src
+WHERE src.course_id IS NOT NULL
+	AND NOT EXISTS (
+		SELECT 1
+		FROM materials m
+		WHERE m.course_id = src.course_id
+			AND m.title = src.title
+			AND m.file_path = src.file_path
+	);
 
-INSERT INTO materials (course_id, title, description, file_path) VALUES
-((SELECT id FROM courses WHERE course_name = 'Business English Intensive' ORDER BY id DESC LIMIT 1), 'Email Writing Templates', 'Mau email chuyen nghiep cho moi tinh huong cong viec.', '/assets/uploads/material-business-email-writing.pdf'),
-((SELECT id FROM courses WHERE course_name = 'TOEIC Sprint B1-B2' ORDER BY id DESC LIMIT 1), 'TOEIC Vocabulary Pack', 'Danh sach tu vung TOEIC theo chu de va bai tap on luuyen.', '/assets/uploads/material-toeic-vocab-pack.pdf'),
-((SELECT id FROM courses WHERE course_name = 'Kids Speaking Starter' ORDER BY id DESC LIMIT 1), 'Kids Pronunciation Warmup', 'Hoat dong khop am va lop noi cho hoc vien nhi dong.', '/assets/uploads/material-kids-pronunciation.mp4'),
-((SELECT id FROM courses WHERE course_name = 'Business English Intensive' ORDER BY id DESC LIMIT 1), 'Meeting Phrases Cheat Sheet', 'Cum tu dung nhanh khi hop va trao doi cong viec.', '/assets/uploads/material-meeting-phrases.pdf'),
-((SELECT id FROM courses WHERE course_name = 'TOEIC Sprint B1-B2' ORDER BY id DESC LIMIT 1), 'Reading Strategy Notes', 'Ghi chu chien luoc doc hieu va tim y chinh.', '/assets/uploads/material-reading-strategy.pdf'),
-((SELECT id FROM courses WHERE course_name = 'Kids Speaking Starter' ORDER BY id DESC LIMIT 1), 'Story Time Audio', 'File nghe ke chuyen ngan danh cho hoc vien nhi.', '/assets/uploads/material-story-time.mp3');
+INSERT INTO materials (course_id, title, description, file_path)
+SELECT src.course_id, src.title, src.description, src.file_path
+FROM (
+		SELECT (SELECT id FROM courses WHERE course_name = 'Business English Intensive' ORDER BY id DESC LIMIT 1) AS course_id, 'Email Writing Templates' AS title, 'Mau email chuyen nghiep cho moi tinh huong cong viec.' AS description, '/assets/uploads/material-business-email-writing.pdf' AS file_path
+		UNION ALL
+		SELECT (SELECT id FROM courses WHERE course_name = 'TOEIC Sprint B1-B2' ORDER BY id DESC LIMIT 1), 'TOEIC Vocabulary Pack', 'Danh sach tu vung TOEIC theo chu de va bai tap on luuyen.', '/assets/uploads/material-toeic-vocab-pack.pdf'
+		UNION ALL
+		SELECT (SELECT id FROM courses WHERE course_name = 'Kids Speaking Starter' ORDER BY id DESC LIMIT 1), 'Kids Pronunciation Warmup', 'Hoat dong khop am va lop noi cho hoc vien nhi dong.', '/assets/uploads/material-kids-pronunciation.mp4'
+		UNION ALL
+		SELECT (SELECT id FROM courses WHERE course_name = 'Business English Intensive' ORDER BY id DESC LIMIT 1), 'Meeting Phrases Cheat Sheet', 'Cum tu dung nhanh khi hop va trao doi cong viec.', '/assets/uploads/material-meeting-phrases.pdf'
+		UNION ALL
+		SELECT (SELECT id FROM courses WHERE course_name = 'TOEIC Sprint B1-B2' ORDER BY id DESC LIMIT 1), 'Reading Strategy Notes', 'Ghi chu chien luoc doc hieu va tim y chinh.', '/assets/uploads/material-reading-strategy.pdf'
+		UNION ALL
+		SELECT (SELECT id FROM courses WHERE course_name = 'Kids Speaking Starter' ORDER BY id DESC LIMIT 1), 'Story Time Audio', 'File nghe ke chuyen ngan danh cho hoc vien nhi.', '/assets/uploads/material-story-time.mp3'
+) AS src
+WHERE src.course_id IS NOT NULL
+	AND NOT EXISTS (
+		SELECT 1
+		FROM materials m
+		WHERE m.course_id = src.course_id
+			AND m.title = src.title
+			AND m.file_path = src.file_path
+	);
 
 INSERT INTO feedbacks (sender_id, class_id, teacher_id, rating, content, status) VALUES
 ((SELECT id FROM users WHERE username = 'student2@ec.local' LIMIT 1), (SELECT id FROM classes WHERE class_name = 'TOEIC-K11-Sang-2-4-6' LIMIT 1), (SELECT id FROM users WHERE username = 'teacher3@ec.local' LIMIT 1), 4, 'Lop hoc ro rang, can them bai tap speaking.', 'pending'),
