@@ -82,7 +82,7 @@ $homeCourses = $homeCourses ?? [];
             </div>
 
             <div class="mt-4">
-                <a href="#" class="bg-amber-400 hover:bg-amber-500 text-blue-950 font-black uppercase text-[10px] md:text-xs px-8 py-2.5 rounded-full shadow-lg border-2 border-white transition-transform hover:-translate-y-1 flex items-center gap-2">
+                <a href="<?= e(page_url('register-consultation')); ?>" class="bg-amber-400 hover:bg-amber-500 text-blue-950 font-black uppercase text-[10px] md:text-xs px-8 py-2.5 rounded-full shadow-lg border-2 border-white transition-transform hover:-translate-y-1 flex items-center gap-2">
                     KIỂM TRA TRÌNH ĐỘ MIỄN PHÍ <span class="w-1.5 h-1.5 rounded-full bg-red-600"></span>
                 </a>
             </div>
@@ -176,7 +176,7 @@ $homeCourses = $homeCourses ?? [];
     		</a>
     	</div>
 
-	<?php if ($homeUser && (string) ($homeUser['role'] ?? '') === 'teacher'): ?>
+	<!-- <?php if ($homeUser && (string) ($homeUser['role'] ?? '') === 'teacher'): ?>
 		<section id="lich-day-noi-bo" class="py-12 relative z-20 bg-transparent" aria-label="Widget giáo viên">
 			<div class="mx-auto w-full max-w-6xl px-4 sm:px-6" data-aos="fade-up">
 				<div class="rounded-[2rem] border border-blue-100 bg-white/80 backdrop-blur-md p-6 md:p-8 shadow-xl shadow-blue-900/5">
@@ -206,7 +206,7 @@ $homeCourses = $homeCourses ?? [];
 				</div>
 			</div>
 		</section>
-	<?php endif; ?>
+	<?php endif; ?> -->
 
 	<section id="gioi-thieu" class="relative py-28 overflow-hidden bg-transparent">
         <div class="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-gradient-to-br from-blue-300/40 to-sky-200/40 rounded-full blur-3xl mix-blend-multiply pointer-events-none"></div>
@@ -584,6 +584,89 @@ $homeCourses = $homeCourses ?? [];
 
     </div>
 </section>
+ <section id="danh-gia" class="relative py-20 md:py-28 overflow-hidden bg-transparent">
+        <div class="absolute inset-0 pointer-events-none">
+            <div class="absolute -top-24 -right-24 h-80 w-80 rounded-full bg-cyan-200/30 blur-3xl"></div>
+            <div class="absolute -bottom-24 -left-24 h-80 w-80 rounded-full bg-rose-200/30 blur-3xl"></div>
+        </div>
+
+        <div class="mx-auto w-full max-w-[1400px] px-4 sm:px-6 relative z-10">
+            <div class="mb-10 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between" data-aos="fade-up">
+                <div class="max-w-2xl">
+                    <div class="inline-flex items-center gap-2 rounded-full border border-emerald-100 bg-white/80 px-4 py-2 text-[10px] font-black uppercase tracking-[0.35em] text-emerald-600 shadow-sm">
+                        <i class="fa-regular fa-comment-dots"></i> Đánh giá từ người dùng
+                    </div>
+                    <h2 class="mt-4 text-3xl md:text-5xl font-black tracking-tight text-slate-900">Học viên nói gì về <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-cyan-500">trung tâm</span></h2>
+                    <p class="mt-4 text-slate-600 font-medium text-base md:text-lg leading-relaxed">Những phản hồi thật từ học viên và phụ huynh là thước đo rõ nhất cho chất lượng đào tạo và trải nghiệm học tập tại trung tâm.</p>
+                </div>
+                <div class="grid grid-cols-2 gap-3 sm:gap-4">
+                    <div class="rounded-[1.5rem] bg-white/90 border border-emerald-100 p-4 shadow-sm">
+                        <p class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Tổng đánh giá</p>
+                        <p class="mt-2 text-2xl font-black text-slate-900"><?= (int) count($homeFeedbacks); ?></p>
+                    </div>
+                    <div class="rounded-[1.5rem] bg-white/90 border border-cyan-100 p-4 shadow-sm">
+                        <p class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Điểm trung bình</p>
+                        <p class="mt-2 text-2xl font-black text-slate-900"><?= $homeFeedbackAverage > 0 ? number_format($homeFeedbackAverage, 1) . '/5' : '--'; ?></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="swiper feedbackSwiper" data-aos="fade-up" data-aos-delay="120">
+                <div class="swiper-wrapper pb-14">
+                    <?php if (empty($homeFeedbacks)): ?>
+                        <div class="swiper-slide h-auto">
+                            <div class="rounded-[2rem] border border-dashed border-slate-300 bg-white/80 p-8 text-center text-slate-500 font-medium">
+                                Hiện chưa có đánh giá nào được duyệt để hiển thị.
+                            </div>
+                        </div>
+                    <?php else: ?>
+                        <?php foreach ($homeFeedbacks as $feedback): ?>
+                            <?php
+                            $feedbackName = (string) ($feedback['full_name'] ?? 'Học viên');
+                            $feedbackClass = (string) ($feedback['course_name'] ?? '');
+                            $feedbackTeacher = (string) ($feedback['teacher_name'] ?? '');
+                            $feedbackContent = trim((string) ($feedback['comment'] ?? ''));
+                            $feedbackRating = max(0, min(5, (int) ($feedback['rating'] ?? 0)));
+                            $avatarUrl = 'https://ui-avatars.com/api/?name=' . urlencode($feedbackName !== '' ? $feedbackName : 'User') . '&background=0f766e&color=fff&size=256&bold=true';
+                            ?>
+                            <div class="swiper-slide h-auto">
+                                <article class="h-full rounded-[2rem] border border-white bg-white/90 p-6 md:p-7 shadow-[0_15px_40px_rgba(15,23,42,0.08)] transition-all hover:-translate-y-1">
+                                    <div class="flex items-start justify-between gap-4">
+                                        <div class="flex items-center gap-4 min-w-0">
+                                            <img src="<?= e($avatarUrl); ?>" alt="<?= e($feedbackName); ?>" class="h-14 w-14 rounded-2xl object-cover ring-4 ring-emerald-50 shrink-0">
+                                            <div class="min-w-0">
+                                                <h3 class="truncate text-lg font-black text-slate-900"><?= e($feedbackName); ?></h3>
+                                                <p class="text-xs font-semibold uppercase tracking-[0.25em] text-emerald-600">Học viên / Phụ huynh</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center gap-1 text-amber-400">
+                                            <?php for ($i = 1; $i <= 5; $i++): ?>
+                                                <i class="<?= $i <= $feedbackRating ? 'fa-solid' : 'fa-regular'; ?> fa-star text-sm"></i>
+                                            <?php endfor; ?>
+                                        </div>
+                                    </div>
+
+                                    <p class="mt-5 text-base leading-relaxed text-slate-600">
+                                        “<?= e($feedbackContent !== '' ? $feedbackContent : 'Trải nghiệm học tập tại trung tâm rất tốt.'); ?>”
+                                    </p>
+
+                                    <div class="mt-6 flex flex-wrap items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-slate-500">
+                                        <?php if ($feedbackClass !== ''): ?>
+                                            <span class="rounded-full bg-emerald-50 px-3 py-1 text-emerald-700"><?= e($feedbackClass); ?></span>
+                                        <?php endif; ?>
+                                        <?php if ($feedbackTeacher !== ''): ?>
+                                            <span class="rounded-full bg-cyan-50 px-3 py-1 text-cyan-700">GV: <?= e($feedbackTeacher); ?></span>
+                                        <?php endif; ?>
+                                    </div>
+                                </article>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </div>
+                <div class="swiper-pagination-feedback flex justify-center"></div>
+            </div>
+        </div>
+    </section>
 
 	<!-- <section id="portal" class="relative py-20 md:py-32 overflow-hidden bg-transparent border-t border-white/30">
 		<div class="relative z-10 mx-auto w-full max-w-6xl px-4 sm:px-6">
@@ -636,41 +719,30 @@ $homeCourses = $homeCourses ?? [];
 
             <div class="w-full lg:w-1/2 flex flex-col justify-center px-6 py-16 lg:px-16 xl:px-32 z-10" data-aos="fade-right">
                 
-                <h2 class="text-[28px] md:text-[36px] font-bold text-[#185b9d] mb-8 tracking-tight">
+                <h2 class="text-[28px] md:text-[36px] font-bold text-[#185b9d] mb-5 tracking-tight">
                     Tư vấn và kiểm tra miễn phí
                 </h2>
 
-                <form class="flex flex-col w-full max-w-[420px]" action="#" method="post">
-                    <?= csrf_input(); ?>
+                <p class="max-w-xl text-slate-600 text-base md:text-lg font-medium leading-relaxed mb-8">
+                    Đăng ký ngay để được đội ngũ tư vấn hỗ trợ lộ trình học phù hợp, kiểm tra trình độ và nhận gợi ý khóa học tối ưu nhất.
+                </p>
 
-                    <input class="w-full bg-white text-slate-800 placeholder-slate-400 font-medium rounded-xl px-5 py-3.5 mb-4 outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 border border-slate-200 transition-all shadow-sm" 
-                        type="text" name="full_name" placeholder="Họ tên phụ huynh" required>
+                <div class="inline-flex flex-col items-start gap-4 max-w-[420px]">
+                    <a href="<?= e(page_url('register-consultation')); ?>" class="group relative inline-flex items-center justify-center rounded-[1.5rem] bg-[#2e3192] px-8 py-5 text-white font-black uppercase tracking-[0.18em] shadow-[0_18px_40px_rgba(46,49,146,0.28)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_50px_rgba(46,49,146,0.38)] active:translate-y-0 focus:outline-none focus:ring-4 focus:ring-blue-400/30">
+                        <span class="absolute inset-x-4 top-0 h-2 rounded-full bg-white/25 blur-sm"></span>
+                        <span class="relative flex items-center gap-3 text-base md:text-lg">
+                            <i class="fa-solid fa-pen-to-square transition-transform duration-300 group-hover:rotate-[-8deg]"></i>
+                            Đăng ký ngay
+                        </span>
+                    </a>
 
-                    <input class="w-full bg-white text-slate-800 placeholder-slate-400 font-medium rounded-xl px-5 py-3.5 mb-4 outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 border border-slate-200 transition-all shadow-sm" 
-                        type="tel" name="phone" placeholder="Số điện thoại" required>
-
-                    <div class="relative mb-4">
-                        <select name="learning_mode" class="w-full bg-white text-slate-800 font-medium rounded-xl px-5 py-3.5 outline-none appearance-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 border border-slate-200 shadow-sm transition-all cursor-pointer" required>
-                            <option value="" disabled selected hidden>Hình thức học</option>
-                            <option value="offline">Học tại trung tâm</option>
-                            <option value="online">Học trực tuyến</option>
-                        </select>
-                        <div class="absolute inset-y-0 right-4 flex items-center pointer-events-none">
-                            <i class="fa-solid fa-chevron-down text-slate-400 text-sm"></i>
+                    <div class="flex items-center gap-3 text-sm text-slate-500 font-medium bg-white/70 backdrop-blur-sm border border-slate-200 rounded-2xl px-4 py-3 shadow-sm">
+                        <div class="w-9 h-9 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-circle-check"></i>
                         </div>
+                        <span>Chỉ mất vài giây để mở form đăng ký tư vấn chi tiết.</span>
                     </div>
-
-                    <input class="w-full bg-white text-slate-800 placeholder-slate-400 font-medium rounded-xl px-5 py-3.5 mb-6 outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 border border-slate-200 transition-all shadow-sm" 
-                        type="email" name="email" placeholder="Email">
-
-                    <button type="submit" class="w-full bg-[#ffc107] hover:bg-[#ffb300] text-slate-900 font-semibold rounded-full py-3.5 px-6 text-lg transition-colors shadow-sm">
-                        Đăng Ký
-                    </button>
-
-                    <p class="text-[11px] text-slate-600 mt-4 leading-snug">
-                        * Thông tin được đồng ý tuân theo chính sách bảo mật và bảo vệ thông tin cá nhân.
-                    </p>
-                </form>
+                </div>
             </div>
 
             <div class="w-full lg:w-1/2 relative min-h-[400px] lg:min-h-[600px]" data-aos="fade-left">

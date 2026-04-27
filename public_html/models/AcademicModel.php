@@ -80,6 +80,11 @@ final class AcademicModel
         return $this->classStudentsTable->listStudentsForClass($classId);
     }
 
+    public function findUser(int $userId): ?array
+    {
+        return $this->usersTable->findActiveById($userId);
+    }
+
     public function summarizeAttendanceRateByClass(int $classId): array
     {
         return $this->attendanceTable->summarizeAttendanceRateByClass($classId);
@@ -487,6 +492,16 @@ final class AcademicModel
         return $this->usersTable->findActiveById($userId);
     }
 
+    public function listActiveTeachers(): array
+    {
+        return $this->usersTable->listActiveByRoleNames(['teacher']);
+    }
+
+    public function listTeacherCertificatesByUserId(int $userId): array
+    {
+        return $this->usersTable->listTeacherCertificatesByUserId($userId);
+    }
+
     public function findCourse(int $id): ?array
     {
         return $this->coursesTable->findById($id);
@@ -855,6 +870,10 @@ final class AcademicModel
     public function findFeedback(int $id): ?array
     {
         return $this->feedbacksTable->findById($id);
+    }
+    public function listPublicFeedbacks(int $limit = 6): array
+    {
+        return $this->feedbacksTable->listPublicReviews($limit);
     }
 
     public function saveFeedback(array $data): void

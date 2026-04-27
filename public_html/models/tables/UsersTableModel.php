@@ -85,6 +85,26 @@ final class UsersTableModel extends BaseTableModel
         $this->executeStatement($sql, $params);
     }
 
+    public function updateTeacherProfile(int $userId, array $data): void
+    {
+        $this->saveTeacherProfile($userId, $data);
+    }
+
+    public function listTeacherCertificatesByUserId(int $userId): array
+    {
+        if ($userId <= 0) {
+            return [];
+        }
+
+        $sql = 'SELECT tc.id, tc.certificate_name, tc.score, tc.image_url
+            FROM teacher_certificates tc
+            INNER JOIN teacher_profiles tp ON tp.id = tc.teacher_id
+            WHERE tp.user_id = :user_id
+            ORDER BY tc.id ASC';
+
+        return $this->fetchAll($sql, ['user_id' => $userId]);
+    }
+
     public function save(array $data): int
     {
         $id = (int) ($data['id'] ?? 0);

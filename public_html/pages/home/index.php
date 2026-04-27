@@ -42,6 +42,11 @@ foreach ($courseRows as $row) {
 
 $homeActivities = $academicModel->listActivitiesPage(1, 4);
 $homeTeachers = $academicModel->feedbackLookups()['teachers'] ?? [];
+$homeFeedbacks = $academicModel->listPublicFeedbacks(6);
+$homeFeedbackAverage = 0.0;
+if (!empty($homeFeedbacks)) {
+	$homeFeedbackAverage = array_sum(array_map(static fn (array $feedback): float => (float) ($feedback['rating'] ?? 0), $homeFeedbacks)) / count($homeFeedbacks);
+}
 
 if (is_logged_in()) {
 	$user = auth_user();
@@ -77,6 +82,11 @@ if (is_logged_in()) {
 		/* Swiper custom */
 		.swiper-pagination-teacher .swiper-pagination-bullet-active {
 			background-color: var(--primary) !important;
+			width: 2rem !important;
+			border-radius: 99px !important;
+		}
+		.swiper-pagination-feedback .swiper-pagination-bullet-active {
+			background-color: #0f766e !important;
 			width: 2rem !important;
 			border-radius: 99px !important;
 		}
@@ -136,6 +146,24 @@ if (is_logged_in()) {
 		        breakpoints: {
 		            640: { slidesPerView: 2.2, spaceBetween: 30 },
 		            1024: { slidesPerView: 4, spaceBetween: 32 }
+		        }
+		    });
+
+		    new Swiper('.feedbackSwiper', {
+		        slidesPerView: 1,
+		        spaceBetween: 20,
+		        loop: true,
+		        autoplay: { delay: 4500, disableOnInteraction: false },
+		        pagination: {
+		            el: '.swiper-pagination-feedback',
+		            clickable: true,
+		            renderBullet: function (index, className) {
+		                return '<span class="' + className + ' w-3 h-3 border-2 border-[#0f766e] rounded-full transition-all"></span>';
+		            },
+		        },
+		        breakpoints: {
+		            640: { slidesPerView: 1.1, spaceBetween: 24 },
+		            1024: { slidesPerView: 2.2, spaceBetween: 28 }
 		        }
 		    });
 		}

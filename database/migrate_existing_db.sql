@@ -118,6 +118,146 @@ PREPARE stmt FROM @sql;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
 
+-- Restore feedbacks to sender/class/teacher/rating/content/status.
+SET @has_feedbacks := (
+    SELECT COUNT(*)
+    FROM information_schema.tables
+    WHERE table_schema = DATABASE()
+      AND table_name = 'feedbacks'
+);
+
+SET @has_feedbacks_class := (
+    SELECT COUNT(*)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'feedbacks'
+      AND column_name = 'class_id'
+);
+
+SET @has_feedbacks_teacher := (
+    SELECT COUNT(*)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'feedbacks'
+      AND column_name = 'teacher_id'
+);
+
+SET @has_fk_feedbacks_class := (
+    SELECT COUNT(*)
+    FROM information_schema.table_constraints
+    WHERE table_schema = DATABASE()
+      AND table_name = 'feedbacks'
+      AND constraint_name = 'fk_feedbacks_class'
+      AND constraint_type = 'FOREIGN KEY'
+);
+
+SET @has_fk_feedbacks_teacher := (
+    SELECT COUNT(*)
+    FROM information_schema.table_constraints
+    WHERE table_schema = DATABASE()
+      AND table_name = 'feedbacks'
+      AND constraint_name = 'fk_feedbacks_teacher'
+      AND constraint_type = 'FOREIGN KEY'
+);
+
+SET @default_feedback_class_id := (
+    SELECT id FROM classes ORDER BY id ASC LIMIT 1
+);
+
+SET @default_feedback_teacher_id := (
+    SELECT teacher_id FROM classes ORDER BY id ASC LIMIT 1
+);
+
+SET @sql := IF(
+    @has_feedbacks = 1 AND @has_feedbacks_class = 0,
+    "ALTER TABLE feedbacks ADD COLUMN class_id BIGINT UNSIGNED NULL AFTER sender_id",
+    "SELECT 'Skip: feedbacks.class_id already exists or table missing' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @sql := IF(
+    @has_feedbacks = 1 AND @has_feedbacks_teacher = 0,
+    "ALTER TABLE feedbacks ADD COLUMN teacher_id BIGINT UNSIGNED NULL AFTER class_id",
+    "SELECT 'Skip: feedbacks.teacher_id already exists or table missing' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @sql := IF(
+    @has_feedbacks = 1 AND @has_feedbacks_class = 0 AND @default_feedback_class_id IS NOT NULL,
+    CONCAT('UPDATE feedbacks SET class_id = ', @default_feedback_class_id, ' WHERE class_id IS NULL'),
+    "SELECT 'Skip: feedbacks.class_id backfill not required' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @sql := IF(
+    @has_feedbacks = 1 AND @has_feedbacks_teacher = 0 AND @default_feedback_teacher_id IS NOT NULL,
+    CONCAT('UPDATE feedbacks SET teacher_id = ', @default_feedback_teacher_id, ' WHERE teacher_id IS NULL'),
+    "SELECT 'Skip: feedbacks.teacher_id backfill not required' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @sql := IF(
+    @has_feedbacks = 1 AND @has_feedbacks_class = 1,
+    "UPDATE feedbacks SET class_id = COALESCE(class_id, (SELECT id FROM classes ORDER BY id ASC LIMIT 1))",
+    "SELECT 'Skip: feedbacks.class_id normalize not required' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @sql := IF(
+    @has_feedbacks = 1 AND @has_feedbacks_teacher = 1,
+    "UPDATE feedbacks SET teacher_id = COALESCE(teacher_id, (SELECT teacher_id FROM classes ORDER BY id ASC LIMIT 1))",
+    "SELECT 'Skip: feedbacks.teacher_id normalize not required' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @sql := IF(
+    @has_feedbacks = 1 AND @has_feedbacks_class = 1,
+    "ALTER TABLE feedbacks MODIFY COLUMN class_id BIGINT UNSIGNED NOT NULL",
+    "SELECT 'Skip: feedbacks.class_id not required' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @sql := IF(
+    @has_feedbacks = 1 AND @has_feedbacks_teacher = 1,
+    "ALTER TABLE feedbacks MODIFY COLUMN teacher_id BIGINT UNSIGNED NOT NULL",
+    "SELECT 'Skip: feedbacks.teacher_id not required' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @sql := IF(
+    @has_feedbacks = 1 AND @has_fk_feedbacks_class = 0,
+    "ALTER TABLE feedbacks ADD CONSTRAINT fk_feedbacks_class FOREIGN KEY (class_id) REFERENCES classes(id)",
+    "SELECT 'Skip: feedbacks.class foreign key exists or table missing' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @sql := IF(
+    @has_feedbacks = 1 AND @has_fk_feedbacks_teacher = 0,
+    "ALTER TABLE feedbacks ADD CONSTRAINT fk_feedbacks_teacher FOREIGN KEY (teacher_id) REFERENCES users(id)",
+    "SELECT 'Skip: feedbacks.teacher foreign key exists or table missing' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
 SET @has_pr_name := (
     SELECT COUNT(*)
     FROM information_schema.columns

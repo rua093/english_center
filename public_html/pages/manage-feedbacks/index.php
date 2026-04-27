@@ -99,8 +99,8 @@ $error = get_flash('error');
                         <?php foreach ($feedbacks as $fb): ?>
                             <tr>
                                 <td><?= e((string) ($fb['full_name'] ?? ($fb['student_name'] ?? ''))); ?></td>
-                                <td><?= $fb['teacher_name'] ? e((string) $fb['teacher_name']) : '-'; ?></td>
-                                <td><?= e((string) $fb['course_name']); ?></td>
+                                <td><?= !empty($fb['teacher_name']) ? e((string) $fb['teacher_name']) : '-'; ?></td>
+                                <td><?= !empty($fb['course_name']) ? e((string) $fb['course_name']) : '-'; ?></td>
                                 <td><?= (int) $fb['rating']; ?>/5</td>
                                 <td>
                                     <?php $fullComment = (string) ($fb['comment'] ?? ''); ?>

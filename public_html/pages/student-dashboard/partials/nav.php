@@ -36,5 +36,13 @@ $studentDashboardActiveTab = (string) ($studentDashboardActiveTab ?? 'dashboard-
 			</span>
 			<span class="font-bold">Ngoại khoá</span>
 		</a>
+
+		<a href="<?= e(page_url('feedback')); ?>"
+		   class="group flex items-center gap-3 rounded-2xl px-4 py-3.5 text-sm transition-all duration-300 <?= $studentDashboardActiveTab === 'feedback' ? 'bg-gradient-to-r from-emerald-600 to-teal-500 text-white shadow-lg shadow-emerald-200' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800' ?>">
+			<span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-colors <?= $studentDashboardActiveTab === 'feedback' ? 'bg-white/20 text-white' : 'bg-emerald-50 text-emerald-600 group-hover:bg-emerald-100' ?>">
+				<i class="fa-regular fa-comment-dots"></i>
+			</span>
+			<span class="font-bold">Đánh giá trung tâm</span>
+		</a>
 	</div>
 </nav>
