@@ -36,12 +36,16 @@
 	.contact-bell:hover {
 		animation-play-state: paused;
 	}
+
+	.social-top-button {
+		scroll-behavior: smooth;
+	}
 </style>
 
 <div class="fixed bottom-5 right-4 z-50 flex flex-col items-end gap-3 sm:bottom-6 sm:right-6">
-    <a href="#hero-video" class="group flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-slate-800 text-white shadow-[0_10px_25px_rgba(15,23,42,0.28)] ring-2 ring-white transition-all hover:-translate-y-1 hover:bg-slate-700" aria-label="Đi tới hero video">
+	<button type="button" class="social-top-button group flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-slate-800 text-white shadow-[0_10px_25px_rgba(15,23,42,0.28)] ring-2 ring-white transition-all hover:-translate-y-1 hover:bg-slate-700" aria-label="Lên đầu trang" data-social-top-button>
 			<i class="fa-solid fa-arrow-up text-[15px] sm:text-base transition-transform duration-300 group-hover:-translate-y-0.5"></i>
-		</a>
+		</button>
     <a href="https://www.facebook.com/" target="_blank" rel="noopener noreferrer" class="group contact-bell flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-[#1877F2] text-white shadow-[0_10px_25px_rgba(24,119,242,0.28)] ring-2 ring-white transition-all hover:-translate-y-1 hover:scale-105" aria-label="Facebook" style="animation-delay: 0s;">
 			<i class="fa-brands fa-facebook-f text-[15px] sm:text-base"></i>
 		</a>
@@ -55,3 +59,16 @@
 			<i class="fa-brands fa-facebook-messenger text-[15px] sm:text-base"></i>
 		</a>
 	</div>
+
+<script>
+	(function () {
+		const topButton = document.querySelector('[data-social-top-button]');
+		if (!topButton) {
+			return;
+		}
+
+		topButton.addEventListener('click', function () {
+			window.scrollTo({ top: 0, behavior: 'smooth' });
+		});
+	})();
+</script>

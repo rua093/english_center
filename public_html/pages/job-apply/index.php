@@ -12,7 +12,7 @@
                 
                 <div class="lg:col-span-8 space-y-8">
                     
-                    <div class="form-card p-8 md:p-10 shadow-xl shadow-slate-200/50">
+                    <div class="form-card animate-card p-8 md:p-10 shadow-xl shadow-slate-200/50" data-animate-card>
                         <h2 class="section-title">1. Thông tin cá nhân</h2>
                         
                         <div class="grid md:grid-cols-2 gap-5 mb-5">
@@ -80,7 +80,7 @@
                         </div>
                     </div>
 
-                <div class="form-card p-8 md:p-10 shadow-xl shadow-slate-200/50">
+                <div class="form-card animate-card p-8 md:p-10 shadow-xl shadow-slate-200/50" data-animate-card>
                     <h2 class="section-title">3. Kỹ năng liên quan</h2>
                     
                     <div class="mb-10">
@@ -108,7 +108,7 @@
                     </div>
                 </div>
 
-                    <div class="form-card p-8 md:p-10 shadow-xl shadow-slate-200/50">
+                    <div class="form-card animate-card p-8 md:p-10 shadow-xl shadow-slate-200/50" data-animate-card>
                         <h2 class="section-title">4. Giới thiệu bản thân</h2>
                         <textarea name="bio" required placeholder="Nêu bật điểm mạnh, kỹ năng cốt lõi và mục tiêu nghề nghiệp của bạn..." class="w-full px-5 py-4 rounded-2xl bg-slate-50 outline-none focus-lime font-bold h-32 resize-none"></textarea>
                     </div>
@@ -116,7 +116,7 @@
                 </div>
 
                 <div class="lg:col-span-4 space-y-8">
-                    <div class="form-card p-8 shadow-xl border-t-8 border-rose-600">
+                    <div class="form-card animate-card p-8 shadow-xl border-t-8 border-rose-600" data-animate-card>
                         <h3 class="text-xl font-black text-slate-800 mb-6 uppercase tracking-tight">Chi tiết công việc</h3>
                         
                         <div class="space-y-6">
