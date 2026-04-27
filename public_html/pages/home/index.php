@@ -9,7 +9,7 @@ $homeWidgets = [
 $academicModel = new AcademicModel();
 $courseTotal = $academicModel->countCourses();
 $courseRows = $courseTotal > 0
-	? $academicModel->listCoursesPage(1, $courseTotal)
+	? $academicModel->listCoursesPage(1, min(8, $courseTotal))
 	: [];
 
 $buildCourseSlug = static function (string $value): string {
@@ -112,7 +112,7 @@ if (is_logged_in()) {
 			0%, 100% { transform: translateY(0px); }
 			50% { transform: translateY(-10px); }
 		}
-		.float-soft { animation: floatSoft 6s ease-in-out infinite; }
+		.float-soft { animation: floatSoft 3.5s ease-in-out infinite; }
 	</style>
 
 	<?php
@@ -123,7 +123,7 @@ if (is_logged_in()) {
 	document.addEventListener('DOMContentLoaded', function() {
 	    // 1. Khởi tạo AOS với offset = 0 để hiện sớm hơn
 	    AOS.init({ 
-	        duration: 600,  
+	        duration: 350,  
 	        once: true,     
 	        offset: 0       // Kích hoạt ngay khi mép phần tử chạm đáy màn hình
 	    });
@@ -135,7 +135,7 @@ if (is_logged_in()) {
 		        spaceBetween: 24,
 		        centeredSlides: false,
 		        loop: true,
-		        autoplay: { delay: 4000, disableOnInteraction: false },
+		        autoplay: { delay: 2500, disableOnInteraction: false },
 		        pagination: {
 		            el: '.swiper-pagination-teacher',
 		            clickable: true,
@@ -153,7 +153,7 @@ if (is_logged_in()) {
 		        slidesPerView: 1,
 		        spaceBetween: 20,
 		        loop: true,
-		        autoplay: { delay: 4500, disableOnInteraction: false },
+		        autoplay: { delay: 3000, disableOnInteraction: false },
 		        pagination: {
 		            el: '.swiper-pagination-feedback',
 		            clickable: true,
@@ -214,7 +214,7 @@ if (is_logged_in()) {
     }
 
     .contact-bell {
-        animation: bell-shake 2.8s ease-in-out infinite;
+		animation: bell-shake 1.8s ease-in-out infinite;
         transform-origin: center bottom;
     }
 
@@ -250,10 +250,10 @@ if (is_logged_in()) {
     }
     
     .orbit-spin {
-        animation: spin-orbit 20s linear infinite;
+		animation: spin-orbit 12s linear infinite;
     }
     .orbit-reverse-spin {
-        animation: spin-orbit-reverse 20s linear infinite;
+		animation: spin-orbit-reverse 12s linear infinite;
     }
     
     /* Tạm dừng toàn bộ vòng quay khi di chuột vào */

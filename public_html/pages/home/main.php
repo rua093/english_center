@@ -3,6 +3,20 @@ $homeUser = auth_user();
 $studentProgress = $homeWidgets['student_progress'] ?? null;
 $teacherSchedules = $homeWidgets['teacher_schedules'] ?? [];
 $homeCourses = $homeCourses ?? [];
+
+$homeFormatFeedbackDate = static function (?string $value): string {
+    $value = trim((string) $value);
+    if ($value === '') {
+        return 'Không rõ thời gian';
+    }
+
+    $timestamp = strtotime($value);
+    if ($timestamp === false) {
+        return $value;
+    }
+
+    return date('d/m/Y H:i', $timestamp);
+};
 ?>
 
 <main class="font-jakarta relative">
@@ -21,7 +35,7 @@ $homeCourses = $homeCourses ?? [];
          style="background-image: radial-gradient(#1e3a8a 2px, transparent 2px); background-size: 30px 30px;">
     </div>
 
-    <section id="hero-video" class="relative w-full h-[80vh] min-h-[600px] flex items-center justify-center mb-32 md:mb-40">
+    <section id="hero-video" class="relative w-full h-[80vh] min-h-[600px] flex items-center justify-center mb-20 md:mb-24">
         <div class="absolute inset-0 z-0 overflow-hidden bg-black">
             <video autoplay loop muted playsinline class="absolute top-1/2 left-1/2 min-w-full min-h-full w-auto h-auto -translate-x-1/2 -translate-y-1/2 object-cover">
                 <source src="assets/videodemo/iilavideo.mp4" type="video/mp4">
@@ -89,7 +103,7 @@ $homeCourses = $homeCourses ?? [];
         </div>
     </section>
 
-    <section id="trang-chu" class="relative bg-transparent pt-16 lg:pt-24 lg:pb-12 overflow-hidden border-b border-blue-100/50">
+    <section id="trang-chu" class="relative bg-transparent pt-10 lg:pt-16 lg:pb-8 overflow-hidden border-b border-blue-100/50">
         <div class="absolute inset-0 z-0 pointer-events-none">
             <div class="absolute w-[600px] h-[600px] bg-blue-400/20 blur-[120px] rounded-full -top-40 -left-40"></div>
             <div class="absolute w-[500px] h-[500px] bg-cyan-400/20 blur-[120px] rounded-full bottom-[-150px] right-[-150px]"></div>
@@ -100,7 +114,7 @@ $homeCourses = $homeCourses ?? [];
                 <div class="absolute bottom-10 left-1/2 -translate-x-1/2 w-[90%] h-[80%] bg-gradient-to-t from-blue-300/40 to-transparent rounded-[3rem] blur-[60px] -z-10"></div>
                 <img src="assets/images/student_girl.png" alt="Học sinh tiêu biểu" class="w-full max-w-[550px] object-contain relative z-10 drop-shadow-[0_20px_40px_rgba(30,58,138,0.25)]">
                 
-                <div class="absolute top-1/4 -left-4 bg-white/95 backdrop-blur-md px-5 py-4 rounded-2xl shadow-xl border border-blue-50 z-20 animate-bounce" style="animation-duration: 3s;">
+                <div class="absolute top-1/4 -left-4 bg-white/95 backdrop-blur-md px-5 py-4 rounded-2xl shadow-xl border border-blue-50 z-20 animate-bounce" style="animation-duration: 2s;">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-full bg-yellow-100 text-yellow-500 flex items-center justify-center text-xl shadow-inner"><i class="fa-solid fa-star"></i></div>
                         <div>
@@ -143,7 +157,7 @@ $homeCourses = $homeCourses ?? [];
                         <h4 class="font-extrabold text-blue-950 text-sm leading-tight">Cổng OVI</h4><span class="text-[10px] font-semibold text-slate-500 mt-1 block">Hệ thống học tập</span>
                     </a>
                     <a href="#he" class="group relative rounded-2xl p-5 bg-white/90 backdrop-blur-xl border border-teal-100 shadow-[0_10px_20px_rgba(20,184,166,0.05)] transition-all hover:-translate-y-2 hover:shadow-xl hover:border-teal-400 flex flex-col items-center text-center">
-                        <div class="w-12 h-12 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center mb-3 group-hover:bg-teal-600 group-hover:text-white transition-colors shadow-sm"><i class="fa-solid fa-sun text-xl animate-[spin_10s_linear_infinite]"></i></div>
+                        <div class="w-12 h-12 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center mb-3 group-hover:bg-teal-600 group-hover:text-white transition-colors shadow-sm"><i class="fa-solid fa-sun text-xl animate-[spin_6s_linear_infinite]"></i></div>
                         <h4 class="font-extrabold text-blue-950 text-sm leading-tight">Tiếng Anh Hè</h4><span class="text-[10px] font-semibold text-slate-500 mt-1 block">Chương trình 2026</span>
                     </a>
                     <a href="#doanh-nghiep" class="group relative rounded-2xl p-5 bg-white/90 backdrop-blur-xl border border-amber-100 shadow-[0_10px_20px_rgba(245,158,11,0.05)] transition-all hover:-translate-y-2 hover:shadow-xl hover:border-amber-400 flex flex-col items-center text-center">
@@ -264,7 +278,7 @@ $homeCourses = $homeCourses ?? [];
         </div>
     </section>
 
-    <section id="su-menh" class="pt-24 pb-12 md:pt-28 md:pb-16 relative overflow-hidden bg-transparent z-10">
+    <section id="su-menh" class="pt-16 pb-8 md:pt-20 md:pb-10 relative overflow-hidden bg-transparent z-10">
         <div class="absolute inset-0 pointer-events-none z-0 overflow-hidden">
             <div class="absolute top-6 left-4 sm:top-10 sm:left-8 md:top-12 md:left-12 flex flex-col gap-4 text-slate-300 rotate-[-8deg]">
                 <i class="fa-solid fa-paper-plane text-4xl md:text-5xl opacity-55"></i>
@@ -378,7 +392,7 @@ $homeCourses = $homeCourses ?? [];
         </div>
     </section>                            
 								
-    <section id="khoa-hoc" class="pt-8 pb-20 md:pt-10 md:pb-28 relative overflow-hidden bg-transparent">
+    <section id="khoa-hoc" class="pt-6 pb-14 md:pt-8 md:pb-18 relative overflow-hidden bg-transparent">
     <div class="mx-auto w-full max-w-7xl px-4 sm:px-6 relative z-10">
         <div class="mb-14 text-center" data-aos="fade-up">
             <h2 class="text-3xl md:text-5xl font-black text-[#2e3192] uppercase tracking-tight">
@@ -457,7 +471,7 @@ $homeCourses = $homeCourses ?? [];
     </div>
 </section>
 
-    <section id="ngoai-khoa" class="py-16 sm:py-24 bg-transparent relative overflow-hidden">
+    <section id="ngoai-khoa" class="py-12 sm:py-16 bg-transparent relative overflow-hidden">
         <div class="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 relative z-10">
             <div class="mb-12 text-center md:text-left">
                 <h2 class="text-2xl md:text-3xl lg:text-4xl font-extrabold tracking-tight text-slate-800 mb-2">
@@ -509,13 +523,13 @@ $homeCourses = $homeCourses ?? [];
         </div>
     </section>
 	
-    <section id="giao-vien" class="py-20 md:py-28 relative overflow-hidden bg-transparent z-10">
+    <section id="giao-vien" class="py-14 md:py-20 relative overflow-hidden bg-transparent z-10">
     <div class="mx-auto w-full max-w-7xl px-4 sm:px-6 relative z-10">
         
         <div class="mb-16 flex flex-col lg:flex-row gap-8 items-start lg:items-center justify-between" data-aos="fade-up">
             
-            <div class="lg:w-1/2">
-                <h2 class="text-3xl md:text-5xl font-black text-blue-800 leading-tight tracking-tight">
+            <div class="lg:w-1/2 max-w-2xl">
+                <h2 class="text-3xl md:text-5xl font-black text-blue-800 leading-[1.18] md:leading-[1.12] tracking-tight max-w-xl">
                     Hơn 3.100 Giáo viên và trợ giảng <br>
                     <span class="text-blue-600">Chuẩn quốc tế</span>
                 </h2>
@@ -584,7 +598,7 @@ $homeCourses = $homeCourses ?? [];
 
     </div>
 </section>
- <section id="danh-gia" class="relative py-20 md:py-28 overflow-hidden bg-transparent">
+ <section id="danh-gia" class="relative py-14 md:py-20 overflow-hidden bg-transparent">
         <div class="absolute inset-0 pointer-events-none">
             <div class="absolute -top-24 -right-24 h-80 w-80 rounded-full bg-cyan-200/30 blur-3xl"></div>
             <div class="absolute -bottom-24 -left-24 h-80 w-80 rounded-full bg-rose-200/30 blur-3xl"></div>
@@ -630,32 +644,38 @@ $homeCourses = $homeCourses ?? [];
                             $avatarUrl = 'https://ui-avatars.com/api/?name=' . urlencode($feedbackName !== '' ? $feedbackName : 'User') . '&background=0f766e&color=fff&size=256&bold=true';
                             ?>
                             <div class="swiper-slide h-auto">
-                                <article class="h-full rounded-[2rem] border border-white bg-white/90 p-6 md:p-7 shadow-[0_15px_40px_rgba(15,23,42,0.08)] transition-all hover:-translate-y-1">
-                                    <div class="flex items-start justify-between gap-4">
-                                        <div class="flex items-center gap-4 min-w-0">
-                                            <img src="<?= e($avatarUrl); ?>" alt="<?= e($feedbackName); ?>" class="h-14 w-14 rounded-2xl object-cover ring-4 ring-emerald-50 shrink-0">
+                                <article class="flex h-full min-h-[100px] flex-col rounded-[2rem] border border-white bg-white/90 p-3 md:p-4 shadow-[0_15px_40px_rgba(15,23,42,0.08)] transition-all hover:-translate-y-1 md:min-h-[180px]">
+                                    <div class="flex items-start justify-between gap-3">
+                                        <div class="flex items-center gap-3 min-w-0">
+                                            <img src="<?= e($avatarUrl); ?>" alt="<?= e($feedbackName); ?>" class="h-10 w-10 rounded-xl object-cover ring-2 ring-emerald-50 shrink-0 md:h-12 md:w-12">
                                             <div class="min-w-0">
-                                                <h3 class="truncate text-lg font-black text-slate-900"><?= e($feedbackName); ?></h3>
-                                                <p class="text-xs font-semibold uppercase tracking-[0.25em] text-emerald-600">Học viên / Phụ huynh</p>
+                                                <h3 class="truncate text-sm font-black text-slate-900 md:text-base"><?= e($feedbackName); ?></h3>
+                                                <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-emerald-600 md:text-[11px]">Học viên / Phụ huynh</p>
                                             </div>
                                         </div>
-                                        <div class="flex items-center gap-1 text-amber-400">
-                                            <?php for ($i = 1; $i <= 5; $i++): ?>
-                                                <i class="<?= $i <= $feedbackRating ? 'fa-solid' : 'fa-regular'; ?> fa-star text-sm"></i>
-                                            <?php endfor; ?>
+                                        <div class="flex flex-col items-end gap-1 shrink-0">
+                                            <div class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.18em] text-slate-500 md:text-[10px]">
+                                                <i class="fa-regular fa-clock text-[9px]"></i>
+                                                <?= e($homeFormatFeedbackDate((string) ($feedback['created_at'] ?? ''))); ?>
+                                            </div>
+                                            <div class="flex items-center gap-0.5 text-amber-400 md:gap-1">
+                                                <?php for ($i = 1; $i <= 5; $i++): ?>
+                                                    <i class="<?= $i <= $feedbackRating ? 'fa-solid' : 'fa-regular'; ?> fa-star text-[10px] md:text-sm"></i>
+                                                <?php endfor; ?>
+                                            </div>
                                         </div>
                                     </div>
 
-                                    <p class="mt-5 text-base leading-relaxed text-slate-600">
+                                    <p class="mt-3 flex-1 text-sm leading-relaxed text-slate-600 line-clamp-2 md:mt-4 md:text-base md:line-clamp-3">
                                         “<?= e($feedbackContent !== '' ? $feedbackContent : 'Trải nghiệm học tập tại trung tâm rất tốt.'); ?>”
                                     </p>
 
-                                    <div class="mt-6 flex flex-wrap items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-slate-500">
+                                    <div class="mt-3 flex flex-wrap items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-500 md:mt-4 md:text-[11px]">
                                         <?php if ($feedbackClass !== ''): ?>
-                                            <span class="rounded-full bg-emerald-50 px-3 py-1 text-emerald-700"><?= e($feedbackClass); ?></span>
+                                            <span class="rounded-full bg-emerald-50 px-2 py-0.5 text-emerald-700 md:px-3 md:py-1"><?= e($feedbackClass); ?></span>
                                         <?php endif; ?>
                                         <?php if ($feedbackTeacher !== ''): ?>
-                                            <span class="rounded-full bg-cyan-50 px-3 py-1 text-cyan-700">GV: <?= e($feedbackTeacher); ?></span>
+                                            <span class="rounded-full bg-cyan-50 px-2 py-0.5 text-cyan-700 md:px-3 md:py-1">GV: <?= e($feedbackTeacher); ?></span>
                                         <?php endif; ?>
                                     </div>
                                 </article>
@@ -713,7 +733,7 @@ $homeCourses = $homeCourses ?? [];
 		</div>
 	</section> -->
 
-	<section id="lien-he" class="relative py-20 md:py-32 overflow-hidden bg-transparent z-10">
+    <section id="lien-he" class="relative py-14 md:py-20 overflow-hidden bg-transparent z-10">
         <!-- <section id="lien-he" class="relative bg-[#f4f7fb] overflow-hidden z-10"> -->
         <div class="mx-auto w-full max-w-[1400px] flex flex-col lg:flex-row">
 
