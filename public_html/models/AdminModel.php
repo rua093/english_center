@@ -62,8 +62,20 @@ final class AdminModel
             throw new RuntimeException('Vai trò không hợp lệ.');
         }
 
+        $oldRoleName = '';
+        if ($id > 0) {
+            $existing = $this->findUser($id);
+            $oldRoleName = is_array($existing) ? strtolower((string) ($existing['role_name'] ?? '')) : '';
+        }
+
         $savedUserId = $this->usersTable->save($data);
-        $this->usersTable->saveRoleProfile($savedUserId, (string) ($role['role_name'] ?? ''), $data);
+        $newRoleName = strtolower((string) ($role['role_name'] ?? ''));
+        $this->usersTable->saveRoleProfile($savedUserId, $newRoleName, $data);
+
+        // Nếu đổi vai trò thì xóa profile của vai trò cũ để tránh tồn profile thừa
+        if ($id > 0 && $oldRoleName !== '' && $oldRoleName !== $newRoleName) {
+            $this->usersTable->removeRoleProfile($savedUserId, $oldRoleName);
+        }
 
         if ($id > 0 && $password !== '') {
             $this->updateUserPassword($savedUserId, $password);
@@ -123,6 +135,11 @@ final class AdminModel
         }
 
         $this->studentLeadsTable->updateReview($id, $status, $adminNote);
+    }
+
+    public function deleteStudentLead(int $id): void
+    {
+        $this->studentLeadsTable->deleteById($id);
     }
 
     public function convertStudentLeadToUser(int $leadId, array $options = []): array
@@ -221,6 +238,11 @@ final class AdminModel
         }
 
         $this->jobApplicationsTable->updateReview($id, $status, $adminNote);
+    }
+
+    public function deleteJobApplication(int $id): void
+    {
+        $this->jobApplicationsTable->deleteById($id);
     }
 
     public function convertJobApplicationToUser(int $applicationId, array $options = []): array

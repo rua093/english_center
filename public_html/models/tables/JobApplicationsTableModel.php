@@ -169,6 +169,11 @@ final class JobApplicationsTableModel
         );
     }
 
+    public function deleteById(int $id): void
+    {
+        $this->executeStatement('DELETE FROM job_applications WHERE id = :id', ['id' => $id]);
+    }
+
     private function normalizeStatus(string $status): string
     {
         $normalized = strtoupper(trim($status));

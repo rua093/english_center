@@ -1,5 +1,6 @@
 <?php
-require_role(['teacher', 'admin']);
+set_flash('info', 'Trang giao vien da duoc hop nhat vao khu vuc quan tri.');
+redirect(page_url('admin'));
 
 $user = auth_user();
 $academicModel = new AcademicModel();

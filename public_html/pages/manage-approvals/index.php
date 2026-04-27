@@ -1,6 +1,6 @@
 <?php
 require_admin_or_staff();
-require_permission('approval.view');
+require_any_permission(['approval.view']);
 
 $academicModel = new AcademicModel();
 $approvalPage = max(1, (int) ($_GET['approval_page'] ?? 1));
@@ -24,9 +24,9 @@ $adminTitle = 'Hệ thống phê duyệt';
 $viewer = auth_user();
 $isAdmin = (($viewer['role'] ?? '') === 'admin');
 
-$canCreateApproval = $isAdmin || has_any_permission(['approval.manage', 'approval.request']);
-$canUpdateApproval = $isAdmin || has_any_permission(['approval.manage', 'approval.update']);
-$canDeleteApproval = $isAdmin || has_any_permission(['approval.manage', 'approval.delete']);
+$canCreateApproval = $isAdmin || has_any_permission(['approval.create', 'approval.request']);
+$canUpdateApproval = $isAdmin || has_any_permission(['approval.update']);
+$canDeleteApproval = $isAdmin || has_any_permission(['approval.delete']);
 
 $approvalTypeOptions = [
     'schedule_change'  => 'Thay đổi lịch học',

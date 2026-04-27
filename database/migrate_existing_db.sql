@@ -1742,15 +1742,123 @@ DEALLOCATE PREPARE stmt;
 
 -- Add permissions for lead/application management and grant to admin role.
 INSERT INTO permissions (permission_name, slug) VALUES
-('Quan ly dau moi hoc vien', 'student_lead.manage'),
-('Quan ly ho so ung tuyen giao vien', 'job_application.manage')
+('Xem nguoi dung', 'admin.user.view'),
+('Tao nguoi dung', 'admin.user.create'),
+('Cap nhat nguoi dung', 'admin.user.update'),
+('Xoa nguoi dung', 'admin.user.delete'),
+('Xem phan quyen vai tro', 'admin.role_permission.view'),
+('Cap nhat phan quyen vai tro', 'admin.role_permission.update'),
+('Tao hoc phi', 'finance.tuition.create'),
+('Cap nhat hoc phi', 'finance.tuition.update'),
+('Xoa hoc phi', 'finance.tuition.delete'),
+('Xem dang ky', 'finance.registration.view'),
+('Tao dang ky', 'finance.registration.create'),
+('Cap nhat dang ky', 'finance.registration.update'),
+('Xoa dang ky', 'finance.registration.delete'),
+('Xem khuyen mai', 'finance.promotions.view'),
+('Tao khuyen mai', 'finance.promotions.create'),
+('Cap nhat khuyen mai', 'finance.promotions.update'),
+('Xoa khuyen mai', 'finance.promotions.delete'),
+('Xem giao dich thanh toan chi tiet', 'finance.payments.view'),
+('Tao giao dich thanh toan', 'finance.payments.create'),
+('Cap nhat giao dich thanh toan', 'finance.payments.update'),
+('Xoa giao dich thanh toan', 'finance.payments.delete'),
+('Tao phe duyet', 'approval.create'),
+('Xoa phe duyet', 'approval.delete'),
+('Xem dau moi hoc vien', 'student_lead.view'),
+('Tao dau moi hoc vien', 'student_lead.create'),
+('Cap nhat dau moi hoc vien', 'student_lead.update'),
+('Xoa dau moi hoc vien', 'student_lead.delete'),
+('Xem ho so ung tuyen giao vien', 'job_application.view'),
+('Tao ho so ung tuyen giao vien', 'job_application.create'),
+('Cap nhat ho so ung tuyen giao vien', 'job_application.update'),
+('Xoa ho so ung tuyen giao vien', 'job_application.delete'),
+('Xem portfolio hoc vien', 'academic.portfolios.view'),
+('Tao portfolio hoc vien', 'academic.portfolios.create'),
+('Cap nhat portfolio hoc vien', 'academic.portfolios.update'),
+('Xoa portfolio hoc vien', 'academic.portfolios.delete')
 ON DUPLICATE KEY UPDATE permission_name = VALUES(permission_name);
 
 INSERT IGNORE INTO role_permissions (role_id, permission_id)
 SELECT r.id, p.id
 FROM roles r
-INNER JOIN permissions p ON p.slug IN ('student_lead.manage', 'job_application.manage')
+INNER JOIN permissions p ON p.slug IN (
+    'admin.user.view', 'admin.user.create', 'admin.user.update', 'admin.user.delete', 'admin.role_permission.view', 'admin.role_permission.update',
+    'student_lead.view', 'student_lead.create', 'student_lead.update', 'student_lead.delete',
+    'job_application.view', 'job_application.create', 'job_application.update', 'job_application.delete',
+    'finance.tuition.create', 'finance.tuition.update', 'finance.tuition.delete',
+    'finance.registration.view', 'finance.registration.create', 'finance.registration.update', 'finance.registration.delete',
+    'finance.promotions.view', 'finance.promotions.create', 'finance.promotions.update', 'finance.promotions.delete',
+    'finance.payments.view', 'finance.payments.create', 'finance.payments.update', 'finance.payments.delete',
+    'approval.create', 'approval.delete',
+    'academic.portfolios.view', 'academic.portfolios.create', 'academic.portfolios.update', 'academic.portfolios.delete'
+)
 WHERE r.role_name = 'admin';
+
+-- Safety net: backfill all current permissions to admin role on existing databases.
+INSERT IGNORE INTO role_permissions (role_id, permission_id)
+SELECT r.id, p.id
+FROM roles r
+INNER JOIN permissions p ON 1 = 1
+WHERE r.role_name = 'admin';
+
+INSERT IGNORE INTO role_permissions (role_id, permission_id)
+SELECT r.id, p.id
+FROM roles r
+INNER JOIN permissions p ON p.slug IN (
+    'finance.tuition.view', 'finance.tuition.create', 'finance.tuition.update',
+    'finance.registration.view', 'finance.registration.create', 'finance.registration.update',
+    'finance.promotions.view', 'finance.promotions.create', 'finance.promotions.update',
+    'finance.payments.view',
+    'student_lead.view', 'student_lead.create', 'student_lead.update',
+    'job_application.view', 'job_application.update',
+    'approval.view', 'approval.create', 'approval.update', 'approval.delete',
+    'activity.view', 'activity.create', 'activity.update', 'activity.delete',
+    'bank.view', 'bank.create', 'bank.update', 'bank.delete',
+    'academic.portfolios.view'
+)
+WHERE r.role_name = 'staff';
+
+-- Remove deprecated grouped permissions and their grants after CRUD rollout.
+DELETE rp
+FROM role_permissions rp
+INNER JOIN permissions p ON p.id = rp.permission_id
+WHERE p.slug IN (
+    'academic.classes.manage',
+    'academic.schedules.manage',
+    'academic.assignments.manage',
+    'materials.manage',
+    'admin.user.manage',
+    'admin.role_permission.manage',
+    'finance.tuition.manage',
+    'finance.payment.manage',
+    'finance.payment.view',
+    'finance.promotions.manage',
+    'student_lead.manage',
+    'job_application.manage',
+    'approval.manage',
+    'activity.manage',
+    'bank.manage'
+);
+
+DELETE FROM permissions
+WHERE slug IN (
+    'academic.classes.manage',
+    'academic.schedules.manage',
+    'academic.assignments.manage',
+    'materials.manage',
+    'admin.user.manage',
+    'admin.role_permission.manage',
+    'finance.tuition.manage',
+    'finance.payment.manage',
+    'finance.payment.view',
+    'finance.promotions.manage',
+    'student_lead.manage',
+    'job_application.manage',
+    'approval.manage',
+    'activity.manage',
+    'bank.manage'
+);
 
 -- Migrate assignments.lesson_id to assignments.schedule_id
 SET @has_assignments := (

@@ -133,7 +133,9 @@ function api_exams_build_score_response_payload(int $examId, array $scores, stri
 
 function api_exams_class_grid_action(): void
 {
-    api_guard_permission('academic.classes.view');
+    if (!has_any_permission(['academic.classes.view', 'academic.schedules.view'])) {
+        api_error('Không có quyền xem lớp học.', ['code' => 'FORBIDDEN'], 403);
+    }
 
     if (strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET')) !== 'GET') {
         api_error('Method not allowed.', ['code' => 'METHOD_NOT_ALLOWED'], 405);

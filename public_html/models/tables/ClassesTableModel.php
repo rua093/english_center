@@ -10,8 +10,12 @@ final class ClassesTableModel extends BaseTableModel
         return $this->countAllFrom('classes');
     }
 
-    public function countDetailed(): int
+    public function countDetailed(int $teacherId = 0): int
     {
+        if ($teacherId > 0) {
+            $sql = 'SELECT COUNT(*) AS count FROM classes WHERE teacher_id = :teacher_id';
+            return (int) $this->fetchScalar($sql, ['teacher_id' => $teacherId], 'count', 0);
+        }
         return $this->countAllFrom('classes');
     }
 
@@ -40,9 +44,10 @@ final class ClassesTableModel extends BaseTableModel
         return $this->fetchAll($sql);
     }
 
-    public function listDetailedWithProgressPage(int $page, int $perPage): array
+    public function listDetailedWithProgressPage(int $page, int $perPage, int $teacherId = 0): array
     {
         $pagination = $this->pagination($page, $perPage, 10, 200);
+        $whereClause = $teacherId > 0 ? 'WHERE c.teacher_id = ' . (int) $teacherId : '';
         $sql = "SELECT c.id, c.class_name, c.start_date, c.end_date, c.status,
                 co.course_name, u.full_name AS teacher_name, c.course_id, c.teacher_id,
                 COALESCE(lp.total_lessons, 0) AS total_lessons,
@@ -62,6 +67,7 @@ final class ClassesTableModel extends BaseTableModel
                 LEFT JOIN schedules s ON s.id = l.schedule_id
                 GROUP BY l.class_id
             ) lp ON lp.class_id = c.id
+            $whereClause
             ORDER BY c.id DESC
             LIMIT {$pagination['limit']} OFFSET {$pagination['offset']}";
         return $this->fetchAll($sql);
@@ -126,15 +132,16 @@ final class ClassesTableModel extends BaseTableModel
 
     public function listSimple(): array
     {
-        return $this->fetchAll('SELECT id, class_name FROM classes ORDER BY class_name ASC');
+        return $this->fetchAll('SELECT id, class_name, course_id, teacher_id FROM classes ORDER BY class_name ASC');
     }
 
     public function listForRegistration(): array
     {
-        $sql = "SELECT c.id, c.class_name, c.course_id, c.status, c.start_date, c.end_date,
-                co.course_name, co.base_price
+        $sql = "SELECT c.id, c.class_name, c.course_id, c.teacher_id, c.status, c.start_date, c.end_date,
+                co.course_name, co.base_price, u.full_name AS teacher_name
             FROM classes c
             INNER JOIN courses co ON co.id = c.course_id
+            LEFT JOIN users u ON u.id = c.teacher_id
             ORDER BY co.course_name ASC, c.class_name ASC";
         return $this->fetchAll($sql);
     }

@@ -1,6 +1,6 @@
 <?php
 require_admin_or_staff();
-require_permission('finance.tuition.view');
+require_any_permission(['finance.promotions.view']);
 
 $academicModel = new AcademicModel();
 $lookups = $academicModel->registrationLookups();
@@ -26,8 +26,15 @@ $adminTitle = 'Quản lý ưu đãi';
 
 $viewer = auth_user();
 $isAdmin = (($viewer['role'] ?? '') === 'admin');
-$canManagePromotion = $isAdmin || has_any_permission(['finance.tuition.manage', 'finance.tuition.create', 'finance.tuition.update', 'finance.adjust.request']);
-$canDeletePromotion = $isAdmin || has_any_permission(['finance.tuition.manage', 'finance.tuition.delete', 'finance.adjust.request']);
+$canManagePromotion = $isAdmin || has_any_permission([
+    'finance.promotions.create',
+    'finance.promotions.update',
+    'finance.adjust.request',
+]);
+$canDeletePromotion = $isAdmin || has_any_permission([
+    'finance.promotions.delete',
+    'finance.adjust.request',
+]);
 $usesPromotionSchema = $academicModel->usesPromotionSchema();
 
 $success = get_flash('success');

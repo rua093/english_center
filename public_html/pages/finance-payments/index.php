@@ -1,6 +1,6 @@
 <?php
 require_admin_or_staff();
-require_permission('finance.payment.view');
+require_any_permission(['finance.payments.view']);
 
 $academicModel = new AcademicModel();
 $paymentsPage = max(1, (int) ($_GET['payments_page'] ?? 1));
@@ -37,9 +37,9 @@ $adminTitle = 'Giao dịch thanh toán';
 $viewer = auth_user();
 $isAdmin = (($viewer['role'] ?? '') === 'admin');
 
-$canCreatePayment = $isAdmin || has_any_permission(['finance.payment.manage', 'finance.payment.create']);
-$canUpdatePayment = $isAdmin || has_any_permission(['finance.payment.manage', 'finance.payment.update']);
-$canDeletePayment = $isAdmin || has_any_permission(['finance.payment.manage', 'finance.payment.delete']);
+$canCreatePayment = $isAdmin || has_any_permission(['finance.payments.create']);
+$canUpdatePayment = $isAdmin || has_any_permission(['finance.payments.update']);
+$canDeletePayment = $isAdmin || has_any_permission(['finance.payments.delete']);
 
 $success = get_flash('success');
 $error = get_flash('error');

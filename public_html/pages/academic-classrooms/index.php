@@ -1,11 +1,33 @@
 <?php
-require_permission('academic.classes.view');
+require_any_permission(['academic.classes.view', 'academic.schedules.view']);
 
 $academicModel = new AcademicModel();
 $lookups = $academicModel->classroomLookups();
 
 $courses = is_array($lookups['courses'] ?? null) ? $lookups['courses'] : [];
 $classRows = is_array($lookups['classes'] ?? null) ? $lookups['classes'] : [];
+$currentUser = auth_user() ?? [];
+$currentUserRole = (string) ($currentUser['role'] ?? '');
+$currentUserId = (int) ($currentUser['id'] ?? 0);
+
+if ($currentUserRole === 'teacher' && $currentUserId > 0) {
+    $classRows = array_values(array_filter($classRows, static function (array $classRow) use ($currentUserId): bool {
+        return (int) ($classRow['teacher_id'] ?? 0) === $currentUserId;
+    }));
+
+    $teacherCourseIdMap = [];
+    foreach ($classRows as $classRow) {
+        $courseId = (int) ($classRow['course_id'] ?? 0);
+        if ($courseId > 0) {
+            $teacherCourseIdMap[$courseId] = true;
+        }
+    }
+
+    $courses = array_values(array_filter($courses, static function (array $courseRow) use ($teacherCourseIdMap): bool {
+        $courseId = (int) ($courseRow['id'] ?? 0);
+        return $courseId > 0 && isset($teacherCourseIdMap[$courseId]);
+    }));
+}
 
 $selectedCourseId = max(0, (int) ($_GET['course_id'] ?? 0));
 $selectedClassId = max(0, (int) ($_GET['class_id'] ?? 0));
@@ -23,7 +45,9 @@ if ($classReturnPerPage > 0) {
     $classroomReturnQuery['class_per_page'] = $classReturnPerPage;
 }
 
-$classroomBackToClassesUrl = page_url('classes-academic', $classroomReturnQuery);
+$classroomBackToClassesUrl = can_access_page('classes-academic')
+    ? page_url('classes-academic', $classroomReturnQuery)
+    : page_url('admin');
 
 $weekRefInput = trim((string) ($_GET['week_ref'] ?? ''));
 $weekStartInput = trim((string) ($_GET['week_start'] ?? ''));
@@ -73,6 +97,13 @@ foreach ($classRows as $classRow) {
     if ($classId > 0) {
         $classMap[$classId] = $classRow;
     }
+}
+
+if ($selectedClassId > 0 && !isset($classMap[$selectedClassId])) {
+    $selectedClassId = 0;
+    $editingLessonId = 0;
+    $prefillScheduleId = 0;
+    $focusedScheduleId = 0;
 }
 
 if ($selectedClassId > 0 && isset($classMap[$selectedClassId]) && $selectedCourseId <= 0) {

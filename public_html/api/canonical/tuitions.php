@@ -18,7 +18,6 @@ function api_tuitions_can_manage_directly(): bool
 	}
 
 	return has_any_permission([
-		'finance.tuition.manage',
 		'finance.tuition.create',
 		'finance.tuition.update',
 	]);
@@ -31,7 +30,6 @@ function api_tuitions_can_delete_directly(): bool
 	}
 
 	return has_any_permission([
-		'finance.tuition.manage',
 		'finance.tuition.delete',
 	]);
 }
@@ -62,7 +60,7 @@ function api_tuitions_fail_or_redirect(string $message, string $redirectPath, in
 function api_tuitions_save_action(): void
 {
 	api_guard_admin_or_staff();
-	api_guard_permission('finance.tuition.view');
+	api_guard_permission('finance.tuition.update');
 	api_require_post(page_url('tuition-finance'));
 
 	if (!api_tuitions_can_manage_directly()) {
@@ -121,7 +119,7 @@ function api_tuitions_save_action(): void
 function api_tuitions_register_course_action(): void
 {
 	api_guard_admin_or_staff();
-	api_guard_permission('finance.tuition.view');
+	api_guard_permission('finance.tuition.delete');
 	api_require_post(page_url('registration-finance'));
 
 	if (!api_tuitions_can_manage_directly()) {

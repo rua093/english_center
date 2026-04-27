@@ -1,6 +1,6 @@
 <?php
 require_admin_or_staff();
-require_permission('activity.view');
+require_any_permission(['activity.view']);
 require_once __DIR__ . '/../../core/file_storage.php';
 
 $academicModel = new AcademicModel();
@@ -18,6 +18,17 @@ if ($activityPage > $activityTotalPages) {
 }
 $activities = $academicModel->listActivitiesPage($activityPage, $activityPerPage);
 $activityPerPageOptions = ui_pagination_per_page_options();
+$selectedRegistrationActivityId = max(0, (int) ($_GET['registrations_activity'] ?? 0));
+$selectedRegistrationActivity = null;
+$selectedRegistrations = [];
+if ($selectedRegistrationActivityId > 0) {
+    $selectedRegistrationActivity = $academicModel->findActivity($selectedRegistrationActivityId);
+    if (is_array($selectedRegistrationActivity)) {
+        $selectedRegistrations = $academicModel->listActivityRegistrations($selectedRegistrationActivityId);
+    } else {
+        $selectedRegistrationActivityId = 0;
+    }
+}
 
 $module = 'activities';
 $adminTitle = 'Quản lý hoạt động';
@@ -169,6 +180,19 @@ $editingThumbnailUrl = normalize_public_file_url((string) ($editingActivity['ima
                                                     <svg viewBox="0 0 24 24"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
                                                 </span>
                                             </a>
+                                            <a
+                                                href="<?= e(page_url('activities-manage', ['registrations_activity' => (int) $act['id'], 'activity_page' => $activityPage, 'activity_per_page' => $activityPerPage])); ?>"
+                                                class="admin-action-icon-btn"
+                                                data-action-kind="detail"
+                                                data-skip-action-icon="1"
+                                                title="Danh sách học viên"
+                                                aria-label="Danh sách học viên"
+                                            >
+                                                <span class="admin-action-icon-label">Học viên</span>
+                                                <span class="admin-action-icon-glyph" aria-hidden="true">
+                                                    <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><path d="M20 8v6"></path><path d="M23 11h-6"></path></svg>
+                                                </span>
+                                            </a>
                                         <?php endif; ?>
                                         <?php if ($canDeleteActivity): ?>
                                             <form class="inline-block" method="post" action="/api/activities/delete?id=<?= (int) $act['id']; ?>" onsubmit="return confirm('Có chắc không?')">
@@ -226,4 +250,71 @@ $editingThumbnailUrl = normalize_public_file_url((string) ($editingActivity['ima
             <?php endif; ?>
         </div>
     </article>
+
+    <?php if ($selectedRegistrationActivityId > 0 && is_array($selectedRegistrationActivity)): ?>
+        <article class="order-2 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+                <h3>Danh sach hoc vien dang ky: <?= e((string) ($selectedRegistrationActivity['activity_name'] ?? '')); ?></h3>
+                <a class="<?= ui_btn_secondary_classes('sm'); ?>" href="<?= e(page_url('activities-manage', ['activity_page' => $activityPage, 'activity_per_page' => $activityPerPage])); ?>">Dong</a>
+            </div>
+
+            <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+                <table class="min-w-full border-collapse text-sm">
+                    <thead>
+                        <tr>
+                            <th>Hoc vien</th>
+                            <th>Ngay dang ky</th>
+                            <th>Trang thai dong phi</th>
+                            <th>Hanh dong</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if (empty($selectedRegistrations)): ?>
+                            <tr>
+                                <td colspan="4">
+                                    <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">Hoat dong nay chua co hoc vien dang ky.</div>
+                                </td>
+                            </tr>
+                        <?php else: ?>
+                            <?php foreach ($selectedRegistrations as $registration): ?>
+                                <?php
+                                $studentId = (int) ($registration['user_id'] ?? 0);
+                                $paymentStatus = (string) ($registration['payment_status'] ?? 'unpaid');
+                                $statusBadgeClass = $paymentStatus === 'paid'
+                                    ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                                    : 'border-amber-200 bg-amber-50 text-amber-700';
+                                ?>
+                                <tr>
+                                    <td>
+                                        <div class="font-semibold text-slate-800"><?= e((string) ($registration['full_name'] ?? ('Hoc vien #' . $studentId))); ?></div>
+                                        <div class="text-xs text-slate-500"><?= e((string) ($registration['username'] ?? '')); ?></div>
+                                    </td>
+                                    <td><?= e((string) ($registration['registration_date'] ?? '')); ?></td>
+                                    <td>
+                                        <span class="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-bold <?= e($statusBadgeClass); ?>">
+                                            <?= e($paymentStatus === 'paid' ? 'Da dong phi' : 'Chua dong phi'); ?>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <?php if ($canUpdateActivity): ?>
+                                            <form method="post" action="/api/activities/remove-student" onsubmit="return confirm('Ban co chac muon xoa hoc vien khoi hoat dong nay?');">
+                                                <?= csrf_input(); ?>
+                                                <input type="hidden" name="activity_id" value="<?= (int) $selectedRegistrationActivityId; ?>">
+                                                <input type="hidden" name="student_id" value="<?= $studentId; ?>">
+                                                <input type="hidden" name="activity_page" value="<?= (int) $activityPage; ?>">
+                                                <input type="hidden" name="activity_per_page" value="<?= (int) $activityPerPage; ?>">
+                                                <button class="<?= ui_btn_danger_classes('sm'); ?>" type="submit">Xoa khoi hoat dong</button>
+                                            </form>
+                                        <?php else: ?>
+                                            <span class="text-sm text-slate-500">Chi co quyen xem</span>
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </article>
+    <?php endif; ?>
 </div>

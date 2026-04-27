@@ -32,6 +32,8 @@ function page_route_definitions(): array
 		'job-applications-manage' => ['directory' => 'manage-job-applications', 'aliases' => ['manage-job-applications']],
 		'approvals-manage' => ['directory' => 'manage-approvals', 'aliases' => ['manage-approvals']],
 		'activities-manage' => ['directory' => 'manage-activities', 'aliases' => ['manage-activities']],
+		'rooms-manage' => ['directory' => 'manage-rooms', 'aliases' => ['manage-rooms']],
+		'notifications-manage' => ['directory' => 'manage-notifications', 'aliases' => ['manage-notifications']],
 		'bank-manage' => ['directory' => 'manage-bank', 'aliases' => ['manage-bank']],
 		'courses-academic' => ['directory' => 'academic-courses', 'aliases' => ['academic-courses']],
 		'roadmaps-academic' => ['directory' => 'academic-roadmaps', 'aliases' => ['academic-roadmaps']],

@@ -154,6 +154,22 @@ final class ExtracurricularActivitiesTableModel
         );
     }
 
+    public function listRegistrationsByActivity(int $activityId): array
+    {
+        if ($activityId <= 0) {
+            return [];
+        }
+
+        $sql = "SELECT r.id, r.activity_id, r.user_id, r.payment_status, r.registration_date,
+                u.username, u.full_name
+            FROM activity_registrations r
+            INNER JOIN users u ON u.id = r.user_id
+            WHERE r.activity_id = :activity_id
+            ORDER BY r.registration_date DESC, r.id DESC";
+
+        return $this->fetchAll($sql, ['activity_id' => $activityId]);
+    }
+
     public function joinActivity(int $activityId, int $userId, string $paymentStatus = 'unpaid'): void
     {
         if ($activityId <= 0 || $userId <= 0) {
@@ -173,6 +189,23 @@ final class ExtracurricularActivitiesTableModel
                 'payment_status' => $paymentStatus,
             ]
         );
+    }
+
+    public function removeRegistration(int $activityId, int $userId): bool
+    {
+        if ($activityId <= 0 || $userId <= 0) {
+            return false;
+        }
+
+        $affected = $this->executeStatement(
+            'DELETE FROM activity_registrations WHERE activity_id = :activity_id AND user_id = :user_id',
+            [
+                'activity_id' => $activityId,
+                'user_id' => $userId,
+            ]
+        );
+
+        return $affected > 0;
     }
 
     public function markActivityPaid(int $activityId, int $userId): bool

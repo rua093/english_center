@@ -1,6 +1,13 @@
 <?php
 require_admin_or_staff();
-require_permission('admin.user.manage');
+require_any_permission(['admin.user.view']);
+
+$canUserCreate = has_permission('admin.user.create');
+$canUserUpdate = has_permission('admin.user.update');
+$canUserDelete = has_permission('admin.user.delete');
+$canRolePermissionView = has_permission('admin.role_permission.view');
+$canRolePermissionUpdate = has_permission('admin.role_permission.update');
+$canSaveUser = $canUserCreate || $canUserUpdate;
 
 $adminModel = new AdminModel();
 $roles = $adminModel->listRoles();
@@ -21,6 +28,9 @@ $editingUser = null;
 if (!empty($_GET['edit'])) {
     $editingUser = $adminModel->findUser((int) $_GET['edit']);
 }
+if ($editingUser !== null && !$canUserUpdate) {
+    $editingUser = null;
+}
 
 $module = 'users';
 $adminTitle = 'Quản lý người dùng & phân quyền';
@@ -36,6 +46,51 @@ foreach ($roles as $role) {
     $roleIdToName[(int) ($role['id'] ?? 0)] = strtolower((string) ($role['role_name'] ?? ''));
 }
 
+$permissionActionLabels = [
+    'view' => 'Xem',
+    'create' => 'Tạo',
+    'update' => 'Cập nhật',
+    'delete' => 'Xóa',
+    'manage' => 'Quản lý',
+    'request' => 'Yêu cầu',
+    'grade' => 'Chấm điểm',
+    'other' => 'Khác',
+];
+$permissionMatrixRows = [];
+foreach ($permissions as $permission) {
+    $permissionSlug = strtolower(trim((string) ($permission['slug'] ?? '')));
+    if ($permissionSlug === '') {
+        continue;
+    }
+
+    $slugParts = explode('.', $permissionSlug);
+    $action = 'other';
+    $groupSlug = $permissionSlug;
+    $lastPart = strtolower((string) end($slugParts));
+
+    if (count($slugParts) > 1 && isset($permissionActionLabels[$lastPart])) {
+        $action = $lastPart;
+        array_pop($slugParts);
+        $groupSlug = implode('.', $slugParts);
+    }
+
+    if (!isset($permissionMatrixRows[$groupSlug])) {
+        $displayLabel = implode(' / ', array_map(static function (string $part): string {
+            $part = str_replace(['_', '-'], ' ', $part);
+            return ucwords($part);
+        }, explode('.', $groupSlug)));
+
+        $permissionMatrixRows[$groupSlug] = [
+            'label' => $displayLabel,
+            'slug' => $groupSlug,
+            'actions' => [],
+        ];
+    }
+
+    $permissionMatrixRows[$groupSlug]['actions'][$action] = $permission;
+}
+ksort($permissionMatrixRows);
+
 $isEditingStaff = $editingRoleName === 'staff';
 $isEditingTeacher = $editingRoleName === 'teacher';
 $isEditingStudent = $editingRoleName === 'student';
@@ -50,6 +105,7 @@ $isEditingStudent = $editingRoleName === 'student';
         <div class="rounded-xl border-l-4 p-3 text-sm border-rose-500 bg-rose-50 text-rose-700"><?= e($error); ?></div>
     <?php endif; ?>
 
+    <?php if ($canSaveUser): ?>
     <article class="order-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <h3><?= $editingUser ? 'Cập nhật người dùng' : 'Tạo người dùng mới'; ?></h3>
         <form id="admin-user-form" class="grid gap-3 md:grid-cols-2" method="post" action="/api/users/save" autocomplete="off">
@@ -153,6 +209,7 @@ $isEditingStudent = $editingRoleName === 'student';
             </div>
         </form>
     </article>
+    <?php endif; ?>
 
     <article class="order-1 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <h3>Danh sách tài khoản</h3>
@@ -198,36 +255,40 @@ $isEditingStudent = $editingRoleName === 'student';
                                                 <svg viewBox="0 0 24 24"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6"></path><circle cx="12" cy="12" r="3"></circle></svg>
                                             </span>
                                         </button>
-                                        <a
-                                            href="<?= e(page_url('users-admin', ['edit' => (int) $item['id'], 'users_page' => $usersPage, 'users_per_page' => $usersPerPage])); ?>"
-                                            class="admin-action-icon-btn"
-                                            data-action-kind="edit"
-                                            data-skip-action-icon="1"
-                                            title="Sửa"
-                                            aria-label="Sửa"
-                                        >
-                                            <span class="admin-action-icon-label">Sửa</span>
-                                            <span class="admin-action-icon-glyph" aria-hidden="true">
-                                                <svg viewBox="0 0 24 24"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
-                                            </span>
-                                        </a>
-                                        <form method="post" action="/api/users/delete" onsubmit="return confirm('Bạn chắc chắn muốn khóa tài khoản này?');">
-                                            <?= csrf_input(); ?>
-                                            <input type="hidden" name="id" value="<?= (int) $item['id']; ?>">
-                                            <button
-                                                class="<?= ui_btn_danger_classes('sm'); ?> admin-action-icon-btn"
-                                                data-action-kind="lock"
+                                        <?php if ($canUserUpdate): ?>
+                                            <a
+                                                href="<?= e(page_url('users-admin', ['edit' => (int) $item['id'], 'users_page' => $usersPage, 'users_per_page' => $usersPerPage])); ?>"
+                                                class="admin-action-icon-btn"
+                                                data-action-kind="edit"
                                                 data-skip-action-icon="1"
-                                                type="submit"
-                                                title="Khóa"
-                                                aria-label="Khóa"
+                                                title="Sửa"
+                                                aria-label="Sửa"
                                             >
-                                                <span class="admin-action-icon-label">Khóa</span>
+                                                <span class="admin-action-icon-label">Sửa</span>
                                                 <span class="admin-action-icon-glyph" aria-hidden="true">
-                                                    <svg viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg>
+                                                    <svg viewBox="0 0 24 24"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
                                                 </span>
-                                            </button>
-                                        </form>
+                                            </a>
+                                        <?php endif; ?>
+                                        <?php if ($canUserDelete): ?>
+                                            <form method="post" action="/api/users/delete" onsubmit="return confirm('Bạn chắc chắn muốn khóa tài khoản này?');">
+                                                <?= csrf_input(); ?>
+                                                <input type="hidden" name="id" value="<?= (int) $item['id']; ?>">
+                                                <button
+                                                    class="<?= ui_btn_danger_classes('sm'); ?> admin-action-icon-btn"
+                                                    data-action-kind="lock"
+                                                    data-skip-action-icon="1"
+                                                    type="submit"
+                                                    title="Khóa"
+                                                    aria-label="Khóa"
+                                                >
+                                                    <span class="admin-action-icon-label">Khóa</span>
+                                                    <span class="admin-action-icon-glyph" aria-hidden="true">
+                                                        <svg viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg>
+                                                    </span>
+                                                </button>
+                                            </form>
+                                        <?php endif; ?>
                                     </div>
                                 </td>
                             </tr>
@@ -267,35 +328,66 @@ $isEditingStudent = $editingRoleName === 'student';
         </div>
     </article>
 
+    <?php if ($canRolePermissionView || $canRolePermissionUpdate): ?>
     <article class="order-2 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <h3>Role & Permission Matrix</h3>
         <p>Chọn trực tiếp quyền cho từng vai trò. Guest sử dụng quyền công khai không cần đăng nhập.</p>
         <div class="grid gap-3">
             <?php foreach ($roles as $role): ?>
                 <?php $assigned = array_map('intval', $rolePermissionMap[(int) $role['id']] ?? []); ?>
-                <details class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                    <summary><?= strtoupper((string) $role['role_name']); ?> - <?= e((string) ($role['description'] ?? '')); ?></summary>
-                    <form method="post" action="/api/roles/save-permissions">
-                        <?= csrf_input(); ?>
-                        <input type="hidden" name="role_id" value="<?= (int) $role['id']; ?>">
-                        <div class="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
-                            <?php foreach ($permissions as $permission): ?>
-                                <?php $permissionId = (int) $permission['id']; ?>
-                                <label class="flex items-start gap-2 rounded-xl border border-slate-200 bg-slate-50 p-2 text-xs font-medium text-slate-600">
-                                    <input type="checkbox" name="permission_ids[]" value="<?= $permissionId; ?>" <?= in_array($permissionId, $assigned, true) ? 'checked' : ''; ?>>
-                                    <span>
-                                        <strong class="block text-sm text-slate-800"><?= e((string) ($permission['permission_name'] ?? $permission['slug'] ?? '')); ?></strong>
-                                        <small class="block text-[11px] font-semibold text-slate-500">slug: <?= e((string) ($permission['slug'] ?? '')); ?></small>
-                                    </span>
-                                </label>
-                            <?php endforeach; ?>
-                        </div>
+                        <details class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                            <summary><?= strtoupper((string) $role['role_name']); ?> - <?= e((string) ($role['description'] ?? '')); ?></summary>
+                            <form method="post" action="/api/roles/save-permissions">
+                                <?= csrf_input(); ?>
+                                <input type="hidden" name="role_id" value="<?= (int) $role['id']; ?>">
+                                <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+                                    <table class="min-w-full border-collapse text-xs">
+                                        <thead>
+                                            <tr>
+                                                <th class="w-64">Nhóm quyền</th>
+                                                <?php foreach ($permissionActionLabels as $actionLabel): ?>
+                                                    <th><?= e($actionLabel); ?></th>
+                                                <?php endforeach; ?>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php foreach ($permissionMatrixRows as $groupSlug => $group): ?>
+                                                <tr>
+                                                    <td class="align-top">
+                                                        <div class="font-semibold text-slate-800"><?= e((string) ($group['label'] ?? $groupSlug)); ?></div>
+                                                        <div class="text-[11px] font-medium text-slate-500">slug: <?= e((string) ($group['slug'] ?? $groupSlug)); ?></div>
+                                                    </td>
+                                                    <?php foreach (array_keys($permissionActionLabels) as $actionKey): ?>
+                                                        <td class="align-top">
+                                                            <?php $permission = $group['actions'][$actionKey] ?? null; ?>
+                                                            <?php if (is_array($permission)): ?>
+                                                                <?php $permissionId = (int) ($permission['id'] ?? 0); ?>
+                                                                <label class="flex items-start gap-2 rounded-lg border border-slate-200 bg-slate-50 p-2 text-[11px] font-medium text-slate-600">
+                                                                    <input type="checkbox" name="permission_ids[]" value="<?= $permissionId; ?>" <?= in_array($permissionId, $assigned, true) ? 'checked' : ''; ?> <?= $canRolePermissionUpdate ? '' : 'disabled'; ?>>
+                                                                    <span>
+                                                                        <strong class="block text-xs text-slate-800"><?= e((string) ($permission['permission_name'] ?? $permission['slug'] ?? '')); ?></strong>
+                                                                        <small class="block font-semibold text-slate-500">slug: <?= e((string) ($permission['slug'] ?? '')); ?></small>
+                                                                    </span>
+                                                                </label>
+                                                            <?php else: ?>
+                                                                <span class="text-[11px] text-slate-300">—</span>
+                                                            <?php endif; ?>
+                                                        </td>
+                                                    <?php endforeach; ?>
+                                                </tr>
+                                            <?php endforeach; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                        <?php if ($canRolePermissionUpdate): ?>
                         <button class="<?= ui_btn_primary_classes('sm'); ?>" type="submit">Lưu quyền cho <?= strtoupper((string) $role['role_name']); ?></button>
+                        <?php endif; ?>
                     </form>
                 </details>
             <?php endforeach; ?>
         </div>
     </article>
+    <?php endif; ?>
 </div>
 
 <script>

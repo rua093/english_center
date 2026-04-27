@@ -176,6 +176,11 @@ final class StudentLeadsTableModel
         );
     }
 
+    public function deleteById(int $id): void
+    {
+        $this->executeStatement('DELETE FROM student_leads WHERE id = :id', ['id' => $id]);
+    }
+
     private function normalizeStatus(string $status): string
     {
         $normalized = strtolower(trim($status));

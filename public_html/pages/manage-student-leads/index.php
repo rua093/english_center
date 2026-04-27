@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 require_admin_or_staff();
-require_permission('student_lead.manage');
+require_any_permission(['student_lead.view']);
 
 if (!function_exists('student_lead_extract_email')) {
     function student_lead_extract_email(string $value): string
@@ -194,7 +194,8 @@ $adminDescription = 'Theo dõi chi tiết pipeline tư vấn học viên từ l�
 
 $success = get_flash('success');
 $error = get_flash('error');
-$canConvertLead = has_permission('admin.user.manage');
+$canConvertLead = has_any_permission(['admin.user.update']);
+$canDeleteLead = has_permission('student_lead.delete');
 ?>
 <div class="grid gap-4">
     <?php if ($success): ?>
@@ -432,6 +433,24 @@ $canConvertLead = has_permission('admin.user.manage');
                                                 <svg viewBox="0 0 24 24"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
                                             </span>
                                         </a>
+                                        <?php if ($canDeleteLead): ?>
+                                            <form class="inline-block" method="post" action="/api/leads/delete?id=<?= (int) $lead['id']; ?>" onsubmit="return confirm('Bạn có chắc muốn xóa lead này?');">
+                                                <?= csrf_input(); ?>
+                                                <button
+                                                    class="<?= ui_btn_danger_classes('sm'); ?> admin-action-icon-btn"
+                                                    data-action-kind="delete"
+                                                    data-skip-action-icon="1"
+                                                    type="submit"
+                                                    title="Xóa"
+                                                    aria-label="Xóa"
+                                                >
+                                                    <span class="admin-action-icon-label">Xóa</span>
+                                                    <span class="admin-action-icon-glyph" aria-hidden="true">
+                                                        <svg viewBox="0 0 24 24"><path d="M3 6h18"></path><path d="M8 6V4h8v2"></path><path d="M19 6l-1 14H6L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>
+                                                    </span>
+                                                </button>
+                                            </form>
+                                        <?php endif; ?>
                                     </div>
                                 </td>
                             </tr>

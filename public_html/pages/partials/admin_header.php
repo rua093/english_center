@@ -998,7 +998,8 @@ if ($activeModule === '') {
         'student-leads-manage' => 'student-leads',
         'job-applications-manage' => 'job-applications',
         'activities-manage' => 'activities',
-        'bank-manage' => 'bank',
+        'rooms-manage' => 'rooms',
+        'notifications-manage' => 'notifications',
         'courses-academic' => 'courses',
         'roadmaps-academic' => 'roadmaps',
         'classes-academic' => 'classes',
@@ -1027,7 +1028,8 @@ $adminPageTitleMap = [
     'student-leads' => 'Lead học viên',
     'job-applications' => 'Ứng tuyển giáo viên',
     'activities' => 'Hoạt động ngoại khóa',
-    'bank' => 'Tài khoản ngân hàng',
+    'rooms' => 'Quản lý phòng học',
+    'notifications' => 'Quản lý thông báo',
     'courses' => 'Danh mục khóa học',
     'roadmaps' => 'Roadmap theo khóa học',
     'classes' => 'Danh mục lớp học',
@@ -1050,7 +1052,8 @@ $adminPageDescriptionMap = [
     'student-leads' => 'Theo dõi lead học viên từ lúc gửi form đến khi kiểm tra đầu vào, học thử và chuyển đổi chính thức.',
     'job-applications' => 'Xử lý hồ sơ ứng tuyển giáo viên theo pipeline phỏng vấn và chuyển đổi thành tài khoản giảng dạy.',
     'activities' => 'Lên kế hoạch hoạt động ngoại khóa, theo dõi trạng thái tổ chức và số lượng học viên đăng ký tham gia.',
-    'bank' => 'Cấu hình tài khoản nhận tiền, quản lý thông tin QR và thiết lập tài khoản mặc định cho thanh toán học phí.',
+    'rooms' => 'Quản lý danh mục phòng học dùng trong xếp lịch giảng dạy và tránh trùng phòng theo khung giờ.',
+    'notifications' => 'Tạo và theo dõi thông báo nội bộ gửi tới từng người dùng trong hệ thống.',
     'courses' => 'Quản lý danh mục khóa học, mức học phí cơ bản và số buổi chuẩn để đồng bộ toàn bộ vận hành học vụ.',
     'roadmaps' => 'Thiết kế lộ trình kiến thức theo từng khóa học, làm chuẩn cho giáo án buổi học và kế hoạch giảng dạy.',
     'classes' => 'Theo dõi danh sách lớp, giáo viên phụ trách và trạng thái vận hành để điều phối học vụ chính xác hơn.',
@@ -1070,7 +1073,7 @@ if ($displayAdminDescription === '') {
 <div class="admin-shell">
     <aside class="admin-sidebar" id="adminSidebar">
         <div class="admin-sidebar-top">
-            <a class="admin-sidebar-brand" href="<?= e(page_url('dashboard-admin')); ?>">
+            <a class="admin-sidebar-brand" href="<?= e(page_url('admin')); ?>">
                 <span class="admin-sidebar-brand-mark">EC</span>
                 <span class="admin-sidebar-brand-text">Khu vực điều hành</span>
             </a>
@@ -1170,7 +1173,7 @@ if ($displayAdminDescription === '') {
                     <span class="admin-sidebar-link-icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24"><circle cx="10" cy="8" r="3"></circle><path d="M4 19a6 6 0 0 1 12 0"></path><path d="M16 8h5"></path><path d="M18.5 5.5v5"></path></svg>
                     </span>
-                    <span class="admin-sidebar-link-label">Lead học viên</span>
+                    <span class="admin-sidebar-link-label">Học viên đăng ký</span>
                 </a>
             <?php endif; ?>
 
@@ -1179,7 +1182,7 @@ if ($displayAdminDescription === '') {
                     <span class="admin-sidebar-link-icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24"><path d="M3 6h18v12H3z"></path><path d="m3 7 9 6 9-6"></path><path d="M7 11h2"></path><path d="M7 14h4"></path></svg>
                     </span>
-                    <span class="admin-sidebar-link-label">Ứng tuyển GV</span>
+                    <span class="admin-sidebar-link-label">Giáo viên ứng tuyển</span>
                 </a>
             <?php endif; ?>
 
@@ -1188,25 +1191,35 @@ if ($displayAdminDescription === '') {
                     <span class="admin-sidebar-link-icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"></rect><path d="M8 2v4"></path><path d="M16 2v4"></path><path d="M3 10h18"></path><path d="m9 15 2 2 4-4"></path></svg>
                     </span>
-                    <span class="admin-sidebar-link-label">Hoạt động</span>
+                    <span class="admin-sidebar-link-label">Hoạt động ngoại khóa</span>
                 </a>
             <?php endif; ?>
 
-            <?php if (can_access_page('bank-manage')): ?>
-                <a class="admin-sidebar-link<?= $activeModule === 'bank' ? ' is-active' : ''; ?>" href="<?= e(page_url('bank-manage')); ?>" title="Ngân hàng">
+            <?php if (can_access_page('rooms-manage')): ?>
+                <a class="admin-sidebar-link<?= $activeModule === 'rooms' ? ' is-active' : ''; ?>" href="<?= e(page_url('rooms-manage')); ?>" title="Phòng học">
                     <span class="admin-sidebar-link-icon" aria-hidden="true">
-                        <svg viewBox="0 0 24 24"><path d="M12 3 3 7h18z"></path><path d="M5 10v9"></path><path d="M9 10v9"></path><path d="M15 10v9"></path><path d="M19 10v9"></path><path d="M2 19h20"></path></svg>
+                        <svg viewBox="0 0 24 24"><path d="M4 6h16v12H4z"></path><path d="M8 10h3"></path><path d="M8 14h3"></path><path d="M16 14h.01"></path></svg>
                     </span>
-                    <span class="admin-sidebar-link-label">Ngân hàng</span>
+                    <span class="admin-sidebar-link-label">Phòng học</span>
                 </a>
             <?php endif; ?>
+
+            <?php if (can_access_page('notifications-manage')): ?>
+                <a class="admin-sidebar-link<?= $activeModule === 'notifications' ? ' is-active' : ''; ?>" href="<?= e(page_url('notifications-manage')); ?>" title="Thông báo">
+                    <span class="admin-sidebar-link-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 7h18s-3 0-3-7"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                    </span>
+                    <span class="admin-sidebar-link-label">Thông báo</span>
+                </a>
+            <?php endif; ?>
+
 
             <?php if (can_access_page('courses-academic')): ?>
                 <a class="admin-sidebar-link<?= $activeModule === 'courses' ? ' is-active' : ''; ?>" href="<?= e(page_url('courses-academic')); ?>" title="Khóa học">
                     <span class="admin-sidebar-link-icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24"><path d="M4 4h16v14H4z"></path><path d="M8 8h8"></path><path d="M8 12h5"></path><path d="M4 20h16"></path></svg>
                     </span>
-                    <span class="admin-sidebar-link-label">Danh mục khóa học</span>
+                    <span class="admin-sidebar-link-label">Khóa học</span>
                 </a>
             <?php endif; ?>
 
@@ -1224,7 +1237,7 @@ if ($displayAdminDescription === '') {
                     <span class="admin-sidebar-link-icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24"><path d="M3 5a3 3 0 0 1 3-3h6v18H6a3 3 0 0 0-3 3z"></path><path d="M21 5a3 3 0 0 0-3-3h-6v18h6a3 3 0 0 1 3 3z"></path></svg>
                     </span>
-                    <span class="admin-sidebar-link-label">Danh mục lớp</span>
+                    <span class="admin-sidebar-link-label">Danh mục lớp học</span>
                 </a>
             <?php endif; ?>
 
@@ -1260,7 +1273,7 @@ if ($displayAdminDescription === '') {
                     <span class="admin-sidebar-link-icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24"><path d="M12 2a2 2 0 0 1 2 2v2h4v12H4V6h4V4a2 2 0 0 1 2-2z"></path><path d="M8 10h8"></path><path d="M8 14h8"></path></svg>
                     </span>
-                    <span class="admin-sidebar-link-label">Portfolio</span>
+                    <span class="admin-sidebar-link-label">Hồ sơ tiến bộ</span>
                 </a>
             <?php endif; ?>
 

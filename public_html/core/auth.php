@@ -118,6 +118,12 @@ function auth_permissions(): array
 
 function has_permission(string $slug): bool
 {
+	$user = auth_user();
+	$role = strtolower((string) ($user['role'] ?? ''));
+	if ($role === 'admin') {
+		return true;
+	}
+
 	return in_array($slug, auth_permissions(), true);
 }
 
@@ -128,6 +134,12 @@ function checkPermission(string $slug): bool
 
 function has_any_permission(array $slugs): bool
 {
+	$user = auth_user();
+	$role = strtolower((string) ($user['role'] ?? ''));
+	if ($role === 'admin') {
+		return true;
+	}
+
 	foreach ($slugs as $slug) {
 		if (has_permission((string) $slug)) {
 			return true;
@@ -135,6 +147,17 @@ function has_any_permission(array $slugs): bool
 	}
 
 	return false;
+}
+
+function require_any_permission(array $slugs): void
+{
+	require_login();
+
+	if (!has_any_permission($slugs)) {
+		http_response_code(403);
+		echo '403 Forbidden';
+		exit;
+	}
 }
 
 function require_login(): void
@@ -150,6 +173,13 @@ function is_admin_or_staff(): bool
 	$user = auth_user();
 	$role = (string) ($user['role'] ?? '');
 	return in_array($role, ['admin', 'staff'], true);
+}
+
+function is_admin_area(): bool
+{
+	$user = auth_user();
+	$role = (string) ($user['role'] ?? '');
+	return in_array($role, ['admin', 'staff', 'teacher'], true);
 }
 
 function require_admin_or_staff(): void
@@ -200,47 +230,51 @@ function can_access_page(string $page): bool
 		case 'dashboard-student':
 			return in_array($role, ['student', 'admin'], true);
 		case 'dashboard-teacher':
-			return in_array($role, ['teacher', 'admin'], true);
+			return false;
 		case 'profile':
 		case 'classes-my':
 		case 'assignments-my':
 			return true;
 		case 'admin':
-			return in_array($role, ['admin', 'staff'], true);
+			return in_array($role, ['admin', 'staff', 'teacher'], true);
 		case 'portfolios-academic':
-			return true;
+			return has_any_permission(['academic.portfolios.view']);
 		case 'dashboard-admin':
 			return has_permission('admin.dashboard.view');
 		case 'users-admin':
-			return has_permission('admin.user.manage');
+			return has_any_permission(['admin.user.view']);
 		case 'tuition-finance':
-			return has_permission('finance.tuition.view');
+			return has_any_permission(['finance.tuition.view']);
 		case 'registration-finance':
-			return has_permission('finance.tuition.view');
+			return has_any_permission(['finance.registration.view']);
 		case 'promotions-manage':
-			return has_permission('finance.tuition.view');
+			return has_any_permission(['finance.promotions.view']);
 		case 'payments-finance':
-			return has_permission('finance.payment.view');
+			return has_any_permission(['finance.payments.view']);
 		case 'feedbacks-manage':
-			return has_permission('feedback.view');
+			return has_any_permission(['feedback.view']);
 		case 'student-leads-manage':
-			return has_permission('student_lead.manage');
+			return has_any_permission(['student_lead.view']);
 		case 'job-applications-manage':
-			return has_permission('job_application.manage');
+			return has_any_permission(['job_application.view']);
 		case 'approvals-manage':
-			return has_permission('approval.view');
+			return has_any_permission(['approval.view']);
 		case 'activities-manage':
-			return has_permission('activity.view');
+			return has_any_permission(['activity.view']);
 		case 'bank-manage':
-			return has_permission('bank.view');
+			return false;
+		case 'rooms-manage':
+			return has_any_permission(['academic.schedules.view']);
+		case 'notifications-manage':
+			return has_any_permission(['admin.dashboard.view']);
 		case 'courses-academic':
 			return has_permission('academic.courses.view');
 		case 'roadmaps-academic':
 			return has_permission('academic.roadmaps.view');
 		case 'classes-academic':
-			return has_permission('academic.classes.view');
+			return has_any_permission(['academic.classes.view', 'academic.schedules.view']);
 		case 'classrooms-academic':
-			return has_permission('academic.classes.view');
+			return has_any_permission(['academic.classes.view', 'academic.schedules.view']);
 		case 'schedules-academic':
 			return has_permission('academic.schedules.view');
 		case 'assignments-academic':

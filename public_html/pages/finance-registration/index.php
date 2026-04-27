@@ -1,6 +1,6 @@
 <?php
 require_admin_or_staff();
-require_permission('finance.tuition.view');
+require_any_permission(['finance.registration.view']);
 
 $academicModel = new AcademicModel();
 $lookups = $academicModel->registrationLookups();
@@ -11,8 +11,8 @@ $promotions = is_array($lookups['promotions'] ?? null) ? $lookups['promotions'] 
 
 $viewer = auth_user();
 $isAdmin = (($viewer['role'] ?? '') === 'admin');
-$canCreateRegistration = $isAdmin || has_any_permission(['finance.tuition.manage', 'finance.tuition.create', 'finance.tuition.update']);
-$canChangeLearningStatus = $isAdmin || has_any_permission(['finance.tuition.manage', 'finance.tuition.create', 'finance.tuition.update']);
+$canCreateRegistration = $isAdmin || has_any_permission(['finance.registration.create', 'finance.registration.update']);
+$canChangeLearningStatus = $isAdmin || has_any_permission(['finance.registration.update']);
 $registrationRows = $academicModel->listRegistrationEnrollmentRows(400);
 
 $learningStatusLabels = [
@@ -225,7 +225,7 @@ $adminTitle = 'Đăng ký khóa học';
     <?php else: ?>
         <article class="rounded-2xl border border-amber-200 bg-amber-50 p-5 shadow-sm">
             <h3>Bạn chưa có quyền tạo đăng ký</h3>
-            <p class="text-sm text-amber-800">Tài khoản hiện tại chưa có quyền tạo học phí trực tiếp. Vui lòng liên hệ Admin để cấp quyền <strong>finance.tuition.create</strong> hoặc <strong>finance.tuition.manage</strong>.</p>
+            <p class="text-sm text-amber-800">Tài khoản hiện tại chưa có quyền tạo học phí trực tiếp. Vui lòng liên hệ Admin để cấp quyền <strong>finance.tuition.create</strong>.</p>
         </article>
     <?php endif; ?>
 

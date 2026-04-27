@@ -1,6 +1,6 @@
 <?php
-require_admin_or_staff();
-require_permission('bank.view');
+set_flash('info', 'Chuc nang quan ly ngan hang da duoc ngung su dung.');
+redirect(page_url('admin'));
 
 $academicModel = new AcademicModel();
 $editingBank = null;

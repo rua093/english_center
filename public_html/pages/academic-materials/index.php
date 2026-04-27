@@ -1,5 +1,5 @@
 <?php
-require_permission('materials.view');
+require_any_permission(['materials.view']);
 require_once __DIR__ . '/../../core/file_storage.php';
 
 $academicModel = new AcademicModel();

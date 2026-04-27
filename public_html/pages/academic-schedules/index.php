@@ -14,9 +14,45 @@ $allSchedules = $academicModel->listSchedules();
 $schedulePerPageOptions = ui_pagination_per_page_options();
 $lookups = $academicModel->scheduleLookups();
 
+$currentUser = auth_user() ?? [];
+$currentUserRole = (string) ($currentUser['role'] ?? '');
+$currentUserId = (int) ($currentUser['id'] ?? 0);
+
+if ($currentUserRole === 'teacher' && $currentUserId > 0) {
+    $allSchedules = array_values(array_filter($allSchedules, static function (array $schedule) use ($currentUserId): bool {
+        return (int) ($schedule['teacher_id'] ?? 0) === $currentUserId;
+    }));
+
+    $scheduleTotal = count($allSchedules);
+    $scheduleTotalPages = max(1, (int) ceil($scheduleTotal / $schedulePerPage));
+    if ($schedulePage > $scheduleTotalPages) {
+        $schedulePage = $scheduleTotalPages;
+    }
+
+    $scheduleOffset = ($schedulePage - 1) * $schedulePerPage;
+    $schedules = array_slice($allSchedules, $scheduleOffset, $schedulePerPage);
+
+    $lookupClasses = is_array($lookups['classes'] ?? null) ? $lookups['classes'] : [];
+    $lookups['classes'] = array_values(array_filter($lookupClasses, static function (array $classRow) use ($currentUserId): bool {
+        return (int) ($classRow['teacher_id'] ?? 0) === $currentUserId;
+    }));
+
+    $lookupTeachers = is_array($lookups['teachers'] ?? null) ? $lookups['teachers'] : [];
+    $lookups['teachers'] = array_values(array_filter($lookupTeachers, static function (array $teacherRow) use ($currentUserId): bool {
+        return (int) ($teacherRow['id'] ?? 0) === $currentUserId;
+    }));
+}
+
 $editingSchedule = null;
 if (!empty($_GET['edit'])) {
     $editingSchedule = $academicModel->findSchedule((int) $_GET['edit']);
+    if (
+        $currentUserRole === 'teacher' &&
+        is_array($editingSchedule) &&
+        (int) ($editingSchedule['teacher_id'] ?? 0) !== $currentUserId
+    ) {
+        $editingSchedule = null;
+    }
 }
 
 $module = 'schedules';

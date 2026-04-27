@@ -1,15 +1,20 @@
 <?php
-require_permission('academic.classes.view');
+require_any_permission(['academic.classes.view', 'academic.schedules.view']);
 
 $academicModel = new AcademicModel();
 $classPage = max(1, (int) ($_GET['class_page'] ?? 1));
 $classPerPage = ui_pagination_resolve_per_page('class_per_page', 10);
-$classTotal = $academicModel->countClasses();
+
+$currentUserRole = (string) (auth_user()['role'] ?? '');
+$currentUserId = (int) (auth_user()['id'] ?? 0);
+$teacherId = ($currentUserRole === 'teacher' && $currentUserId > 0) ? $currentUserId : 0;
+
+$classTotal = $academicModel->countClasses($teacherId);
 $classTotalPages = max(1, (int) ceil($classTotal / $classPerPage));
 if ($classPage > $classTotalPages) {
     $classPage = $classTotalPages;
 }
-$classes = $academicModel->listClassesPage($classPage, $classPerPage);
+$classes = $academicModel->listClassesPage($classPage, $classPerPage, $teacherId);
 $classPerPageOptions = ui_pagination_per_page_options();
 $lookups = $academicModel->classLookups();
 

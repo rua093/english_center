@@ -1,6 +1,6 @@
 <?php
 require_admin_or_staff();
-require_permission('finance.tuition.view');
+require_any_permission(['finance.tuition.view']);
 
 $academicModel = new AcademicModel();
 $tuitionPage = max(1, (int) ($_GET['tuition_page'] ?? 1));
@@ -86,9 +86,9 @@ $viewer = auth_user();
 $isAdmin = (($viewer['role'] ?? '') === 'admin');
 $isStaff = (($viewer['role'] ?? '') === 'staff');
 
-$canCreateTuition = $isAdmin || has_any_permission(['finance.tuition.manage', 'finance.tuition.create']);
-$canUpdateTuition = $isAdmin || has_any_permission(['finance.tuition.manage', 'finance.tuition.update']);
-$canDeleteTuition = $isAdmin || has_any_permission(['finance.tuition.manage', 'finance.tuition.delete']);
+$canCreateTuition = $isAdmin || has_any_permission(['finance.tuition.create']);
+$canUpdateTuition = $isAdmin || has_any_permission(['finance.tuition.update']);
+$canDeleteTuition = $isAdmin || has_any_permission(['finance.tuition.delete']);
 
 $success = get_flash('success');
 $error = get_flash('error');

@@ -1,11 +1,29 @@
 <?php
 declare(strict_types=1);
 
-require_admin_or_staff();
-if (!has_permission('admin.dashboard.view')) {
+require_login();
+
+$user = auth_user();
+$role = strtolower((string) ($user['role'] ?? ''));
+
+if ($role === 'teacher') {
+	if (can_access_page('schedules-academic')) {
+		redirect(page_url('schedules-academic'));
+	}
+
+	if (can_access_page('classes-academic')) {
+		redirect(page_url('classes-academic'));
+	}
+}
+
+if (in_array($role, ['admin', 'staff'], true) && has_permission('admin.dashboard.view')) {
+	redirect(page_url('dashboard-admin'));
+}
+
+if (can_access_page('schedules-academic')) {
+	redirect(page_url('schedules-academic'));
+}
+
 http_response_code(403);
 echo '403 Forbidden';
 exit;
-}
-
-redirect(page_url('dashboard-admin'));

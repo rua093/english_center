@@ -47,6 +47,42 @@ function api_activities_delete_action(): void
 	redirect(page_url('activities-manage'));
 }
 
+function api_activities_remove_student_action(): void
+{
+	api_guard_permission('activity.update');
+	api_require_post(page_url('activities-manage'));
+
+	$activityId = input_int($_POST, 'activity_id');
+	$studentId = input_int($_POST, 'student_id');
+	$activityPage = max(0, input_int($_POST, 'activity_page'));
+	$activityPerPage = max(0, input_int($_POST, 'activity_per_page'));
+
+	$redirectQuery = [];
+	if ($activityId > 0) {
+		$redirectQuery['registrations_activity'] = $activityId;
+	}
+	if ($activityPage > 0) {
+		$redirectQuery['activity_page'] = $activityPage;
+	}
+	if ($activityPerPage > 0) {
+		$redirectQuery['activity_per_page'] = $activityPerPage;
+	}
+
+	if ($activityId <= 0 || $studentId <= 0) {
+		set_flash('error', 'Du lieu hoc vien hoac hoat dong khong hop le.');
+		redirect(page_url('activities-manage', $redirectQuery));
+	}
+
+	$removed = (new AcademicModel())->removeActivityRegistration($activityId, $studentId);
+	if ($removed) {
+		set_flash('success', 'Da xoa hoc vien khoi danh sach dang ky hoat dong.');
+	} else {
+		set_flash('error', 'Khong tim thay dang ky de xoa.');
+	}
+
+	redirect(page_url('activities-manage', $redirectQuery));
+}
+
 function api_activities_join_action(): void
 {
 	require_role(['student', 'admin']);

@@ -377,4 +377,27 @@ final class UsersTableModel extends BaseTableModel
             ]
         );
     }
+
+    public function removeRoleProfile(int $userId, string $roleName): void
+    {
+        if ($userId <= 0) {
+            return;
+        }
+
+        $normalized = strtolower(trim($roleName));
+        if ($normalized === 'staff') {
+            $this->executeStatement('DELETE FROM staff_profiles WHERE user_id = :user_id', ['user_id' => $userId]);
+            return;
+        }
+
+        if ($normalized === 'teacher') {
+            $this->executeStatement('DELETE FROM teacher_profiles WHERE user_id = :user_id', ['user_id' => $userId]);
+            return;
+        }
+
+        if ($normalized === 'student') {
+            $this->executeStatement('DELETE FROM student_profiles WHERE user_id = :user_id', ['user_id' => $userId]);
+            return;
+        }
+    }
 }

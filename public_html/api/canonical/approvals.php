@@ -17,7 +17,7 @@ function api_approvals_can_create(): bool
     }
 
     return has_any_permission([
-        'approval.manage',
+        'approval.create',
         'approval.request',
     ]);
 }
@@ -29,7 +29,6 @@ function api_approvals_can_update(): bool
     }
 
     return has_any_permission([
-        'approval.manage',
         'approval.update',
     ]);
 }
@@ -41,7 +40,6 @@ function api_approvals_can_delete(): bool
     }
 
     return has_any_permission([
-        'approval.manage',
         'approval.delete',
     ]);
 }

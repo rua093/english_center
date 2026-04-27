@@ -297,14 +297,14 @@ final class AcademicModel
         return $this->classesTable->listDetailedWithProgress();
     }
 
-    public function countClasses(): int
+    public function countClasses(int $teacherId = 0): int
     {
-        return $this->classesTable->countDetailed();
+        return $this->classesTable->countDetailed($teacherId);
     }
 
-    public function listClassesPage(int $page, int $perPage): array
+    public function listClassesPage(int $page, int $perPage, int $teacherId = 0): array
     {
-        return $this->classesTable->listDetailedWithProgressPage($page, $perPage);
+        return $this->classesTable->listDetailedWithProgressPage($page, $perPage, $teacherId);
     }
 
     public function listSchedules(): array
@@ -465,6 +465,11 @@ final class AcademicModel
     public function studentLookups(): array
     {
         return $this->usersTable->listByRoleNames(['student']);
+    }
+
+    public function notificationRecipientLookups(): array
+    {
+        return $this->usersTable->listActiveByRoleNames(['admin', 'staff', 'teacher', 'student']);
     }
 
     public function registrationLookups(): array
@@ -802,14 +807,34 @@ final class AcademicModel
         return $this->notificationsTable->listRecent(100);
     }
 
+    public function countNotifications(): int
+    {
+        return $this->notificationsTable->countDetailed();
+    }
+
+    public function listNotificationsPage(int $page, int $perPage): array
+    {
+        return $this->notificationsTable->listDetailedPage($page, $perPage);
+    }
+
+    public function findNotification(int $id): ?array
+    {
+        return $this->notificationsTable->findById($id);
+    }
+
     public function saveNotification(array $data): void
     {
-        $this->notificationsTable->insert($data);
+        $this->notificationsTable->save($data);
     }
 
     public function markNotificationRead(int $id): void
     {
         $this->notificationsTable->markRead($id);
+    }
+
+    public function deleteNotification(int $id): void
+    {
+        $this->notificationsTable->deleteById($id);
     }
 
     public function listFeedbacks(): array
@@ -825,6 +850,11 @@ final class AcademicModel
     public function listFeedbacksPage(int $page, int $perPage): array
     {
         return $this->feedbacksTable->listDetailedPage($page, $perPage);
+    }
+
+    public function findFeedback(int $id): ?array
+    {
+        return $this->feedbacksTable->findById($id);
     }
 
     public function saveFeedback(array $data): void
@@ -1004,6 +1034,41 @@ final class AcademicModel
     public function deleteActivity(int $id): void
     {
         $this->activitiesTable->deleteById($id);
+    }
+
+    public function listActivityRegistrations(int $activityId): array
+    {
+        return $this->activitiesTable->listRegistrationsByActivity($activityId);
+    }
+
+    public function removeActivityRegistration(int $activityId, int $userId): bool
+    {
+        return $this->activitiesTable->removeRegistration($activityId, $userId);
+    }
+
+    public function countRooms(): int
+    {
+        return $this->roomsTable->countDetailed();
+    }
+
+    public function listRoomsPage(int $page, int $perPage): array
+    {
+        return $this->roomsTable->listDetailedPage($page, $perPage);
+    }
+
+    public function findRoom(int $id): ?array
+    {
+        return $this->roomsTable->findById($id);
+    }
+
+    public function saveRoom(array $data): void
+    {
+        $this->roomsTable->save($data);
+    }
+
+    public function deleteRoom(int $id): void
+    {
+        $this->roomsTable->deleteById($id);
     }
 
     public function listBankAccounts(): array
