@@ -367,4 +367,6 @@ $highlights = [
             }
         });
     </script>
+
+    <?php include __DIR__ . '/../partials/social_contact.php'; ?>
 </main>

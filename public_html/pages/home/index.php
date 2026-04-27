@@ -200,45 +200,7 @@ if (is_logged_in()) {
     </script>
 
 	<style>
-    @keyframes bell-shake {
-        0%, 100% { transform: rotate(0deg) translateY(0); }
-        10% { transform: rotate(-8deg) translateY(-1px); }
-        20% { transform: rotate(8deg) translateY(-1px); }
-        30% { transform: rotate(-6deg) translateY(0); }
-        40% { transform: rotate(6deg) translateY(0); }
-        50% { transform: rotate(-4deg) translateY(-1px); }
-        60% { transform: rotate(4deg) translateY(0); }
-        70% { transform: rotate(-2deg) translateY(0); }
-        80% { transform: rotate(2deg) translateY(0); }
-        90% { transform: rotate(0deg) translateY(-1px); }
-    }
-
-    .contact-bell {
-		animation: bell-shake 1.8s ease-in-out infinite;
-        transform-origin: center bottom;
-    }
-
-    .contact-bell:nth-child(2) {
-        animation-delay: 0.15s;
-    }
-
-    .contact-bell:nth-child(3) {
-        animation-delay: 0.3s;
-    }
-
-    .contact-bell:nth-child(4) {
-        animation-delay: 0.45s;
-    }
-
-    .contact-bell:nth-child(5) {
-        animation-delay: 0.6s;
-    }
-
-    .contact-bell:hover {
-        animation-play-state: paused;
-    }
-
-    /* Hiệu ứng quay của vòng quỹ đạo */
+	/* Hiệu ứng quay của vòng quỹ đạo */
     @keyframes spin-orbit {
         from { transform: rotate(0deg); }
         to { transform: rotate(360deg); }

@@ -51,6 +51,7 @@ $pageActivities = array_slice($activities, ($activityPage - 1) * $activityPerPag
     .text-gradient-red-green { background: linear-gradient(to right, #e11d48, #10b981); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 </style>
 
+
 <section class="py-12 md:py-16">
     <div class="container mx-auto px-4 max-w-[1400px]">
         
@@ -125,7 +126,7 @@ $pageActivities = array_slice($activities, ($activityPage - 1) * $activityPerPag
             <?php endforeach; ?>
         </div>
         <?php endif; ?>
-
+        
         <?php if ($activityTotalPages > 1): ?>
             <div class="mt-14 flex flex-wrap items-center justify-center gap-2">
                 <?php if ($activityPage > 1): ?>
@@ -145,3 +146,5 @@ $pageActivities = array_slice($activities, ($activityPage - 1) * $activityPerPag
         <?php endif; ?>
     </div>
 </section>
+
+<?php include __DIR__ . '/../partials/social_contact.php'; ?>

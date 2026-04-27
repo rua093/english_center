@@ -172,23 +172,7 @@ $homeFormatFeedbackDate = static function (?string $value): string {
             </div>
         </div>
     </section>
-        <div class="fixed bottom-5 right-4 z-50 flex flex-col items-end gap-3 sm:bottom-6 sm:right-6">
-            <a href="#hero-video" class="group flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-slate-800 text-white shadow-[0_10px_25px_rgba(15,23,42,0.28)] ring-2 ring-white transition-all hover:-translate-y-1 hover:bg-slate-700" aria-label="Đi tới hero video">
-    			<i class="fa-solid fa-arrow-up text-[15px] sm:text-base transition-transform duration-300 group-hover:-translate-y-0.5"></i>
-    		</a>
-            <a href="https://www.facebook.com/" target="_blank" rel="noopener noreferrer" class="group contact-bell flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-[#1877F2] text-white shadow-[0_10px_25px_rgba(24,119,242,0.28)] ring-2 ring-white transition-all hover:-translate-y-1 hover:scale-105" aria-label="Facebook" style="animation-delay: 0s;">
-    			<i class="fa-brands fa-facebook-f text-[15px] sm:text-base"></i>
-    		</a>
-            <a href="https://zalo.me/" target="_blank" rel="noopener noreferrer" class="group contact-bell flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-[#0068FF] text-white shadow-[0_10px_25px_rgba(0,104,255,0.28)] ring-2 ring-white transition-all hover:-translate-y-1 hover:scale-105" aria-label="Zalo" style="animation-delay: 0.15s;">
-    			<span class="text-[13px] sm:text-sm font-black leading-none tracking-tight">Z</span>
-    		</a>
-            <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer" class="group contact-bell flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-gradient-to-br from-[#f09433] via-[#e6683c] via-[#dc2743] to-[#bc1888] text-white shadow-[0_10px_25px_rgba(220,39,67,0.28)] ring-2 ring-white transition-all hover:-translate-y-1 hover:scale-105" aria-label="Instagram" style="animation-delay: 0.3s;">
-    			<i class="fa-brands fa-instagram text-[15px] sm:text-base"></i>
-    		</a>
-            <a href="https://www.messenger.com/" target="_blank" rel="noopener noreferrer" class="group contact-bell flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-[#0084FF] text-white shadow-[0_10px_25px_rgba(0,132,255,0.28)] ring-2 ring-white transition-all hover:-translate-y-1 hover:scale-105" aria-label="Messenger" style="animation-delay: 0.45s;">
-    			<i class="fa-brands fa-facebook-messenger text-[15px] sm:text-base"></i>
-    		</a>
-    	</div>
+    <?php include __DIR__ . '/../partials/social_contact.php'; ?>
 
 	<!-- <?php if ($homeUser && (string) ($homeUser['role'] ?? '') === 'teacher'): ?>
 		<section id="lich-day-noi-bo" class="py-12 relative z-20 bg-transparent" aria-label="Widget giáo viên">
@@ -380,11 +364,10 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                             </div>
                         </div>
                     </div>
-
                 </div>
 
                 <div class="relative z-20 w-64 h-64 md:w-[450px] md:h-[450px] rounded-full border-[10px] md:border-[14px] border-white shadow-[0_20px_60px_rgba(30,58,138,0.2)] overflow-hidden bg-white flex items-center justify-center group" data-aos="zoom-in">
-                    <img src="assets/images/logo.jpg" alt="Trung tâm" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+                    <img src="assets/images/mission.jpg" alt="Trung tâm" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
                     <div class="absolute inset-0 bg-blue-900/10 group-hover:bg-transparent transition-colors"></div>
                 </div>
 
@@ -398,7 +381,7 @@ $homeFormatFeedbackDate = static function (?string $value): string {
             <h2 class="text-3xl md:text-5xl font-black text-[#2e3192] uppercase tracking-tight">
                 KHOÁ HỌC DÀNH CHO <span class="inline-block mt-2 md:mt-0 rounded-full bg-red-600 px-6 py-2 text-white shadow-lg transform -rotate-2">MỌI MỤC TIÊU</span>
             </h2>
-            <p class="mt-6 text-lg text-slate-600 max-w-3xl mx-auto font-medium">
+            <p class="mt-6 text-lg text-slate-700 max-w-3xl mx-auto font-semibold">
                 Dễ dàng lựa chọn khóa học tiếng Anh phù hợp cho riêng mình với chương trình học đa dạng, được thiết kế phù hợp với nhu cầu và trình độ thực tế.
             </p>
         </div>
@@ -418,47 +401,47 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                         $courseDesc = trim((string) ($course['short_desc'] ?? ''));
                         $courseLink = page_url('courses', ['course' => $courseSlug]);
                         ?>
-                        <article class="group flex flex-col overflow-hidden rounded-[2rem] bg-white/90 shadow-lg border border-white transition-all duration-300 hover:-translate-y-3 hover:shadow-xl">
-                            <div class="relative bg-blue-100 h-56 overflow-hidden">
+                        <article class="group flex flex-col overflow-hidden rounded-[2rem] bg-white/90 shadow-lg border border-rose-100/70 transition-all duration-300 hover:-translate-y-3 hover:shadow-xl hover:shadow-rose-100/50">
+                            <div class="relative h-56 overflow-hidden bg-gradient-to-br from-rose-50 via-white to-emerald-50">
                                 <?php if ($courseImage !== ''): ?>
                                     <img src="<?= e($courseImage); ?>" alt="<?= e($courseTitle); ?>" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
-                                    <div class="absolute inset-0 bg-gradient-to-t from-[#2e3192]/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                                    <div class="absolute inset-0 bg-gradient-to-t from-red-500/35 via-rose-400/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                                 <?php else: ?>
-                                    <div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#e0f2fe] via-white to-[#ecfccb]">
-                                        <div class="text-center text-[#2e3192]">
-                                            <div class="mx-auto mb-3 flex h-20 w-20 items-center justify-center rounded-full bg-white/90 shadow-lg ring-1 ring-blue-100">
-                                                <i class="fa-solid fa-book-open text-3xl text-blue-500"></i>
+                                    <div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-rose-50 via-white to-emerald-50">
+                                        <div class="text-center text-red-500">
+                                            <div class="mx-auto mb-3 flex h-20 w-20 items-center justify-center rounded-full bg-white/90 shadow-lg ring-1 ring-rose-100">
+                                                <i class="fa-solid fa-book-open text-3xl text-red-400"></i>
                                             </div>
-                                            <div class="text-xs font-black uppercase tracking-[0.22em] text-slate-500">Ảnh khóa học</div>
+                                            <div class="text-xs font-black uppercase tracking-[0.22em] text-slate-700">Ảnh khóa học</div>
                                         </div>
                                     </div>
-                                    <div class="absolute inset-0 bg-gradient-to-t from-[#2e3192]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                                    <div class="absolute inset-0 bg-gradient-to-t from-red-500/12 via-rose-400/8 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                                 <?php endif; ?>
-                                <div class="absolute top-4 right-4 bg-white/90 text-[#2e3192] rounded-2xl px-3 py-2 text-center shadow-md backdrop-blur-sm">
+                                <div class="absolute top-4 right-4 bg-gradient-to-r from-red-500 to-emerald-500 text-white rounded-2xl px-3 py-2 text-center shadow-md backdrop-blur-sm ring-1 ring-white/70">
                                     <span class="block text-[10px] uppercase font-bold opacity-90">Buổi học</span>
                                     <span class="block text-2xl font-black leading-none"><?= (int) ($course['total_sessions'] ?? 0); ?></span>
                                 </div>
                             </div>
                             <div class="flex flex-1 flex-col p-6">
-                                <div class="inline-flex w-fit rounded-full bg-blue-50 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-blue-700">
+                                <div class="inline-flex w-fit rounded-full bg-gradient-to-r from-emerald-50 to-rose-50 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-emerald-700 ring-1 ring-emerald-100/80">
                                     <?= e((string) ($course['level'] ?? 'Khóa học')); ?>
                                 </div>
-                                <h3 class="mt-3 text-xl font-extrabold text-[#2e3192] uppercase leading-tight group-hover:text-blue-600 transition-colors"><?= e($courseTitle); ?></h3>
-                                <p class="mt-3 text-sm font-medium text-slate-500 flex-1 leading-relaxed">
+                                <h3 class="mt-3 text-xl font-extrabold uppercase leading-tight text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-rose-500 to-emerald-500 transition-colors"><?= e($courseTitle); ?></h3>
+                                <p class="mt-3 text-sm font-semibold text-slate-700 flex-1 leading-relaxed">
                                     <?= e($courseDesc !== '' ? $courseDesc : 'Chương trình học được xây dựng theo lộ trình rõ ràng, phù hợp cho từng học viên.'); ?>
                                 </p>
                                 <div class="mt-5 pt-4 border-t-2 border-slate-100 flex flex-col gap-4">
                                     <div class="flex items-end justify-between gap-4">
                                         <div>
-                                            <span class="block text-xs font-bold text-slate-400 uppercase tracking-wide">Học phí từ</span>
-                                            <span class="text-xl font-black text-[#2e3192]"><?= e((string) ($course['price'] ?? '0đ')); ?></span>
+                                            <span class="block text-xs font-bold text-slate-700 uppercase tracking-wide">Học phí từ</span>
+                                            <span class="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-emerald-500"><?= e((string) ($course['price'] ?? '0đ')); ?></span>
                                         </div>
-                                        <div class="text-right text-xs font-semibold text-slate-400">
+                                        <div class="text-right text-xs font-semibold text-slate-700">
                                             <div><?= (int) ($course['roadmap_count'] ?? 0); ?> lộ trình</div>
                                             <div><?= (int) ($course['class_count'] ?? 0); ?> lớp học</div>
                                         </div>
                                     </div>
-                                    <a href="<?= e($courseLink); ?>" class="inline-flex items-center justify-center gap-2 rounded-full bg-[#2e3192] px-4 py-3 text-sm font-bold text-white shadow-md transition-transform hover:-translate-y-0.5 hover:bg-blue-600">
+                                    <a href="<?= e($courseLink); ?>" class="inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-red-500 via-rose-500 to-emerald-500 px-4 py-3 text-sm font-bold text-white shadow-md transition-all hover:-translate-y-0.5 hover:from-red-600 hover:to-emerald-600 hover:shadow-lg">
                                         Xem chi tiết <i class="fa-solid fa-arrow-right text-xs"></i>
                                     </a>
                                 </div>
@@ -605,23 +588,13 @@ $homeFormatFeedbackDate = static function (?string $value): string {
         </div>
 
         <div class="mx-auto w-full max-w-[1400px] px-4 sm:px-6 relative z-10">
-            <div class="mb-10 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between" data-aos="fade-up">
+            <div class="mb-10" data-aos="fade-up">
                 <div class="max-w-2xl">
                     <div class="inline-flex items-center gap-2 rounded-full border border-emerald-100 bg-white/80 px-4 py-2 text-[10px] font-black uppercase tracking-[0.35em] text-emerald-600 shadow-sm">
                         <i class="fa-regular fa-comment-dots"></i> Đánh giá từ người dùng
                     </div>
                     <h2 class="mt-4 text-3xl md:text-5xl font-black tracking-tight text-slate-900">Học viên nói gì về <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-cyan-500">trung tâm</span></h2>
                     <p class="mt-4 text-slate-600 font-medium text-base md:text-lg leading-relaxed">Những phản hồi thật từ học viên và phụ huynh là thước đo rõ nhất cho chất lượng đào tạo và trải nghiệm học tập tại trung tâm.</p>
-                </div>
-                <div class="grid grid-cols-2 gap-3 sm:gap-4">
-                    <div class="rounded-[1.5rem] bg-white/90 border border-emerald-100 p-4 shadow-sm">
-                        <p class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Tổng đánh giá</p>
-                        <p class="mt-2 text-2xl font-black text-slate-900"><?= (int) count($homeFeedbacks); ?></p>
-                    </div>
-                    <div class="rounded-[1.5rem] bg-white/90 border border-cyan-100 p-4 shadow-sm">
-                        <p class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Điểm trung bình</p>
-                        <p class="mt-2 text-2xl font-black text-slate-900"><?= $homeFeedbackAverage > 0 ? number_format($homeFeedbackAverage, 1) . '/5' : '--'; ?></p>
-                    </div>
                 </div>
             </div>
 

@@ -112,3 +112,5 @@ foreach ($teacherRows as $teacherRow) {
 
     </div>
 </section>
+
+<?php include __DIR__ . '/../partials/social_contact.php'; ?>
