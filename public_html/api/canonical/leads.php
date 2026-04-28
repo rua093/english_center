@@ -51,7 +51,7 @@ function api_leads_submit_action(): void
     $legacyEmail = input_string($_POST, 'email');
 
     $parentName = input_string($_POST, 'parent_name');
-    $parentPhone = input_string($_POST, 'parent_phone');
+    $parentPhone = normalize_phone_string(input_string($_POST, 'parent_phone'));
 
     $interests = input_string($_POST, 'interests');
     if ($interests === '') {
@@ -102,7 +102,7 @@ function api_leads_submit_action(): void
     ];
 
     // Require name and at least one contact method (phone or email)
-    $contactPhone = api_leads_extract_phone($parentPhone . ' ' . $legacyPhone . ' ' . $parentName);
+    $contactPhone = api_leads_extract_phone($parentPhone . ' ' . normalize_phone_string($legacyPhone) . ' ' . $parentName);
     $contactEmail = api_leads_extract_email($legacyEmail . ' ' . $parentName);
 
     if ($payload['student_name'] === '' || ($contactPhone === '' && $contactEmail === '')) {
@@ -152,7 +152,6 @@ function api_leads_update_action(): void
 function api_leads_convert_action(): void
 {
     api_guard_permission('student_lead.update');
-    api_guard_permission('admin.user.update');
     api_require_post(page_url('student-leads-manage'));
 
     $leadId = input_int($_POST, 'id');

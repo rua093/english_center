@@ -194,7 +194,7 @@ $adminDescription = 'Theo dõi chi tiết pipeline tư vấn học viên từ l�
 
 $success = get_flash('success');
 $error = get_flash('error');
-$canConvertLead = has_any_permission(['admin.user.update']);
+$canConvertLead = has_any_permission(['student_lead.update']);
 $canDeleteLead = has_permission('student_lead.delete');
 ?>
 <div class="grid gap-4">
@@ -292,7 +292,14 @@ $canDeleteLead = has_permission('student_lead.delete');
                 <?php if ((int) ($editingLead['converted_user_id'] ?? 0) > 0): ?>
                     <div class="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">
                         <p class="font-semibold">Lead này đã được chuyển đổi thành học viên chính thức.</p>
-                        <p class="mt-1">Mã tài khoản: <a class="font-bold text-emerald-800 underline" href="<?= e(page_url('users-admin', ['edit' => (int) $editingLead['converted_user_id']])); ?>">#<?= (int) $editingLead['converted_user_id']; ?></a></p>
+                        <p class="mt-1">Mã tài khoản:
+                            <button
+                                type="button"
+                                class="font-bold text-emerald-800 underline"
+                                data-admin-row-detail="1"
+                                data-detail-url="<?= e(page_url('users-admin', ['edit' => (int) $editingLead['converted_user_id']])); ?>"
+                            >#<?= (int) $editingLead['converted_user_id']; ?></button>
+                        </p>
                         <p class="mt-1 text-xs">Thời gian chuyển đổi: <?= e(student_lead_format_datetime((string) ($editingLead['converted_at'] ?? ''))); ?></p>
                     </div>
                 <?php elseif ($canConvertLead): ?>
@@ -327,32 +334,16 @@ $canDeleteLead = has_permission('student_lead.delete');
     <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
             <div>
-                <h3 class="mb-1">Danh sách lead học viên</h3>
+                <h3 class="mb-1">Danh sách học viên đăng ký</h3>
                 <p class="text-sm text-slate-600">Bảng chỉ hiển thị thông tin tóm tắt. Bấm Xem chi tiết hoặc Xử lý để mở hồ sơ đầy đủ.</p>
             </div>
             <span class="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-bold text-slate-600">Tổng: <?= (int) $leadTotal; ?> lead</span>
         </div>
 
-        <div class="table-filter-bar">
-            <form class="table-filter-controls" method="get" action="<?= e(page_url('student-leads-manage')); ?>">
-                <input type="hidden" name="lead_per_page" value="<?= (int) $leadPerPage; ?>">
-                <label class="text-xs font-semibold text-slate-500" for="lead-status-filter">Trạng thái</label>
-                <select id="lead-status-filter" name="lead_status">
-                    <option value="">Tất cả trạng thái</option>
-                    <?php foreach ($statusOptions as $statusValue => $statusLabel): ?>
-                        <option value="<?= e($statusValue); ?>" <?= $statusFilter === $statusValue ? 'selected' : ''; ?>><?= e($statusLabel); ?></option>
-                    <?php endforeach; ?>
-                </select>
-                <button type="submit">Áp dụng lọc</button>
-                <?php if ($statusFilter !== ''): ?>
-                    <a class="inline-flex items-center rounded-md border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('student-leads-manage', ['lead_per_page' => $leadPerPage])); ?>">Bỏ lọc</a>
-                <?php endif; ?>
-            </form>
-            <span class="table-filter-counter">Trang <?= (int) $leadPage; ?>/<?= (int) $leadTotalPages; ?></span>
-        </div>
+    
 
         <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
-            <table class="min-w-full border-collapse text-sm" data-enable-row-detail="1" data-disable-global-filter="1">
+            <table class="min-w-full border-collapse text-sm" data-enable-row-detail="1">
                 <thead>
                     <tr>
                         <th>Mã</th>
@@ -398,7 +389,12 @@ $canDeleteLead = has_permission('student_lead.delete');
                                 </td>
                                 <td>
                                     <?php if ((int) ($lead['converted_user_id'] ?? 0) > 0): ?>
-                                        <a class="font-semibold text-blue-700 hover:underline" href="<?= e(page_url('users-admin', ['edit' => (int) $lead['converted_user_id']])); ?>">User #<?= (int) $lead['converted_user_id']; ?></a>
+                                        <button
+                                            type="button"
+                                            class="font-semibold text-blue-700 hover:underline"
+                                            data-admin-row-detail="1"
+                                            data-detail-url="<?= e(page_url('users-admin', ['edit' => (int) $lead['converted_user_id']])); ?>"
+                                        >User #<?= (int) $lead['converted_user_id']; ?></button>
                                     <?php else: ?>
                                         <span class="text-xs font-semibold text-slate-500">Chưa tạo user</span>
                                     <?php endif; ?>

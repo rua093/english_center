@@ -152,6 +152,8 @@ function api_exams_class_grid_action(): void
         api_error('Không tìm thấy lớp học.', ['code' => 'CLASS_NOT_FOUND'], 404);
     }
 
+	teacher_assert_class_scope($academicModel, $classId, page_url('classrooms-academic', ['class_id' => $classId]));
+
     $studentRows = $academicModel->listStudentsForClass($classId);
 
     $attendanceSummaryRows = $academicModel->summarizeAttendanceRateByClass($classId);
@@ -317,6 +319,8 @@ function api_exams_create_column_action(): void
         api_error('Không tìm thấy lớp học.', ['code' => 'CLASS_NOT_FOUND'], 404);
     }
 
+	teacher_assert_class_scope($academicModel, $classId, page_url('classrooms-academic', ['class_id' => $classId]));
+
     if ($academicModel->countExamRowsForColumn($classId, $examName, $examType, $examDate) > 0) {
         api_error('Cột điểm đã tồn tại (trùng tên, loại, ngày).', ['code' => 'EXAM_COLUMN_EXISTS'], 409);
     }
@@ -369,6 +373,8 @@ function api_exams_update_column_action(): void
     if (!is_array($class)) {
         api_error('Không tìm thấy lớp học.', ['code' => 'CLASS_NOT_FOUND'], 404);
     }
+
+	teacher_assert_class_scope($academicModel, $classId, page_url('classrooms-academic', ['class_id' => $classId]));
 
     if ($academicModel->countExamRowsForColumn($classId, $oldExamName, $oldExamType, $oldExamDate) <= 0) {
         api_error('Không tìm thấy cột điểm cần cập nhật.', ['code' => 'EXAM_COLUMN_NOT_FOUND'], 404);
@@ -440,6 +446,8 @@ function api_exams_delete_column_action(): void
         api_error('Không tìm thấy lớp học.', ['code' => 'CLASS_NOT_FOUND'], 404);
     }
 
+	teacher_assert_class_scope($academicModel, $classId, page_url('classrooms-academic', ['class_id' => $classId]));
+
     if ($academicModel->countExamRowsForColumn($classId, $examName, $examType, $examDate) <= 0) {
         api_error('Không tìm thấy cột điểm cần xóa.', ['code' => 'EXAM_COLUMN_NOT_FOUND'], 404);
     }
@@ -502,6 +510,12 @@ function api_exams_save_score_action(): void
     }
 
     $academicModel = new AcademicModel();
+    $class = $academicModel->findClass($classId);
+    if (!is_array($class)) {
+        api_error('Không tìm thấy lớp học.', ['code' => 'CLASS_NOT_FOUND'], 404);
+    }
+
+	teacher_assert_class_scope($academicModel, $classId, page_url('classrooms-academic', ['class_id' => $classId]));
 
     if (!$academicModel->isStudentEnrolledInClass($studentId, $classId)) {
         api_error('Học viên không thuộc lớp học.', ['code' => 'STUDENT_NOT_IN_CLASS'], 403);

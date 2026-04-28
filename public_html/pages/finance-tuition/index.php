@@ -86,9 +86,9 @@ $viewer = auth_user();
 $isAdmin = (($viewer['role'] ?? '') === 'admin');
 $isStaff = (($viewer['role'] ?? '') === 'staff');
 
-$canCreateTuition = $isAdmin || has_any_permission(['finance.tuition.create']);
-$canUpdateTuition = $isAdmin || has_any_permission(['finance.tuition.update']);
-$canDeleteTuition = $isAdmin || has_any_permission(['finance.tuition.delete']);
+$canCreateTuition = $isAdmin;
+$canUpdateTuition = $isAdmin;
+$canDeleteTuition = $isAdmin;
 
 $success = get_flash('success');
 $error = get_flash('error');
@@ -103,8 +103,7 @@ $error = get_flash('error');
     <?php endif; ?>
 
     <?php if ($canUpdateTuition && $editingTuition): ?>
-        <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <h3>Sửa hóa đơn học phí</h3>
+        <div class="hidden" aria-hidden="true">
             <form class="grid gap-3 md:grid-cols-2" method="post" action="/api/tuitions/save">
                 <?= csrf_input(); ?>
                 <input type="hidden" name="id" value="<?= (int) ($editingTuition['id'] ?? 0); ?>">
@@ -156,12 +155,10 @@ $error = get_flash('error');
                 <p class="md:col-span-2 text-xs text-slate-500">Trạng thái sẽ tự động là <strong>debt</strong> nếu số đã thu chưa đủ và tự chuyển <strong>paid</strong> khi thu đủ.</p>
                 <div class="md:col-span-2 inline-flex flex-wrap items-center gap-2">
                     <button class="<?= ui_btn_primary_classes(); ?>" type="submit">Cập nhật hóa đơn</button>
-                    <?php if ($editingTuition): ?>
-                        <a class="<?= ui_btn_secondary_classes(); ?>" href="<?= e(page_url('tuition-finance')); ?>">Hủy chỉnh sửa</a>
-                    <?php endif; ?>
+                    <a class="<?= ui_btn_secondary_classes(); ?>" href="<?= e(page_url('tuition-finance')); ?>">Hủy chỉnh sửa</a>
                 </div>
             </form>
-        </article>
+        </div>
     <?php endif; ?>
 
     <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">

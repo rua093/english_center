@@ -2,20 +2,10 @@ USE english_center_db;
 
 SET NAMES utf8mb4;
 
-INSERT INTO roles (role_name, description)
-SELECT 'guest', 'Khach vang lai'
-WHERE NOT EXISTS (SELECT 1 FROM roles WHERE role_name = 'guest');
+
+-- Removed guest role from roles
 
 INSERT INTO permissions (permission_name, slug) VALUES
-('Xem trang chu cong khai', 'public.home.view'),
-('Xem dashboard hoc vien', 'student.dashboard.view'),
-('Xem bai tap hoc vien', 'student.assignment.view'),
-('Nop bai tap tu portal', 'student.assignment.submit'),
-('Xem hoc phi hoc vien', 'student.tuition.view'),
-('Cap nhat hoc phi tu portal', 'student.tuition.update'),
-('Xem dashboard giao vien', 'teacher.dashboard.view'),
-('Xem lich day giao vien', 'teacher.schedule.view'),
-('Gui yeu cau nghi day', 'teacher.leave.request'),
 ('Xem dashboard quan tri', 'admin.dashboard.view'),
 ('Xem nguoi dung', 'admin.user.view'),
 ('Tao nguoi dung', 'admin.user.create'),
@@ -23,7 +13,6 @@ INSERT INTO permissions (permission_name, slug) VALUES
 ('Xoa nguoi dung', 'admin.user.delete'),
 ('Xem phan quyen vai tro', 'admin.role_permission.view'),
 ('Cap nhat phan quyen vai tro', 'admin.role_permission.update'),
-('Xem bao cao thong ke', 'reports.view'),
 ('Xem lop hoc', 'academic.classes.view'),
 ('Tao lop hoc', 'academic.classes.create'),
 ('Cap nhat lop hoc', 'academic.classes.update'),
@@ -46,6 +35,10 @@ INSERT INTO permissions (permission_name, slug) VALUES
 ('Xoa bai tap', 'academic.assignments.delete'),
 ('Xem bai nop', 'academic.submissions.view'),
 ('Cham diem bai nop', 'academic.submissions.grade'),
+('Xem phong hoc', 'academic.rooms.view'),
+('Tao phong hoc', 'academic.rooms.create'),
+('Cap nhat phong hoc', 'academic.rooms.update'),
+('Xoa phong hoc', 'academic.rooms.delete'),
 ('Xem tai lieu', 'materials.view'),
 ('Tao tai lieu', 'materials.create'),
 ('Cap nhat tai lieu', 'materials.update'),
@@ -57,18 +50,16 @@ INSERT INTO permissions (permission_name, slug) VALUES
 ('Xem dang ky', 'finance.registration.view'),
 ('Tao dang ky', 'finance.registration.create'),
 ('Cap nhat dang ky', 'finance.registration.update'),
-('Xoa dang ky', 'finance.registration.delete'),
 ('Xem khuyen mai', 'finance.promotions.view'),
 ('Tao khuyen mai', 'finance.promotions.create'),
 ('Cap nhat khuyen mai', 'finance.promotions.update'),
 ('Xoa khuyen mai', 'finance.promotions.delete'),
 ('Yeu cau chinh sua tai chinh', 'finance.adjust.request'),
-('Xem giao dich thanh toan chi tiet', 'finance.payments.view'),
+('Xem giao dich thanh toan', 'finance.payments.view'),
 ('Tao giao dich thanh toan', 'finance.payments.create'),
 ('Cap nhat giao dich thanh toan', 'finance.payments.update'),
 ('Xoa giao dich thanh toan', 'finance.payments.delete'),
 ('Xem danh gia', 'feedback.view'),
-('Tao danh gia', 'feedback.create'),
 ('Cap nhat danh gia', 'feedback.update'),
 ('Xoa danh gia', 'feedback.delete'),
 ('Xem phe duyet', 'approval.view'),
@@ -85,115 +76,94 @@ INSERT INTO permissions (permission_name, slug) VALUES
 ('Cap nhat tai khoan ngan hang', 'bank.update'),
 ('Xoa tai khoan ngan hang', 'bank.delete'),
 ('Xem dau moi hoc vien', 'student_lead.view'),
-('Tao dau moi hoc vien', 'student_lead.create'),
 ('Cap nhat dau moi hoc vien', 'student_lead.update'),
 ('Xoa dau moi hoc vien', 'student_lead.delete'),
 ('Xem ho so ung tuyen giao vien', 'job_application.view'),
-('Tao ho so ung tuyen giao vien', 'job_application.create'),
 ('Cap nhat ho so ung tuyen giao vien', 'job_application.update'),
 ('Xoa ho so ung tuyen giao vien', 'job_application.delete'),
 ('Xem portfolio hoc vien', 'academic.portfolios.view'),
 ('Tao portfolio hoc vien', 'academic.portfolios.create'),
 ('Cap nhat portfolio hoc vien', 'academic.portfolios.update'),
-('Xoa portfolio hoc vien', 'academic.portfolios.delete')
+('Xoa portfolio hoc vien', 'academic.portfolios.delete'),
+('Nop bai tap tu portal', 'student.assignment.submit'),
+('Cap nhat hoc phi tu portal', 'student.tuition.update'),
+('Xem thong bao', 'notifications.view'),
+('Tao thong bao', 'notifications.create'),
+('Cap nhat thong bao', 'notifications.update'),
+('Xoa thong bao', 'notifications.delete')
 ON DUPLICATE KEY UPDATE permission_name = VALUES(permission_name);
 
 DELETE rp
 FROM role_permissions rp
 INNER JOIN roles r ON r.id = rp.role_id
-WHERE r.role_name IN ('admin', 'staff', 'teacher', 'student', 'guest');
+WHERE r.role_name IN ('admin', 'staff', 'teacher', 'student');
 
--- ADMIN: full access
+SELECT r.id, p.id
+FROM roles r
+INNER JOIN permissions p ON 1 = 1
+WHERE r.role_name = 'admin';
+
+-- =====================================================================
+-- STAFF: operational access
+-- =====================================================================
 INSERT IGNORE INTO role_permissions (role_id, permission_id)
 SELECT r.id, p.id
 FROM roles r
 INNER JOIN permissions p ON p.slug IN (
-    'public.home.view',
-    'student.dashboard.view', 'student.assignment.view', 'student.assignment.submit', 'student.tuition.view', 'student.tuition.update',
-    'teacher.dashboard.view', 'teacher.schedule.view', 'teacher.leave.request',
-    'admin.dashboard.view', 'admin.user.view', 'admin.user.create', 'admin.user.update', 'admin.user.delete', 'admin.role_permission.view', 'admin.role_permission.update', 'reports.view',
+    'admin.user.view',
+    -- Academic
     'academic.classes.view', 'academic.classes.create', 'academic.classes.update', 'academic.classes.delete',
     'academic.courses.view', 'academic.courses.create', 'academic.courses.update', 'academic.courses.delete',
     'academic.roadmaps.view', 'academic.roadmaps.create', 'academic.roadmaps.update', 'academic.roadmaps.delete',
     'academic.schedules.view', 'academic.schedules.create', 'academic.schedules.update', 'academic.schedules.delete',
     'academic.assignments.view', 'academic.assignments.create', 'academic.assignments.update', 'academic.assignments.delete',
     'academic.submissions.view', 'academic.submissions.grade',
+    'academic.rooms.view',
+    -- Materials
     'materials.view', 'materials.create', 'materials.update', 'materials.delete',
-    'finance.tuition.view', 'finance.tuition.create', 'finance.tuition.update', 'finance.tuition.delete', 'finance.registration.view', 'finance.registration.create', 'finance.registration.update', 'finance.registration.delete', 'finance.promotions.view', 'finance.promotions.create', 'finance.promotions.update', 'finance.promotions.delete', 'finance.adjust.request', 'finance.payments.view', 'finance.payments.create', 'finance.payments.update', 'finance.payments.delete',
-    'feedback.view', 'feedback.create', 'feedback.update', 'feedback.delete',
-    'approval.view', 'approval.create', 'approval.update', 'approval.delete', 'approval.request',
+    -- Finance
+    'finance.tuition.view',
+    'finance.registration.view', 'finance.registration.create', 'finance.registration.update',
+    'finance.promotions.view',
+    'finance.payments.view', 'finance.payments.update',
+    -- Feedback
+    'feedback.view', 'feedback.update', 'feedback.delete',
+    -- Approval
+    'approval.view', 'approval.update',
+    -- Activity
     'activity.view', 'activity.create', 'activity.update', 'activity.delete',
-    'bank.view', 'bank.create', 'bank.update', 'bank.delete',
-    'student_lead.view', 'student_lead.create', 'student_lead.update', 'student_lead.delete',
-    'job_application.view', 'job_application.create', 'job_application.update', 'job_application.delete',
-    'academic.portfolios.view', 'academic.portfolios.create', 'academic.portfolios.update', 'academic.portfolios.delete'
-)
-WHERE r.role_name = 'admin';
-
--- Safety net: admin always has every permission in system.
-INSERT IGNORE INTO role_permissions (role_id, permission_id)
-SELECT r.id, p.id
-FROM roles r
-INNER JOIN permissions p ON 1 = 1
-WHERE r.role_name = 'admin';
-
--- STAFF: operational access, no direct financial delete, no approval final decision
-INSERT IGNORE INTO role_permissions (role_id, permission_id)
-SELECT r.id, p.id
-FROM roles r
-INNER JOIN permissions p ON p.slug IN (
-    'public.home.view',
-    'admin.dashboard.view', 'reports.view',
-    'academic.classes.view', 'academic.classes.create', 'academic.classes.update',
-    'academic.courses.view', 'academic.courses.create', 'academic.courses.update',
-    'academic.roadmaps.view', 'academic.roadmaps.create', 'academic.roadmaps.update',
-    'academic.schedules.view', 'academic.schedules.create', 'academic.schedules.update',
-    'academic.assignments.view', 'academic.assignments.create', 'academic.assignments.update',
-    'academic.submissions.view',
-    'materials.view', 'materials.create', 'materials.update',
-    'finance.tuition.view', 'finance.tuition.create', 'finance.tuition.update', 'finance.registration.view', 'finance.registration.create', 'finance.registration.update', 'finance.promotions.view', 'finance.promotions.create', 'finance.promotions.update', 'finance.adjust.request', 'finance.payments.view',
-    'feedback.view', 'feedback.create', 'feedback.update',
-    'approval.view', 'approval.request',
-    'activity.view', 'activity.create', 'activity.update',
-    'bank.view', 'bank.create', 'bank.update',
-    'student_lead.view', 'student_lead.create', 'student_lead.update',
-    'job_application.view', 'job_application.update',
-    'academic.portfolios.view'
+    -- Leads & Applications
+    'student_lead.view', 'student_lead.update', 'student_lead.delete',
+    'job_application.view', 'job_application.update', 'job_application.delete',
+    -- Portfolio
+    'academic.portfolios.view', 'academic.portfolios.create', 'academic.portfolios.update', 'academic.portfolios.delete',
+    -- Notifications
+    'notifications.view', 'notifications.create', 'notifications.update', 'notifications.delete'
 )
 WHERE r.role_name = 'staff';
 
+-- =====================================================================
 -- TEACHER: teaching-focused access
+-- =====================================================================
 INSERT IGNORE INTO role_permissions (role_id, permission_id)
 SELECT r.id, p.id
 FROM roles r
 INNER JOIN permissions p ON p.slug IN (
-    'public.home.view',
-    'teacher.dashboard.view', 'teacher.schedule.view', 'teacher.leave.request',
+    'academic.schedules.view',
     'academic.assignments.view', 'academic.assignments.create', 'academic.assignments.update',
     'academic.submissions.view', 'academic.submissions.grade',
-    'academic.schedules.view',
-    'materials.view',
+    'materials.view', 'materials.create', 'materials.update', 'materials.delete',
     'approval.request'
 )
 WHERE r.role_name = 'teacher';
 
--- STUDENT: portal usage
 INSERT IGNORE INTO role_permissions (role_id, permission_id)
 SELECT r.id, p.id
 FROM roles r
 INNER JOIN permissions p ON p.slug IN (
-    'public.home.view',
-    'student.dashboard.view',
-    'student.assignment.view', 'student.assignment.submit',
-    'student.tuition.view', 'student.tuition.update',
+    'student.assignment.submit',
+    'student.tuition.update',
     'materials.view',
     'activity.view'
 )
 WHERE r.role_name = 'student';
-
--- GUEST: public only
-INSERT IGNORE INTO role_permissions (role_id, permission_id)
-SELECT r.id, p.id
-FROM roles r
-INNER JOIN permissions p ON p.slug IN ('public.home.view')
-WHERE r.role_name = 'guest';

@@ -59,7 +59,7 @@ $payload = [
     'username' => trim((string) ($_POST['username'] ?? '')),
     'full_name' => trim((string) ($_POST['full_name'] ?? '')),
     'role_id' => (int) ($_POST['role_id'] ?? 0),
-    'phone' => trim((string) ($_POST['phone'] ?? '')),
+    'phone' => normalize_phone_string((string) ($_POST['phone'] ?? '')),
     'email' => trim((string) ($_POST['email'] ?? '')),
     'status' => (string) ($_POST['status'] ?? 'active'),
     'password' => (string) ($_POST['password'] ?? ''),
@@ -71,7 +71,7 @@ $payload = [
     // Sử dụng biến $videoUrl đã xử lý ở trên
     'teacher_intro_video_url' => $videoUrl,
     'student_parent_name' => trim((string) ($_POST['student_parent_name'] ?? '')),
-    'student_parent_phone' => trim((string) ($_POST['student_parent_phone'] ?? '')),
+    'student_parent_phone' => normalize_phone_string((string) ($_POST['student_parent_phone'] ?? '')),
     'student_school_name' => trim((string) ($_POST['student_school_name'] ?? '')),
     'student_target_score' => trim((string) ($_POST['student_target_score'] ?? '')),
     'student_entry_test_id' => (int) ($_POST['student_entry_test_id'] ?? 0),

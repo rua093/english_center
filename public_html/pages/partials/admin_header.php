@@ -1018,15 +1018,15 @@ if ($activeModule === '') {
 
 $adminPageTitleMap = [
     'dashboard' => 'Toàn cảnh vận hành',
-    'tuition' => 'Học phí và công nợ',
+    'tuition' => 'Học phí',
     'registration' => 'Đăng ký khóa học',
     'promotions' => 'Ưu đãi giảm giá',
     'payments' => 'Giao dịch thanh toán',
     'users' => 'Người dùng và phân quyền',
     'approvals' => 'Yêu cầu phê duyệt',
     'feedbacks' => 'Phản hồi học viên',
-    'student-leads' => 'Lead học viên',
-    'job-applications' => 'Ứng tuyển giáo viên',
+    'student-leads' => 'Học viên đăng ký',
+    'job-applications' => 'Giáo viên ứng tuyển',
     'activities' => 'Hoạt động ngoại khóa',
     'rooms' => 'Quản lý phòng học',
     'notifications' => 'Quản lý thông báo',
@@ -1037,20 +1037,20 @@ $adminPageTitleMap = [
     'schedules' => 'Kế hoạch lịch dạy',
     'assignments' => 'Hệ thống bài tập',
     'materials' => 'Kho tài liệu',
-    'portfolios' => 'Portfolio học viên',
+    'portfolios' => 'Hồ sơ năng lực học viên',
 ];
 
 $adminPageDescriptionMap = [
     'dashboard' => 'Theo dõi doanh thu, biến động lớp học và thông báo quan trọng để nắm nhanh tình hình vận hành mỗi ngày.',
-    'tuition' => 'Theo dõi hóa đơn đã tạo, cập nhật số tiền đã thu và kiểm soát công nợ còn lại theo từng học viên trong từng lớp.',
-    'registration' => 'Đăng ký học viên vào khóa/lớp, áp giảm giá và tự động tạo công nợ học phí để theo dõi thu tiền chuẩn nghiệp vụ.',
+    'tuition' => 'Theo dõi hóa đơn đã tạo, cập nhật số tiền đã thu và kiểm soát số tiền còn lại theo từng học viên trong từng lớp.',
+    'registration' => 'Đăng ký học viên vào khóa/lớp, áp giảm giá và tự động tạo học phí để theo dõi thu tiền chuẩn nghiệp vụ.',
     'promotions' => 'Thiết lập các chương trình ưu đãi theo khóa học hoặc toàn trung tâm để áp dụng giảm giá tự động khi đăng ký.',
     'payments' => 'Quản lý mã giao dịch, đối soát trạng thái thanh toán và rà soát lịch sử thu học phí một cách tập trung.',
     'users' => 'Quản lý tài khoản, vai trò và hồ sơ theo từng nhóm người dùng để kiểm soát truy cập hệ thống an toàn.',
     'approvals' => 'Tạo yêu cầu, cập nhật trạng thái duyệt và theo dõi người xử lý cho từng quy trình nội bộ của trung tâm.',
     'feedbacks' => 'Thu thập nhận xét học viên, theo dõi điểm đánh giá và xử lý phản hồi theo lớp hoặc giáo viên phụ trách.',
-    'student-leads' => 'Theo dõi lead học viên từ lúc gửi form đến khi kiểm tra đầu vào, học thử và chuyển đổi chính thức.',
-    'job-applications' => 'Xử lý hồ sơ ứng tuyển giáo viên theo pipeline phỏng vấn và chuyển đổi thành tài khoản giảng dạy.',
+    'student-leads' => 'Theo dõi học viên đăng ký từ lúc gửi form đến khi kiểm tra đầu vào, học thử và chuyển đổi chính thức.',
+    'job-applications' => 'Xử lý hồ sơ ứng tuyển giáo viên và chuyển đổi thành tài khoản giảng dạy.',
     'activities' => 'Lên kế hoạch hoạt động ngoại khóa, theo dõi trạng thái tổ chức và số lượng học viên đăng ký tham gia.',
     'rooms' => 'Quản lý danh mục phòng học dùng trong xếp lịch giảng dạy và tránh trùng phòng theo khung giờ.',
     'notifications' => 'Tạo và theo dõi thông báo nội bộ gửi tới từng người dùng trong hệ thống.',
@@ -1061,7 +1061,7 @@ $adminPageDescriptionMap = [
     'schedules' => 'Sắp xếp lịch dạy, phòng học và khung giờ giảng dạy nhằm hạn chế trùng lịch và tối ưu nguồn lực.',
     'assignments' => 'Tạo bài tập, quản lý hạn nộp và kiểm soát tài nguyên đính kèm theo từng buổi học hoặc khóa học.',
     'materials' => 'Quản lý kho tài liệu theo khóa học, cập nhật tệp nhanh và giữ cấu trúc nội dung học tập nhất quán.',
-    'portfolios' => 'Tổng hợp sản phẩm học viên, lưu minh chứng tiến bộ và tổ chức nội dung portfolio theo giai đoạn học.',
+    'portfolios' => 'Tổng hợp hồ sơ tiến bộ của học viên, lưu minh chứng tiến bộ theo giai đoạn học.',
 ];
 
 $displayAdminTitle = (string) ($adminPageTitleMap[$activeModule] ?? ($adminTitle ?? 'Khu vực quản trị'));

@@ -106,7 +106,6 @@ function api_lessons_save_action(): void
     api_require_post(page_url('classrooms-academic'));
 
     $lessonId = input_int($_POST, 'id');
-    api_guard_permission($lessonId > 0 ? 'academic.classes.update' : 'academic.classes.create');
 
     $redirectPage = lessons_manage_redirect_page($_POST, 'classrooms-academic');
     $redirectQuery = lessons_manage_redirect_query($_POST);
@@ -120,6 +119,13 @@ function api_lessons_save_action(): void
     }
 
     $academicModel = new AcademicModel();
+    $currentRole = (string) (auth_user()['role'] ?? '');
+    $teacherOwnsClass = $currentRole === 'teacher' && teacher_can_manage_class($academicModel, $classId);
+
+    if (!$teacherOwnsClass) {
+        api_guard_permission($lessonId > 0 ? 'academic.classes.update' : 'academic.classes.create');
+    }
+
     lessons_assert_teacher_class_access($academicModel, $classId, $redirectPath);
 
     $scheduleId = input_int($_POST, 'schedule_id');
@@ -233,7 +239,6 @@ function api_lessons_attendance_roster_action(): void
 function api_lessons_attendance_action(): void
 {
     api_require_post(page_url('classrooms-academic'));
-    api_guard_permission('academic.schedules.update');
 
     $scheduleId = input_int($_POST, 'schedule_id');
     if ($scheduleId <= 0) {
@@ -260,6 +265,13 @@ function api_lessons_attendance_action(): void
     if (!is_array($schedule)) {
         set_flash('error', 'Khong tim thay lich hoc can diem danh.');
         redirect($redirectPath);
+    }
+
+    $currentRole = (string) (auth_user()['role'] ?? '');
+    $teacherOwnsClass = $currentRole === 'teacher' && teacher_can_manage_class($academicModel, (int) ($schedule['class_id'] ?? 0));
+
+    if (!$teacherOwnsClass) {
+        api_guard_permission('academic.schedules.update');
     }
 
     lessons_assert_teacher_class_access(

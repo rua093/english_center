@@ -29,7 +29,7 @@
                         <div class="space-y-5 mb-6">
                             <div class="space-y-1.5">
                                 <label class="text-xs font-black text-slate-400 uppercase ml-2">Số điện thoại *</label>
-                                <input type="tel" name="phone" required class="w-full px-5 py-3 rounded-2xl bg-slate-50 outline-none focus-lime font-bold">
+                                <input type="tel" inputmode="numeric" pattern="[0-9]*" name="phone" required class="w-full px-5 py-3 rounded-2xl bg-slate-50 outline-none focus-lime font-bold">
                             </div>
                             <div class="space-y-1.5">
                                 <label class="text-xs font-black text-slate-400 uppercase ml-2">Email *</label>

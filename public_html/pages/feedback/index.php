@@ -86,9 +86,6 @@ $error = get_flash('error');
                 <form id="feedbackForm" action="/api/index.php?resource=feedbacks&method=save" method="POST" class="space-y-8">
                     <?= csrf_input(); ?>
                     <input type="hidden" name="redirect_to" value="<?= e(page_url('feedback')); ?>">
-                    <input type="hidden" name="class_id" value="">
-                    <input type="hidden" name="teacher_id" value="">
-                    
                     <input type="hidden" name="rating" id="rating_value" value="0" required>
 
                     <div class="space-y-3">

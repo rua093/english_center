@@ -361,12 +361,17 @@ if ($selectedClassId > 0) {
 $success = get_flash('success');
 $error = get_flash('error');
 
-$canCreateLesson = has_permission('academic.classes.create');
-$canUpdateLesson = has_permission('academic.classes.update');
-$canViewAttendance = has_permission('academic.schedules.view');
-$canManageAttendance = has_permission('academic.schedules.update');
-$canCreateAssignment = has_permission('academic.assignments.create');
-$canGradeSubmission = has_permission('academic.submissions.grade');
+$teacherOwnsSelectedClass = $currentUserRole === 'teacher'
+    && $currentUserId > 0
+    && is_array($selectedClass)
+    && (int) ($selectedClass['teacher_id'] ?? 0) === $currentUserId;
+
+$canCreateLesson = has_permission('academic.classes.create') || $teacherOwnsSelectedClass;
+$canUpdateLesson = has_permission('academic.classes.update') || $teacherOwnsSelectedClass;
+$canViewAttendance = has_permission('academic.schedules.view') || $teacherOwnsSelectedClass;
+$canManageAttendance = has_permission('academic.schedules.update') || $teacherOwnsSelectedClass;
+$canCreateAssignment = has_permission('academic.assignments.create') || $teacherOwnsSelectedClass;
+$canGradeSubmission = has_permission('academic.submissions.grade') || $teacherOwnsSelectedClass;
 $canManageExams = $canGradeSubmission;
 
 $classroomAssignmentsByScheduleJson = json_encode($classroomAssignmentsBySchedule, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);

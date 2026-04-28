@@ -52,11 +52,10 @@ $error = get_flash('error');
                 </label>
                 
                 <label>
-                    Trạng thái
-                    <select name="status">
-                        <option value="pending" <?= (($editingFeedback['status'] ?? '') === 'pending') ? 'selected' : ''; ?>>Chờ xử lý</option>
-                        <option value="reviewed" <?= (($editingFeedback['status'] ?? '') === 'reviewed') ? 'selected' : ''; ?>>Đã xem xét</option>
-                        <option value="closed" <?= (($editingFeedback['status'] ?? '') === 'closed') ? 'selected' : ''; ?>>Đã giải quyết</option>
+                    Hiển thị ngoài website
+                    <select name="is_public_web">
+                        <option value="0" <?= ((int) ($editingFeedback['is_public_web'] ?? 0) === 0) ? 'selected' : ''; ?>>0 - Không</option>
+                        <option value="1" <?= ((int) ($editingFeedback['is_public_web'] ?? 0) === 1) ? 'selected' : ''; ?>>1 - Có</option>
                     </select>
                 </label>
 
@@ -80,18 +79,16 @@ $error = get_flash('error');
                 <thead>
                     <tr>
                         <th>Học viên</th>
-                        <th>Giáo viên</th>
-                        <th>Lớp học</th>
                         <th>Đánh giá</th>
                         <th>Nhận xét</th>
-                        <th>Trạng thái</th>
+                        <th>Hiển thị web</th>
                         <th>Hành động</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php if (empty($feedbacks)): ?>
                         <tr>
-                            <td colspan="7">
+                            <td colspan="5">
                                 <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">Chưa có đánh giá nào.</div>
                             </td>
                         </tr>
@@ -99,14 +96,12 @@ $error = get_flash('error');
                         <?php foreach ($feedbacks as $fb): ?>
                             <tr>
                                 <td><?= e((string) ($fb['full_name'] ?? ($fb['student_name'] ?? ''))); ?></td>
-                                <td><?= !empty($fb['teacher_name']) ? e((string) $fb['teacher_name']) : '-'; ?></td>
-                                <td><?= !empty($fb['course_name']) ? e((string) $fb['course_name']) : '-'; ?></td>
                                 <td><?= (int) $fb['rating']; ?>/5</td>
                                 <td>
                                     <?php $fullComment = (string) ($fb['comment'] ?? ''); ?>
                                     <span data-full-value="<?= e($fullComment); ?>"><?= e((string) substr($fullComment, 0, 50)); ?></span>
                                 </td>
-                                <td><span class="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-bold capitalize border-blue-200 bg-blue-50 text-blue-700"><?= e((string) ($fb['status'] ?? 'reviewed')); ?></span></td>
+                                <td><span class="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-bold <?= (int) ($fb['is_public_web'] ?? 0) === 1 ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-slate-200 bg-slate-50 text-slate-600'; ?>"><?= (int) ($fb['is_public_web'] ?? 0); ?></span></td>
                                 <td>
                                     <div class="inline-flex flex-wrap items-center gap-2">
                                         <?php if ($canUpdateFeedback): ?>

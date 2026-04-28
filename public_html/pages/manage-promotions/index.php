@@ -26,27 +26,19 @@ $adminTitle = 'Quản lý ưu đãi';
 
 $viewer = auth_user();
 $isAdmin = (($viewer['role'] ?? '') === 'admin');
-$canManagePromotion = $isAdmin || has_any_permission([
-    'finance.promotions.create',
-    'finance.promotions.update',
-    'finance.adjust.request',
-]);
-$canDeletePromotion = $isAdmin || has_any_permission([
-    'finance.promotions.delete',
-    'finance.adjust.request',
-]);
+$canManagePromotion = $isAdmin;
+$canDeletePromotion = $isAdmin;
 $usesPromotionSchema = $academicModel->usesPromotionSchema();
 
 $success = get_flash('success');
 $error = get_flash('error');
 
 $promoTypeOptions = [
-    'DURATION' => 'Ưu đãi thời lượng',
-    'SOCIAL' => 'Ưu đãi truyền thông',
-    'EVENT' => 'Ưu đãi sự kiện',
-    'GROUP' => 'Ưu đãi nhóm',
+    'DURATION' => 'Ưu đãi đăng ký lâu dài',    // Thường Duration gắn liền với việc đăng ký sớm/đúng hạn
+    'SOCIAL'   => 'Ưu đãi hỗ trợ hộ khó khăn',  // Thay cho "truyền thông" nghe quá vĩ mô
+    'EVENT'    => 'Ưu đãi dịp lễ/sự kiện',
+    'GROUP'    => 'Ưu đãi đăng ký nhóm',
 ];
-
 $selectedCourseId = max(0, (int) ($editingPromotion['course_id'] ?? 0));
 $selectedName = trim((string) ($editingPromotion['name'] ?? ''));
 $selectedPromoType = strtoupper(trim((string) ($editingPromotion['promo_type'] ?? 'DURATION')));

@@ -25,6 +25,9 @@ redirect(page_url('dashboard-student'));
 if ($user && $user['role'] === 'teacher') {
 redirect(page_url('admin'));
 }
+if ($user && $user['role'] === 'staff') {
+redirect(page_url('admin'));
+}
 if (has_permission('admin.dashboard.view')) {
 redirect(page_url('dashboard-admin'));
 }

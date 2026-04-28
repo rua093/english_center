@@ -62,7 +62,7 @@ final class UsersTableModel extends BaseTableModel
     public function updateProfile(int $userId, array $data): void
     {
         $email = trim((string) ($data['email'] ?? ''));
-        $phone = trim((string) ($data['phone'] ?? ''));
+        $phone = $this->normalizePhone($data['phone'] ?? '');
         $avatar = trim((string) ($data['avatar'] ?? ''));
 
         $params = [
@@ -110,7 +110,7 @@ final class UsersTableModel extends BaseTableModel
         $id = (int) ($data['id'] ?? 0);
         $username = trim((string) ($data['username'] ?? ''));
         $fullName = trim((string) ($data['full_name'] ?? ''));
-        $phone = trim((string) ($data['phone'] ?? ''));
+        $phone = $this->normalizePhone($data['phone'] ?? '');
         $email = trim((string) ($data['email'] ?? ''));
         $roleId = (int) ($data['role_id'] ?? 0);
         $status = (string) ($data['status'] ?? 'active');
@@ -373,7 +373,7 @@ final class UsersTableModel extends BaseTableModel
     private function saveStudentProfile(int $userId, array $data): void
     {
         $parentName = trim((string) ($data['student_parent_name'] ?? ''));
-        $parentPhone = trim((string) ($data['student_parent_phone'] ?? ''));
+        $parentPhone = $this->normalizePhone($data['student_parent_phone'] ?? '');
         $schoolName = trim((string) ($data['student_school_name'] ?? ''));
         $targetScore = trim((string) ($data['student_target_score'] ?? ''));
         $entryTestId = (int) ($data['student_entry_test_id'] ?? 0);
@@ -419,5 +419,11 @@ final class UsersTableModel extends BaseTableModel
             $this->executeStatement('DELETE FROM student_profiles WHERE user_id = :user_id', ['user_id' => $userId]);
             return;
         }
+    }
+
+    private function normalizePhone(mixed $value): string
+    {
+        $digits = preg_replace('/\D+/', '', trim((string) $value));
+        return is_string($digits) ? $digits : '';
     }
 }

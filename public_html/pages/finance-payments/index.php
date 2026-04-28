@@ -34,12 +34,9 @@ if ($selectedPaymentMethod !== '' && !isset($paymentMethodOptions[$selectedPayme
 $module = 'payments';
 $adminTitle = 'Giao dịch thanh toán';
 
-$viewer = auth_user();
-$isAdmin = (($viewer['role'] ?? '') === 'admin');
-
-$canCreatePayment = $isAdmin || has_any_permission(['finance.payments.create']);
-$canUpdatePayment = $isAdmin || has_any_permission(['finance.payments.update']);
-$canDeletePayment = $isAdmin || has_any_permission(['finance.payments.delete']);
+$canCreatePayment = has_permission('finance.payments.create');
+$canUpdatePayment = has_permission('finance.payments.update');
+$canDeletePayment = has_permission('finance.payments.delete');
 
 $success = get_flash('success');
 $error = get_flash('error');
@@ -53,7 +50,7 @@ $error = get_flash('error');
         <div class="rounded-xl border-l-4 border-rose-500 bg-rose-50 p-3 text-sm text-rose-700"><?= e($error); ?></div>
     <?php endif; ?>
 
-    <?php if ($canCreatePayment || $canUpdatePayment): ?>
+    <?php if ($canCreatePayment || ($canUpdatePayment && $editingPayment)): ?>
         <article class="order-2 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <h3><?= $editingPayment ? 'Sửa giao dịch thanh toán' : 'Tạo giao dịch thanh toán'; ?></h3>
             <form class="grid gap-3 md:grid-cols-2" method="post" action="/api/payments/save">

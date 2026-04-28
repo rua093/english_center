@@ -12,14 +12,7 @@ function api_approvals_is_admin(): bool
 
 function api_approvals_can_create(): bool
 {
-    if (api_approvals_is_admin()) {
-        return true;
-    }
-
-    return has_any_permission([
-        'approval.create',
-        'approval.request',
-    ]);
+    return api_approvals_is_admin();
 }
 
 function api_approvals_can_update(): bool
@@ -31,6 +24,11 @@ function api_approvals_can_update(): bool
     return has_any_permission([
         'approval.update',
     ]);
+}
+
+function api_approvals_can_staff_update_type(string $type): bool
+{
+    return in_array(strtolower(trim($type)), ['schedule_change', 'teacher_leave'], true);
 }
 
 function api_approvals_can_delete(): bool
@@ -143,6 +141,11 @@ function api_approvals_save_action(): void
         $existing = $academicModel->findApproval($id);
         if (!$existing) {
             set_flash('error', 'Không tìm thấy phiếu phê duyệt cần cập nhật.');
+            redirect(page_url('approvals-manage'));
+        }
+
+        if (!api_approvals_is_admin() && !api_approvals_can_staff_update_type((string) ($existing['type'] ?? ''))) {
+            set_flash('error', 'Bạn chỉ có thể chỉnh sửa yêu cầu Giáo viên xin nghỉ hoặc Thay đổi lịch học.');
             redirect(page_url('approvals-manage'));
         }
 

@@ -526,15 +526,11 @@ CREATE TABLE materials (
 CREATE TABLE feedbacks (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     sender_id BIGINT UNSIGNED NOT NULL,
-    class_id BIGINT UNSIGNED NOT NULL,
-    teacher_id BIGINT UNSIGNED NOT NULL,
     rating TINYINT UNSIGNED NOT NULL,
     content TEXT,
-    status ENUM('pending', 'reviewed', 'closed') NOT NULL DEFAULT 'pending',
+    is_public_web TINYINT(1) NOT NULL DEFAULT 0,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_feedbacks_sender FOREIGN KEY (sender_id) REFERENCES users(id),
-    CONSTRAINT fk_feedbacks_class FOREIGN KEY (class_id) REFERENCES classes(id),
-    CONSTRAINT fk_feedbacks_teacher FOREIGN KEY (teacher_id) REFERENCES users(id)
+    CONSTRAINT fk_feedbacks_sender FOREIGN KEY (sender_id) REFERENCES users(id)
 ) ENGINE=InnoDB;
 
 CREATE TABLE approvals (

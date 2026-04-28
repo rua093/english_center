@@ -1,5 +1,6 @@
 <?php
-require_login();
+require_admin_or_staff();
+require_any_permission(['academic.portfolios.view']);
 require_once __DIR__ . '/../../core/file_storage.php';
 
 $academicModel = new AcademicModel();
@@ -27,7 +28,6 @@ $adminTitle = 'Học vụ - Portfolio học viên';
 $viewer = auth_user();
 $viewerRole = (string) ($viewer['role'] ?? '');
 $viewerId = (int) ($viewer['id'] ?? 0);
-$isStudentViewer = $viewerRole === 'student';
 
 $success = get_flash('success');
 $error = get_flash('error');
@@ -61,20 +61,15 @@ $editingPortfolioMediaPath = normalize_public_file_url((string) ($editingPortfol
 
             <label>
                 Học viên
-                <?php if ($isStudentViewer): ?>
-                    <input type="hidden" name="student_id" value="<?= $viewerId; ?>">
-                    <input type="text" value="<?= e((string) ($viewer['full_name'] ?? '')); ?>" disabled>
-                <?php else: ?>
-                    <select name="student_id" required>
-                        <?php if (empty($students)): ?>
-                            <option value="">-- Chưa có học viên --</option>
-                        <?php else: ?>
-                            <?php foreach ($students as $student): ?>
-                                <option value="<?= (int) ($student['id'] ?? 0); ?>" <?= (int) ($editingPortfolio['student_id'] ?? 0) === (int) ($student['id'] ?? 0) ? 'selected' : ''; ?>><?= e((string) ($student['full_name'] ?? '')); ?></option>
-                            <?php endforeach; ?>
-                        <?php endif; ?>
-                    </select>
-                <?php endif; ?>
+                <select name="student_id" required>
+                    <?php if (empty($students)): ?>
+                        <option value="">-- Chưa có học viên --</option>
+                    <?php else: ?>
+                        <?php foreach ($students as $student): ?>
+                            <option value="<?= (int) ($student['id'] ?? 0); ?>" <?= (int) ($editingPortfolio['student_id'] ?? 0) === (int) ($student['id'] ?? 0) ? 'selected' : ''; ?>><?= e((string) ($student['full_name'] ?? '')); ?></option>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </select>
             </label>
 
             <label>
@@ -161,7 +156,7 @@ $editingPortfolioMediaPath = normalize_public_file_url((string) ($editingPortfol
                             $createdAtTimestamp = $createdAtRaw !== '' ? strtotime($createdAtRaw) : false;
                             $createdAtText = $createdAtTimestamp ? date('d/m/Y H:i', $createdAtTimestamp) : '-';
 
-                            $canManagePortfolio = !$isStudentViewer || $viewerId === $portfolioStudentId;
+                            $canManagePortfolio = true;
                             ?>
                             <tr>
                                 <td><?= e((string) ($portfolio['full_name'] ?? '')); ?></td>

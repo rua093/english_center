@@ -5,8 +5,7 @@ INSERT IGNORE INTO roles (role_name, description) VALUES
 ('admin', 'Quan tri he thong'),
 ('staff', 'Giao vu va tu van'),
 ('teacher', 'Giao vien'),
-('student', 'Hoc vien'),
-('parent', 'Phu huynh');
+('student', 'Hoc vien');
 
 INSERT IGNORE INTO users (username, password, full_name, role_id, phone, email, status) VALUES
 ('admin@ec.local', '$2y$10$5luD5xfAGFeqHwRdPWq1ZezZW43r.qwE2wFcaXCanvh1O0DR8XYum', 'System Admin', (SELECT id FROM roles WHERE role_name = 'admin' LIMIT 1), '0900000001', 'admin@ec.local', 'active'),
@@ -150,12 +149,6 @@ INSERT INTO student_portfolios (student_id, type, media_url, description, is_pub
 VALUES (4, 'progress_video', 'https://example.com/student-progress.mp4', 'Tien bo speaking sau 8 tuan.', 1);
 
 INSERT IGNORE INTO permissions (permission_name, slug) VALUES
-('Xem dashboard hoc vien', 'student.dashboard.view'),
-('Xem bai tap hoc vien', 'student.assignment.view'),
-('Xem hoc phi hoc vien', 'student.tuition.view'),
-('Nop bai tap tu portal', 'student.assignment.submit'),
-('Cap nhat hoc phi tu portal', 'student.tuition.update'),
-('Cham diem bai nop', 'academic.submissions.grade'),
 ('Xem dashboard quan tri', 'admin.dashboard.view'),
 ('Xem nguoi dung', 'admin.user.view'),
 ('Tao nguoi dung', 'admin.user.create'),
@@ -184,6 +177,11 @@ INSERT IGNORE INTO permissions (permission_name, slug) VALUES
 ('Cap nhat bai tap', 'academic.assignments.update'),
 ('Xoa bai tap', 'academic.assignments.delete'),
 ('Xem bai nop', 'academic.submissions.view'),
+('Cham diem bai nop', 'academic.submissions.grade'),
+('Xem phong hoc', 'academic.rooms.view'),
+('Tao phong hoc', 'academic.rooms.create'),
+('Cap nhat phong hoc', 'academic.rooms.update'),
+('Xoa phong hoc', 'academic.rooms.delete'),
 ('Xem tai lieu', 'materials.view'),
 ('Tao tai lieu', 'materials.create'),
 ('Cap nhat tai lieu', 'materials.update'),
@@ -195,23 +193,23 @@ INSERT IGNORE INTO permissions (permission_name, slug) VALUES
 ('Xem dang ky', 'finance.registration.view'),
 ('Tao dang ky', 'finance.registration.create'),
 ('Cap nhat dang ky', 'finance.registration.update'),
-('Xoa dang ky', 'finance.registration.delete'),
 ('Xem khuyen mai', 'finance.promotions.view'),
 ('Tao khuyen mai', 'finance.promotions.create'),
 ('Cap nhat khuyen mai', 'finance.promotions.update'),
 ('Xoa khuyen mai', 'finance.promotions.delete'),
+('Yeu cau chinh sua tai chinh', 'finance.adjust.request'),
 ('Xem giao dich thanh toan', 'finance.payments.view'),
 ('Tao giao dich thanh toan', 'finance.payments.create'),
 ('Cap nhat giao dich thanh toan', 'finance.payments.update'),
 ('Xoa giao dich thanh toan', 'finance.payments.delete'),
 ('Xem danh gia', 'feedback.view'),
-('Tao danh gia', 'feedback.create'),
 ('Cap nhat danh gia', 'feedback.update'),
 ('Xoa danh gia', 'feedback.delete'),
 ('Xem phe duyet', 'approval.view'),
 ('Tao phe duyet', 'approval.create'),
 ('Cap nhat phe duyet', 'approval.update'),
 ('Xoa phe duyet', 'approval.delete'),
+('Tao yeu cau phe duyet', 'approval.request'),
 ('Xem hoat dong', 'activity.view'),
 ('Tao hoat dong', 'activity.create'),
 ('Cap nhat hoat dong', 'activity.update'),
@@ -221,208 +219,82 @@ INSERT IGNORE INTO permissions (permission_name, slug) VALUES
 ('Cap nhat tai khoan ngan hang', 'bank.update'),
 ('Xoa tai khoan ngan hang', 'bank.delete'),
 ('Xem dau moi hoc vien', 'student_lead.view'),
-('Tao dau moi hoc vien', 'student_lead.create'),
 ('Cap nhat dau moi hoc vien', 'student_lead.update'),
 ('Xoa dau moi hoc vien', 'student_lead.delete'),
 ('Xem ho so ung tuyen giao vien', 'job_application.view'),
-('Tao ho so ung tuyen giao vien', 'job_application.create'),
 ('Cap nhat ho so ung tuyen giao vien', 'job_application.update'),
 ('Xoa ho so ung tuyen giao vien', 'job_application.delete'),
 ('Xem portfolio hoc vien', 'academic.portfolios.view'),
 ('Tao portfolio hoc vien', 'academic.portfolios.create'),
 ('Cap nhat portfolio hoc vien', 'academic.portfolios.update'),
-('Xoa portfolio hoc vien', 'academic.portfolios.delete');
+('Xoa portfolio hoc vien', 'academic.portfolios.delete'),
+('Nop bai tap tu portal', 'student.assignment.submit'),
+('Cap nhat hoc phi tu portal', 'student.tuition.update'),
+('Xem thong bao', 'notifications.view'),
+('Tao thong bao', 'notifications.create'),
+('Cap nhat thong bao', 'notifications.update'),
+('Xoa thong bao', 'notifications.delete');
 
-INSERT IGNORE INTO role_permissions (role_id, permission_id)
-SELECT r.id, p.id
-FROM roles r
-INNER JOIN permissions p ON p.slug IN (
-	'student.dashboard.view',
-	'student.assignment.view',
-	'student.tuition.view',
-	'student.assignment.submit',
-	'student.tuition.update',
-	'academic.classes.view',
-	'academic.classes.create',
-	'academic.classes.update',
-	'academic.classes.delete',
-	'academic.schedules.view',
-	'academic.schedules.create',
-	'academic.schedules.update',
-	'academic.schedules.delete',
-	'academic.assignments.view',
-	'academic.assignments.create',
-	'academic.assignments.update',
-	'academic.assignments.delete',
-	'academic.submissions.grade',
-	'materials.view',
-	'materials.create',
-	'materials.update',
-	'materials.delete',
-	'admin.dashboard.view',
-	'admin.user.view',
-	'admin.user.create',
-	'admin.user.update',
-	'admin.user.delete',
-	'admin.role_permission.view',
-	'admin.role_permission.update',
-	'student_lead.view',
-	'student_lead.create',
-	'student_lead.update',
-	'student_lead.delete',
-	'job_application.view',
-	'job_application.create',
-	'job_application.update',
-	'job_application.delete',
-	'finance.tuition.create',
-	'finance.tuition.update',
-	'finance.tuition.delete',
-	'finance.registration.view',
-	'finance.registration.create',
-	'finance.registration.update',
-	'finance.registration.delete',
-	'finance.promotions.view',
-	'finance.promotions.create',
-	'finance.promotions.update',
-	'finance.promotions.delete',
-	'finance.payments.view',
-	'finance.payments.create',
-	'finance.payments.update',
-	'finance.payments.delete',
-	'feedback.view',
-	'feedback.create',
-	'feedback.update',
-	'feedback.delete',
-	'approval.view',
-	'approval.create',
-	'approval.update',
-	'approval.delete',
-	'approval.create',
-	'approval.delete',
-	'activity.view',
-	'activity.create',
-	'activity.update',
-	'activity.delete',
-	'bank.view',
-	'bank.create',
-	'bank.update',
-	'bank.delete'
-	,'academic.classes.view','academic.classes.create','academic.classes.update','academic.classes.delete'
-	,'academic.courses.view','academic.courses.create','academic.courses.update','academic.courses.delete'
-	,'academic.roadmaps.view','academic.roadmaps.create','academic.roadmaps.update','academic.roadmaps.delete'
-	,'academic.schedules.view','academic.schedules.create','academic.schedules.update','academic.schedules.delete'
-	,'academic.assignments.view','academic.assignments.create','academic.assignments.update','academic.assignments.delete'
-	,'academic.submissions.view'
-	,'materials.view','materials.create','materials.update','materials.delete'
-	,'finance.tuition.view'
-	,'feedback.view','feedback.create','feedback.update','feedback.delete'
-	,'approval.view','approval.update'
-	,'activity.view','activity.create','activity.update','activity.delete'
-	,'bank.view','bank.create','bank.update','bank.delete'
-)
-WHERE r.role_name = 'admin';
-
--- Safety net: admin always has every permission in system.
+-- ADMIN: full access (safety net)
 INSERT IGNORE INTO role_permissions (role_id, permission_id)
 SELECT r.id, p.id
 FROM roles r
 INNER JOIN permissions p ON 1 = 1
 WHERE r.role_name = 'admin';
 
-INSERT INTO role_permissions (role_id, permission_id)
-SELECT r.id, p.id
-FROM roles r
-INNER JOIN permissions p ON p.slug IN (
-	'academic.classes.view',
-	'academic.classes.create',
-	'academic.classes.update',
-	'academic.schedules.view',
-	'academic.schedules.create',
-	'academic.schedules.update',
-	'academic.assignments.view',
-	'academic.assignments.create',
-	'academic.assignments.update',
-	'academic.submissions.grade',
-	'academic.classes.view',
-	'academic.classes.create',
-	'academic.classes.update',
-	'academic.courses.view',
-	'academic.courses.create',
-	'academic.courses.update',
-	'academic.roadmaps.view',
-	'academic.roadmaps.create',
-	'academic.roadmaps.update',
-	'academic.schedules.view',
-	'academic.schedules.create',
-	'academic.schedules.update',
-	'academic.assignments.view',
-	'academic.assignments.create',
-	'academic.assignments.update',
-	'academic.submissions.view',
-	'materials.view',
-	'materials.create',
-	'materials.update',
-	'admin.dashboard.view'
-)
-WHERE r.role_name = 'teacher';
-
+-- STAFF
 INSERT IGNORE INTO role_permissions (role_id, permission_id)
 SELECT r.id, p.id
 FROM roles r
 INNER JOIN permissions p ON p.slug IN (
-	'academic.classes.view',
-	'academic.classes.create',
-	'academic.classes.update',
-	'academic.schedules.view',
-	'academic.schedules.create',
-	'academic.schedules.update',
-	'academic.assignments.view',
-	'academic.assignments.create',
-	'academic.assignments.update',
-	'academic.submissions.grade',
-	'materials.view',
 	'admin.dashboard.view',
-	'finance.tuition.view',
-	'finance.tuition.create',
-	'finance.tuition.update',
-	'finance.registration.view',
-	'finance.registration.create',
-	'finance.registration.update',
+	'academic.classes.view', 'academic.classes.create', 'academic.classes.update',
+	'academic.courses.view', 'academic.courses.create', 'academic.courses.update',
+	'academic.roadmaps.view', 'academic.roadmaps.create', 'academic.roadmaps.update',
+	'academic.schedules.view', 'academic.schedules.create', 'academic.schedules.update',
+	'academic.assignments.view', 'academic.assignments.create', 'academic.assignments.update',
+	'academic.submissions.view',
+	'academic.rooms.view', 'academic.rooms.create', 'academic.rooms.update',
+	'materials.view', 'materials.create', 'materials.update',
+	'finance.tuition.view', 'finance.tuition.create', 'finance.tuition.update',
+	'finance.registration.view', 'finance.registration.create', 'finance.registration.update',
 	'finance.promotions.view',
-	'finance.promotions.create',
-	'finance.promotions.update',
-	'finance.payments.view',
-	'feedback.view',
-	'feedback.create',
-	'feedback.update',
-	'feedback.delete',
-	'approval.view',
-	'approval.create',
-	'approval.update',
-	'approval.delete',
-	'activity.view',
-	'activity.create',
-	'activity.update',
-	'activity.delete',
-	'bank.view', 'bank.create', 'bank.update', 'bank.delete',
-	'student_lead.view',
-	'student_lead.create',
-	'student_lead.update',
-	'job_application.view',
-	'job_application.update',
-	'academic.portfolios.view'
+	'finance.adjust.request',
+	'finance.payments.view', 'finance.payments.update',
+	'feedback.view', 'feedback.update',
+	'approval.view', 'approval.update', 'approval.request',
+	'activity.view', 'activity.create', 'activity.update',
+	'bank.view', 'bank.create', 'bank.update',
+	'student_lead.view', 'student_lead.update',
+	'job_application.view', 'job_application.update',
+	'academic.portfolios.view',
+	'notifications.view', 'notifications.create', 'notifications.update'
 )
 WHERE r.role_name = 'staff';
 
+-- TEACHER
 INSERT IGNORE INTO role_permissions (role_id, permission_id)
 SELECT r.id, p.id
 FROM roles r
 INNER JOIN permissions p ON p.slug IN (
-	'student.dashboard.view',
-	'student.assignment.view',
-	'student.tuition.view',
+	'admin.dashboard.view',
+	'academic.schedules.view',
+	'academic.assignments.view', 'academic.assignments.create', 'academic.assignments.update',
+	'academic.submissions.view', 'academic.submissions.grade',
+	'materials.view', 'materials.create', 'materials.update', 'materials.delete',
+	'approval.request'
+)
+WHERE r.role_name = 'teacher';
+
+-- STUDENT
+INSERT IGNORE INTO role_permissions (role_id, permission_id)
+SELECT r.id, p.id
+FROM roles r
+INNER JOIN permissions p ON p.slug IN (
 	'student.assignment.submit',
-	'student.tuition.update'
+	'student.tuition.update',
+	'materials.view',
+	'activity.view'
 )
 WHERE r.role_name = 'student';
 
@@ -443,8 +315,8 @@ WHERE NOT EXISTS (
 	  AND m.file_path = src.file_path
 );
 
-INSERT INTO feedbacks (sender_id, class_id, teacher_id, rating, content, status)
-VALUES (4, 1, 3, 5, 'Giao vien day de hieu, co dong luc hoc.', 'reviewed');
+INSERT INTO feedbacks (sender_id, rating, content, is_public_web)
+VALUES (4, 5, 'Giao vien day de hieu, co dong luc hoc.', 1);
 
 INSERT INTO approvals (requester_id, approver_id, type, content, status)
 VALUES (3, 1, 'schedule_change', 'Xin doi lich day ngay 18/04 sang 19/04.', 'pending');
@@ -476,8 +348,7 @@ INSERT INTO users (username, password, full_name, role_id, phone, email, status)
 ('teacher3@ec.local', '$2y$10$5luD5xfAGFeqHwRdPWq1ZezZW43r.qwE2wFcaXCanvh1O0DR8XYum', 'Phan Anh Teacher', (SELECT id FROM roles WHERE role_name = 'teacher' LIMIT 1), '0900000012', 'teacher3@ec.local', 'active'),
 ('student2@ec.local', '$2y$10$5luD5xfAGFeqHwRdPWq1ZezZW43r.qwE2wFcaXCanvh1O0DR8XYum', 'Le Thu Student', (SELECT id FROM roles WHERE role_name = 'student' LIMIT 1), '0900000013', 'student2@ec.local', 'active'),
 ('student3@ec.local', '$2y$10$5luD5xfAGFeqHwRdPWq1ZezZW43r.qwE2wFcaXCanvh1O0DR8XYum', 'Do Gia Student', (SELECT id FROM roles WHERE role_name = 'student' LIMIT 1), '0900000014', 'student3@ec.local', 'active'),
-('student4@ec.local', '$2y$10$5luD5xfAGFeqHwRdPWq1ZezZW43r.qwE2wFcaXCanvh1O0DR8XYum', 'Vu Nam Student', (SELECT id FROM roles WHERE role_name = 'student' LIMIT 1), '0900000015', 'student4@ec.local', 'inactive'),
-('parent1@ec.local', '$2y$10$5luD5xfAGFeqHwRdPWq1ZezZW43r.qwE2wFcaXCanvh1O0DR8XYum', 'Pham Thi Parent', (SELECT id FROM roles WHERE role_name = 'parent' LIMIT 1), '0900000016', 'parent1@ec.local', 'active');
+('student4@ec.local', '$2y$10$5luD5xfAGFeqHwRdPWq1ZezZW43r.qwE2wFcaXCanvh1O0DR8XYum', 'Vu Nam Student', (SELECT id FROM roles WHERE role_name = 'student' LIMIT 1), '0900000015', 'student4@ec.local', 'inactive');
 
 INSERT INTO staff_profiles (user_id, position, approval_limit) VALUES
 ((SELECT id FROM users WHERE username = 'staff@ec.local' LIMIT 1), 'Academic Coordinator', 3000000),
@@ -686,10 +557,10 @@ WHERE src.course_id IS NOT NULL
 			AND m.file_path = src.file_path
 	);
 
-INSERT INTO feedbacks (sender_id, class_id, teacher_id, rating, content, status) VALUES
-((SELECT id FROM users WHERE username = 'student2@ec.local' LIMIT 1), (SELECT id FROM classes WHERE class_name = 'TOEIC-K11-Sang-2-4-6' LIMIT 1), (SELECT id FROM users WHERE username = 'teacher3@ec.local' LIMIT 1), 4, 'Lop hoc ro rang, can them bai tap speaking.', 'pending'),
-((SELECT id FROM users WHERE username = 'student3@ec.local' LIMIT 1), (SELECT id FROM classes WHERE class_name = 'BUS-K22-Toi-3-5' LIMIT 1), (SELECT id FROM users WHERE username = 'teacher2@ec.local' LIMIT 1), 5, 'Giao vien tao dong luc va phan hoi nhanh.', 'reviewed'),
-((SELECT id FROM users WHERE username = 'student4@ec.local' LIMIT 1), (SELECT id FROM classes WHERE class_name = 'TOEIC-K11-Sang-2-4-6' LIMIT 1), (SELECT id FROM users WHERE username = 'teacher3@ec.local' LIMIT 1), 3, 'Can them video huong dan tu hoc tai nha.', 'closed');
+INSERT INTO feedbacks (sender_id, rating, content, is_public_web) VALUES
+((SELECT id FROM users WHERE username = 'student2@ec.local' LIMIT 1), 4, 'Lop hoc ro rang, can them bai tap speaking.', 0),
+((SELECT id FROM users WHERE username = 'student3@ec.local' LIMIT 1), 5, 'Giao vien tao dong luc va phan hoi nhanh.', 1),
+((SELECT id FROM users WHERE username = 'student4@ec.local' LIMIT 1), 3, 'Can them video huong dan tu hoc tai nha.', 0);
 
 INSERT INTO approvals (requester_id, approver_id, type, content, status) VALUES
 ((SELECT id FROM users WHERE username = 'staff.finance@ec.local' LIMIT 1), (SELECT id FROM users WHERE username = 'admin@ec.local' LIMIT 1), 'finance_adjust', 'De nghi dieu chinh cong no cho hoc vien student3 dot 1.', 'approved'),

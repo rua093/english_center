@@ -152,6 +152,8 @@ function api_assignments_save_action(): void
 		redirect($editPath);
 	}
 
+	teacher_assert_class_scope($academicModel, $classId, $editPath);
+
 	$payload['file_url'] = $uploadPath;
 	$academicModel->saveAssignment($payload);
 
@@ -165,8 +167,14 @@ function api_assignments_delete_action(): void
 	api_require_post(page_url('assignments-academic'));
 
 	$assignmentId = (int) ($_GET['id'] ?? 0);
+	$academicModel = new AcademicModel();
 	if ($assignmentId > 0) {
-		(new AcademicModel())->deleteAssignment($assignmentId);
+		$assignment = $academicModel->findAssignment($assignmentId);
+		if (is_array($assignment) && (int) ($assignment['class_id'] ?? 0) > 0) {
+			teacher_assert_class_scope($academicModel, (int) ($assignment['class_id'] ?? 0), page_url('assignments-academic'));
+		}
+
+		$academicModel->deleteAssignment($assignmentId);
 		set_flash('success', 'Đã xóa bài tập.');
 	}
 
@@ -219,5 +227,13 @@ function api_assignments_edit_action(): void
 {
 	api_guard_permission('academic.assignments.update');
 	$assignmentId = (int) ($_GET['id'] ?? 0);
+	$academicModel = new AcademicModel();
+	if ($assignmentId > 0) {
+		$assignment = $academicModel->findAssignment($assignmentId);
+		if (is_array($assignment) && (int) ($assignment['class_id'] ?? 0) > 0) {
+			teacher_assert_class_scope($academicModel, (int) ($assignment['class_id'] ?? 0), page_url('assignments-academic'));
+		}
+	}
+
 	redirect(page_url('assignments-academic-edit', ['id' => $assignmentId]));
 }

@@ -55,7 +55,7 @@ function api_users_update_action(): void
 		redirect(page_url('profile'));
 	}
 	$email = trim((string) ($_POST['email'] ?? ''));
-	$phone = trim((string) ($_POST['phone'] ?? ''));
+	$phone = normalize_phone_string((string) ($_POST['phone'] ?? ''));
 	$teacherIntroVideoUrl = trim((string) ($_POST['teacher_intro_video_url_hidden'] ?? ''));
 
 	$avatarPath = null;

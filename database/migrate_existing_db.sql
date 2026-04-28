@@ -118,12 +118,21 @@ PREPARE stmt FROM @sql;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
 
--- Restore feedbacks to sender/class/teacher/rating/content/status.
+-- Normalize feedbacks to the simplified structure:
+-- sender_id, rating, content, is_public_web, created_at
 SET @has_feedbacks := (
     SELECT COUNT(*)
     FROM information_schema.tables
     WHERE table_schema = DATABASE()
       AND table_name = 'feedbacks'
+);
+
+SET @has_feedbacks_status := (
+    SELECT COUNT(*)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'feedbacks'
+      AND column_name = 'status'
 );
 
 SET @has_feedbacks_class := (
@@ -140,6 +149,14 @@ SET @has_feedbacks_teacher := (
     WHERE table_schema = DATABASE()
       AND table_name = 'feedbacks'
       AND column_name = 'teacher_id'
+);
+
+SET @has_feedbacks_is_public_web := (
+    SELECT COUNT(*)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'feedbacks'
+      AND column_name = 'is_public_web'
 );
 
 SET @has_fk_feedbacks_class := (
@@ -160,45 +177,37 @@ SET @has_fk_feedbacks_teacher := (
       AND constraint_type = 'FOREIGN KEY'
 );
 
-SET @default_feedback_class_id := (
-    SELECT id FROM classes ORDER BY id ASC LIMIT 1
-);
-
-SET @default_feedback_teacher_id := (
-    SELECT teacher_id FROM classes ORDER BY id ASC LIMIT 1
-);
-
 SET @sql := IF(
-    @has_feedbacks = 1 AND @has_feedbacks_class = 0,
-    "ALTER TABLE feedbacks ADD COLUMN class_id BIGINT UNSIGNED NULL AFTER sender_id",
-    "SELECT 'Skip: feedbacks.class_id already exists or table missing' AS info"
+    @has_feedbacks = 1 AND @has_feedbacks_is_public_web = 0,
+    "ALTER TABLE feedbacks ADD COLUMN is_public_web TINYINT(1) NOT NULL DEFAULT 0 AFTER content",
+    "SELECT 'Skip: feedbacks.is_public_web already exists or table missing' AS info"
 );
 PREPARE stmt FROM @sql;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
 
 SET @sql := IF(
-    @has_feedbacks = 1 AND @has_feedbacks_teacher = 0,
-    "ALTER TABLE feedbacks ADD COLUMN teacher_id BIGINT UNSIGNED NULL AFTER class_id",
-    "SELECT 'Skip: feedbacks.teacher_id already exists or table missing' AS info"
+    @has_feedbacks = 1 AND @has_feedbacks_status = 1,
+    "UPDATE feedbacks SET is_public_web = CASE WHEN status = 'reviewed' THEN 1 ELSE 0 END",
+    "SELECT 'Skip: feedbacks.status backfill not required' AS info"
 );
 PREPARE stmt FROM @sql;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
 
 SET @sql := IF(
-    @has_feedbacks = 1 AND @has_feedbacks_class = 0 AND @default_feedback_class_id IS NOT NULL,
-    CONCAT('UPDATE feedbacks SET class_id = ', @default_feedback_class_id, ' WHERE class_id IS NULL'),
-    "SELECT 'Skip: feedbacks.class_id backfill not required' AS info"
+    @has_feedbacks = 1 AND @has_fk_feedbacks_class = 1,
+    "ALTER TABLE feedbacks DROP FOREIGN KEY fk_feedbacks_class",
+    "SELECT 'Skip: feedbacks.class FK drop not required' AS info"
 );
 PREPARE stmt FROM @sql;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
 
 SET @sql := IF(
-    @has_feedbacks = 1 AND @has_feedbacks_teacher = 0 AND @default_feedback_teacher_id IS NOT NULL,
-    CONCAT('UPDATE feedbacks SET teacher_id = ', @default_feedback_teacher_id, ' WHERE teacher_id IS NULL'),
-    "SELECT 'Skip: feedbacks.teacher_id backfill not required' AS info"
+    @has_feedbacks = 1 AND @has_fk_feedbacks_teacher = 1,
+    "ALTER TABLE feedbacks DROP FOREIGN KEY fk_feedbacks_teacher",
+    "SELECT 'Skip: feedbacks.teacher FK drop not required' AS info"
 );
 PREPARE stmt FROM @sql;
 EXECUTE stmt;
@@ -206,8 +215,8 @@ DEALLOCATE PREPARE stmt;
 
 SET @sql := IF(
     @has_feedbacks = 1 AND @has_feedbacks_class = 1,
-    "UPDATE feedbacks SET class_id = COALESCE(class_id, (SELECT id FROM classes ORDER BY id ASC LIMIT 1))",
-    "SELECT 'Skip: feedbacks.class_id normalize not required' AS info"
+    "ALTER TABLE feedbacks DROP COLUMN class_id",
+    "SELECT 'Skip: feedbacks.class_id drop not required' AS info"
 );
 PREPARE stmt FROM @sql;
 EXECUTE stmt;
@@ -215,44 +224,17 @@ DEALLOCATE PREPARE stmt;
 
 SET @sql := IF(
     @has_feedbacks = 1 AND @has_feedbacks_teacher = 1,
-    "UPDATE feedbacks SET teacher_id = COALESCE(teacher_id, (SELECT teacher_id FROM classes ORDER BY id ASC LIMIT 1))",
-    "SELECT 'Skip: feedbacks.teacher_id normalize not required' AS info"
+    "ALTER TABLE feedbacks DROP COLUMN teacher_id",
+    "SELECT 'Skip: feedbacks.teacher_id drop not required' AS info"
 );
 PREPARE stmt FROM @sql;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
 
 SET @sql := IF(
-    @has_feedbacks = 1 AND @has_feedbacks_class = 1,
-    "ALTER TABLE feedbacks MODIFY COLUMN class_id BIGINT UNSIGNED NOT NULL",
-    "SELECT 'Skip: feedbacks.class_id not required' AS info"
-);
-PREPARE stmt FROM @sql;
-EXECUTE stmt;
-DEALLOCATE PREPARE stmt;
-
-SET @sql := IF(
-    @has_feedbacks = 1 AND @has_feedbacks_teacher = 1,
-    "ALTER TABLE feedbacks MODIFY COLUMN teacher_id BIGINT UNSIGNED NOT NULL",
-    "SELECT 'Skip: feedbacks.teacher_id not required' AS info"
-);
-PREPARE stmt FROM @sql;
-EXECUTE stmt;
-DEALLOCATE PREPARE stmt;
-
-SET @sql := IF(
-    @has_feedbacks = 1 AND @has_fk_feedbacks_class = 0,
-    "ALTER TABLE feedbacks ADD CONSTRAINT fk_feedbacks_class FOREIGN KEY (class_id) REFERENCES classes(id)",
-    "SELECT 'Skip: feedbacks.class foreign key exists or table missing' AS info"
-);
-PREPARE stmt FROM @sql;
-EXECUTE stmt;
-DEALLOCATE PREPARE stmt;
-
-SET @sql := IF(
-    @has_feedbacks = 1 AND @has_fk_feedbacks_teacher = 0,
-    "ALTER TABLE feedbacks ADD CONSTRAINT fk_feedbacks_teacher FOREIGN KEY (teacher_id) REFERENCES users(id)",
-    "SELECT 'Skip: feedbacks.teacher foreign key exists or table missing' AS info"
+    @has_feedbacks = 1 AND @has_feedbacks_status = 1,
+    "ALTER TABLE feedbacks DROP COLUMN status",
+    "SELECT 'Skip: feedbacks.status drop not required' AS info"
 );
 PREPARE stmt FROM @sql;
 EXECUTE stmt;
@@ -1999,6 +1981,20 @@ WHERE slug IN (
     'activity.manage',
     'bank.manage'
 );
+
+DELETE rp
+FROM role_permissions rp
+INNER JOIN roles r ON r.id = rp.role_id
+WHERE r.role_name = 'guest';
+
+DELETE r
+FROM roles r
+WHERE r.role_name = 'guest'
+    AND NOT EXISTS (
+            SELECT 1
+            FROM users u
+            WHERE u.role_id = r.id
+    );
 
 -- Migrate assignments.lesson_id to assignments.schedule_id
 SET @has_assignments := (

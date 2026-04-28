@@ -114,7 +114,7 @@ final class JobApplicationsTableModel
         $this->executeStatement($sql, [
             'full_name' => $fullName,
             'email' => $this->nullIfEmpty($data['email'] ?? null),
-            'phone' => $this->nullIfEmpty($data['phone'] ?? null),
+            'phone' => $this->nullIfEmpty($this->normalizePhone($data['phone'] ?? null)),
             'address' => $this->nullIfEmpty($data['address'] ?? null),
             'position_applied' => $this->nullIfEmpty($data['position_applied'] ?? null),
             'work_mode' => $this->nullIfEmpty($data['work_mode'] ?? null),
@@ -199,5 +199,11 @@ final class JobApplicationsTableModel
     {
         $normalized = trim((string) $value);
         return $normalized === '' ? null : $normalized;
+    }
+
+    private function normalizePhone(mixed $value): string
+    {
+        $digits = preg_replace('/\D+/', '', trim((string) $value));
+        return is_string($digits) ? $digits : '';
     }
 }

@@ -119,7 +119,7 @@ function api_tuitions_save_action(): void
 function api_tuitions_register_course_action(): void
 {
 	api_guard_admin_or_staff();
-	api_guard_permission('finance.tuition.delete');
+	api_guard_permission('finance.registration.create');
 	api_require_post(page_url('registration-finance'));
 
 	if (!api_tuitions_can_manage_directly()) {

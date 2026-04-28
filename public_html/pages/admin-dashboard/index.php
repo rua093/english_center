@@ -1,5 +1,5 @@
 <?php
-require_admin_or_staff();
+require_role(['admin']);
 require_permission('admin.dashboard.view');
 
 $academicModel = new AcademicModel();

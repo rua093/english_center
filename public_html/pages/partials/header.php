@@ -127,7 +127,7 @@
                 
                 <?php if (is_logged_in()): ?>
                     <div class="bg-slate-50 px-6 py-4">
-                        <p class="text-[13px] font-bold text-slate-500 uppercase mb-2">Tài khoản: <?= e($user['full_name'] ?? 'Guest') ?></p>
+                        <p class="text-[13px] font-bold text-slate-500 uppercase mb-2">Tài khoản: <?= e($user['full_name'] ?? 'Khách') ?></p>
                         <div class="grid gap-2">
                             <a class="text-[15px] font-bold text-[#27318b]" href="<?= e(page_url('profile')); ?>">Trang cá nhân</a>
                             <a class="text-[15px] font-bold text-[#27318b]" href="<?= e(page_url('profile', ['open_password' => 1])); ?>">Thay đổi mật khẩu</a>

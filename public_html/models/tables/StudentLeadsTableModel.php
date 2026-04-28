@@ -77,12 +77,9 @@ final class StudentLeadsTableModel
 
         // Prepare parent_name/parent_phone and school_name/current_grade with fallbacks from legacy keys
         $parentName = trim((string) ($data['parent_name'] ?? ''));
-        $parentPhone = trim((string) ($data['parent_phone'] ?? ''));
+        $parentPhone = $this->normalizePhone($data['parent_phone'] ?? '');
         if ($parentPhone === '' && !empty($data['phone'] ?? '')) {
-            $p = trim((string) ($data['phone'] ?? ''));
-            if (preg_match('/(?:\+?\d[\d\s().-]{7,}\d)/', $p, $m2) === 1) {
-                $parentPhone = preg_replace('/\D+/', '', (string) ($m2[0] ?? ''));
-            }
+            $parentPhone = $this->normalizePhone($data['phone'] ?? '');
         }
 
         $schoolName = trim((string) ($data['school_name'] ?? ''));
@@ -216,5 +213,11 @@ final class StudentLeadsTableModel
     {
         $normalized = trim((string) $value);
         return $normalized === '' ? null : $normalized;
+    }
+
+    private function normalizePhone(mixed $value): string
+    {
+        $digits = preg_replace('/\D+/', '', trim((string) $value));
+        return is_string($digits) ? $digits : '';
     }
 }

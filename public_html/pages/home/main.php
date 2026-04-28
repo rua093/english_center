@@ -623,8 +623,6 @@ $homeCourses = $homeCourses ?? [];
                         <?php foreach ($homeFeedbacks as $feedback): ?>
                             <?php
                             $feedbackName = (string) ($feedback['full_name'] ?? 'Học viên');
-                            $feedbackClass = (string) ($feedback['course_name'] ?? '');
-                            $feedbackTeacher = (string) ($feedback['teacher_name'] ?? '');
                             $feedbackContent = trim((string) ($feedback['comment'] ?? ''));
                             $feedbackRating = max(0, min(5, (int) ($feedback['rating'] ?? 0)));
                             $avatarUrl = 'https://ui-avatars.com/api/?name=' . urlencode($feedbackName !== '' ? $feedbackName : 'User') . '&background=0f766e&color=fff&size=256&bold=true';
@@ -649,15 +647,6 @@ $homeCourses = $homeCourses ?? [];
                                     <p class="mt-5 text-base leading-relaxed text-slate-600">
                                         “<?= e($feedbackContent !== '' ? $feedbackContent : 'Trải nghiệm học tập tại trung tâm rất tốt.'); ?>”
                                     </p>
-
-                                    <div class="mt-6 flex flex-wrap items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-slate-500">
-                                        <?php if ($feedbackClass !== ''): ?>
-                                            <span class="rounded-full bg-emerald-50 px-3 py-1 text-emerald-700"><?= e($feedbackClass); ?></span>
-                                        <?php endif; ?>
-                                        <?php if ($feedbackTeacher !== ''): ?>
-                                            <span class="rounded-full bg-cyan-50 px-3 py-1 text-cyan-700">GV: <?= e($feedbackTeacher); ?></span>
-                                        <?php endif; ?>
-                                    </div>
                                 </article>
                             </div>
                         <?php endforeach; ?>

@@ -215,6 +215,40 @@ function require_permission(string $slug): void
 	}
 }
 
+function teacher_can_manage_class(AcademicModel $academicModel, int $classId): bool
+{
+	$user = auth_user() ?? [];
+	if ((string) ($user['role'] ?? '') !== 'teacher') {
+		return true;
+	}
+
+	$teacherId = (int) ($user['id'] ?? 0);
+	if ($teacherId <= 0 || $classId <= 0) {
+		return false;
+	}
+
+	$classRow = $academicModel->findClass($classId);
+	if (!is_array($classRow)) {
+		return false;
+	}
+
+	return (int) ($classRow['teacher_id'] ?? 0) === $teacherId;
+}
+
+function teacher_assert_class_scope(AcademicModel $academicModel, int $classId, string $redirectPath, string $message = 'Ban chi co the quan ly lop hoc minh dang day.', string $code = 'CLASS_ACCESS_DENIED'): void
+{
+	if (teacher_can_manage_class($academicModel, $classId)) {
+		return;
+	}
+
+	if (api_expects_json()) {
+		api_error($message, ['code' => $code], 403);
+	}
+
+	set_flash('error', $message);
+	redirect($redirectPath);
+}
+
 function can_access_page(string $page): bool
 {
 	$page = resolve_page_slug($page);
@@ -241,7 +275,7 @@ function can_access_page(string $page): bool
 		case 'portfolios-academic':
 			return has_any_permission(['academic.portfolios.view']);
 		case 'dashboard-admin':
-			return has_permission('admin.dashboard.view');
+			return in_array($role, ['admin'], true) && has_permission('admin.dashboard.view');
 		case 'users-admin':
 			return has_any_permission(['admin.user.view']);
 		case 'tuition-finance':
@@ -265,9 +299,9 @@ function can_access_page(string $page): bool
 		case 'bank-manage':
 			return false;
 		case 'rooms-manage':
-			return has_any_permission(['academic.schedules.view']);
+			return has_any_permission(['academic.rooms.view']);
 		case 'notifications-manage':
-			return has_any_permission(['admin.dashboard.view']);
+			return has_any_permission(['notifications.view']);
 		case 'courses-academic':
 			return has_permission('academic.courses.view');
 		case 'roadmaps-academic':

@@ -1662,6 +1662,30 @@
             });
         }
 
+        function initPhoneInputs(rootElement) {
+            const inputs = (rootElement || document).querySelectorAll('input[type="tel"], input[name*="phone"]');
+            inputs.forEach(function (input) {
+                if (!(input instanceof HTMLInputElement)) {
+                    return;
+                }
+                if (input.dataset.phoneSanitized === '1') {
+                    return;
+                }
+
+                const sanitizePhoneValue = function () {
+                    input.value = String(input.value || '').replace(/\D+/g, '');
+                };
+
+                input.dataset.phoneSanitized = '1';
+                input.setAttribute('inputmode', 'numeric');
+                input.setAttribute('pattern', '[0-9]*');
+                input.addEventListener('input', sanitizePhoneValue);
+                input.addEventListener('paste', function () {
+                    requestAnimationFrame(sanitizePhoneValue);
+                });
+            });
+        }
+
         async function bootstrapAdminUi() {
             clearCreateSaveForms();
             try {
@@ -1676,6 +1700,7 @@
             bindGlobalRowDetailButtons();
             bindGlobalEditModal();
             initGlobalTomSelect(document);
+            initPhoneInputs(document);
 
             // Observe for dynamically added selects (e.g. inside modals)
             const observer = new MutationObserver(function(mutations) {
@@ -1685,8 +1710,12 @@
                             if (node instanceof HTMLElement) {
                                 if (node.tagName === 'SELECT') {
                                     initGlobalTomSelect(node.parentElement || node);
+                                    initPhoneInputs(node.parentElement || node);
+                                } else if (node.tagName === 'INPUT') {
+                                    initPhoneInputs(node.parentElement || node);
                                 } else if (node.querySelectorAll) {
                                     initGlobalTomSelect(node);
+                                    initPhoneInputs(node);
                                 }
                             }
                         });
