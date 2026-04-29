@@ -569,10 +569,6 @@ $isEditingStudent = $editingRoleName === 'student';
                     Chức vụ
                     <input type="text" name="staff_position" value="<?= e((string) ($editingRoleProfile['staff_position'] ?? '')); ?>" <?= $isEditingStaff ? '' : 'disabled'; ?> placeholder="Ví dụ: Academic Coordinator">
                 </label>
-                <label>
-                    Hạn mức duyệt (VNĐ)
-                    <input type="number" step="1000" min="0" name="staff_approval_limit" value="<?= e((string) ($editingRoleProfile['staff_approval_limit'] ?? '0')); ?>" <?= $isEditingStaff ? '' : 'disabled'; ?>>
-                </label>
             </div>
             <div class="grid gap-3 md:grid-cols-2 <?= $isEditingTeacher ? '' : 'hidden'; ?>" data-role-profile="teacher">
                 <label>

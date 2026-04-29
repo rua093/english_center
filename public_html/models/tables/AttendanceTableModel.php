@@ -93,7 +93,7 @@ final class AttendanceTableModel
         }
 
         $sql = "SELECT s.id AS schedule_id, s.class_id,
-                cs.student_id, u.full_name AS full_name, cs.learning_status,
+                cs.student_id, u.full_name AS full_name,
                 COALESCE(a.status, '') AS attendance_status,
                 COALESCE(a.note, '') AS attendance_note
             FROM schedules s

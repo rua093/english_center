@@ -288,7 +288,7 @@ final class UsersTableModel extends BaseTableModel
         $normalizedRole = strtolower(trim($roleName));
         if ($normalizedRole === 'staff') {
             return $this->fetchOne(
-                'SELECT position AS staff_position, approval_limit AS staff_approval_limit
+                'SELECT position AS staff_position
                  FROM staff_profiles
                  WHERE user_id = :user_id
                  LIMIT 1',
@@ -329,18 +329,15 @@ final class UsersTableModel extends BaseTableModel
     private function saveStaffProfile(int $userId, array $data): void
     {
         $position = trim((string) ($data['staff_position'] ?? ''));
-        $approvalLimit = max(0, (float) ($data['staff_approval_limit'] ?? 0));
 
         $this->executeStatement(
-            'INSERT INTO staff_profiles (user_id, position, approval_limit)
-             VALUES (:user_id, :position, :approval_limit)
+            'INSERT INTO staff_profiles (user_id, position)
+             VALUES (:user_id, :position)
              ON DUPLICATE KEY UPDATE
-                 position = VALUES(position),
-                 approval_limit = VALUES(approval_limit)',
+                 position = VALUES(position)',
             [
                 'user_id' => $userId,
                 'position' => $position,
-                'approval_limit' => $approvalLimit,
             ]
         );
     }

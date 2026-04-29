@@ -186,6 +186,148 @@ PREPARE stmt FROM @sql;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
 
+-- Phase 3 schema cleanup: remove deprecated columns/tables and add new media fields.
+
+SET @sql := IF(
+    EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = DATABASE() AND table_name = 'activity_registrations' AND column_name = 'updated_at'
+    ),
+    'ALTER TABLE activity_registrations DROP COLUMN updated_at',
+    "SELECT 'Skip: activity_registrations.updated_at missing' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @sql := IF(
+    EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = DATABASE() AND table_name = 'activity_registrations' AND column_name = 'created_at'
+    ),
+    'ALTER TABLE activity_registrations DROP COLUMN created_at',
+    "SELECT 'Skip: activity_registrations.created_at missing' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+DROP TABLE IF EXISTS bank_accounts;
+
+SET @sql := IF(
+    EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = DATABASE() AND table_name = 'class_students' AND column_name = 'learning_status'
+    ),
+    'ALTER TABLE class_students DROP COLUMN learning_status',
+    "SELECT 'Skip: class_students.learning_status missing' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @sql := IF(
+    EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = DATABASE() AND table_name = 'courses' AND column_name = 'image_thumbnail'
+    ),
+    "SELECT 'Skip: courses.image_thumbnail exists' AS info",
+    'ALTER TABLE courses ADD COLUMN image_thumbnail VARCHAR(255) NULL AFTER total_sessions'
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @sql := IF(
+    EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = DATABASE() AND table_name = 'exams' AND column_name = 'level_suggested'
+    ),
+    'ALTER TABLE exams DROP COLUMN level_suggested',
+    "SELECT 'Skip: exams.level_suggested missing' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @sql := IF(
+    EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = DATABASE() AND table_name = 'lessons' AND column_name = 'attachment_file_path'
+    ),
+    "SELECT 'Skip: lessons.attachment_file_path exists' AS info",
+    'ALTER TABLE lessons ADD COLUMN attachment_file_path VARCHAR(255) NULL AFTER actual_content'
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @materialsFk := (
+    SELECT constraint_name
+    FROM information_schema.key_column_usage
+    WHERE table_schema = DATABASE()
+      AND table_name = 'materials'
+      AND column_name = 'course_id'
+      AND referenced_table_name IS NOT NULL
+    LIMIT 1
+);
+SET @sql := IF(
+    @materialsFk IS NOT NULL,
+    CONCAT('ALTER TABLE materials DROP FOREIGN KEY ', @materialsFk),
+    "SELECT 'Skip: materials.course_id foreign key missing' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @sql := IF(
+    EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = DATABASE() AND table_name = 'materials' AND column_name = 'course_id'
+    ),
+    'ALTER TABLE materials DROP COLUMN course_id',
+    "SELECT 'Skip: materials.course_id missing' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @sql := IF(
+    EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = DATABASE() AND table_name = 'payment_transactions' AND column_name = 'transaction_no'
+    ),
+    'ALTER TABLE payment_transactions DROP COLUMN transaction_no',
+    "SELECT 'Skip: payment_transactions.transaction_no missing' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @sql := IF(
+    EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = DATABASE() AND table_name = 'payment_transactions' AND column_name = 'raw_response'
+    ),
+    'ALTER TABLE payment_transactions DROP COLUMN raw_response',
+    "SELECT 'Skip: payment_transactions.raw_response missing' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @sql := IF(
+    EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = DATABASE() AND table_name = 'staff_profiles' AND column_name = 'approval_limit'
+    ),
+    'ALTER TABLE staff_profiles DROP COLUMN approval_limit',
+    "SELECT 'Skip: staff_profiles.approval_limit missing' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
 SET @sql := IF(
     @has_feedbacks = 1 AND @has_feedbacks_status = 1,
     "UPDATE feedbacks SET is_public_web = CASE WHEN status = 'reviewed' THEN 1 ELSE 0 END",
@@ -557,6 +699,166 @@ SET @sql := IF(
 PREPARE stmt FROM @sql;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
+
+-- Ensure activity_registrations.amount_paid and payment_date exist.
+SET @has_activity_registrations := (
+    SELECT COUNT(*)
+    FROM information_schema.tables
+    WHERE table_schema = DATABASE()
+      AND table_name = 'activity_registrations'
+);
+
+SET @has_activity_reg_amount_paid := (
+    SELECT COUNT(*)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'activity_registrations'
+      AND column_name = 'amount_paid'
+);
+
+SET @has_activity_reg_payment_date := (
+    SELECT COUNT(*)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'activity_registrations'
+      AND column_name = 'payment_date'
+);
+
+SET @sql := IF(
+    @has_activity_registrations = 1 AND @has_activity_reg_amount_paid = 0,
+    "ALTER TABLE activity_registrations ADD COLUMN amount_paid DECIMAL(12,2) NOT NULL DEFAULT 0 AFTER payment_status",
+    "SELECT 'Skip: activity_registrations.amount_paid exists or table missing' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @sql := IF(
+    @has_activity_registrations = 1 AND @has_activity_reg_payment_date = 0,
+    "ALTER TABLE activity_registrations ADD COLUMN payment_date DATETIME NULL AFTER amount_paid",
+    "SELECT 'Skip: activity_registrations.payment_date exists or table missing' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @sql := IF(
+    @has_activity_registrations = 1,
+    "UPDATE activity_registrations ar INNER JOIN extracurricular_activities a ON a.id = ar.activity_id SET ar.amount_paid = CASE WHEN ar.payment_status = 'paid' AND ar.amount_paid = 0 THEN COALESCE(a.fee, 0) ELSE ar.amount_paid END, ar.payment_date = CASE WHEN ar.payment_date IS NULL AND ar.payment_status = 'paid' THEN ar.registration_date ELSE ar.payment_date END",
+    "SELECT 'Skip: activity_registrations backfill not required' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+-- Phase 1 audit columns: add created_at / updated_at for audit-friendly tables.
+DROP PROCEDURE IF EXISTS ensure_audit_columns_phase1;
+
+DELIMITER $$
+CREATE PROCEDURE ensure_audit_columns_phase1(
+    IN p_table_name VARCHAR(128),
+    IN p_created_after VARCHAR(128),
+    IN p_updated_after VARCHAR(128),
+    IN p_created_backfill TEXT,
+    IN p_updated_backfill TEXT
+)
+BEGIN
+    DECLARE v_has_table INT DEFAULT 0;
+    DECLARE v_has_created_at INT DEFAULT 0;
+    DECLARE v_has_updated_at INT DEFAULT 0;
+
+    SELECT COUNT(*)
+    INTO v_has_table
+    FROM information_schema.tables
+    WHERE table_schema = DATABASE()
+      AND table_name = p_table_name;
+
+    IF v_has_table = 0 THEN
+        SELECT CONCAT('Skip: table ', p_table_name, ' missing') AS info;
+    ELSE
+        SELECT COUNT(*)
+        INTO v_has_created_at
+        FROM information_schema.columns
+        WHERE table_schema = DATABASE()
+          AND table_name = p_table_name
+          AND column_name = 'created_at';
+
+        SELECT COUNT(*)
+        INTO v_has_updated_at
+        FROM information_schema.columns
+        WHERE table_schema = DATABASE()
+          AND table_name = p_table_name
+          AND column_name = 'updated_at';
+
+        IF v_has_created_at = 0 THEN
+            SET @sql := CONCAT(
+                'ALTER TABLE ', p_table_name,
+                ' ADD COLUMN created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP AFTER ', p_created_after
+            );
+            PREPARE stmt FROM @sql;
+            EXECUTE stmt;
+            DEALLOCATE PREPARE stmt;
+
+            IF p_created_backfill IS NOT NULL AND p_created_backfill <> '' THEN
+                SET @sql := CONCAT('UPDATE ', p_table_name, ' SET created_at = ', p_created_backfill);
+                PREPARE stmt FROM @sql;
+                EXECUTE stmt;
+                DEALLOCATE PREPARE stmt;
+            END IF;
+        ELSE
+            SELECT CONCAT('Skip: ', p_table_name, '.created_at exists') AS info;
+        END IF;
+
+        IF v_has_updated_at = 0 THEN
+            SET @sql := CONCAT(
+                'ALTER TABLE ', p_table_name,
+                ' ADD COLUMN updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP AFTER ', p_updated_after
+            );
+            PREPARE stmt FROM @sql;
+            EXECUTE stmt;
+            DEALLOCATE PREPARE stmt;
+
+            IF p_updated_backfill IS NOT NULL AND p_updated_backfill <> '' THEN
+                SET @sql := CONCAT('UPDATE ', p_table_name, ' SET updated_at = ', p_updated_backfill);
+                PREPARE stmt FROM @sql;
+                EXECUTE stmt;
+                DEALLOCATE PREPARE stmt;
+            END IF;
+        ELSE
+            SELECT CONCAT('Skip: ', p_table_name, '.updated_at exists') AS info;
+        END IF;
+    END IF;
+END$$
+DELIMITER ;
+
+CALL ensure_audit_columns_phase1('roles', 'description', 'created_at', NULL, 'created_at');
+CALL ensure_audit_columns_phase1('teacher_profiles', 'intro_video_url', 'created_at', NULL, 'created_at');
+CALL ensure_audit_columns_phase1('teacher_certificates', 'image_url', 'created_at', NULL, 'created_at');
+CALL ensure_audit_columns_phase1('courses', 'total_sessions', 'created_at', NULL, 'created_at');
+CALL ensure_audit_columns_phase1('course_roadmaps', 'outline_content', 'created_at', NULL, 'created_at');
+CALL ensure_audit_columns_phase1('promotions', 'end_date', 'created_at', NULL, 'created_at');
+CALL ensure_audit_columns_phase1('rooms', 'room_name', 'created_at', NULL, 'created_at');
+CALL ensure_audit_columns_phase1('classes', 'status', 'created_at', NULL, 'created_at');
+CALL ensure_audit_columns_phase1('class_students', 'enrollment_date', 'created_at', 'COALESCE(TIMESTAMP(enrollment_date, ''00:00:00''), CURRENT_TIMESTAMP)', 'created_at');
+CALL ensure_audit_columns_phase1('lessons', 'schedule_id', 'created_at', NULL, 'created_at');
+CALL ensure_audit_columns_phase1('schedules', 'end_time', 'created_at', NULL, NULL);
+CALL ensure_audit_columns_phase1('attendance', 'note', 'created_at', NULL, 'created_at');
+CALL ensure_audit_columns_phase1('exams', 'teacher_comment', 'created_at', 'TIMESTAMP(exam_date, ''00:00:00'')', 'created_at');
+CALL ensure_audit_columns_phase1('student_profiles', 'entry_test_id', 'created_at', NULL, 'created_at');
+CALL ensure_audit_columns_phase1('staff_profiles', 'position', 'created_at', NULL, 'created_at');
+CALL ensure_audit_columns_phase1('job_applications', 'created_at', 'created_at', NULL, 'created_at');
+CALL ensure_audit_columns_phase1('assignments', 'file_url', 'created_at', NULL, 'created_at');
+CALL ensure_audit_columns_phase1('submissions', 'teacher_comment', 'created_at', 'COALESCE(submitted_at, CURRENT_TIMESTAMP)', 'COALESCE(submitted_at, created_at)');
+CALL ensure_audit_columns_phase1('tuition_fees', 'status', 'created_at', NULL, 'created_at');
+CALL ensure_audit_columns_phase1('payment_transactions', 'created_at', 'created_at', NULL, 'created_at');
+CALL ensure_audit_columns_phase1('extracurricular_activities', 'status', 'created_at', 'COALESCE(TIMESTAMP(start_date, ''00:00:00''), CURRENT_TIMESTAMP)', 'created_at');
+CALL ensure_audit_columns_phase1('student_portfolios', 'created_at', 'created_at', NULL, 'created_at');
+CALL ensure_audit_columns_phase1('notifications', 'created_at', 'created_at', NULL, 'created_at');
+CALL ensure_audit_columns_phase1('materials', 'file_path', 'created_at', NULL, 'created_at');
+CALL ensure_audit_columns_phase1('feedbacks', 'created_at', 'created_at', NULL, 'created_at');
+CALL ensure_audit_columns_phase1('approvals', 'created_at', 'created_at', NULL, 'created_at');
+
+DROP PROCEDURE IF EXISTS ensure_audit_columns_phase1;
 
 -- Ensure materials.description exists.
 SET @has_materials := (
@@ -2087,6 +2389,134 @@ SET @sql := IF(
     @has_assignments = 1 AND @has_assignments_schedule_id = 1,
     "ALTER TABLE assignments MODIFY COLUMN schedule_id BIGINT UNSIGNED NOT NULL",
     "SELECT 'Skip: assignments table missing' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @has_courses_deleted_at := (
+    SELECT COUNT(*)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'courses'
+      AND column_name = 'deleted_at'
+);
+SET @sql := IF(
+    @has_courses_deleted_at = 0,
+    "ALTER TABLE courses ADD COLUMN deleted_at TIMESTAMP NULL DEFAULT NULL AFTER updated_at",
+    "SELECT 'Skip: courses.deleted_at already exists' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @has_courses_deleted_idx := (
+    SELECT COUNT(*)
+    FROM information_schema.statistics
+    WHERE table_schema = DATABASE()
+      AND table_name = 'courses'
+      AND index_name = 'idx_courses_deleted_at'
+);
+SET @sql := IF(
+    @has_courses_deleted_idx = 0,
+    "ALTER TABLE courses ADD INDEX idx_courses_deleted_at (deleted_at)",
+    "SELECT 'Skip: idx_courses_deleted_at already exists' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @has_promotions_deleted_at := (
+    SELECT COUNT(*)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'promotions'
+      AND column_name = 'deleted_at'
+);
+SET @sql := IF(
+    @has_promotions_deleted_at = 0,
+    "ALTER TABLE promotions ADD COLUMN deleted_at TIMESTAMP NULL DEFAULT NULL AFTER updated_at",
+    "SELECT 'Skip: promotions.deleted_at already exists' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @has_promotions_deleted_idx := (
+    SELECT COUNT(*)
+    FROM information_schema.statistics
+    WHERE table_schema = DATABASE()
+      AND table_name = 'promotions'
+      AND index_name = 'idx_promotions_deleted_at'
+);
+SET @sql := IF(
+    @has_promotions_deleted_idx = 0,
+    "ALTER TABLE promotions ADD INDEX idx_promotions_deleted_at (deleted_at)",
+    "SELECT 'Skip: idx_promotions_deleted_at already exists' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @has_rooms_deleted_at := (
+    SELECT COUNT(*)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'rooms'
+      AND column_name = 'deleted_at'
+);
+SET @sql := IF(
+    @has_rooms_deleted_at = 0,
+    "ALTER TABLE rooms ADD COLUMN deleted_at TIMESTAMP NULL DEFAULT NULL AFTER updated_at",
+    "SELECT 'Skip: rooms.deleted_at already exists' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @has_rooms_deleted_idx := (
+    SELECT COUNT(*)
+    FROM information_schema.statistics
+    WHERE table_schema = DATABASE()
+      AND table_name = 'rooms'
+      AND index_name = 'idx_rooms_deleted_at'
+);
+SET @sql := IF(
+    @has_rooms_deleted_idx = 0,
+    "ALTER TABLE rooms ADD INDEX idx_rooms_deleted_at (deleted_at)",
+    "SELECT 'Skip: idx_rooms_deleted_at already exists' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @has_activities_deleted_at := (
+    SELECT COUNT(*)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'extracurricular_activities'
+      AND column_name = 'deleted_at'
+);
+SET @sql := IF(
+    @has_activities_deleted_at = 0,
+    "ALTER TABLE extracurricular_activities ADD COLUMN deleted_at TIMESTAMP NULL DEFAULT NULL AFTER updated_at",
+    "SELECT 'Skip: extracurricular_activities.deleted_at already exists' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @has_activities_deleted_idx := (
+    SELECT COUNT(*)
+    FROM information_schema.statistics
+    WHERE table_schema = DATABASE()
+      AND table_name = 'extracurricular_activities'
+      AND index_name = 'idx_extracurricular_activities_deleted_at'
+);
+SET @sql := IF(
+    @has_activities_deleted_idx = 0,
+    "ALTER TABLE extracurricular_activities ADD INDEX idx_extracurricular_activities_deleted_at (deleted_at)",
+    "SELECT 'Skip: idx_extracurricular_activities_deleted_at already exists' AS info"
 );
 PREPARE stmt FROM @sql;
 EXECUTE stmt;

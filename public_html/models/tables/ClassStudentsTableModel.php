@@ -31,7 +31,7 @@ final class ClassStudentsTableModel
             return [];
         }
 
-        $sql = "SELECT DISTINCT cs.class_id, cs.student_id, cs.learning_status, u.full_name AS student_name
+        $sql = "SELECT DISTINCT cs.class_id, cs.student_id, u.full_name AS student_name
             FROM class_students cs
             INNER JOIN users u ON u.id = cs.student_id
             WHERE cs.class_id = :class_id
@@ -43,7 +43,7 @@ final class ClassStudentsTableModel
 
     public function listStudentsByClass(): array
     {
-        $sql = "SELECT DISTINCT cs.class_id, cs.student_id, cs.learning_status, c.class_name, u.full_name AS student_name
+        $sql = "SELECT DISTINCT cs.class_id, cs.student_id, c.class_name, u.full_name AS student_name
             FROM class_students cs
             INNER JOIN classes c ON c.id = cs.class_id
             INNER JOIN users u ON u.id = cs.student_id
@@ -73,7 +73,7 @@ final class ClassStudentsTableModel
         }
 
         return $this->fetchOne(
-            'SELECT class_id, student_id, learning_status, enrollment_date
+            'SELECT class_id, student_id, enrollment_date
              FROM class_students
              WHERE class_id = :class_id AND student_id = :student_id
              LIMIT 1',
@@ -86,26 +86,7 @@ final class ClassStudentsTableModel
 
     public function updateLearningStatus(int $classId, int $studentId, string $learningStatus): bool
     {
-        if ($classId <= 0 || $studentId <= 0) {
-            return false;
-        }
-
-        $normalizedStatus = in_array($learningStatus, ['trial', 'official'], true)
-            ? $learningStatus
-            : 'official';
-
-        $affectedRows = $this->executeStatement(
-            'UPDATE class_students
-             SET learning_status = :learning_status
-             WHERE class_id = :class_id AND student_id = :student_id',
-            [
-                'learning_status' => $normalizedStatus,
-                'class_id' => $classId,
-                'student_id' => $studentId,
-            ]
-        );
-
-        return $affectedRows > 0;
+        return false;
     }
 
     public function enrollStudent(int $classId, int $studentId, string $learningStatus = 'official', ?string $enrollmentDate = null): void
@@ -114,22 +95,17 @@ final class ClassStudentsTableModel
             return;
         }
 
-        $normalizedStatus = in_array($learningStatus, ['trial', 'official'], true)
-            ? $learningStatus
-            : 'official';
-
         $normalizedDate = $enrollmentDate !== null && trim($enrollmentDate) !== ''
             ? trim($enrollmentDate)
             : date('Y-m-d');
 
         $this->executeStatement(
-            'INSERT INTO class_students (class_id, student_id, learning_status, enrollment_date)
-             VALUES (:class_id, :student_id, :learning_status, :enrollment_date)
+            'INSERT INTO class_students (class_id, student_id, enrollment_date)
+             VALUES (:class_id, :student_id, :enrollment_date)
              ON DUPLICATE KEY UPDATE student_id = student_id',
             [
                 'class_id' => $classId,
                 'student_id' => $studentId,
-                'learning_status' => $normalizedStatus,
                 'enrollment_date' => $normalizedDate,
             ]
         );
@@ -158,14 +134,13 @@ final class ClassStudentsTableModel
                 c.status AS class_status,
                 c.start_date,
                 c.end_date,
-                cs.learning_status,
                 co.course_name,
                 u.full_name AS teacher_name,
                 COALESCE(sched.total_schedules, 0) AS total_schedules,
                 COALESCE(lesson_count.total_lessons, 0) AS total_lessons
             FROM class_students cs
             INNER JOIN classes c ON c.id = cs.class_id
-            INNER JOIN courses co ON co.id = c.course_id
+            INNER JOIN courses co ON co.id = c.course_id AND co.deleted_at IS NULL
             INNER JOIN users u ON u.id = c.teacher_id
             LEFT JOIN (
                 SELECT class_id, COUNT(*) AS total_schedules
@@ -202,7 +177,7 @@ final class ClassStudentsTableModel
             INNER JOIN classes c ON c.id = cs.class_id
             INNER JOIN schedules s ON s.class_id = c.id
             INNER JOIN users u ON u.id = s.teacher_id
-            LEFT JOIN rooms r ON r.id = s.room_id
+            LEFT JOIN rooms r ON r.id = s.room_id AND r.deleted_at IS NULL
             WHERE cs.student_id = :student_id
             ORDER BY s.study_date ASC, s.start_time ASC, c.class_name ASC, s.id ASC";
 
@@ -216,7 +191,6 @@ final class ClassStudentsTableModel
         $sql = "SELECT
                 cs.class_id,
                 cs.student_id,
-                cs.learning_status,
                 cs.enrollment_date,
                 u.full_name AS student_name,
                 c.class_name,
@@ -230,7 +204,7 @@ final class ClassStudentsTableModel
             FROM class_students cs
             INNER JOIN users u ON u.id = cs.student_id
             INNER JOIN classes c ON c.id = cs.class_id
-            INNER JOIN courses co ON co.id = c.course_id
+            INNER JOIN courses co ON co.id = c.course_id AND co.deleted_at IS NULL
             LEFT JOIN tuition_fees tf ON tf.id = (
                 SELECT t2.id
                 FROM tuition_fees t2
@@ -255,7 +229,6 @@ final class ClassStudentsTableModel
         $sql = "SELECT
                 cs.class_id,
                 cs.student_id,
-                cs.learning_status,
                 cs.enrollment_date,
                 u.full_name AS student_name,
                 c.class_name,
@@ -269,7 +242,7 @@ final class ClassStudentsTableModel
             FROM class_students cs
             INNER JOIN users u ON u.id = cs.student_id
             INNER JOIN classes c ON c.id = cs.class_id
-            INNER JOIN courses co ON co.id = c.course_id
+            INNER JOIN courses co ON co.id = c.course_id AND co.deleted_at IS NULL
             LEFT JOIN tuition_fees tf ON tf.id = (
                 SELECT t2.id
                 FROM tuition_fees t2

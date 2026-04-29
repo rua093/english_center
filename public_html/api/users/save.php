@@ -64,7 +64,6 @@ $payload = [
     'status' => (string) ($_POST['status'] ?? 'active'),
     'password' => (string) ($_POST['password'] ?? ''),
     'staff_position' => trim((string) ($_POST['staff_position'] ?? '')),
-    'staff_approval_limit' => (float) ($_POST['staff_approval_limit'] ?? 0),
     'teacher_degree' => trim((string) ($_POST['teacher_degree'] ?? '')),
     'teacher_experience_years' => (int) ($_POST['teacher_experience_years'] ?? 0),
     'teacher_bio' => trim((string) ($_POST['teacher_bio'] ?? '')),
@@ -87,7 +86,6 @@ if (!in_array($payload['status'], ['active', 'inactive'], true)) {
     redirect(page_url('users-admin'));
 }
 
-$payload['staff_approval_limit'] = max(0, (float) $payload['staff_approval_limit']);
 $payload['teacher_experience_years'] = max(0, (int) $payload['teacher_experience_years']);
 $payload['student_entry_test_id'] = max(0, (int) $payload['student_entry_test_id']);
 

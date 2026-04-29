@@ -89,7 +89,7 @@ $error = get_flash('error');
                     <?php foreach (array_slice($recentMaterials, 0, 6) as $material): ?>
                         <li>
                             <strong><?= e((string) $material['title']); ?></strong>
-                            <small><?= e((string) $material['course_name']); ?></small>
+                            <small>Tài liệu học tập</small>
                         </li>
                     <?php endforeach; ?>
                 </ul>

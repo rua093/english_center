@@ -62,8 +62,12 @@ function api_classes_delete_action(): void
 		teacher_assert_class_scope($academicModel, $classId, page_url('classes-academic'));
 	}
 
-	$academicModel->deleteClass($classId);
-	set_flash('success', 'Đã xóa lớp học.');
+	try {
+		$academicModel->deleteClass($classId);
+		set_flash('success', 'Đã xóa lớp học.');
+	} catch (Throwable) {
+		set_flash('error', 'Không thể xóa lớp học. Lớp này có thể đang được tham chiếu bởi học viên, lịch học, buổi học, bài kiểm tra hoặc học phí.');
+	}
 	redirect(page_url('classes-academic'));
 }
 

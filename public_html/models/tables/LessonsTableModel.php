@@ -42,7 +42,7 @@ final class LessonsTableModel
 
     public function listByClass(int $classId): array
     {
-        $sql = "SELECT l.id, l.class_id, l.roadmap_id, l.actual_title, l.actual_content, l.schedule_id,
+        $sql = "SELECT l.id, l.class_id, l.roadmap_id, l.actual_title, l.actual_content, l.attachment_file_path, l.schedule_id,
                 cr.topic_title AS roadmap_topic,
                 s.study_date, s.start_time, s.end_time, COALESCE(r.room_name, 'Online') AS room_name,
                 COALESCE(att.present_count, 0) AS present_count,
@@ -52,7 +52,7 @@ final class LessonsTableModel
             FROM lessons l
             LEFT JOIN course_roadmaps cr ON cr.id = l.roadmap_id
             LEFT JOIN schedules s ON s.id = l.schedule_id
-            LEFT JOIN rooms r ON r.id = s.room_id
+            LEFT JOIN rooms r ON r.id = s.room_id AND r.deleted_at IS NULL
             LEFT JOIN (
                 SELECT a.schedule_id,
                     SUM(CASE WHEN a.status = 'present' THEN 1 ELSE 0 END) AS present_count,
@@ -75,7 +75,7 @@ final class LessonsTableModel
     public function findById(int $id): ?array
     {
         return $this->fetchOne(
-            'SELECT id, class_id, roadmap_id, actual_title, actual_content, schedule_id FROM lessons WHERE id = :id LIMIT 1',
+            'SELECT id, class_id, roadmap_id, actual_title, actual_content, attachment_file_path, schedule_id FROM lessons WHERE id = :id LIMIT 1',
             ['id' => $id]
         );
     }
@@ -98,6 +98,7 @@ final class LessonsTableModel
         $roadmapId = (int) ($data['roadmap_id'] ?? 0);
         $title = trim((string) ($data['actual_title'] ?? ''));
         $content = trim((string) ($data['actual_content'] ?? ''));
+        $attachmentFilePath = trim((string) ($data['attachment_file_path'] ?? ''));
         $scheduleId = (int) ($data['schedule_id'] ?? 0);
 
         if ($classId <= 0 || $title === '') {
@@ -157,6 +158,7 @@ final class LessonsTableModel
             'roadmap_id' => $normalizedRoadmapId,
             'actual_title' => $title,
             'actual_content' => $content !== '' ? $content : null,
+            'attachment_file_path' => $attachmentFilePath !== '' ? $attachmentFilePath : null,
             'schedule_id' => $normalizedScheduleId,
         ];
 
@@ -168,6 +170,7 @@ final class LessonsTableModel
                     roadmap_id = :roadmap_id,
                     actual_title = :actual_title,
                     actual_content = :actual_content,
+                    attachment_file_path = :attachment_file_path,
                     schedule_id = :schedule_id
                 WHERE id = :id',
                 $payload
@@ -176,8 +179,8 @@ final class LessonsTableModel
         }
 
         $this->executeStatement(
-            'INSERT INTO lessons (class_id, roadmap_id, actual_title, actual_content, schedule_id)
-            VALUES (:class_id, :roadmap_id, :actual_title, :actual_content, :schedule_id)',
+            'INSERT INTO lessons (class_id, roadmap_id, actual_title, actual_content, attachment_file_path, schedule_id)
+            VALUES (:class_id, :roadmap_id, :actual_title, :actual_content, :attachment_file_path, :schedule_id)',
             $payload
         );
     }

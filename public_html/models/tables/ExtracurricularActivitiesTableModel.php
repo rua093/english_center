@@ -9,7 +9,7 @@ final class ExtracurricularActivitiesTableModel
 
     public function countDetailed(): int
     {
-        return (int) $this->fetchScalar('SELECT COUNT(*) AS total FROM extracurricular_activities', [], 'total', 0);
+        return (int) $this->fetchScalar('SELECT COUNT(*) AS total FROM extracurricular_activities WHERE deleted_at IS NULL', [], 'total', 0);
     }
 
     public function listWithRegistrationCount(): array
@@ -18,6 +18,7 @@ final class ExtracurricularActivitiesTableModel
                 COALESCE(a.location, '') AS location, a.status, a.fee, COUNT(r.id) AS registered
             FROM extracurricular_activities a
             LEFT JOIN activity_registrations r ON r.activity_id = a.id
+            WHERE a.deleted_at IS NULL
             GROUP BY a.id, a.title, a.description, a.image_thumbnail, a.start_date, a.location, a.status, a.fee
             ORDER BY a.start_date DESC";
         return $this->fetchAll($sql);
@@ -33,6 +34,7 @@ final class ExtracurricularActivitiesTableModel
                 COALESCE(a.location, '') AS location, a.status, a.fee, COUNT(r.id) AS registered
             FROM extracurricular_activities a
             LEFT JOIN activity_registrations r ON r.activity_id = a.id
+            WHERE a.deleted_at IS NULL
             GROUP BY a.id, a.title, a.description, a.image_thumbnail, a.start_date, a.location, a.status, a.fee
             ORDER BY a.start_date DESC
             LIMIT {$limit} OFFSET {$offset}";
@@ -42,7 +44,7 @@ final class ExtracurricularActivitiesTableModel
     public function findById(int $id): ?array
     {
         return $this->fetchOne(
-            'SELECT id, title AS activity_name, description, content, location, image_thumbnail, fee, start_date, start_date AS end_date, status FROM extracurricular_activities WHERE id = :id LIMIT 1',
+            'SELECT id, title AS activity_name, description, content, location, image_thumbnail, fee, start_date, start_date AS end_date, status FROM extracurricular_activities WHERE id = :id AND deleted_at IS NULL LIMIT 1',
             ['id' => $id]
         );
     }
@@ -81,6 +83,7 @@ final class ExtracurricularActivitiesTableModel
                 ) THEN 1 ELSE 0 END AS is_registered
             FROM extracurricular_activities a
             LEFT JOIN activity_registrations r ON r.activity_id = a.id
+            WHERE a.deleted_at IS NULL
             GROUP BY a.id, a.title, a.description, a.content, a.image_thumbnail, a.start_date, a.location, a.status, a.fee
             ORDER BY a.start_date DESC, a.id DESC";
 
@@ -127,6 +130,7 @@ final class ExtracurricularActivitiesTableModel
             FROM extracurricular_activities a
             LEFT JOIN activity_registrations r ON r.activity_id = a.id
             WHERE a.id = :id
+              AND a.deleted_at IS NULL
             GROUP BY a.id, a.title, a.description, a.content, a.image_thumbnail, a.start_date, a.location, a.status, a.fee
             LIMIT 1";
 
@@ -146,7 +150,7 @@ final class ExtracurricularActivitiesTableModel
         }
 
         return $this->fetchOne(
-            'SELECT id, activity_id, user_id, payment_status, registration_date FROM activity_registrations WHERE activity_id = :activity_id AND user_id = :user_id LIMIT 1',
+            'SELECT id, activity_id, user_id, payment_status, amount_paid, payment_date, registration_date FROM activity_registrations WHERE activity_id = :activity_id AND user_id = :user_id LIMIT 1',
             [
                 'activity_id' => $activityId,
                 'user_id' => $userId,
@@ -160,9 +164,10 @@ final class ExtracurricularActivitiesTableModel
             return [];
         }
 
-        $sql = "SELECT r.id, r.activity_id, r.user_id, r.payment_status, r.registration_date,
+        $sql = "SELECT r.id, r.activity_id, r.user_id, r.payment_status, r.amount_paid, r.payment_date, r.registration_date,
                 u.username, u.full_name
             FROM activity_registrations r
+            INNER JOIN extracurricular_activities a ON a.id = r.activity_id AND a.deleted_at IS NULL
             INNER JOIN users u ON u.id = r.user_id
             WHERE r.activity_id = :activity_id
             ORDER BY r.registration_date DESC, r.id DESC";
@@ -182,11 +187,13 @@ final class ExtracurricularActivitiesTableModel
         }
 
         $this->executeStatement(
-            'INSERT INTO activity_registrations (activity_id, user_id, payment_status) VALUES (:activity_id, :user_id, :payment_status)',
+            'INSERT INTO activity_registrations (activity_id, user_id, payment_status, amount_paid, payment_date) VALUES (:activity_id, :user_id, :payment_status, :amount_paid, :payment_date)',
             [
                 'activity_id' => $activityId,
                 'user_id' => $userId,
                 'payment_status' => $paymentStatus,
+                'amount_paid' => 0,
+                'payment_date' => null,
             ]
         );
     }
@@ -215,7 +222,7 @@ final class ExtracurricularActivitiesTableModel
         }
 
         $affected = $this->executeStatement(
-            'UPDATE activity_registrations SET payment_status = :payment_status WHERE activity_id = :activity_id AND user_id = :user_id',
+            'UPDATE activity_registrations SET payment_status = :payment_status, payment_date = NOW() WHERE activity_id = :activity_id AND user_id = :user_id',
             [
                 'activity_id' => $activityId,
                 'user_id' => $userId,
@@ -224,6 +231,46 @@ final class ExtracurricularActivitiesTableModel
         );
 
         return $affected > 0;
+    }
+
+    public function updateRegistrationPayment(int $activityId, int $userId, string $paymentStatus, float $amountPaid, ?string $paymentDate): bool
+    {
+        if ($activityId <= 0 || $userId <= 0) {
+            return false;
+        }
+
+        $existing = $this->findStudentRegistration($activityId, $userId);
+        if (!is_array($existing)) {
+            return false;
+        }
+
+        $normalizedStatus = $paymentStatus === 'paid' ? 'paid' : 'unpaid';
+        $normalizedAmount = max(0, $amountPaid);
+        $normalizedPaymentDate = null;
+
+        if (is_string($paymentDate)) {
+            $candidate = trim($paymentDate);
+            if ($candidate !== '') {
+                $normalizedPaymentDate = substr(str_replace('T', ' ', $candidate), 0, 19);
+            }
+        }
+
+        $affected = $this->executeStatement(
+            'UPDATE activity_registrations
+             SET payment_status = :payment_status,
+                 amount_paid = :amount_paid,
+                 payment_date = :payment_date
+             WHERE activity_id = :activity_id AND user_id = :user_id',
+            [
+                'activity_id' => $activityId,
+                'user_id' => $userId,
+                'payment_status' => $normalizedStatus,
+                'amount_paid' => $normalizedAmount,
+                'payment_date' => $normalizedPaymentDate,
+            ]
+        );
+
+        return $affected > 0 || is_array($existing);
     }
 
     public function save(array $data): void
@@ -271,6 +318,6 @@ final class ExtracurricularActivitiesTableModel
 
     public function deleteById(int $id): void
     {
-        $this->executeStatement('DELETE FROM extracurricular_activities WHERE id = :id', ['id' => $id]);
+        $this->executeStatement('UPDATE extracurricular_activities SET deleted_at = NOW() WHERE id = :id AND deleted_at IS NULL', ['id' => $id]);
     }
 }

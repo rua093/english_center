@@ -68,10 +68,6 @@ $error = get_flash('error');
                     </select>
                 </label>
                 <label>
-                    Mã giao dịch
-                    <input type="text" name="transaction_no" value="<?= e((string) ($editingPayment['transaction_no'] ?? '')); ?>" placeholder="Để trống để hệ thống tự sinh cho giao dịch tại trung tâm">
-                </label>
-                <label>
                     Phương thức
                     <select name="payment_method" required>
                         <?php foreach ($paymentMethodOptions as $value => $label): ?>
@@ -109,7 +105,6 @@ $error = get_flash('error');
                     <tr>
                         <th>Học viên</th>
                         <th>Khóa học</th>
-                        <th>Mã giao dịch</th>
                         <th>Số tiền</th>
                         <th>Phương thức</th>
                         <th>Trạng thái</th>
@@ -120,7 +115,7 @@ $error = get_flash('error');
                 <tbody>
                     <?php if (empty($transactions)): ?>
                         <tr>
-                            <td colspan="8">
+                            <td colspan="7">
                                 <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">Chưa có giao dịch nào.</div>
                             </td>
                         </tr>
@@ -129,7 +124,6 @@ $error = get_flash('error');
                             <tr>
                                 <td><?= e((string) $txn['full_name']); ?></td>
                                 <td><?= e((string) $txn['course_name']); ?></td>
-                                <td><?= e((string) $txn['transaction_no']); ?></td>
                                 <td><?= format_money((float) $txn['amount']); ?></td>
                                 <td><span class="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-bold capitalize text-blue-700 whitespace-nowrap"><?= e((string) ($paymentMethodOptions[$txn['method']] ?? $txn['method'])); ?></span></td>
                                 <td><span class="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-bold capitalize is-<?= e((string) $txn['transaction_status']); ?>"><?= e((string) $txn['transaction_status']); ?></span></td>

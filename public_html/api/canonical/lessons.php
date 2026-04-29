@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../../core/api_helpers.php';
+require_once __DIR__ . '/../../core/file_storage.php';
 require_once __DIR__ . '/../../models/AcademicModel.php';
 
 function lessons_manage_redirect_query(array $source): array
@@ -145,8 +146,23 @@ function api_lessons_save_action(): void
         'roadmap_id' => input_int($_POST, 'roadmap_id'),
         'actual_title' => $title,
         'actual_content' => input_string($_POST, 'actual_content'),
+        'attachment_file_path' => input_string($_POST, 'existing_attachment_file_path'),
         'schedule_id' => $scheduleId,
     ];
+
+    if (
+        isset($_FILES['lesson_attachment_file'])
+        && is_array($_FILES['lesson_attachment_file'])
+        && (int) ($_FILES['lesson_attachment_file']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE
+    ) {
+        $attachmentPath = store_uploaded_file($_FILES['lesson_attachment_file'], 'lesson_attachment', 'lessons');
+        if ($attachmentPath === null) {
+            set_flash('error', 'Không thể tải lên tài liệu buổi học. Vui lòng thử lại với file PDF, PPT, DOC hoặc DOCX hợp lệ.');
+            redirect($redirectPath);
+        }
+
+        $payload['attachment_file_path'] = $attachmentPath;
+    }
 
     try {
         $academicModel->saveLesson($payload);

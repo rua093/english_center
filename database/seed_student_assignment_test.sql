@@ -58,7 +58,7 @@ VALUES
 );
 
 -- Optional exam rows so the detail page has test data too.
-INSERT INTO exams (class_id, student_id, exam_name, exam_type, exam_date, score_listening, score_speaking, score_reading, score_writing, result, teacher_comment, level_suggested)
+INSERT INTO exams (class_id, student_id, exam_name, exam_type, exam_date, score_listening, score_speaking, score_reading, score_writing, result, teacher_comment)
 VALUES
 (
     @class_id,
@@ -71,8 +71,7 @@ VALUES
     5.5,
     5.0,
     '5.0',
-    'Can tang cuong speaking va vocab.',
-    'IELTS Foundation'
+    'Can tang cuong speaking va vocab.'
 ),
 (
     @class_id,
@@ -85,8 +84,7 @@ VALUES
     6.5,
     6.0,
     '6.0',
-    'Tien bo tot, can on tap them writing.',
-    'IELTS 6.0+'
+    'Tien bo tot, can on tap them writing.'
 ),
 (
     @class_id,
@@ -94,7 +92,6 @@ VALUES
     'Thi thử Định kỳ (Mock Test)',
     'periodic',
     '2026-06-10',
-    NULL,
     NULL,
     NULL,
     NULL,

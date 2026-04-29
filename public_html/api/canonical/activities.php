@@ -42,8 +42,12 @@ function api_activities_delete_action(): void
 	api_guard_permission('activity.delete');
 	api_require_post(page_url('activities-manage'));
 
-	(new AcademicModel())->deleteActivity((int) ($_GET['id'] ?? 0));
-	set_flash('success', 'Đã xóa hoạt động ngoại khóa.');
+	try {
+		(new AcademicModel())->deleteActivity((int) ($_GET['id'] ?? 0));
+		set_flash('success', 'Đã chuyển hoạt động ngoại khóa vào trạng thái xóa mềm.');
+	} catch (Throwable) {
+		set_flash('error', 'Không thể xóa hoạt động ngoại khóa. Vui lòng thử lại.');
+	}
 	redirect(page_url('activities-manage'));
 }
 
@@ -80,6 +84,64 @@ function api_activities_remove_student_action(): void
 		set_flash('error', 'Khong tim thay dang ky de xoa.');
 	}
 
+	redirect(page_url('activities-manage', $redirectQuery));
+}
+
+function api_activities_update_registration_action(): void
+{
+	api_guard_permission('activity.update');
+	api_require_post(page_url('activities-manage'));
+
+	$activityId = input_int($_POST, 'activity_id');
+	$studentId = input_int($_POST, 'student_id');
+	$activityPage = max(0, input_int($_POST, 'activity_page'));
+	$activityPerPage = max(0, input_int($_POST, 'activity_per_page'));
+	$amountPaid = max(0, input_float($_POST, 'amount_paid'));
+	$paymentDateRaw = trim((string) ($_POST['payment_date'] ?? ''));
+	$paymentDate = $paymentDateRaw !== '' ? substr(str_replace('T', ' ', $paymentDateRaw), 0, 19) : null;
+
+	$redirectQuery = [];
+	if ($activityId > 0) {
+		$redirectQuery['registrations_activity'] = $activityId;
+		$redirectQuery['registration_student'] = $studentId;
+	}
+	if ($activityPage > 0) {
+		$redirectQuery['activity_page'] = $activityPage;
+	}
+	if ($activityPerPage > 0) {
+		$redirectQuery['activity_per_page'] = $activityPerPage;
+	}
+
+	if ($activityId <= 0 || $studentId <= 0) {
+		set_flash('error', 'Du lieu dang ky hoat dong khong hop le.');
+		redirect(page_url('activities-manage', $redirectQuery));
+	}
+
+	$academicModel = new AcademicModel();
+	$activity = $academicModel->findActivity($activityId);
+	$activityFee = max(0, (float) ($activity['fee'] ?? 0));
+	$paymentStatus = $amountPaid >= $activityFee ? 'paid' : 'unpaid';
+	$registrationsTable = new ExtracurricularActivitiesTableModel();
+	$existingRegistration = $registrationsTable->findStudentRegistration($activityId, $studentId);
+	$existingAmountPaid = max(0, (float) (($existingRegistration['amount_paid'] ?? 0)));
+	$amountChanged = abs($existingAmountPaid - $amountPaid) > 0.0001;
+
+	if ($amountPaid <= 0) {
+		$paymentDate = null;
+	} elseif ($amountChanged) {
+		$paymentDate = date('Y-m-d H:i:s');
+	} elseif ($amountPaid > 0 && $paymentDate === null) {
+		$paymentDate = date('Y-m-d H:i:s');
+	}
+
+	$updated = $academicModel->updateActivityRegistrationPayment($activityId, $studentId, $paymentStatus, $amountPaid, $paymentDate);
+	if ($updated) {
+		set_flash('success', 'Đã cập nhật thông tin thanh toán hoạt động.');
+	} else {
+		set_flash('error', 'Không tìm thấy đăng ký để cập nhật.');
+	}
+
+	unset($redirectQuery['registration_student']);
 	redirect(page_url('activities-manage', $redirectQuery));
 }
 

@@ -174,8 +174,12 @@ function api_assignments_delete_action(): void
 			teacher_assert_class_scope($academicModel, (int) ($assignment['class_id'] ?? 0), page_url('assignments-academic'));
 		}
 
-		$academicModel->deleteAssignment($assignmentId);
-		set_flash('success', 'Đã xóa bài tập.');
+		try {
+			$academicModel->deleteAssignment($assignmentId);
+			set_flash('success', 'Đã xóa bài tập.');
+		} catch (Throwable) {
+			set_flash('error', 'Không thể xóa bài tập. Bài tập này có thể đã có bài nộp của học viên.');
+		}
 	}
 
 	$redirectPage = assignments_manage_redirect_page($_GET, 'assignments-academic');

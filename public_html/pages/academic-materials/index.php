@@ -12,8 +12,6 @@ if ($materialPage > $materialTotalPages) {
 }
 $materials = $academicModel->listMaterialsPage($materialPage, $materialPerPage);
 $materialPerPageOptions = ui_pagination_per_page_options();
-$materialCourses = $academicModel->classLookups();
-
 $editingMaterial = null;
 if (!empty($_GET['edit'])) {
     $editingMaterial = $academicModel->findMaterial((int) $_GET['edit']);
@@ -57,14 +55,6 @@ $canDeleteMaterial = has_permission('materials.delete');
                 <input type="hidden" name="id" value="<?= (int) ($editingMaterial['id'] ?? 0); ?>">
                 <input type="hidden" name="existing_file_path" value="<?= e($editingMaterialFilePath); ?>">
                 <label>
-                    Khóa học
-                    <select name="course_id" required>
-                        <?php foreach ($materialCourses['courses'] as $course): ?>
-                            <option value="<?= (int) $course['id']; ?>" <?= (int) ($editingMaterial['course_id'] ?? 0) === (int) $course['id'] ? 'selected' : ''; ?>><?= e((string) $course['course_name']); ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </label>
-                <label>
                     Tiêu đề tài liệu
                     <input type="text" name="title" required value="<?= e((string) ($editingMaterial['title'] ?? '')); ?>">
                 </label>
@@ -89,17 +79,16 @@ $canDeleteMaterial = has_permission('materials.delete');
             <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
                 <table class="min-w-full border-collapse text-sm">
                 <thead>
-                    <tr><th>Tiêu đề</th><th>Khóa học</th><th>Mô tả tài liệu</th><th>Hành động</th></tr>
+                    <tr><th>Tiêu đề</th><th>Mô tả tài liệu</th><th>Hành động</th></tr>
                 </thead>
                 <tbody>
                     <?php if (empty($materials)): ?>
-                        <tr><td colspan="4"><div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">Chưa có tài liệu nào.</div></td></tr>
+                        <tr><td colspan="3"><div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">Chưa có tài liệu nào.</div></td></tr>
                     <?php else: ?>
                     <?php foreach ($materials as $material): ?>
                         <?php $materialFilePath = normalize_public_file_url((string) ($material['file_path'] ?? '')); ?>
                         <tr>
                             <td><?= e((string) $material['title']); ?></td>
-                            <td><?= e((string) $material['course_name']); ?></td>
                             <td><?= e((string) ($material['description'] ?? '-')); ?></td>
                             <td>
                                 <span class="inline-flex flex-wrap items-center gap-2">

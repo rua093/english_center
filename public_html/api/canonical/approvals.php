@@ -245,8 +245,12 @@ function api_approvals_delete_action(): void
 
     $id = input_int($_POST, 'id', input_int($_GET, 'id'));
     if ($id > 0) {
-        (new AcademicModel())->deleteApproval($id);
-        set_flash('success', 'Đã xóa phiếu phê duyệt.');
+        try {
+            (new AcademicModel())->deleteApproval($id);
+            set_flash('success', 'Đã xóa phiếu phê duyệt.');
+        } catch (Throwable) {
+            set_flash('error', 'Không thể xóa phiếu phê duyệt. Vui lòng thử lại.');
+        }
     }
 
     redirect(page_url('approvals-manage'));

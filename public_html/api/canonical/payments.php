@@ -59,7 +59,6 @@ function api_payments_save_action(): void
     }
 
     $tuitionFeeId = input_int($_POST, 'tuition_fee_id');
-    $transactionNo = input_string($_POST, 'transaction_no');
     $paymentMethod = input_string($_POST, 'payment_method', 'bank_transfer');
     $amount = input_float($_POST, 'amount');
     $status = input_string($_POST, 'transaction_status', 'pending');
@@ -78,7 +77,6 @@ function api_payments_save_action(): void
     (new AcademicModel())->savePaymentTransaction([
         'id' => $id,
         'tuition_fee_id' => $tuitionFeeId,
-        'transaction_no' => $transactionNo,
         'payment_method' => $paymentMethod,
         'amount' => $amount,
         'transaction_status' => $status,
@@ -101,8 +99,12 @@ function api_payments_delete_action(): void
 
     $id = input_int($_POST, 'id', input_int($_GET, 'id'));
     if ($id > 0) {
-        (new AcademicModel())->deletePaymentTransaction($id);
-        set_flash('success', 'Đã xóa giao dịch thanh toán.');
+        try {
+            (new AcademicModel())->deletePaymentTransaction($id);
+            set_flash('success', 'Đã xóa giao dịch thanh toán.');
+        } catch (Throwable) {
+            set_flash('error', 'Không thể xóa giao dịch thanh toán. Vui lòng thử lại.');
+        }
     }
 
     redirect(page_url('payments-finance'));

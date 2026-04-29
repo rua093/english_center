@@ -30,7 +30,7 @@ final class ClassesTableModel extends BaseTableModel
                     ELSE ROUND((COALESCE(lp.completed_lessons, 0) / lp.total_lessons) * 100)
                 END AS progress_percent
             FROM classes c
-            INNER JOIN courses co ON co.id = c.course_id
+            INNER JOIN courses co ON co.id = c.course_id AND co.deleted_at IS NULL
             INNER JOIN users u ON u.id = c.teacher_id
             LEFT JOIN (
                 SELECT l.class_id,
@@ -57,7 +57,7 @@ final class ClassesTableModel extends BaseTableModel
                     ELSE ROUND((COALESCE(lp.completed_lessons, 0) / lp.total_lessons) * 100)
                 END AS progress_percent
             FROM classes c
-            INNER JOIN courses co ON co.id = c.course_id
+            INNER JOIN courses co ON co.id = c.course_id AND co.deleted_at IS NULL
             INNER JOIN users u ON u.id = c.teacher_id
             LEFT JOIN (
                 SELECT l.class_id,
@@ -140,7 +140,7 @@ final class ClassesTableModel extends BaseTableModel
         $sql = "SELECT c.id, c.class_name, c.course_id, c.teacher_id, c.status, c.start_date, c.end_date,
                 co.course_name, co.base_price, u.full_name AS teacher_name
             FROM classes c
-            INNER JOIN courses co ON co.id = c.course_id
+            INNER JOIN courses co ON co.id = c.course_id AND co.deleted_at IS NULL
             LEFT JOIN users u ON u.id = c.teacher_id
             ORDER BY co.course_name ASC, c.class_name ASC";
         return $this->fetchAll($sql);

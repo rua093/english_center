@@ -34,19 +34,6 @@ function api_tuitions_can_delete_directly(): bool
 	]);
 }
 
-function api_tuitions_learning_status_label(string $status): string
-{
-	$normalized = strtolower(trim($status));
-	if ($normalized === 'trial') {
-		return 'học thử';
-	}
-	if ($normalized === 'official') {
-		return 'chính thức';
-	}
-
-	return $normalized !== '' ? $normalized : 'không xác định';
-}
-
 function api_tuitions_fail_or_redirect(string $message, string $redirectPath, int $httpCode = 400): never
 {
 	if (api_expects_json()) {
@@ -132,14 +119,12 @@ function api_tuitions_register_course_action(): void
 	$classId = input_int($_POST, 'class_id');
 	$packageId = input_int($_POST, 'package_id');
 	$paymentPlan = input_string($_POST, 'payment_plan', 'full');
-	$learningStatus = input_string($_POST, 'learning_status', 'official');
 	$registrationFormPayload = [
 		'student_id' => $studentId,
 		'course_id' => $courseId,
 		'class_id' => $classId,
 		'package_id' => $packageId,
 		'payment_plan' => $paymentPlan,
-		'learning_status' => $learningStatus,
 	];
 
 	$redirectWithError = static function (string $message, array $payload): void {
@@ -156,10 +141,6 @@ function api_tuitions_register_course_action(): void
 
 	if (!in_array($paymentPlan, ['full', 'monthly'], true)) {
 		$paymentPlan = 'full';
-	}
-
-	if (!in_array($learningStatus, ['trial', 'official'], true)) {
-		$learningStatus = 'official';
 	}
 
 	$student = $academicModel->findActiveUser($studentId);
@@ -240,7 +221,6 @@ function api_tuitions_register_course_action(): void
 			'discount_type' => $discountType,
 			'discount_amount' => $discountPercent,
 			'payment_plan' => $paymentPlan,
-			'learning_status' => $learningStatus,
 			'enrollment_date' => date('Y-m-d'),
 		]);
 	} catch (RuntimeException $exception) {
@@ -249,22 +229,12 @@ function api_tuitions_register_course_action(): void
 
 	$tuitionId = (int) ($result['tuition_id'] ?? 0);
 	$alreadyEnrolled = (bool) ($result['already_enrolled'] ?? false);
-	$normalizedLearningStatus = (string) ($result['learning_status'] ?? $learningStatus);
-
-	if ($normalizedLearningStatus === 'trial') {
-		$successMessage = $alreadyEnrolled
-			? 'Đăng ký học thử thành công cho học viên đã có trong lớp. Chưa tạo học phí.'
-			: 'Đăng ký học thử thành công: đã thêm học viên vào lớp và chưa tạo học phí.';
-	} else {
-		$successMessage = $alreadyEnrolled
-			? 'Đăng ký thành công và đã tạo khoản học phí mới ở trạng thái debt cho học viên đã có trong lớp.'
-			: 'Đăng ký thành công: đã thêm học viên vào lớp và tạo khoản học phí trạng thái debt.';
-	}
+	$successMessage = $alreadyEnrolled
+		? 'Đăng ký thành công và đã tạo khoản học phí mới ở trạng thái debt cho học viên đã có trong lớp.'
+		: 'Đăng ký thành công: đã thêm học viên vào lớp và tạo khoản học phí trạng thái debt.';
 
 	if ($tuitionId > 0) {
 		$successMessage .= ' Mã học phí #' . $tuitionId . ' | Tổng cần thu: ' . format_money($totalAmount) . '.';
-	} elseif ($normalizedLearningStatus === 'trial') {
-		$successMessage .= ' Học phí sẽ được tạo khi chuyển sang trạng thái chính thức.';
 	}
 
 	if ($packageId > 0) {
@@ -278,100 +248,7 @@ function api_tuitions_register_course_action(): void
 
 function api_tuitions_update_learning_status_action(): void
 {
-	api_guard_admin_or_staff();
-	api_guard_permission('finance.tuition.view');
-	api_require_post(page_url('registration-finance'));
-
-	if (!api_tuitions_can_manage_directly()) {
-		api_tuitions_fail_or_redirect('Bạn không có quyền chuyển trạng thái học viên trực tiếp.', page_url('registration-finance'), 403);
-	}
-
-	$studentId = input_int($_POST, 'student_id');
-	$classId = input_int($_POST, 'class_id');
-	$targetStatus = input_string($_POST, 'learning_status', '');
-
-	if ($studentId <= 0 || $classId <= 0) {
-		api_tuitions_fail_or_redirect('Dữ liệu học viên hoặc lớp học không hợp lệ.', page_url('registration-finance'));
-	}
-
-	if (!in_array($targetStatus, ['trial', 'official'], true)) {
-		api_tuitions_fail_or_redirect('Trạng thái học viên không hợp lệ.', page_url('registration-finance'));
-	}
-
-	$academicModel = new AcademicModel();
-
-	try {
-		$result = $academicModel->updateRegistrationLearningStatus($studentId, $classId, $targetStatus);
-	} catch (Throwable $exception) {
-		api_tuitions_fail_or_redirect($exception->getMessage(), page_url('registration-finance'), 422);
-	}
-
-	$updated = (bool) ($result['updated'] ?? false);
-	$fromStatus = api_tuitions_learning_status_label((string) ($result['from_status'] ?? ''));
-	$toStatus = api_tuitions_learning_status_label((string) ($result['to_status'] ?? $targetStatus));
-	$createdTuitionId = (int) ($result['tuition_created_id'] ?? 0);
-	$deletedTuitionId = (int) ($result['tuition_deleted_id'] ?? 0);
-
-	if (!$updated) {
-		$message = 'Không có thay đổi: trạng thái học viên đã là ' . $toStatus . '.';
-		if (api_expects_json()) {
-			api_success($message, [
-				'updated' => false,
-				'from_status' => (string) ($result['from_status'] ?? ''),
-				'to_status' => (string) ($result['to_status'] ?? $targetStatus),
-			]);
-		}
-
-		set_flash('success', $message);
-		redirect(page_url('registration-finance'));
-	}
-
-	$message = 'Đã chuyển trạng thái học viên từ ' . $fromStatus . ' sang ' . $toStatus . '.';
-	if ($createdTuitionId > 0) {
-		$message .= ' Đã tạo học phí nợ #' . $createdTuitionId . '.';
-	}
-	if ($deletedTuitionId > 0) {
-		$message .= ' Đã xóa học phí #' . $deletedTuitionId . ' do học viên chưa thanh toán.';
-	}
-
-	$enrollmentRow = $academicModel->findRegistrationEnrollmentRow($studentId, $classId);
-	$rowLearningStatus = (string) ($enrollmentRow['learning_status'] ?? ($result['to_status'] ?? $targetStatus));
-	if (!in_array($rowLearningStatus, ['trial', 'official'], true)) {
-		$rowLearningStatus = 'official';
-	}
-
-	$rowTuitionId = max(0, (int) ($enrollmentRow['tuition_id'] ?? 0));
-	$rowTotalAmount = max(0, (float) ($enrollmentRow['total_amount'] ?? 0));
-	$rowAmountPaid = max(0, (float) ($enrollmentRow['amount_paid'] ?? 0));
-	$rowRemainingAmount = max(0, $rowTotalAmount - $rowAmountPaid);
-	$rowTuitionStatus = strtolower(trim((string) ($enrollmentRow['tuition_status'] ?? 'debt')));
-	if (!in_array($rowTuitionStatus, ['paid', 'debt'], true)) {
-		$rowTuitionStatus = $rowAmountPaid >= $rowTotalAmount && $rowTotalAmount > 0 ? 'paid' : 'debt';
-	}
-
-	if (api_expects_json()) {
-		api_success($message, [
-			'updated' => true,
-			'from_status' => (string) ($result['from_status'] ?? ''),
-			'to_status' => (string) ($result['to_status'] ?? $targetStatus),
-			'tuition_created_id' => $createdTuitionId,
-			'tuition_deleted_id' => $deletedTuitionId,
-			'row' => [
-				'student_id' => $studentId,
-				'class_id' => $classId,
-				'learning_status' => $rowLearningStatus,
-				'tuition_id' => $rowTuitionId,
-				'total_amount' => $rowTotalAmount,
-				'amount_paid' => $rowAmountPaid,
-				'remaining_amount' => $rowRemainingAmount,
-				'tuition_status' => $rowTuitionStatus,
-				'has_payment' => $rowAmountPaid > 0.0001,
-			],
-		]);
-	}
-
-	set_flash('success', $message);
-	redirect(page_url('registration-finance'));
+	api_tuitions_fail_or_redirect('Trạng thái học viên trong lớp hiện đã được chuẩn hóa mặc định là chính thức.', page_url('registration-finance'), 410);
 }
 
 function api_tuitions_delete_action(): void
@@ -410,8 +287,12 @@ function api_tuitions_delete_action(): void
 	}
 
 	if ($tuitionId > 0) {
-		(new AcademicModel())->deleteTuitionFee($tuitionId);
-		set_flash('success', 'Đã xóa học phí thành công.');
+		try {
+			(new AcademicModel())->deleteTuitionFee($tuitionId);
+			set_flash('success', 'Đã xóa học phí thành công.');
+		} catch (Throwable) {
+			set_flash('error', 'Không thể xóa học phí. Học phí này có thể đã có giao dịch thanh toán liên quan.');
+		}
 	}
 
 	redirect(page_url('tuition-finance'));

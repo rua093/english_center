@@ -9,7 +9,7 @@ final class RoomsTableModel
 
     public function countDetailed(): int
     {
-        return (int) $this->fetchScalar('SELECT COUNT(*) AS total FROM rooms', [], 'total', 0);
+        return (int) $this->fetchScalar('SELECT COUNT(*) AS total FROM rooms WHERE deleted_at IS NULL', [], 'total', 0);
     }
 
     public function listDetailedPage(int $page, int $perPage): array
@@ -18,7 +18,7 @@ final class RoomsTableModel
         $limit = $this->clampLimit($perPage, 10, 200);
         $offset = ($normalizedPage - 1) * $limit;
 
-        $sql = 'SELECT id, room_name FROM rooms ORDER BY room_name ASC LIMIT ' . $limit . ' OFFSET ' . $offset;
+        $sql = 'SELECT id, room_name FROM rooms WHERE deleted_at IS NULL ORDER BY room_name ASC LIMIT ' . $limit . ' OFFSET ' . $offset;
         return $this->fetchAll($sql);
     }
 
@@ -28,7 +28,7 @@ final class RoomsTableModel
             return null;
         }
 
-        return $this->fetchOne('SELECT id, room_name FROM rooms WHERE id = :id LIMIT 1', ['id' => $id]);
+        return $this->fetchOne('SELECT id, room_name FROM rooms WHERE id = :id AND deleted_at IS NULL LIMIT 1', ['id' => $id]);
     }
 
     public function save(array $data): void
@@ -42,7 +42,7 @@ final class RoomsTableModel
 
         if ($id > 0) {
             $this->executeStatement(
-                'UPDATE rooms SET room_name = :room_name WHERE id = :id',
+                'UPDATE rooms SET room_name = :room_name WHERE id = :id AND deleted_at IS NULL',
                 [
                     'id' => $id,
                     'room_name' => $roomName,
@@ -63,11 +63,11 @@ final class RoomsTableModel
             return;
         }
 
-        $this->executeStatement('DELETE FROM rooms WHERE id = :id', ['id' => $id]);
+        $this->executeStatement('UPDATE rooms SET deleted_at = NOW() WHERE id = :id AND deleted_at IS NULL', ['id' => $id]);
     }
 
     public function listSimple(): array
     {
-        return $this->fetchAll('SELECT id, room_name FROM rooms ORDER BY room_name ASC');
+        return $this->fetchAll('SELECT id, room_name FROM rooms WHERE deleted_at IS NULL ORDER BY room_name ASC');
     }
 }

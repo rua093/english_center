@@ -55,7 +55,7 @@ function api_rooms_delete_action(): void
 
     try {
         (new AcademicModel())->deleteRoom($roomId);
-        set_flash('success', 'Da xoa phong hoc.');
+        set_flash('success', 'Da chuyen phong hoc vao trang thai xoa mem.');
     } catch (Throwable $exception) {
         set_flash('error', 'Khong the xoa phong hoc dang duoc su dung trong lich day.');
     }

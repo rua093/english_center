@@ -189,7 +189,10 @@
         }
 
         function isApiSavePath(actionPath) {
-            return actionPath.startsWith('/api/') && actionPath.endsWith('/save');
+            return actionPath.startsWith('/api/') && (
+                actionPath.endsWith('/save') ||
+                actionPath.endsWith('/update-registration')
+            );
         }
 
         function isLikelyEditUrl(url) {
@@ -198,6 +201,10 @@
             }
 
             if (url.searchParams.has('edit')) {
+                return true;
+            }
+
+            if (url.searchParams.has('registration_edit')) {
                 return true;
             }
 

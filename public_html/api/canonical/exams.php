@@ -214,7 +214,6 @@ function api_exams_class_grid_action(): void
         $students[] = [
             'id' => $studentId,
             'name' => (string) ($row['student_name'] ?? ('Học viên #' . $studentId)),
-            'learning_status' => ((string) ($row['learning_status'] ?? 'official')) === 'trial' ? 'trial' : 'official',
             'metrics' => [
                 'attendance' => [
                     'total_sessions' => $attendanceTotalSessions,

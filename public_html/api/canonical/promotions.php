@@ -147,6 +147,6 @@ function api_promotions_delete_action(): void
         redirect(page_url('promotions-manage'));
     }
 
-    set_flash('success', 'Đã xóa ưu đãi thành công.');
+    set_flash('success', 'Đã chuyển ưu đãi vào trạng thái xóa mềm.');
     redirect(page_url('promotions-manage'));
 }

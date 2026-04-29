@@ -19,12 +19,22 @@ if ($activityPage > $activityTotalPages) {
 $activities = $academicModel->listActivitiesPage($activityPage, $activityPerPage);
 $activityPerPageOptions = ui_pagination_per_page_options();
 $selectedRegistrationActivityId = max(0, (int) ($_GET['registrations_activity'] ?? 0));
+$selectedRegistrationStudentId = max(0, (int) ($_GET['registration_student'] ?? 0));
 $selectedRegistrationActivity = null;
 $selectedRegistrations = [];
+$editingRegistration = null;
 if ($selectedRegistrationActivityId > 0) {
     $selectedRegistrationActivity = $academicModel->findActivity($selectedRegistrationActivityId);
     if (is_array($selectedRegistrationActivity)) {
         $selectedRegistrations = $academicModel->listActivityRegistrations($selectedRegistrationActivityId);
+        if ($selectedRegistrationStudentId > 0) {
+            foreach ($selectedRegistrations as $registrationRow) {
+                if ((int) ($registrationRow['user_id'] ?? 0) === $selectedRegistrationStudentId) {
+                    $editingRegistration = $registrationRow;
+                    break;
+                }
+            }
+        }
     } else {
         $selectedRegistrationActivityId = 0;
     }
@@ -254,25 +264,72 @@ $editingThumbnailUrl = normalize_public_file_url((string) ($editingActivity['ima
     <?php if ($selectedRegistrationActivityId > 0 && is_array($selectedRegistrationActivity)): ?>
         <article class="order-2 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-                <h3>Danh sach hoc vien dang ky: <?= e((string) ($selectedRegistrationActivity['activity_name'] ?? '')); ?></h3>
-                <a class="<?= ui_btn_secondary_classes('sm'); ?>" href="<?= e(page_url('activities-manage', ['activity_page' => $activityPage, 'activity_per_page' => $activityPerPage])); ?>">Dong</a>
+                <h3>Danh sách học viên đăng ký: <?= e((string) ($selectedRegistrationActivity['activity_name'] ?? '')); ?></h3>
+                <a class="<?= ui_btn_secondary_classes('sm'); ?>" href="<?= e(page_url('activities-manage', ['activity_page' => $activityPage, 'activity_per_page' => $activityPerPage])); ?>">Đóng</a>
             </div>
+
+            <?php if ($canUpdateActivity && is_array($editingRegistration)): ?>
+                <div class="hidden" aria-hidden="true">
+                    <h4 class="mb-3 text-sm font-extrabold text-slate-800">Cập nhật thanh toán cho <?= e((string) ($editingRegistration['full_name'] ?? 'Học viên')); ?></h4>
+                    <form class="grid gap-3 md:grid-cols-2 xl:grid-cols-4" method="post" action="/api/activities/update-registration">
+                        <?= csrf_input(); ?>
+                        <input type="hidden" name="id" value="<?= (int) ($editingRegistration['id'] ?? 0); ?>">
+                        <input type="hidden" name="activity_id" value="<?= (int) $selectedRegistrationActivityId; ?>">
+                        <input type="hidden" name="student_id" value="<?= (int) ($editingRegistration['user_id'] ?? 0); ?>">
+                        <input type="hidden" name="activity_page" value="<?= (int) $activityPage; ?>">
+                        <input type="hidden" name="activity_per_page" value="<?= (int) $activityPerPage; ?>">
+                        <label>
+                            Trạng thái đóng phí
+                            <?php
+                            $editingAmountPaid = max(0, (float) ($editingRegistration['amount_paid'] ?? 0));
+                            $editingActivityFee = max(0, (float) ($selectedRegistrationActivity['fee'] ?? 0));
+                            $editingBadgeLabel = 'Chưa đóng phí';
+                            if ($editingAmountPaid >= $editingActivityFee) {
+                                $editingBadgeLabel = 'Đã đóng đủ';
+                            } elseif ($editingAmountPaid > 0) {
+                                $editingBadgeLabel = 'Đóng một phần';
+                            }
+                            ?>
+                            <div class="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700"><?= e($editingBadgeLabel); ?></div>
+                            <span class="mt-1 block text-xs text-slate-500">Trạng thái sẽ được tính tự động theo số tiền đã đóng so với phí gốc.</span>
+                        </label>
+                        <label>
+                            Số tiền đã đóng
+                            <input type="number" step="1000" min="0" name="amount_paid" value="<?= e((string) ((float) ($editingRegistration['amount_paid'] ?? 0))); ?>">
+                        </label>
+                        <label>
+                            Thời điểm ghi nhận
+                            <input type="datetime-local" name="payment_date" value="<?= e(str_replace(' ', 'T', substr((string) ($editingRegistration['payment_date'] ?? ''), 0, 16))); ?>">
+                        </label>
+                        <div class="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-600">
+                            <div class="font-semibold text-slate-700">Phí gốc hoạt động</div>
+                            <div><?= format_money((float) ($selectedRegistrationActivity['fee'] ?? 0)); ?></div>
+                        </div>
+                        <div class="md:col-span-2 xl:col-span-4 flex flex-wrap items-center gap-2">
+                            <button class="<?= ui_btn_primary_classes(); ?>" type="submit">Lưu thanh toán</button>
+                            <a class="<?= ui_btn_secondary_classes(); ?>" href="<?= e(page_url('activities-manage', ['registrations_activity' => $selectedRegistrationActivityId, 'activity_page' => $activityPage, 'activity_per_page' => $activityPerPage])); ?>" data-admin-edit-close="1">Hủy</a>
+                        </div>
+                    </form>
+                </div>
+            <?php endif; ?>
 
             <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
                 <table class="min-w-full border-collapse text-sm">
                     <thead>
                         <tr>
-                            <th>Hoc vien</th>
-                            <th>Ngay dang ky</th>
-                            <th>Trang thai dong phi</th>
-                            <th>Hanh dong</th>
+                            <th>Học viên</th>
+                            <th>Ngày đăng ký</th>
+                            <th>Trạng thái đóng phí</th>
+                            <th>Số tiền đã đóng</th>
+                            <th>Thời điểm ghi nhận</th>
+                            <th>Hành động</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if (empty($selectedRegistrations)): ?>
                             <tr>
-                                <td colspan="4">
-                                    <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">Hoat dong nay chua co hoc vien dang ky.</div>
+                                <td colspan="6">
+                                    <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">Hoạt động này chưa có học viên đăng ký.</div>
                                 </td>
                             </tr>
                         <?php else: ?>
@@ -280,33 +337,50 @@ $editingThumbnailUrl = normalize_public_file_url((string) ($editingActivity['ima
                                 <?php
                                 $studentId = (int) ($registration['user_id'] ?? 0);
                                 $paymentStatus = (string) ($registration['payment_status'] ?? 'unpaid');
-                                $statusBadgeClass = $paymentStatus === 'paid'
-                                    ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
-                                    : 'border-amber-200 bg-amber-50 text-amber-700';
+                                $amountPaid = max(0, (float) ($registration['amount_paid'] ?? 0));
+                                $activityFee = max(0, (float) ($selectedRegistrationActivity['fee'] ?? 0));
+                                $badgeLabel = 'Chưa đóng phí';
+                                $statusBadgeClass = 'border-amber-200 bg-amber-50 text-amber-700';
+
+                                if ($amountPaid >= $activityFee) {
+                                    $badgeLabel = 'Đã đóng đủ';
+                                    $statusBadgeClass = 'border-emerald-200 bg-emerald-50 text-emerald-700';
+                                } elseif ($amountPaid > 0) {
+                                    $badgeLabel = 'Đóng một phần';
+                                    $statusBadgeClass = 'border-sky-200 bg-sky-50 text-sky-700';
+                                } elseif ($paymentStatus === 'paid' && $activityFee <= 0) {
+                                    $badgeLabel = 'Đã đóng đủ';
+                                    $statusBadgeClass = 'border-emerald-200 bg-emerald-50 text-emerald-700';
+                                }
                                 ?>
                                 <tr>
                                     <td>
-                                        <div class="font-semibold text-slate-800"><?= e((string) ($registration['full_name'] ?? ('Hoc vien #' . $studentId))); ?></div>
+                                        <div class="font-semibold text-slate-800"><?= e((string) ($registration['full_name'] ?? ('Học viên #' . $studentId))); ?></div>
                                         <div class="text-xs text-slate-500"><?= e((string) ($registration['username'] ?? '')); ?></div>
                                     </td>
                                     <td><?= e((string) ($registration['registration_date'] ?? '')); ?></td>
                                     <td>
                                         <span class="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-bold <?= e($statusBadgeClass); ?>">
-                                            <?= e($paymentStatus === 'paid' ? 'Da dong phi' : 'Chua dong phi'); ?>
+                                            <?= e($badgeLabel); ?>
                                         </span>
                                     </td>
+                                    <td><?= format_money($amountPaid); ?></td>
+                                    <td><?= e((string) ($registration['payment_date'] ?? '-')); ?></td>
                                     <td>
                                         <?php if ($canUpdateActivity): ?>
-                                            <form method="post" action="/api/activities/remove-student" onsubmit="return confirm('Ban co chac muon xoa hoc vien khoi hoat dong nay?');">
-                                                <?= csrf_input(); ?>
-                                                <input type="hidden" name="activity_id" value="<?= (int) $selectedRegistrationActivityId; ?>">
-                                                <input type="hidden" name="student_id" value="<?= $studentId; ?>">
-                                                <input type="hidden" name="activity_page" value="<?= (int) $activityPage; ?>">
-                                                <input type="hidden" name="activity_per_page" value="<?= (int) $activityPerPage; ?>">
-                                                <button class="<?= ui_btn_danger_classes('sm'); ?>" type="submit">Xoa khoi hoat dong</button>
-                                            </form>
+                                            <div class="flex flex-wrap items-center gap-2">
+                                                <a class="<?= ui_btn_secondary_classes('sm'); ?>" href="<?= e(page_url('activities-manage', ['registrations_activity' => $selectedRegistrationActivityId, 'registration_student' => $studentId, 'registration_edit' => 1, 'activity_page' => $activityPage, 'activity_per_page' => $activityPerPage])); ?>" title="Sửa thanh toán" aria-label="Sửa thanh toán">Sửa thanh toán</a>
+                                                <form method="post" action="/api/activities/remove-student" onsubmit="return confirm('Bạn có chắc muốn xóa học viên khỏi hoạt động này?');">
+                                                    <?= csrf_input(); ?>
+                                                    <input type="hidden" name="activity_id" value="<?= (int) $selectedRegistrationActivityId; ?>">
+                                                    <input type="hidden" name="student_id" value="<?= $studentId; ?>">
+                                                    <input type="hidden" name="activity_page" value="<?= (int) $activityPage; ?>">
+                                                    <input type="hidden" name="activity_per_page" value="<?= (int) $activityPerPage; ?>">
+                                                    <button class="<?= ui_btn_danger_classes('sm'); ?>" type="submit">Xóa khỏi hoạt động</button>
+                                                </form>
+                                            </div>
                                         <?php else: ?>
-                                            <span class="text-sm text-slate-500">Chi co quyen xem</span>
+                                            <span class="text-sm text-slate-500">Chỉ có quyền xem</span>
                                         <?php endif; ?>
                                     </td>
                                 </tr>

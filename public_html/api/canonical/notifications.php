@@ -60,7 +60,11 @@ function api_notifications_delete_action(): void
         redirect(page_url('notifications-manage'));
     }
 
-    (new AcademicModel())->deleteNotification($notificationId);
-    set_flash('success', 'Da xoa thong bao.');
+    try {
+        (new AcademicModel())->deleteNotification($notificationId);
+        set_flash('success', 'Da xoa thong bao.');
+    } catch (Throwable) {
+        set_flash('error', 'Khong the xoa thong bao. Vui long thu lai.');
+    }
     redirect(page_url('notifications-manage'));
 }

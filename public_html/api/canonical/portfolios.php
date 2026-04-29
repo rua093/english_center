@@ -67,7 +67,11 @@ function api_portfolios_delete_action(): void
 
 	$portfolioId = (int) ($_GET['id'] ?? 0);
 
-	(new AcademicModel())->deletePortfolio($portfolioId);
-	set_flash('success', 'Đã xóa portfolio.');
+	try {
+		(new AcademicModel())->deletePortfolio($portfolioId);
+		set_flash('success', 'Đã xóa portfolio.');
+	} catch (Throwable) {
+		set_flash('error', 'Không thể xóa portfolio. Vui lòng thử lại.');
+	}
 	redirect(page_url('portfolios-academic'));
 }

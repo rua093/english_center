@@ -10,7 +10,6 @@ if ($materialId > 0) {
 
 $academicModel = new AcademicModel();
 $editingMaterial = $materialId > 0 ? $academicModel->findMaterial($materialId) : null;
-$materialCourses = $academicModel->classLookups()['courses'] ?? [];
 $existingMaterialFilePath = normalize_public_file_url((string) ($editingMaterial['file_path'] ?? ''));
 
 $module = 'materials';
@@ -23,15 +22,6 @@ $adminTitle = $editingMaterial ? 'Học vụ - Sửa tài liệu' : 'Học vụ 
             <?= csrf_input(); ?>
             <input type="hidden" name="id" value="<?= (int) ($editingMaterial['id'] ?? 0); ?>">
             <input type="hidden" name="existing_file_path" value="<?= e($existingMaterialFilePath); ?>">
-            <label>
-                Khóa học
-                <select name="course_id" required>
-                    <option value="">-- Chọn khóa học --</option>
-                    <?php foreach ($materialCourses as $course): ?>
-                        <option value="<?= (int) $course['id']; ?>" <?= (int) ($editingMaterial['course_id'] ?? 0) === (int) $course['id'] ? 'selected' : ''; ?>><?= e((string) $course['course_name']); ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </label>
             <label>
                 Tiêu đề tài liệu
                 <input type="text" name="title" value="<?= e((string) ($editingMaterial['title'] ?? '')); ?>" required>

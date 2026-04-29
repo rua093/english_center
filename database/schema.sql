@@ -41,7 +41,9 @@ DROP TABLE IF EXISTS roles;
 CREATE TABLE roles (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     role_name VARCHAR(50) NOT NULL UNIQUE,
-    description VARCHAR(255) DEFAULT NULL
+    description VARCHAR(255) DEFAULT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
 CREATE TABLE users (
@@ -67,6 +69,8 @@ CREATE TABLE teacher_profiles (
     experience_years INT DEFAULT 0,
     bio TEXT,
     intro_video_url VARCHAR(255) DEFAULT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_teacher_profiles_user FOREIGN KEY (user_id) REFERENCES users(id)
 ) ENGINE=InnoDB;
 
@@ -76,6 +80,8 @@ CREATE TABLE teacher_certificates (
     certificate_name VARCHAR(120) NOT NULL,
     score VARCHAR(30) DEFAULT NULL,
     image_url VARCHAR(255) DEFAULT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_teacher_cert_teacher FOREIGN KEY (teacher_id) REFERENCES teacher_profiles(id)
 ) ENGINE=InnoDB;
 
@@ -84,7 +90,12 @@ CREATE TABLE courses (
     course_name VARCHAR(180) NOT NULL,
     description TEXT,
     base_price DECIMAL(12,2) NOT NULL DEFAULT 0,
-    total_sessions INT NOT NULL DEFAULT 0
+    total_sessions INT NOT NULL DEFAULT 0,
+    image_thumbnail VARCHAR(255) DEFAULT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP NULL DEFAULT NULL,
+    KEY idx_courses_deleted_at (deleted_at)
 ) ENGINE=InnoDB;
 
 CREATE TABLE course_roadmaps (
@@ -93,6 +104,8 @@ CREATE TABLE course_roadmaps (
     `order` INT NOT NULL,
     topic_title VARCHAR(200) NOT NULL,
     outline_content TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_roadmap_course FOREIGN KEY (course_id) REFERENCES courses(id)
 ) ENGINE=InnoDB;
 
@@ -104,16 +117,24 @@ CREATE TABLE promotions (
     discount_value DECIMAL(5,2) NOT NULL DEFAULT 0,
     start_date DATE DEFAULT NULL,
     end_date DATE DEFAULT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP NULL DEFAULT NULL,
     CONSTRAINT ck_promotions_discount_value CHECK (discount_value >= 0 AND discount_value <= 100),
     CONSTRAINT ck_promotions_date_range CHECK (start_date IS NULL OR end_date IS NULL OR start_date <= end_date),
     CONSTRAINT fk_promotions_course FOREIGN KEY (course_id) REFERENCES courses(id),
     KEY idx_promotions_scope_dates (course_id, start_date, end_date),
-    KEY idx_promotions_promo_type (promo_type)
+    KEY idx_promotions_promo_type (promo_type),
+    KEY idx_promotions_deleted_at (deleted_at)
 ) ENGINE=InnoDB;
 
 CREATE TABLE rooms (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    room_name VARCHAR(100) NOT NULL
+    room_name VARCHAR(100) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP NULL DEFAULT NULL,
+    KEY idx_rooms_deleted_at (deleted_at)
 ) ENGINE=InnoDB;
 
 CREATE TABLE classes (
@@ -124,6 +145,8 @@ CREATE TABLE classes (
     start_date DATE,
     end_date DATE,
     status ENUM('upcoming', 'active', 'graduated', 'cancelled') NOT NULL DEFAULT 'upcoming',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_classes_course FOREIGN KEY (course_id) REFERENCES courses(id),
     CONSTRAINT fk_classes_teacher_user FOREIGN KEY (teacher_id) REFERENCES users(id)
 ) ENGINE=InnoDB;
@@ -132,8 +155,9 @@ CREATE TABLE class_students (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     class_id BIGINT UNSIGNED NOT NULL,
     student_id BIGINT UNSIGNED NOT NULL,
-    learning_status ENUM('trial', 'official') NOT NULL DEFAULT 'official',
     enrollment_date DATE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_class_students_class FOREIGN KEY (class_id) REFERENCES classes(id),
     CONSTRAINT fk_class_students_student FOREIGN KEY (student_id) REFERENCES users(id),
     UNIQUE KEY uq_class_student (class_id, student_id)
@@ -145,7 +169,10 @@ CREATE TABLE lessons (
     roadmap_id BIGINT UNSIGNED DEFAULT NULL,
     actual_title VARCHAR(200) NOT NULL,
     actual_content TEXT,
+    attachment_file_path VARCHAR(255) DEFAULT NULL,
     schedule_id BIGINT UNSIGNED DEFAULT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_lessons_class FOREIGN KEY (class_id) REFERENCES classes(id),
     CONSTRAINT fk_lessons_roadmap FOREIGN KEY (roadmap_id) REFERENCES course_roadmaps(id),
     KEY idx_lessons_class_schedule (class_id, schedule_id)
@@ -159,6 +186,8 @@ CREATE TABLE schedules (
     study_date DATE NOT NULL,
     start_time TIME NOT NULL,
     end_time TIME NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT ck_schedules_time_range CHECK (start_time < end_time),
     CONSTRAINT fk_schedules_class FOREIGN KEY (class_id) REFERENCES classes(id),
     CONSTRAINT fk_schedules_room FOREIGN KEY (room_id) REFERENCES rooms(id),
@@ -282,6 +311,8 @@ CREATE TABLE attendance (
     student_id BIGINT UNSIGNED NOT NULL,
     status ENUM('present', 'absent', 'late') NOT NULL,
     note VARCHAR(255) DEFAULT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_attendance_schedule FOREIGN KEY (schedule_id) REFERENCES schedules(id),
     CONSTRAINT fk_attendance_student FOREIGN KEY (student_id) REFERENCES users(id),
     UNIQUE KEY uq_attendance_student_schedule (schedule_id, student_id)
@@ -300,7 +331,8 @@ CREATE TABLE exams (
     score_writing DECIMAL(5,2) DEFAULT NULL,
     result VARCHAR(50) DEFAULT NULL,
     teacher_comment TEXT,
-    level_suggested VARCHAR(120) DEFAULT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_exams_class FOREIGN KEY (class_id) REFERENCES classes(id),
     CONSTRAINT fk_exams_student FOREIGN KEY (student_id) REFERENCES users(id)
 ) ENGINE=InnoDB;
@@ -313,6 +345,8 @@ CREATE TABLE student_profiles (
     school_name VARCHAR(180) DEFAULT NULL,
     target_score VARCHAR(50) DEFAULT NULL,
     entry_test_id BIGINT UNSIGNED DEFAULT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_student_profiles_user FOREIGN KEY (user_id) REFERENCES users(id),
     CONSTRAINT fk_student_profiles_entry_test FOREIGN KEY (entry_test_id) REFERENCES exams(id)
 ) ENGINE=InnoDB;
@@ -321,7 +355,8 @@ CREATE TABLE staff_profiles (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     user_id BIGINT UNSIGNED NOT NULL UNIQUE,
     position VARCHAR(100) NOT NULL,
-    approval_limit DECIMAL(12,2) NOT NULL DEFAULT 0,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_staff_profiles_user FOREIGN KEY (user_id) REFERENCES users(id)
 ) ENGINE=InnoDB;
 
@@ -380,6 +415,7 @@ CREATE TABLE job_applications (
     converted_user_id BIGINT UNSIGNED DEFAULT NULL,
     converted_at TIMESTAMP NULL DEFAULT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_job_applications_user FOREIGN KEY (converted_user_id) REFERENCES users(id),
     KEY idx_job_applications_converted_user (converted_user_id),
     UNIQUE KEY ux_job_applications_email (email)
@@ -399,6 +435,8 @@ CREATE TABLE assignments (
     description TEXT,
     deadline DATETIME NOT NULL,
     file_url VARCHAR(255) DEFAULT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_assignments_schedule FOREIGN KEY (schedule_id) REFERENCES schedules(id)
 ) ENGINE=InnoDB;
 
@@ -410,6 +448,8 @@ CREATE TABLE submissions (
     submitted_at DATETIME DEFAULT NULL,
     score DECIMAL(5,2) DEFAULT NULL,
     teacher_comment TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_submissions_assignment FOREIGN KEY (assignment_id) REFERENCES assignments(id),
     CONSTRAINT fk_submissions_student FOREIGN KEY (student_id) REFERENCES users(id),
     UNIQUE KEY uq_submissions_assignment_student (assignment_id, student_id)
@@ -427,6 +467,8 @@ CREATE TABLE tuition_fees (
     amount_paid DECIMAL(12,2) NOT NULL DEFAULT 0,
     payment_plan ENUM('full', 'monthly') NOT NULL DEFAULT 'full',
     status ENUM('paid', 'debt') NOT NULL DEFAULT 'debt',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_tuition_student FOREIGN KEY (student_id) REFERENCES users(id),
     CONSTRAINT fk_tuition_class FOREIGN KEY (class_id) REFERENCES classes(id),
     CONSTRAINT fk_tuition_package FOREIGN KEY (package_id) REFERENCES promotions(id)
@@ -435,27 +477,16 @@ CREATE TABLE tuition_fees (
 CREATE TABLE payment_transactions (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     tuition_fee_id BIGINT UNSIGNED NOT NULL,
-    transaction_no VARCHAR(120) NOT NULL,
     payment_method VARCHAR(80) NOT NULL,
     amount DECIMAL(12,2) NOT NULL,
     transaction_status ENUM('success', 'failed', 'pending') NOT NULL DEFAULT 'pending',
-    raw_response JSON DEFAULT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_payment_tx_tuition FOREIGN KEY (tuition_fee_id) REFERENCES tuition_fees(id)
 ) ENGINE=InnoDB;
 
 DROP TRIGGER IF EXISTS trg_class_students_auto_tuition;
 -- Tuition is now created explicitly via course-registration workflow.
-
-CREATE TABLE bank_accounts (
-    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    bank_name VARCHAR(120) NOT NULL,
-    bin VARCHAR(10) NOT NULL,
-    account_number VARCHAR(50) NOT NULL,
-    account_holder VARCHAR(120) NOT NULL,
-    qr_code_static_url VARCHAR(255) DEFAULT NULL,
-    is_default TINYINT(1) NOT NULL DEFAULT 0
-) ENGINE=InnoDB;
 
 CREATE TABLE extracurricular_activities (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -466,7 +497,11 @@ CREATE TABLE extracurricular_activities (
     image_thumbnail VARCHAR(255) DEFAULT NULL,
     fee DECIMAL(12,2) NOT NULL DEFAULT 0,
     start_date DATE,
-    status ENUM('upcoming', 'ongoing', 'finished') NOT NULL DEFAULT 'upcoming'
+    status ENUM('upcoming', 'ongoing', 'finished') NOT NULL DEFAULT 'upcoming',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP NULL DEFAULT NULL,
+    KEY idx_extracurricular_activities_deleted_at (deleted_at)
 ) ENGINE=InnoDB;
 
 CREATE TABLE activity_registrations (
@@ -474,6 +509,8 @@ CREATE TABLE activity_registrations (
     activity_id BIGINT UNSIGNED NOT NULL,
     user_id BIGINT UNSIGNED NOT NULL,
     payment_status ENUM('paid', 'unpaid') NOT NULL DEFAULT 'unpaid',
+    amount_paid DECIMAL(12,2) NOT NULL DEFAULT 0,
+    payment_date DATETIME NULL,
     registration_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_activity_reg_activity FOREIGN KEY (activity_id) REFERENCES extracurricular_activities(id),
     CONSTRAINT fk_activity_reg_user FOREIGN KEY (user_id) REFERENCES users(id)
@@ -487,6 +524,7 @@ CREATE TABLE student_portfolios (
     description TEXT,
     is_public_web TINYINT(1) NOT NULL DEFAULT 0,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_portfolio_student FOREIGN KEY (student_id) REFERENCES users(id)
 ) ENGINE=InnoDB;
 
@@ -511,16 +549,17 @@ CREATE TABLE notifications (
     message TEXT NOT NULL,
     is_read TINYINT(1) NOT NULL DEFAULT 0,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_notifications_user FOREIGN KEY (user_id) REFERENCES users(id)
 ) ENGINE=InnoDB;
 
 CREATE TABLE materials (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    course_id BIGINT UNSIGNED NOT NULL,
     title VARCHAR(180) NOT NULL,
     description TEXT NULL,
     file_path VARCHAR(255) NOT NULL,
-    CONSTRAINT fk_materials_course FOREIGN KEY (course_id) REFERENCES courses(id)
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
 CREATE TABLE feedbacks (
@@ -530,6 +569,7 @@ CREATE TABLE feedbacks (
     content TEXT,
     is_public_web TINYINT(1) NOT NULL DEFAULT 0,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_feedbacks_sender FOREIGN KEY (sender_id) REFERENCES users(id)
 ) ENGINE=InnoDB;
 
@@ -541,6 +581,7 @@ CREATE TABLE approvals (
     content TEXT NOT NULL,
     status ENUM('pending', 'approved', 'rejected') NOT NULL DEFAULT 'pending',
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_approvals_requester FOREIGN KEY (requester_id) REFERENCES users(id),
     CONSTRAINT fk_approvals_approver FOREIGN KEY (approver_id) REFERENCES users(id)
 ) ENGINE=InnoDB;

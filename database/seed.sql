@@ -39,8 +39,8 @@ INSERT INTO rooms (room_name) VALUES ('Phong 101');
 INSERT INTO classes (course_id, class_name, teacher_id, start_date, end_date, status)
 VALUES (1, 'IELTS-K20-Toi-2-4', 3, '2026-04-01', '2026-07-01', 'active');
 
-INSERT INTO class_students (class_id, student_id, learning_status, enrollment_date)
-VALUES (1, 4, 'official', '2026-04-01');
+INSERT INTO class_students (class_id, student_id, enrollment_date)
+VALUES (1, 4, '2026-04-01');
 
 INSERT INTO lessons (class_id, roadmap_id, actual_title, actual_content, schedule_id) VALUES
 (1, 1, 'Orientation Session', 'On dinh muc tieu dau vao va phuong phap hoc.', NULL),
@@ -66,8 +66,8 @@ WHERE class_id = 1 AND actual_title = 'Listening Skill Set 1';
 INSERT INTO attendance (schedule_id, student_id, status, note) VALUES
 (1, 4, 'present', 'Di hoc day du');
 
-INSERT INTO exams (class_id, student_id, exam_name, exam_type, exam_date, result, teacher_comment, level_suggested)
-VALUES (NULL, 4, 'Entry Test', 'entry', '2026-03-28', '5.0', 'Can tang cuong speaking va vocab.', 'IELTS Foundation');
+INSERT INTO exams (class_id, student_id, exam_name, exam_type, exam_date, result, teacher_comment)
+VALUES (NULL, 4, 'Entry Test', 'entry', '2026-03-28', '5.0', 'Can tang cuong speaking va vocab.');
 
 INSERT INTO student_profiles (user_id, parent_name, parent_phone, school_name, target_score, entry_test_id)
 VALUES (4, 'Tran Thi Parent', '0909999999', 'THPT Demo', 'IELTS 6.5', 1);
@@ -133,17 +133,14 @@ INSERT INTO submissions (assignment_id, student_id, file_url, submitted_at, scor
 INSERT INTO tuition_fees (student_id, class_id, package_id, base_amount, discount_type, discount_amount, total_amount, amount_paid, payment_plan, status)
 VALUES (4, 1, 2, 5800000, 'DURATION', 3, 5626000, 2800000, 'monthly', 'debt');
 
-INSERT INTO payment_transactions (tuition_fee_id, transaction_no, payment_method, amount, transaction_status, raw_response)
-VALUES (1, 'TXN-EC-0001', 'bank_transfer', 2800000, 'success', JSON_OBJECT('bank', 'Vietcombank', 'message', 'Thanh cong'));
-
-INSERT INTO bank_accounts (bank_name, bin, account_number, account_holder, qr_code_static_url, is_default)
-VALUES ('Vietcombank', '970436', '0123456789', 'ENGLISH CENTER', 'https://example.com/vietqr.png', 1);
+INSERT INTO payment_transactions (tuition_fee_id, payment_method, amount, transaction_status)
+VALUES (1, 'bank_transfer', 2800000, 'success');
 
 INSERT INTO extracurricular_activities (title, description, content, location, image_thumbnail, fee, start_date, status)
 VALUES ('English Camp 2026', 'Hoat dong ngoai khoa ket noi hoc vien.', '<p>Thuc hanh giao tiep voi tinh huong thuc te.</p>', 'Co so 1 - San trung tam', '/assets/uploads/camp-thumb.jpg', 200000, '2026-05-10', 'upcoming');
 
-INSERT INTO activity_registrations (activity_id, user_id, payment_status)
-VALUES (1, 4, 'unpaid');
+INSERT INTO activity_registrations (activity_id, user_id, payment_status, amount_paid, payment_date)
+VALUES (1, 4, 'unpaid', 0, NULL);
 
 INSERT INTO student_portfolios (student_id, type, media_url, description, is_public_web)
 VALUES (4, 'progress_video', 'https://example.com/student-progress.mp4', 'Tien bo speaking sau 8 tuan.', 1);
@@ -302,16 +299,15 @@ INSERT INTO notifications (user_id, title, message, is_read) VALUES
 (4, 'Nho nop bai tap', 'Ban co 1 bai tap den han vao 23:59 ngay 15/04.', 0),
 (4, 'Lich hoc toi nay', 'Lop IELTS-K20 bat dau luc 19:00 tai Phong 101.', 0);
 
-INSERT INTO materials (course_id, title, description, file_path)
-SELECT src.course_id, src.title, src.description, src.file_path
+INSERT INTO materials (title, description, file_path)
+SELECT src.title, src.description, src.file_path
 FROM (
-	SELECT 1 AS course_id, 'Listening Practice Set 01' AS title, 'Bo bai nghe co dap an cho hoc vien moi bat dau.' AS description, '/assets/uploads/material-listening-1.pdf' AS file_path
+	SELECT 'Listening Practice Set 01' AS title, 'Bo bai nghe co dap an cho hoc vien moi bat dau.' AS description, '/assets/uploads/material-listening-1.pdf' AS file_path
 ) AS src
 WHERE NOT EXISTS (
 	SELECT 1
 	FROM materials m
-	WHERE m.course_id = src.course_id
-	  AND m.title = src.title
+	WHERE m.title = src.title
 	  AND m.file_path = src.file_path
 );
 
@@ -326,15 +322,10 @@ VALUES
 ('Conversation Club', 'Hoi hop toan tieng Anh vui ve va ty mat.', '<p>Luyen phan xa noi va tu duy bang tieng Anh.</p>', 'Phong sinh hoat B2', '/assets/uploads/activity-conversation.jpg', 0, '2026-04-20', 'upcoming'),
 ('Movie Night', 'Xem phim tieng Anh co phu de.', '<p>Luyen nghe qua boi canh phim thuc te.</p>', 'Hoi truong tang 3', '/assets/uploads/activity-movie.jpg', 50000, '2026-04-25', 'upcoming');
 
-INSERT INTO activity_registrations (activity_id, user_id, payment_status, registration_date)
+INSERT INTO activity_registrations (activity_id, user_id, payment_status, amount_paid, payment_date, registration_date)
 VALUES 
-(1, 4, 'unpaid', '2026-04-10 10:00:00'),
-(2, 4, 'paid', '2026-04-12 14:30:00');
-
-INSERT INTO bank_accounts (bank_name, bin, account_number, account_holder, qr_code_static_url, is_default)
-VALUES 
-('VIETCOMBANK', '970436', '1234567890123', 'English Center Co., Ltd', 'https://example.com/vietqr-main.png', 1),
-('TECHCOMBANK', '970407', '9876543210987', 'English Center Co., Ltd', 'https://example.com/vietqr-secondary.png', 0);
+(1, 4, 'unpaid', 0, NULL, '2026-04-10 10:00:00'),
+(2, 4, 'paid', 0, '2026-04-12 14:30:00', '2026-04-12 14:30:00');
 
 INSERT INTO student_portfolios (student_id, type, media_url, description, is_public_web)
 VALUES 
@@ -350,9 +341,9 @@ INSERT INTO users (username, password, full_name, role_id, phone, email, status)
 ('student3@ec.local', '$2y$10$5luD5xfAGFeqHwRdPWq1ZezZW43r.qwE2wFcaXCanvh1O0DR8XYum', 'Do Gia Student', (SELECT id FROM roles WHERE role_name = 'student' LIMIT 1), '0900000014', 'student3@ec.local', 'active'),
 ('student4@ec.local', '$2y$10$5luD5xfAGFeqHwRdPWq1ZezZW43r.qwE2wFcaXCanvh1O0DR8XYum', 'Vu Nam Student', (SELECT id FROM roles WHERE role_name = 'student' LIMIT 1), '0900000015', 'student4@ec.local', 'inactive');
 
-INSERT INTO staff_profiles (user_id, position, approval_limit) VALUES
-((SELECT id FROM users WHERE username = 'staff@ec.local' LIMIT 1), 'Academic Coordinator', 3000000),
-((SELECT id FROM users WHERE username = 'staff.finance@ec.local' LIMIT 1), 'Finance Officer', 8000000);
+INSERT INTO staff_profiles (user_id, position) VALUES
+((SELECT id FROM users WHERE username = 'staff@ec.local' LIMIT 1), 'Academic Coordinator'),
+((SELECT id FROM users WHERE username = 'staff.finance@ec.local' LIMIT 1), 'Finance Officer');
 
 INSERT INTO teacher_profiles (user_id, degree, experience_years, bio, intro_video_url) VALUES
 ((SELECT id FROM users WHERE username = 'teacher2@ec.local' LIMIT 1), 'Master of TESOL', 9, 'Teacher chuyen Business English va speaking workshop.', 'https://example.com/intro-teacher-2.mp4'),
@@ -395,13 +386,13 @@ INSERT INTO classes (course_id, class_name, teacher_id, start_date, end_date, st
 ((SELECT id FROM courses WHERE course_name = 'Kids Speaking Starter' ORDER BY id DESC LIMIT 1), 'KIDS-K03-Cuoi-Tuan', (SELECT id FROM users WHERE username = 'teacher2@ec.local' LIMIT 1), '2026-04-06', '2026-08-06', 'active'),
 ((SELECT id FROM courses WHERE course_name = 'Business English Intensive' ORDER BY id DESC LIMIT 1), 'BUS-K20-Toi-2-4', (SELECT id FROM users WHERE username = 'teacher2@ec.local' LIMIT 1), '2026-01-10', '2026-04-10', 'cancelled');
 
-INSERT INTO class_students (class_id, student_id, learning_status, enrollment_date) VALUES
-((SELECT id FROM classes WHERE class_name = 'BUS-K22-Toi-3-5' LIMIT 1), (SELECT id FROM users WHERE username = 'student2@ec.local' LIMIT 1), 'trial', '2026-05-03'),
-((SELECT id FROM classes WHERE class_name = 'BUS-K22-Toi-3-5' LIMIT 1), (SELECT id FROM users WHERE username = 'student3@ec.local' LIMIT 1), 'official', '2026-05-03'),
-((SELECT id FROM classes WHERE class_name = 'TOEIC-K11-Sang-2-4-6' LIMIT 1), (SELECT id FROM users WHERE username = 'student2@ec.local' LIMIT 1), 'official', '2026-03-01'),
-((SELECT id FROM classes WHERE class_name = 'TOEIC-K11-Sang-2-4-6' LIMIT 1), (SELECT id FROM users WHERE username = 'student4@ec.local' LIMIT 1), 'official', '2026-03-01'),
-((SELECT id FROM classes WHERE class_name = 'IELTS-K19-Toi-3-5' LIMIT 1), (SELECT id FROM users WHERE username = 'student3@ec.local' LIMIT 1), 'official', '2025-11-01'),
-((SELECT id FROM classes WHERE class_name = 'KIDS-K03-Cuoi-Tuan' LIMIT 1), (SELECT id FROM users WHERE username = 'student3@ec.local' LIMIT 1), 'official', '2026-04-06');
+INSERT INTO class_students (class_id, student_id, enrollment_date) VALUES
+((SELECT id FROM classes WHERE class_name = 'BUS-K22-Toi-3-5' LIMIT 1), (SELECT id FROM users WHERE username = 'student2@ec.local' LIMIT 1), '2026-05-03'),
+((SELECT id FROM classes WHERE class_name = 'BUS-K22-Toi-3-5' LIMIT 1), (SELECT id FROM users WHERE username = 'student3@ec.local' LIMIT 1), '2026-05-03'),
+((SELECT id FROM classes WHERE class_name = 'TOEIC-K11-Sang-2-4-6' LIMIT 1), (SELECT id FROM users WHERE username = 'student2@ec.local' LIMIT 1), '2026-03-01'),
+((SELECT id FROM classes WHERE class_name = 'TOEIC-K11-Sang-2-4-6' LIMIT 1), (SELECT id FROM users WHERE username = 'student4@ec.local' LIMIT 1), '2026-03-01'),
+((SELECT id FROM classes WHERE class_name = 'IELTS-K19-Toi-3-5' LIMIT 1), (SELECT id FROM users WHERE username = 'student3@ec.local' LIMIT 1), '2025-11-01'),
+((SELECT id FROM classes WHERE class_name = 'KIDS-K03-Cuoi-Tuan' LIMIT 1), (SELECT id FROM users WHERE username = 'student3@ec.local' LIMIT 1), '2026-04-06');
 
 INSERT INTO lessons (class_id, roadmap_id, actual_title, actual_content, schedule_id) VALUES
 ((SELECT id FROM classes WHERE class_name = 'BUS-K22-Toi-3-5' LIMIT 1), (SELECT cr.id FROM course_roadmaps cr INNER JOIN courses c ON c.id = cr.course_id WHERE c.course_name = 'Business English Intensive' AND cr.`order` = 1 ORDER BY cr.id DESC LIMIT 1), 'Business Pitch Warm-up', 'Tap gioi thieu doanh nghiep trong 60 giay.', NULL),
@@ -458,12 +449,12 @@ INSERT INTO attendance (schedule_id, student_id, status, note) VALUES
 ((SELECT s.id FROM schedules s INNER JOIN classes c ON c.id = s.class_id WHERE c.class_name = 'KIDS-K03-Cuoi-Tuan' AND s.study_date = '2026-04-20' LIMIT 1), (SELECT id FROM users WHERE username = 'student3@ec.local' LIMIT 1), 'absent', 'Bao nghi vi ban viec gia dinh.'),
 ((SELECT s.id FROM schedules s INNER JOIN classes c ON c.id = s.class_id WHERE c.class_name = 'BUS-K22-Toi-3-5' AND s.study_date = '2026-05-07' LIMIT 1), (SELECT id FROM users WHERE username = 'student3@ec.local' LIMIT 1), 'present', 'Tich cuc tham gia thao luan nhom.');
 
-INSERT INTO exams (class_id, student_id, exam_name, exam_type, exam_date, result, teacher_comment, level_suggested) VALUES
-((SELECT id FROM classes WHERE class_name = 'TOEIC-K11-Sang-2-4-6' LIMIT 1), (SELECT id FROM users WHERE username = 'student2@ec.local' LIMIT 1), 'TOEIC Midterm Mock 01', 'periodic', '2026-04-10', '680', 'Can tap trung vao Part 7 de tang diem.', 'TOEIC 750+'),
-((SELECT id FROM classes WHERE class_name = 'IELTS-K19-Toi-3-5' LIMIT 1), (SELECT id FROM users WHERE username = 'student3@ec.local' LIMIT 1), 'IELTS Graduation Test', 'final', '2026-02-26', '6.5', 'Tien bo ro o writing task 2.', 'IELTS 7.0'),
-(NULL, (SELECT id FROM users WHERE username = 'student2@ec.local' LIMIT 1), 'Entry Test Student2', 'entry', '2026-02-20', '4.5', 'Nen hoc lai grammar co ban.', 'TOEIC Sprint B1-B2'),
-(NULL, (SELECT id FROM users WHERE username = 'student3@ec.local' LIMIT 1), 'Entry Test Student3', 'entry', '2026-03-02', '5.5', 'Phat am kha tot, can bo sung tu vung hoc thuat.', 'Business English Intensive'),
-(NULL, (SELECT id FROM users WHERE username = 'student4@ec.local' LIMIT 1), 'Entry Test Student4', 'entry', '2026-04-01', '3.5', 'Can hoc phat am va mau cau giao tiep co ban.', 'Kids Speaking Starter');
+INSERT INTO exams (class_id, student_id, exam_name, exam_type, exam_date, result, teacher_comment) VALUES
+((SELECT id FROM classes WHERE class_name = 'TOEIC-K11-Sang-2-4-6' LIMIT 1), (SELECT id FROM users WHERE username = 'student2@ec.local' LIMIT 1), 'TOEIC Midterm Mock 01', 'periodic', '2026-04-10', '680', 'Can tap trung vao Part 7 de tang diem.'),
+((SELECT id FROM classes WHERE class_name = 'IELTS-K19-Toi-3-5' LIMIT 1), (SELECT id FROM users WHERE username = 'student3@ec.local' LIMIT 1), 'IELTS Graduation Test', 'final', '2026-02-26', '6.5', 'Tien bo ro o writing task 2.'),
+(NULL, (SELECT id FROM users WHERE username = 'student2@ec.local' LIMIT 1), 'Entry Test Student2', 'entry', '2026-02-20', '4.5', 'Nen hoc lai grammar co ban.'),
+(NULL, (SELECT id FROM users WHERE username = 'student3@ec.local' LIMIT 1), 'Entry Test Student3', 'entry', '2026-03-02', '5.5', 'Phat am kha tot, can bo sung tu vung hoc thuat.'),
+(NULL, (SELECT id FROM users WHERE username = 'student4@ec.local' LIMIT 1), 'Entry Test Student4', 'entry', '2026-04-01', '3.5', 'Can hoc phat am va mau cau giao tiep co ban.');
 
 INSERT INTO student_profiles (user_id, parent_name, parent_phone, school_name, target_score, entry_test_id) VALUES
 ((SELECT id FROM users WHERE username = 'student2@ec.local' LIMIT 1), 'Pham Thi Lan', '0911111111', 'Dai hoc Kinh te', 'TOEIC 750', (SELECT id FROM exams WHERE exam_name = 'Entry Test Student2' LIMIT 1)),
@@ -490,70 +481,63 @@ INSERT INTO tuition_fees (student_id, class_id, package_id, base_amount, discoun
 ((SELECT id FROM users WHERE username = 'student4@ec.local' LIMIT 1), (SELECT id FROM classes WHERE class_name = 'TOEIC-K11-Sang-2-4-6' LIMIT 1), (SELECT cp.id FROM promotions cp INNER JOIN courses c ON c.id = cp.course_id WHERE c.course_name = 'TOEIC Sprint B1-B2' AND cp.name = 'Goi 4 tuan' ORDER BY cp.id DESC LIMIT 1), 4200000, NULL, 0, 4200000, 0, 'monthly', 'debt'),
 ((SELECT id FROM users WHERE username = 'student3@ec.local' LIMIT 1), (SELECT id FROM classes WHERE class_name = 'KIDS-K03-Cuoi-Tuan' LIMIT 1), (SELECT cp.id FROM promotions cp INNER JOIN courses c ON c.id = cp.course_id WHERE c.course_name = 'Kids Speaking Starter' AND cp.name = 'Goi 12 tuan' ORDER BY cp.id DESC LIMIT 1), 3500000, 'GROUP', 5, 3325000, 3325000, 'full', 'paid');
 
-INSERT INTO payment_transactions (tuition_fee_id, transaction_no, payment_method, amount, transaction_status, raw_response) VALUES
-((SELECT tf.id FROM tuition_fees tf INNER JOIN users u ON u.id = tf.student_id INNER JOIN classes c ON c.id = tf.class_id WHERE u.username = 'student2@ec.local' AND c.class_name = 'TOEIC-K11-Sang-2-4-6' LIMIT 1), 'TXN-EC-0101', 'bank_transfer', 4074000, 'success', JSON_OBJECT('bank', 'BIDV', 'message', 'Thanh cong')),
-((SELECT tf.id FROM tuition_fees tf INNER JOIN users u ON u.id = tf.student_id INNER JOIN classes c ON c.id = tf.class_id WHERE u.username = 'student3@ec.local' AND c.class_name = 'BUS-K22-Toi-3-5' LIMIT 1), 'TXN-EC-0102', 'cash', 2000000, 'success', JSON_OBJECT('collector', 'staff.finance@ec.local', 'message', 'Thu dot 1')),
-((SELECT tf.id FROM tuition_fees tf INNER JOIN users u ON u.id = tf.student_id INNER JOIN classes c ON c.id = tf.class_id WHERE u.username = 'student3@ec.local' AND c.class_name = 'BUS-K22-Toi-3-5' LIMIT 1), 'TXN-EC-0103', 'ewallet', 1500000, 'pending', JSON_OBJECT('provider', 'Momo', 'message', 'Dang doi doi soat')),
-((SELECT tf.id FROM tuition_fees tf INNER JOIN users u ON u.id = tf.student_id INNER JOIN classes c ON c.id = tf.class_id WHERE u.username = 'student4@ec.local' AND c.class_name = 'TOEIC-K11-Sang-2-4-6' LIMIT 1), 'TXN-EC-0104', 'bank_transfer', 500000, 'failed', JSON_OBJECT('bank', 'Techcombank', 'message', 'Sai noi dung chuyen khoan'));
-
-INSERT INTO bank_accounts (bank_name, bin, account_number, account_holder, qr_code_static_url, is_default)
-VALUES ('MB BANK', '970422', '5454545454545', 'English Center Co., Ltd', 'https://example.com/vietqr-mbbank.png', 0);
+INSERT INTO payment_transactions (tuition_fee_id, payment_method, amount, transaction_status) VALUES
+((SELECT tf.id FROM tuition_fees tf INNER JOIN users u ON u.id = tf.student_id INNER JOIN classes c ON c.id = tf.class_id WHERE u.username = 'student2@ec.local' AND c.class_name = 'TOEIC-K11-Sang-2-4-6' LIMIT 1), 'bank_transfer', 4074000, 'success'),
+((SELECT tf.id FROM tuition_fees tf INNER JOIN users u ON u.id = tf.student_id INNER JOIN classes c ON c.id = tf.class_id WHERE u.username = 'student3@ec.local' AND c.class_name = 'BUS-K22-Toi-3-5' LIMIT 1), 'cash', 2000000, 'success'),
+((SELECT tf.id FROM tuition_fees tf INNER JOIN users u ON u.id = tf.student_id INNER JOIN classes c ON c.id = tf.class_id WHERE u.username = 'student3@ec.local' AND c.class_name = 'BUS-K22-Toi-3-5' LIMIT 1), 'ewallet', 1500000, 'pending'),
+((SELECT tf.id FROM tuition_fees tf INNER JOIN users u ON u.id = tf.student_id INNER JOIN classes c ON c.id = tf.class_id WHERE u.username = 'student4@ec.local' AND c.class_name = 'TOEIC-K11-Sang-2-4-6' LIMIT 1), 'bank_transfer', 500000, 'failed');
 
 INSERT INTO extracurricular_activities (title, description, content, location, image_thumbnail, fee, start_date, status) VALUES
 ('Public Speaking Bootcamp', 'Workshop thuc hanh thuyet trinh cho hoc vien trung cap.', '<p>Luyen ky nang tu tin va truc quan hoa bai noi.</p>', 'Phong Workshop A1', '/assets/uploads/activity-speaking-bootcamp.jpg', 150000, '2026-04-15', 'ongoing'),
 ('Volunteer English Day', 'Ngay tinh nguyen day tieng Anh cho hoc sinh dia phuong.', '<p>Ket hop hoat dong xa hoi va ren ky nang giao tiep.</p>', 'Truong THCS An Binh', '/assets/uploads/activity-volunteer.jpg', 0, '2026-03-22', 'finished'),
 ('Pronunciation Challenge', 'Mini challenge luyen phat am trong 14 ngay.', '<p>Moi ngay 10 phut shadowing va thu am.</p>', 'Phong Lab 2', '/assets/uploads/activity-pronunciation.jpg', 50000, '2026-05-02', 'upcoming');
 
-INSERT INTO activity_registrations (activity_id, user_id, payment_status, registration_date) VALUES
-((SELECT id FROM extracurricular_activities WHERE title = 'Public Speaking Bootcamp' LIMIT 1), (SELECT id FROM users WHERE username = 'student2@ec.local' LIMIT 1), 'paid', '2026-04-13 09:00:00'),
-((SELECT id FROM extracurricular_activities WHERE title = 'Public Speaking Bootcamp' LIMIT 1), (SELECT id FROM users WHERE username = 'student3@ec.local' LIMIT 1), 'unpaid', '2026-04-14 11:20:00'),
-((SELECT id FROM extracurricular_activities WHERE title = 'Volunteer English Day' LIMIT 1), (SELECT id FROM users WHERE username = 'student3@ec.local' LIMIT 1), 'paid', '2026-03-18 08:30:00'),
-((SELECT id FROM extracurricular_activities WHERE title = 'Pronunciation Challenge' LIMIT 1), (SELECT id FROM users WHERE username = 'student2@ec.local' LIMIT 1), 'unpaid', '2026-04-28 19:45:00');
+INSERT INTO activity_registrations (activity_id, user_id, payment_status, amount_paid, payment_date, registration_date) VALUES
+((SELECT id FROM extracurricular_activities WHERE title = 'Public Speaking Bootcamp' LIMIT 1), (SELECT id FROM users WHERE username = 'student2@ec.local' LIMIT 1), 'paid', 150000, '2026-04-13 10:15:00', '2026-04-13 09:00:00'),
+((SELECT id FROM extracurricular_activities WHERE title = 'Public Speaking Bootcamp' LIMIT 1), (SELECT id FROM users WHERE username = 'student3@ec.local' LIMIT 1), 'unpaid', 50000, '2026-04-14 15:30:00', '2026-04-14 11:20:00'),
+((SELECT id FROM extracurricular_activities WHERE title = 'Volunteer English Day' LIMIT 1), (SELECT id FROM users WHERE username = 'student3@ec.local' LIMIT 1), 'paid', 0, '2026-03-18 08:30:00', '2026-03-18 08:30:00'),
+((SELECT id FROM extracurricular_activities WHERE title = 'Pronunciation Challenge' LIMIT 1), (SELECT id FROM users WHERE username = 'student2@ec.local' LIMIT 1), 'unpaid', 0, NULL, '2026-04-28 19:45:00');
 
 INSERT INTO notifications (user_id, title, message, is_read) VALUES
 ((SELECT id FROM users WHERE username = 'student2@ec.local' LIMIT 1), 'Nhac hoc phi dot 2', 'Ban can thanh toan dot 2 truoc ngay 25/04.', 0),
 ((SELECT id FROM users WHERE username = 'teacher2@ec.local' LIMIT 1), 'Co yeu cau nghi day', 'Yeu cau nghi day cua ban dang cho duyet.', 1),
 ((SELECT id FROM users WHERE username = 'staff.finance@ec.local' LIMIT 1), 'Don dieu chinh tai chinh', 'Co 1 don finance_adjust moi can xu ly.', 0);
 
-INSERT INTO materials (course_id, title, description, file_path)
-SELECT src.course_id, src.title, src.description, src.file_path
+INSERT INTO materials (title, description, file_path)
+SELECT src.title, src.description, src.file_path
 FROM (
-		SELECT (SELECT id FROM courses WHERE course_name = 'Business English Intensive' ORDER BY id DESC LIMIT 1) AS course_id, 'Negotiation Roleplay Video' AS title, 'Video thuc hanh dam phan trong boi canh cong viec.' AS description, '/assets/uploads/material-business-negotiation.mp4' AS file_path
+		SELECT 'Negotiation Roleplay Video' AS title, 'Video thuc hanh dam phan trong boi canh cong viec.' AS description, '/assets/uploads/material-business-negotiation.mp4' AS file_path
 		UNION ALL
-		SELECT (SELECT id FROM courses WHERE course_name = 'TOEIC Sprint B1-B2' ORDER BY id DESC LIMIT 1), 'TOEIC Listening Part 2 Audio', 'File nghe luyen dang cau hoi dap ngan.', '/assets/uploads/material-toeic-part2.mp3'
+		SELECT 'TOEIC Listening Part 2 Audio', 'File nghe luyen dang cau hoi dap ngan.', '/assets/uploads/material-toeic-part2.mp3'
 		UNION ALL
-		SELECT (SELECT id FROM courses WHERE course_name = 'Kids Speaking Starter' ORDER BY id DESC LIMIT 1), 'Kids Color Flashcards', 'Bo the mau sac ho tro tu vung cho tre em.', '/assets/uploads/material-kids-flashcards.pdf'
+		SELECT 'Kids Color Flashcards', 'Bo the mau sac ho tro tu vung cho tre em.', '/assets/uploads/material-kids-flashcards.pdf'
 ) AS src
-WHERE src.course_id IS NOT NULL
-	AND NOT EXISTS (
+WHERE NOT EXISTS (
 		SELECT 1
 		FROM materials m
-		WHERE m.course_id = src.course_id
-			AND m.title = src.title
+		WHERE m.title = src.title
 			AND m.file_path = src.file_path
 	);
 
-INSERT INTO materials (course_id, title, description, file_path)
-SELECT src.course_id, src.title, src.description, src.file_path
+INSERT INTO materials (title, description, file_path)
+SELECT src.title, src.description, src.file_path
 FROM (
-		SELECT (SELECT id FROM courses WHERE course_name = 'Business English Intensive' ORDER BY id DESC LIMIT 1) AS course_id, 'Email Writing Templates' AS title, 'Mau email chuyen nghiep cho moi tinh huong cong viec.' AS description, '/assets/uploads/material-business-email-writing.pdf' AS file_path
+		SELECT 'Email Writing Templates' AS title, 'Mau email chuyen nghiep cho moi tinh huong cong viec.' AS description, '/assets/uploads/material-business-email-writing.pdf' AS file_path
 		UNION ALL
-		SELECT (SELECT id FROM courses WHERE course_name = 'TOEIC Sprint B1-B2' ORDER BY id DESC LIMIT 1), 'TOEIC Vocabulary Pack', 'Danh sach tu vung TOEIC theo chu de va bai tap on luuyen.', '/assets/uploads/material-toeic-vocab-pack.pdf'
+		SELECT 'TOEIC Vocabulary Pack', 'Danh sach tu vung TOEIC theo chu de va bai tap on luuyen.', '/assets/uploads/material-toeic-vocab-pack.pdf'
 		UNION ALL
-		SELECT (SELECT id FROM courses WHERE course_name = 'Kids Speaking Starter' ORDER BY id DESC LIMIT 1), 'Kids Pronunciation Warmup', 'Hoat dong khop am va lop noi cho hoc vien nhi dong.', '/assets/uploads/material-kids-pronunciation.mp4'
+		SELECT 'Kids Pronunciation Warmup', 'Hoat dong khop am va lop noi cho hoc vien nhi dong.', '/assets/uploads/material-kids-pronunciation.mp4'
 		UNION ALL
-		SELECT (SELECT id FROM courses WHERE course_name = 'Business English Intensive' ORDER BY id DESC LIMIT 1), 'Meeting Phrases Cheat Sheet', 'Cum tu dung nhanh khi hop va trao doi cong viec.', '/assets/uploads/material-meeting-phrases.pdf'
+		SELECT 'Meeting Phrases Cheat Sheet', 'Cum tu dung nhanh khi hop va trao doi cong viec.', '/assets/uploads/material-meeting-phrases.pdf'
 		UNION ALL
-		SELECT (SELECT id FROM courses WHERE course_name = 'TOEIC Sprint B1-B2' ORDER BY id DESC LIMIT 1), 'Reading Strategy Notes', 'Ghi chu chien luoc doc hieu va tim y chinh.', '/assets/uploads/material-reading-strategy.pdf'
+		SELECT 'Reading Strategy Notes', 'Ghi chu chien luoc doc hieu va tim y chinh.', '/assets/uploads/material-reading-strategy.pdf'
 		UNION ALL
-		SELECT (SELECT id FROM courses WHERE course_name = 'Kids Speaking Starter' ORDER BY id DESC LIMIT 1), 'Story Time Audio', 'File nghe ke chuyen ngan danh cho hoc vien nhi.', '/assets/uploads/material-story-time.mp3'
+		SELECT 'Story Time Audio', 'File nghe ke chuyen ngan danh cho hoc vien nhi.', '/assets/uploads/material-story-time.mp3'
 ) AS src
-WHERE src.course_id IS NOT NULL
-	AND NOT EXISTS (
+WHERE NOT EXISTS (
 		SELECT 1
 		FROM materials m
-		WHERE m.course_id = src.course_id
-			AND m.title = src.title
+		WHERE m.title = src.title
 			AND m.file_path = src.file_path
 	);
 

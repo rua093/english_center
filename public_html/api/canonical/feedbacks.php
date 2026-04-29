@@ -46,7 +46,11 @@ function api_feedbacks_delete_action(): void
 	api_guard_permission('feedback.delete');
 	api_require_post(page_url('feedbacks-manage'));
 
-	(new AcademicModel())->deleteFeedback((int) ($_GET['id'] ?? 0));
-	set_flash('success', 'Đã xóa feedback.');
+	try {
+		(new AcademicModel())->deleteFeedback((int) ($_GET['id'] ?? 0));
+		set_flash('success', 'Đã xóa feedback.');
+	} catch (Throwable) {
+		set_flash('error', 'Không thể xóa feedback. Vui lòng thử lại.');
+	}
 	redirect(page_url('feedbacks-manage'));
 }

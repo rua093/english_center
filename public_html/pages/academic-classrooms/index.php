@@ -163,6 +163,7 @@ if ($selectedClassId > 0) {
             'roadmap_id' => (int) ($lessonRow['roadmap_id'] ?? 0),
             'actual_title' => (string) ($lessonRow['actual_title'] ?? ''),
             'actual_content' => (string) ($lessonRow['actual_content'] ?? ''),
+            'attachment_file_path' => (string) ($lessonRow['attachment_file_path'] ?? ''),
             'schedule_id' => (int) ($lessonRow['schedule_id'] ?? 0),
         ];
     }
@@ -558,6 +559,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
                                                         ? trim((string) ($linkedLesson['actual_title'] ?? ($slotSchedule['assigned_lesson_title'] ?? 'Buổi học')))
                                                         : 'Chưa soạn giáo án';
                                                     $lessonContent = is_array($linkedLesson) ? trim((string) ($linkedLesson['actual_content'] ?? '')) : '';
+                                                    $lessonAttachmentPath = is_array($linkedLesson) ? trim((string) ($linkedLesson['attachment_file_path'] ?? '')) : '';
                                                     $roadmapTopic = is_array($linkedLesson) ? trim((string) ($linkedLesson['roadmap_topic'] ?? '')) : '';
 
                                                     $studyDateValue = trim((string) ($slotSchedule['study_date'] ?? ''));
@@ -620,6 +622,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
                                                         data-teacher-name="<?= e($teacherName); ?>"
                                                         data-roadmap-topic="<?= e($roadmapTopic); ?>"
                                                         data-lesson-content="<?= e($lessonContent); ?>"
+                                                        data-lesson-attachment-path="<?= e($lessonAttachmentPath); ?>"
                                                         data-has-lesson="<?= $hasLesson ? '1' : '0'; ?>"
                                                         data-slot-label="<?= e($slotLabel); ?>"
                                                         data-lesson-title="<?= e($lessonTitle !== '' ? $lessonTitle : 'Buổi học'); ?>"
@@ -826,9 +829,10 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
         <?php if (!$canCreateLesson && !$canUpdateLesson): ?>
             <div class="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-700">Bạn chưa có quyền soạn hoặc cập nhật giáo án buổi học.</div>
         <?php else: ?>
-            <form id="classroom-lesson-form" class="grid min-h-0 gap-3" method="post" action="/api/lessons/save">
+            <form id="classroom-lesson-form" class="grid min-h-0 gap-3" method="post" action="/api/lessons/save" enctype="multipart/form-data">
                 <?= csrf_input(); ?>
                 <input id="classroom-lesson-id" type="hidden" name="id" value="0">
+                <input id="classroom-lesson-existing-attachment-file-path" type="hidden" name="existing_attachment_file_path" value="">
                 <input type="hidden" name="redirect_page" value="classrooms-academic">
                 <input type="hidden" name="course_id" value="<?= (int) $selectedCourseId; ?>">
                 <input type="hidden" name="class_id" value="<?= (int) $selectedClassId; ?>">
@@ -859,6 +863,11 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
                     Nội dung giáo án
                     <textarea id="classroom-lesson-actual-content" name="actual_content" rows="5" placeholder="Mục tiêu, hoạt động lớp, tổng hợp nội dung buổi học..."></textarea>
                 </label>
+                <label>
+                    Tài liệu buổi học (PDF, PPT, DOCX)
+                    <input id="classroom-lesson-attachment-file" type="file" name="lesson_attachment_file" accept=".pdf,.ppt,.pptx,.doc,.docx">
+                </label>
+                <p id="classroom-lesson-attachment-hint" class="text-xs text-slate-500">Có thể tải lên tài liệu dùng riêng cho buổi học này.</p>
 
                 <div class="mt-1 flex flex-wrap gap-2">
                     <button id="classroom-lesson-submit" class="<?= ui_btn_primary_classes(); ?>" type="submit">Lưu giáo án</button>
@@ -889,6 +898,12 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
                 Nội dung giáo án
                 <textarea id="classroom-lesson-info-content" rows="4" readonly class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700"></textarea>
             </label>
+            <div class="grid gap-1 text-sm font-semibold text-slate-700">
+                Tài liệu đính kèm
+                <div id="classroom-lesson-info-attachment-shell" class="rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700">
+                    Chưa có tài liệu đính kèm.
+                </div>
+            </div>
 
             <div class="grid gap-3 sm:grid-cols-2">
                 <label class="grid gap-1 text-sm font-semibold text-slate-700">
@@ -1661,6 +1676,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
     const lessonInfoAttendanceInput = document.getElementById('classroom-lesson-info-attendance');
     const lessonInfoAssignmentInput = document.getElementById('classroom-lesson-info-assignment');
     const lessonInfoRoadmapInput = document.getElementById('classroom-lesson-info-roadmap');
+    const lessonInfoAttachmentShell = document.getElementById('classroom-lesson-info-attachment-shell');
 
     const assignmentModal = document.getElementById('classroom-assignment-modal');
     const assignmentForm = document.getElementById('classroom-assignment-form');
@@ -3503,6 +3519,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
             roomName: normalizeText(slotElement.getAttribute('data-room-name')),
             teacherName: normalizeText(slotElement.getAttribute('data-teacher-name')),
             lessonContent: normalizeText(slotElement.getAttribute('data-lesson-content')),
+            lessonAttachmentPath: normalizeText(slotElement.getAttribute('data-lesson-attachment-path')),
             roadmapTopic: normalizeText(slotElement.getAttribute('data-roadmap-topic')),
             lessonTitle: normalizeText(slotElement.getAttribute('data-lesson-title')),
             slotLabel: normalizeText(slotElement.getAttribute('data-slot-label')),
@@ -4095,6 +4112,20 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
         if (lessonContentInput instanceof HTMLTextAreaElement) {
             lessonContentInput.value = String(isEditing ? (lessonRecord.actual_content || '') : '');
         }
+        const lessonExistingAttachmentInput = document.getElementById('classroom-lesson-existing-attachment-file-path');
+        const lessonAttachmentHint = document.getElementById('classroom-lesson-attachment-hint');
+        if (lessonExistingAttachmentInput instanceof HTMLInputElement) {
+            lessonExistingAttachmentInput.value = String(isEditing ? (lessonRecord.attachment_file_path || '') : '');
+        }
+        if (lessonAttachmentHint instanceof HTMLElement) {
+            if (isEditing && normalizeText(lessonRecord.attachment_file_path) !== '') {
+                lessonAttachmentHint.innerHTML = 'Tài liệu hiện tại: <a class="font-semibold text-blue-700 hover:underline" href="'
+                    + escapeHtml(normalizeText(lessonRecord.attachment_file_path))
+                    + '" target="_blank" rel="noopener noreferrer">Mở file</a>. Chọn file mới để thay thế.';
+            } else {
+                lessonAttachmentHint.textContent = 'Có thể tải lên tài liệu dùng riêng cho buổi học này.';
+            }
+        }
 
         const preferredScheduleId = isEditing
             ? toInt(lessonRecord.schedule_id)
@@ -4183,6 +4214,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
             + ' | Đã nộp ' + toInt(context.submissionCount)
             + ' | Chưa chấm ' + toInt(context.ungradedCount);
         const roadmapLabel = normalizeText(context.roadmapTopic) !== '' ? normalizeText(context.roadmapTopic) : '--';
+        const attachmentPath = normalizeText(context.lessonAttachmentPath);
 
         if (lessonInfoContext instanceof HTMLElement) {
             lessonInfoContext.textContent = normalizeText(context.slotLabel) !== ''
@@ -4215,6 +4247,15 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
         }
         if (lessonInfoRoadmapInput instanceof HTMLInputElement) {
             lessonInfoRoadmapInput.value = roadmapLabel;
+        }
+        if (lessonInfoAttachmentShell instanceof HTMLElement) {
+            if (attachmentPath !== '') {
+                lessonInfoAttachmentShell.innerHTML = '<a class="font-semibold text-blue-700 hover:underline" href="'
+                    + escapeHtml(attachmentPath)
+                    + '" target="_blank" rel="noopener noreferrer">Mở tài liệu buổi học</a>';
+            } else {
+                lessonInfoAttachmentShell.textContent = 'Chưa có tài liệu đính kèm.';
+            }
         }
 
         closeMenu(false);

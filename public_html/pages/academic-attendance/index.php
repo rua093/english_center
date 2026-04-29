@@ -214,7 +214,6 @@ $adminTitle = 'Học vụ - Điểm danh';
                         <thead>
                             <tr>
                                 <th>Học viên</th>
-                                <th>Trạng thái học viên</th>
                                 <th>Điểm danh</th>
                                 <th>Ghi chú</th>
                             </tr>
@@ -222,7 +221,7 @@ $adminTitle = 'Học vụ - Điểm danh';
                         <tbody>
                             <?php if (empty($attendanceRoster)): ?>
                                 <tr>
-                                    <td colspan="4">
+                                    <td colspan="3">
                                         <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">Lịch học này chưa có học viên trong lớp.</div>
                                     </td>
                                 </tr>
@@ -231,11 +230,6 @@ $adminTitle = 'Học vụ - Điểm danh';
                                     <?php $studentId = (int) ($studentRow['student_id'] ?? 0); ?>
                                     <tr>
                                         <td><strong><?= e((string) ($studentRow['full_name'] ?? ($studentRow['student_name'] ?? ('Học viên #' . $studentId)))); ?></strong></td>
-                                        <td>
-                                            <span class="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-bold capitalize is-<?= e((string) ($studentRow['learning_status'] ?? 'official')); ?>">
-                                                <?= e((string) ($studentRow['learning_status'] ?? 'official')); ?>
-                                            </span>
-                                        </td>
                                         <td>
                                             <select name="attendance_status[<?= $studentId; ?>]" <?= $canManageAttendance ? '' : 'disabled'; ?>>
                                                 <option value="" <?= trim((string) ($studentRow['attendance_status'] ?? '')) === '' ? 'selected' : ''; ?>>Chưa đánh dấu</option>

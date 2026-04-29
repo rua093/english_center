@@ -110,7 +110,11 @@ function api_schedules_delete_action(): void
 		schedules_assert_teacher_scope($academicModel, (int) ($schedule['class_id'] ?? 0), $scheduleId);
 	}
 
-	$academicModel->deleteSchedule($scheduleId);
-	set_flash('success', 'Đã xóa lịch dạy.');
+	try {
+		$academicModel->deleteSchedule($scheduleId);
+		set_flash('success', 'Đã xóa lịch dạy.');
+	} catch (Throwable) {
+		set_flash('error', 'Không thể xóa lịch dạy. Lịch này có thể đã được gắn với điểm danh hoặc bài tập.');
+	}
 	redirect(page_url('schedules-academic'));
 }
