@@ -270,7 +270,7 @@ $editingThumbnailUrl = normalize_public_file_url((string) ($editingActivity['ima
 
             <?php if ($canUpdateActivity && is_array($editingRegistration)): ?>
                 <div class="hidden" aria-hidden="true">
-                    <h4 class="mb-3 text-sm font-extrabold text-slate-800">Cập nhật thanh toán cho <?= e((string) ($editingRegistration['full_name'] ?? 'Học viên')); ?></h4>
+                    <h4 class="mb-3 text-sm font-extrabold text-slate-800">Cập nhật thanh toán cho <?= e(student_display_name($editingRegistration)); ?></h4>
                     <form class="grid gap-3 md:grid-cols-2 xl:grid-cols-4" method="post" action="/api/activities/update-registration">
                         <?= csrf_input(); ?>
                         <input type="hidden" name="id" value="<?= (int) ($editingRegistration['id'] ?? 0); ?>">
@@ -317,6 +317,7 @@ $editingThumbnailUrl = normalize_public_file_url((string) ($editingActivity['ima
                 <table class="min-w-full border-collapse text-sm">
                     <thead>
                         <tr>
+                            <th>Mã HV</th>
                             <th>Học viên</th>
                             <th>Ngày đăng ký</th>
                             <th>Trạng thái đóng phí</th>
@@ -328,7 +329,7 @@ $editingThumbnailUrl = normalize_public_file_url((string) ($editingActivity['ima
                     <tbody>
                         <?php if (empty($selectedRegistrations)): ?>
                             <tr>
-                                <td colspan="6">
+                                <td colspan="7">
                                     <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">Hoạt động này chưa có học viên đăng ký.</div>
                                 </td>
                             </tr>
@@ -354,6 +355,7 @@ $editingThumbnailUrl = normalize_public_file_url((string) ($editingActivity['ima
                                 }
                                 ?>
                                 <tr>
+                                    <td><?= e((string) ($registration['student_code'] ?? '-')); ?></td>
                                     <td>
                                         <div class="font-semibold text-slate-800"><?= e((string) ($registration['full_name'] ?? ('Học viên #' . $studentId))); ?></div>
                                         <div class="text-xs text-slate-500"><?= e((string) ($registration['username'] ?? '')); ?></div>

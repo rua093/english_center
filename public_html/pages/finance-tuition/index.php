@@ -23,7 +23,7 @@ $studentNameMap = [];
 foreach ($students as $student) {
     $studentId = (int) ($student['id'] ?? 0);
     if ($studentId > 0) {
-        $studentNameMap[$studentId] = (string) ($student['full_name'] ?? ('Học viên #' . $studentId));
+        $studentNameMap[$studentId] = student_dropdown_label($student, 'Học viên #' . $studentId);
     }
 }
 
@@ -41,7 +41,7 @@ foreach ($classStudentRows as $row) {
 
     $classStudentMap[$classId][] = [
         'id' => $studentId,
-        'name' => (string) ($row['full_name'] ?? ($studentNameMap[$studentId] ?? ('Học viên #' . $studentId))),
+        'name' => student_dropdown_label($row, $studentNameMap[$studentId] ?? ('Học viên #' . $studentId)),
     ];
 }
 
@@ -167,6 +167,7 @@ $error = get_flash('error');
             <table class="min-w-full border-collapse text-sm">
                 <thead>
                     <tr>
+                        <th>Mã HV</th>
                         <th>Học viên</th>
                         <th>Lớp học</th>
                         <th>Tổng tiền</th>
@@ -180,14 +181,15 @@ $error = get_flash('error');
                 <tbody>
                     <?php if (empty($tuitionFees)): ?>
                         <tr>
-                            <td colspan="8">
+                            <td colspan="9">
                                 <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">Chưa có dữ liệu học phí.</div>
                             </td>
                         </tr>
                     <?php else: ?>
                         <?php foreach ($tuitionFees as $fee): ?>
                             <tr>
-                                <td><?= e((string) $fee['full_name']); ?></td>
+                                <td><?= e((string) ($fee['student_code'] ?? '-')); ?></td>
+                                <td><?= e((string) ($fee['full_name'] ?? 'Học viên')); ?></td>
                                 <td><?= e((string) $fee['course_name']); ?></td>
                                 <td><?= format_money((float) $fee['total_amount']); ?></td>
                                 <td><?= format_money((float) $fee['amount_paid']); ?></td>
@@ -264,7 +266,7 @@ $error = get_flash('error');
                         <option value="">-- Chọn hóa đơn --</option>
                         <?php foreach ($tuitionOptions as $fee): ?>
                             <option value="<?= (int) $fee['id']; ?>">
-                                #<?= (int) $fee['id']; ?> - <?= e((string) $fee['full_name']); ?> - <?= e((string) $fee['course_name']); ?>
+                                #<?= (int) $fee['id']; ?> - <?= e(student_dropdown_label($fee)); ?> - <?= e((string) $fee['course_name']); ?>
                             </option>
                         <?php endforeach; ?>
                     </select>

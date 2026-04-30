@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= e((string) ($adminTitle ?? 'Khu vực quản trị')); ?> | Trung tâm Anh ngữ</title>
-    <meta name="description" content="Khu vực điều hành nội bộ cho Admin và Staff.">
+    <meta name="description" content="Khu vực điều hành nội bộ dành cho quản trị viên và nhân sự trung tâm.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
@@ -1031,13 +1031,13 @@ $adminPageTitleMap = [
     'rooms' => 'Quản lý phòng học',
     'notifications' => 'Quản lý thông báo',
     'courses' => 'Danh mục khóa học',
-    'roadmaps' => 'Roadmap theo khóa học',
+    'roadmaps' => 'Lộ trình theo khóa học',
     'classes' => 'Danh mục lớp học',
     'classrooms' => 'Quản lý lớp học',
     'schedules' => 'Kế hoạch lịch dạy',
     'assignments' => 'Hệ thống bài tập',
     'materials' => 'Kho tài liệu',
-    'portfolios' => 'Hồ sơ năng lực học viên',
+    'portfolios' => 'Hồ sơ tiến bộ học viên',
 ];
 
 $adminPageDescriptionMap = [
@@ -1045,10 +1045,10 @@ $adminPageDescriptionMap = [
     'tuition' => 'Theo dõi hóa đơn đã tạo, cập nhật số tiền đã thu và kiểm soát số tiền còn lại theo từng học viên trong từng lớp.',
     'registration' => 'Đăng ký học viên vào khóa/lớp, áp giảm giá và tự động tạo học phí để theo dõi thu tiền chuẩn nghiệp vụ.',
     'promotions' => 'Thiết lập các chương trình ưu đãi theo khóa học hoặc toàn trung tâm để áp dụng giảm giá tự động khi đăng ký.',
-    'payments' => 'Quản lý mã giao dịch, đối soát trạng thái thanh toán và rà soát lịch sử thu học phí một cách tập trung.',
+    'payments' => 'Đối soát trạng thái thanh toán và rà soát lịch sử thu học phí một cách tập trung.',
     'users' => 'Quản lý tài khoản, vai trò và hồ sơ theo từng nhóm người dùng để kiểm soát truy cập hệ thống an toàn.',
     'approvals' => 'Tạo yêu cầu, cập nhật trạng thái duyệt và theo dõi người xử lý cho từng quy trình nội bộ của trung tâm.',
-    'feedbacks' => 'Thu thập nhận xét học viên, theo dõi điểm đánh giá và xử lý phản hồi theo lớp hoặc giáo viên phụ trách.',
+    'feedbacks' => 'Thu thập nhận xét học viên, theo dõi điểm đánh giá và xử lý phản hồi theo trung tâm.',
     'student-leads' => 'Theo dõi học viên đăng ký từ lúc gửi form đến khi kiểm tra đầu vào, học thử và chuyển đổi chính thức.',
     'job-applications' => 'Xử lý hồ sơ ứng tuyển giáo viên và chuyển đổi thành tài khoản giảng dạy.',
     'activities' => 'Lên kế hoạch hoạt động ngoại khóa, theo dõi trạng thái tổ chức và số lượng học viên đăng ký tham gia.',
@@ -1169,7 +1169,7 @@ if ($displayAdminDescription === '') {
             <?php endif; ?>
 
             <?php if (can_access_page('student-leads-manage')): ?>
-                <a class="admin-sidebar-link<?= $activeModule === 'student-leads' ? ' is-active' : ''; ?>" href="<?= e(page_url('student-leads-manage')); ?>" title="Lead học viên">
+                <a class="admin-sidebar-link<?= $activeModule === 'student-leads' ? ' is-active' : ''; ?>" href="<?= e(page_url('student-leads-manage')); ?>" title="Học viên đăng ký">
                     <span class="admin-sidebar-link-icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24"><circle cx="10" cy="8" r="3"></circle><path d="M4 19a6 6 0 0 1 12 0"></path><path d="M16 8h5"></path><path d="M18.5 5.5v5"></path></svg>
                     </span>
@@ -1224,11 +1224,11 @@ if ($displayAdminDescription === '') {
             <?php endif; ?>
 
             <?php if (can_access_page('roadmaps-academic')): ?>
-                <a class="admin-sidebar-link<?= $activeModule === 'roadmaps' ? ' is-active' : ''; ?>" href="<?= e(page_url('roadmaps-academic')); ?>" title="Roadmap khóa học">
+                <a class="admin-sidebar-link<?= $activeModule === 'roadmaps' ? ' is-active' : ''; ?>" href="<?= e(page_url('roadmaps-academic')); ?>" title="Lộ trình khóa học">
                     <span class="admin-sidebar-link-icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24"><path d="M3 7h4v4H3z"></path><path d="M10 7h11"></path><path d="M3 13h4v4H3z"></path><path d="M10 15h11"></path></svg>
                     </span>
-                    <span class="admin-sidebar-link-label">Roadmap khóa học</span>
+                    <span class="admin-sidebar-link-label">Lộ trình khóa học</span>
                 </a>
             <?php endif; ?>
 
@@ -1269,7 +1269,7 @@ if ($displayAdminDescription === '') {
             <?php endif; ?>
 
             <?php if (can_access_page('portfolios-academic')): ?>
-                <a class="admin-sidebar-link<?= $activeModule === 'portfolios' ? ' is-active' : ''; ?>" href="<?= e(page_url('portfolios-academic')); ?>" title="Portfolio Học Viên">
+                <a class="admin-sidebar-link<?= $activeModule === 'portfolios' ? ' is-active' : ''; ?>" href="<?= e(page_url('portfolios-academic')); ?>" title="Hồ sơ tiến bộ học viên">
                     <span class="admin-sidebar-link-icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24"><path d="M12 2a2 2 0 0 1 2 2v2h4v12H4V6h4V4a2 2 0 0 1 2-2z"></path><path d="M8 10h8"></path><path d="M8 14h8"></path></svg>
                     </span>

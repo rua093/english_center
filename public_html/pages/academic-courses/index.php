@@ -98,7 +98,7 @@ $selectedThumbnailUrl = normalize_public_file_url((string) ($editingCourse['imag
     <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
             <h3>Danh sách khóa học</h3>
-            <a class="<?= ui_btn_secondary_classes('sm'); ?>" href="<?= e(page_url('roadmaps-academic')); ?>">Quản lý roadmap</a>
+            <a class="<?= ui_btn_secondary_classes('sm'); ?>" href="<?= e(page_url('roadmaps-academic')); ?>">Quản lý lộ trình</a>
         </div>
 
         <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
@@ -157,10 +157,10 @@ $selectedThumbnailUrl = normalize_public_file_url((string) ($editingCourse['imag
                                             class="admin-action-icon-btn"
                                             data-action-kind="detail"
                                             data-skip-action-icon="1"
-                                            title="Roadmap"
-                                            aria-label="Roadmap"
+                                            title="Lộ trình"
+                                            aria-label="Lộ trình"
                                         >
-                                            <span class="admin-action-icon-label">Roadmap</span>
+                                            <span class="admin-action-icon-label">Lộ trình</span>
                                             <span class="admin-action-icon-glyph" aria-hidden="true">
                                                 <svg viewBox="0 0 24 24"><path d="M3 6h18"></path><path d="M3 12h18"></path><path d="M3 18h18"></path><circle cx="7" cy="6" r="1.5"></circle><circle cx="12" cy="12" r="1.5"></circle><circle cx="17" cy="18" r="1.5"></circle></svg>
                                             </span>

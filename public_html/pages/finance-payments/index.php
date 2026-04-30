@@ -62,7 +62,7 @@ $error = get_flash('error');
                         <option value="">-- Chọn hóa đơn --</option>
                         <?php foreach ($tuitionOptions as $fee): ?>
                             <option value="<?= (int) $fee['id']; ?>" <?= (int) ($editingPayment['tuition_fee_id'] ?? 0) === (int) $fee['id'] ? 'selected' : ''; ?>>
-                                #<?= (int) $fee['id']; ?> - <?= e((string) $fee['full_name']); ?> - <?= e((string) $fee['course_name']); ?>
+                                #<?= (int) $fee['id']; ?> - <?= e(student_dropdown_label($fee)); ?> - <?= e((string) $fee['course_name']); ?>
                             </option>
                         <?php endforeach; ?>
                     </select>
@@ -103,6 +103,7 @@ $error = get_flash('error');
             <table class="min-w-full border-collapse text-sm">
                 <thead>
                     <tr>
+                        <th>Mã HV</th>
                         <th>Học viên</th>
                         <th>Khóa học</th>
                         <th>Số tiền</th>
@@ -115,14 +116,15 @@ $error = get_flash('error');
                 <tbody>
                     <?php if (empty($transactions)): ?>
                         <tr>
-                            <td colspan="7">
+                            <td colspan="8">
                                 <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">Chưa có giao dịch nào.</div>
                             </td>
                         </tr>
                     <?php else: ?>
                         <?php foreach ($transactions as $txn): ?>
                             <tr>
-                                <td><?= e((string) $txn['full_name']); ?></td>
+                                <td><?= e((string) ($txn['student_code'] ?? '-')); ?></td>
+                                <td><?= e((string) ($txn['full_name'] ?? 'Học viên')); ?></td>
                                 <td><?= e((string) $txn['course_name']); ?></td>
                                 <td><?= format_money((float) $txn['amount']); ?></td>
                                 <td><span class="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-bold capitalize text-blue-700 whitespace-nowrap"><?= e((string) ($paymentMethodOptions[$txn['method']] ?? $txn['method'])); ?></span></td>

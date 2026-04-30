@@ -622,7 +622,7 @@ $homeCourses = $homeCourses ?? [];
                     <?php else: ?>
                         <?php foreach ($homeFeedbacks as $feedback): ?>
                             <?php
-                            $feedbackName = (string) ($feedback['full_name'] ?? 'Học viên');
+                            $feedbackName = student_display_name($feedback, 'Học viên');
                             $feedbackContent = trim((string) ($feedback['comment'] ?? ''));
                             $feedbackRating = max(0, min(5, (int) ($feedback['rating'] ?? 0)));
                             $avatarUrl = 'https://ui-avatars.com/api/?name=' . urlencode($feedbackName !== '' ? $feedbackName : 'User') . '&background=0f766e&color=fff&size=256&bold=true';

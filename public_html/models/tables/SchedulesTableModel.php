@@ -15,11 +15,12 @@ final class SchedulesTableModel
     public function listDetailed(): array
     {
         $sql = "SELECT s.id, s.class_id, s.room_id, s.teacher_id, s.study_date, s.start_time, s.end_time,
-                c.class_name, r.room_name, u.full_name AS teacher_name
+                c.class_name, r.room_name, u.full_name AS teacher_name, tp.teacher_code
             FROM schedules s
             INNER JOIN classes c ON c.id = s.class_id
             LEFT JOIN rooms r ON r.id = s.room_id AND r.deleted_at IS NULL
             INNER JOIN users u ON u.id = s.teacher_id
+            LEFT JOIN teacher_profiles tp ON tp.user_id = u.id
             ORDER BY s.study_date DESC, s.start_time DESC";
         return $this->fetchAll($sql);
     }
@@ -45,11 +46,13 @@ final class SchedulesTableModel
         $sql = "SELECT s.id, s.class_id, s.room_id, s.teacher_id, s.study_date, s.start_time, s.end_time,
                 COALESCE(r.room_name, 'Online') AS room_name,
                 COALESCE(u.full_name, CONCAT('GV #', s.teacher_id)) AS teacher_name,
+                tp.teacher_code,
                 linked.id AS assigned_lesson_id,
                 linked.actual_title AS assigned_lesson_title
             FROM schedules s
             LEFT JOIN rooms r ON r.id = s.room_id AND r.deleted_at IS NULL
             LEFT JOIN users u ON u.id = s.teacher_id
+            LEFT JOIN teacher_profiles tp ON tp.user_id = u.id
             LEFT JOIN (
                 SELECT l.schedule_id, MIN(l.id) AS lesson_id
                 FROM lessons l
@@ -70,11 +73,12 @@ final class SchedulesTableModel
         $offset = ($normalizedPage - 1) * $limit;
 
         $sql = "SELECT s.id, s.class_id, s.room_id, s.teacher_id, s.study_date, s.start_time, s.end_time,
-                c.class_name, r.room_name, u.full_name AS teacher_name
+                c.class_name, r.room_name, u.full_name AS teacher_name, tp.teacher_code
             FROM schedules s
             INNER JOIN classes c ON c.id = s.class_id
             LEFT JOIN rooms r ON r.id = s.room_id AND r.deleted_at IS NULL
             INNER JOIN users u ON u.id = s.teacher_id
+            LEFT JOIN teacher_profiles tp ON tp.user_id = u.id
             ORDER BY s.study_date DESC, s.start_time DESC
             LIMIT {$limit} OFFSET {$offset}";
         return $this->fetchAll($sql);
@@ -277,12 +281,13 @@ final class SchedulesTableModel
     public function listUpcomingForStudent(int $studentId, int $limit = 5): array
     {
         $limit = $this->clampLimit($limit, 5, 100);
-        $sql = "SELECT c.class_name, s.study_date, s.start_time, s.end_time, r.room_name, t.full_name AS teacher_name
+        $sql = "SELECT c.class_name, s.study_date, s.start_time, s.end_time, r.room_name, t.full_name AS teacher_name, tp.teacher_code
             FROM schedules s
             INNER JOIN classes c ON c.id = s.class_id
             INNER JOIN class_students cs ON cs.class_id = c.id AND cs.student_id = :student_id
             LEFT JOIN rooms r ON r.id = s.room_id AND r.deleted_at IS NULL
             INNER JOIN users t ON t.id = s.teacher_id
+            LEFT JOIN teacher_profiles tp ON tp.user_id = t.id
             WHERE s.study_date >= CURDATE()
             ORDER BY s.study_date ASC, s.start_time ASC
             LIMIT " . $limit;

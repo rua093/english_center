@@ -73,7 +73,7 @@ $canUpdateMaterial = has_permission('materials.update');
                         Giáo viên
                         <select name="teacher_id" required>
                             <?php foreach ($lookups['teachers'] as $teacher): ?>
-                                <option value="<?= (int) $teacher['id']; ?>" <?= (int) ($editingClass['teacher_id'] ?? 0) === (int) $teacher['id'] ? 'selected' : ''; ?>><?= e((string) $teacher['full_name']); ?></option>
+                                <option value="<?= (int) $teacher['id']; ?>" <?= (int) ($editingClass['teacher_id'] ?? 0) === (int) $teacher['id'] ? 'selected' : ''; ?>><?= e(teacher_dropdown_label($teacher)); ?></option>
                             <?php endforeach; ?>
                         </select>
                     </label>
@@ -104,17 +104,18 @@ $canUpdateMaterial = has_permission('materials.update');
             <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
                 <table class="min-w-full border-collapse text-sm" data-disable-row-detail="1">
                 <thead>
-                    <tr><th>Tên lớp</th><th>Khóa học</th><th>Giáo viên</th><th>Trạng thái</th><th>Hành động</th></tr>
+                    <tr><th>Tên lớp</th><th>Khóa học</th><th>Mã GV</th><th>Giáo viên</th><th>Trạng thái</th><th>Hành động</th></tr>
                 </thead>
                 <tbody>
                     <?php if (empty($classes)): ?>
-                        <tr><td colspan="5"><div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">Chưa có lớp học nào.</div></td></tr>
+                        <tr><td colspan="6"><div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">Chưa có lớp học nào.</div></td></tr>
                     <?php else: ?>
                     <?php foreach ($classes as $class): ?>
                         <tr>
                             <td><?= e((string) $class['class_name']); ?></td>
                             <td><?= e((string) $class['course_name']); ?></td>
-                            <td><?= e((string) $class['teacher_name']); ?></td>
+                            <td><?= e((string) ($class['teacher_code'] ?? '-')); ?></td>
+                            <td><?= e((string) ($class['teacher_name'] ?? 'Giáo viên')); ?></td>
                             <td><span class="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-bold capitalize is-<?= e((string) $class['status']); ?>"><?= e((string) $class['status']); ?></span></td>
                             <td>
                                 <span class="inline-flex flex-wrap items-center gap-2">

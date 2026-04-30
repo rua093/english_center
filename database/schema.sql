@@ -65,6 +65,7 @@ CREATE TABLE users (
 CREATE TABLE teacher_profiles (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     user_id BIGINT UNSIGNED NOT NULL UNIQUE,
+    teacher_code VARCHAR(30) NOT NULL UNIQUE,
     degree VARCHAR(150) DEFAULT NULL,
     experience_years INT DEFAULT 0,
     bio TEXT,
@@ -340,6 +341,7 @@ CREATE TABLE exams (
 CREATE TABLE student_profiles (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     user_id BIGINT UNSIGNED NOT NULL UNIQUE,
+    student_code VARCHAR(30) NOT NULL UNIQUE,
     parent_name VARCHAR(150) DEFAULT NULL,
     parent_phone VARCHAR(20) DEFAULT NULL,
     school_name VARCHAR(180) DEFAULT NULL,

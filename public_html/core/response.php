@@ -6,6 +6,72 @@ function e(string $value): string
 	return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
 }
 
+function format_person_name_with_code(string $name, ?string $code = null): string
+{
+	$normalizedName = trim($name);
+	$normalizedCode = trim((string) $code);
+
+	if ($normalizedName === '') {
+		return $normalizedCode !== '' ? $normalizedCode : '';
+	}
+
+	return $normalizedCode !== '' ? $normalizedName . ' (' . $normalizedCode . ')' : $normalizedName;
+}
+
+function format_person_dropdown_label(string $name, ?string $code = null): string
+{
+	$normalizedName = trim($name);
+	$normalizedCode = trim((string) $code);
+
+	if ($normalizedName === '') {
+		return $normalizedCode !== '' ? $normalizedCode : '';
+	}
+
+	return $normalizedCode !== '' ? $normalizedName . ' - ' . $normalizedCode : $normalizedName;
+}
+
+function teacher_display_name(array $row, string $fallbackName = 'Giáo viên'): string
+{
+	$name = trim((string) ($row['teacher_name'] ?? $row['full_name'] ?? $fallbackName));
+	$code = trim((string) ($row['teacher_code'] ?? ''));
+	return format_person_name_with_code($name, $code);
+}
+
+function student_display_name(array $row, string $fallbackName = 'Học viên'): string
+{
+	$name = trim((string) ($row['student_name'] ?? $row['full_name'] ?? $fallbackName));
+	$code = trim((string) ($row['student_code'] ?? ''));
+	return format_person_name_with_code($name, $code);
+}
+
+function user_display_name(array $row, string $fallbackName = 'Người dùng'): string
+{
+	$name = trim((string) ($row['full_name'] ?? $row['student_name'] ?? $row['teacher_name'] ?? $fallbackName));
+	$code = trim((string) ($row['teacher_code'] ?? $row['student_code'] ?? ''));
+	return format_person_name_with_code($name, $code);
+}
+
+function teacher_dropdown_label(array $row, string $fallbackName = 'Giáo viên'): string
+{
+	$name = trim((string) ($row['teacher_name'] ?? $row['full_name'] ?? $fallbackName));
+	$code = trim((string) ($row['teacher_code'] ?? ''));
+	return format_person_dropdown_label($name, $code);
+}
+
+function student_dropdown_label(array $row, string $fallbackName = 'Học viên'): string
+{
+	$name = trim((string) ($row['student_name'] ?? $row['full_name'] ?? $fallbackName));
+	$code = trim((string) ($row['student_code'] ?? ''));
+	return format_person_dropdown_label($name, $code);
+}
+
+function user_dropdown_label(array $row, string $fallbackName = 'Người dùng'): string
+{
+	$name = trim((string) ($row['full_name'] ?? $row['student_name'] ?? $row['teacher_name'] ?? $fallbackName));
+	$code = trim((string) ($row['teacher_code'] ?? $row['student_code'] ?? ''));
+	return format_person_dropdown_label($name, $code);
+}
+
 function redirect(string $path): never
 {
 	header('Location: ' . $path);

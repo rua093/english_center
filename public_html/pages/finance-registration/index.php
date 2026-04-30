@@ -97,7 +97,7 @@ $adminTitle = 'Đăng ký khóa học';
                         <option value="">-- Chọn học viên --</option>
                         <?php foreach ($students as $student): ?>
                             <option value="<?= (int) ($student['id'] ?? 0); ?>" <?= $formState['student_id'] === (int) ($student['id'] ?? 0) ? 'selected' : ''; ?>>
-                                <?= e((string) ($student['full_name'] ?? '')); ?>
+                                <?= e(student_dropdown_label($student)); ?>
                             </option>
                         <?php endforeach; ?>
                     </select>

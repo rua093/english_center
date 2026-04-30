@@ -93,12 +93,13 @@ final class AttendanceTableModel
         }
 
         $sql = "SELECT s.id AS schedule_id, s.class_id,
-                cs.student_id, u.full_name AS full_name,
+                cs.student_id, u.full_name AS full_name, sp.student_code,
                 COALESCE(a.status, '') AS attendance_status,
                 COALESCE(a.note, '') AS attendance_note
             FROM schedules s
             INNER JOIN class_students cs ON cs.class_id = s.class_id
             INNER JOIN users u ON u.id = cs.student_id AND u.deleted_at IS NULL
+            LEFT JOIN student_profiles sp ON sp.user_id = u.id
             LEFT JOIN attendance a ON a.schedule_id = s.id AND a.student_id = cs.student_id
             WHERE s.id = :schedule_id
             ORDER BY u.full_name ASC";

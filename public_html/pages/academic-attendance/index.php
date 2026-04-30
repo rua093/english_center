@@ -155,7 +155,7 @@ $adminTitle = 'Học vụ - Điểm danh';
                             . ' | ' . $formatDate((string) ($scheduleRow['study_date'] ?? ''))
                             . ' ' . $formatTime((string) ($scheduleRow['start_time'] ?? ''))
                             . '-' . $formatTime((string) ($scheduleRow['end_time'] ?? ''))
-                            . ' | ' . trim((string) ($scheduleRow['room_name'] ?? 'Online'));
+                            . ' | ' . trim((string) ($scheduleRow['room_name'] ?? 'Trực tuyến'));
                         ?>
                         <option value="<?= $scheduleId; ?>" <?= $selectedScheduleId === $scheduleId ? 'selected' : ''; ?>><?= e($label); ?></option>
                     <?php endforeach; ?>
@@ -193,7 +193,7 @@ $adminTitle = 'Học vụ - Điểm danh';
                 <strong><?= e($selectedLessonTitle); ?></strong>
                 | <?= e($formatDate((string) ($selectedSchedule['study_date'] ?? ''))); ?>
                 <?= e($formatTime((string) ($selectedSchedule['start_time'] ?? ''))); ?> - <?= e($formatTime((string) ($selectedSchedule['end_time'] ?? ''))); ?>
-                | <?= e((string) ($selectedSchedule['room_name'] ?? 'Online')); ?>
+                | <?= e((string) ($selectedSchedule['room_name'] ?? 'Trực tuyến')); ?>
             </p>
 
             <?php if (!$canManageAttendance): ?>
@@ -213,6 +213,7 @@ $adminTitle = 'Học vụ - Điểm danh';
                     <table class="min-w-full border-collapse text-sm">
                         <thead>
                             <tr>
+                                <th>Mã HV</th>
                                 <th>Học viên</th>
                                 <th>Điểm danh</th>
                                 <th>Ghi chú</th>
@@ -221,7 +222,7 @@ $adminTitle = 'Học vụ - Điểm danh';
                         <tbody>
                             <?php if (empty($attendanceRoster)): ?>
                                 <tr>
-                                    <td colspan="3">
+                                    <td colspan="4">
                                         <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">Lịch học này chưa có học viên trong lớp.</div>
                                     </td>
                                 </tr>
@@ -229,6 +230,7 @@ $adminTitle = 'Học vụ - Điểm danh';
                                 <?php foreach ($attendanceRoster as $studentRow): ?>
                                     <?php $studentId = (int) ($studentRow['student_id'] ?? 0); ?>
                                     <tr>
+                                        <td><?= e((string) ($studentRow['student_code'] ?? '-')); ?></td>
                                         <td><strong><?= e((string) ($studentRow['full_name'] ?? ($studentRow['student_name'] ?? ('Học viên #' . $studentId)))); ?></strong></td>
                                         <td>
                                             <select name="attendance_status[<?= $studentId; ?>]" <?= $canManageAttendance ? '' : 'disabled'; ?>>

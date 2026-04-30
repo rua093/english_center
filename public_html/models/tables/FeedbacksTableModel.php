@@ -15,9 +15,10 @@ final class FeedbacksTableModel
     public function listDetailed(): array
     {
         $sql = "SELECT f.id, f.sender_id AS student_id, f.rating, f.content AS comment, f.is_public_web, f.created_at,
-                u.full_name AS full_name
+                u.full_name AS full_name, sp.student_code
             FROM feedbacks f
             INNER JOIN users u ON u.id = f.sender_id
+            LEFT JOIN student_profiles sp ON sp.user_id = u.id
             ORDER BY f.created_at DESC";
         return $this->fetchAll($sql);
     }
@@ -29,9 +30,10 @@ final class FeedbacksTableModel
         $offset = ($normalizedPage - 1) * $limit;
 
         $sql = "SELECT f.id, f.sender_id AS student_id, f.rating, f.content AS comment, f.is_public_web, f.created_at,
-                u.full_name AS full_name
+                u.full_name AS full_name, sp.student_code
             FROM feedbacks f
             INNER JOIN users u ON u.id = f.sender_id
+            LEFT JOIN student_profiles sp ON sp.user_id = u.id
             ORDER BY f.created_at DESC
             LIMIT {$limit} OFFSET {$offset}";
         return $this->fetchAll($sql);
@@ -40,9 +42,10 @@ final class FeedbacksTableModel
     public function findById(int $id): ?array
     {
         $sql = "SELECT f.id, f.sender_id AS student_id, f.rating, f.content AS comment, f.is_public_web, f.created_at,
-                       u.full_name AS full_name
+                       u.full_name AS full_name, sp.student_code
                 FROM feedbacks f
                 INNER JOIN users u ON u.id = f.sender_id
+                LEFT JOIN student_profiles sp ON sp.user_id = u.id
                 WHERE f.id = :id
                 LIMIT 1";
 
@@ -53,9 +56,10 @@ final class FeedbacksTableModel
     {
         $limit = $this->clampLimit($limit, 3, 12);
         $sql = "SELECT f.id, f.sender_id AS student_id, f.rating, f.content AS comment, f.is_public_web, f.created_at,
-                       u.full_name AS full_name
+                       u.full_name AS full_name, sp.student_code
                 FROM feedbacks f
                 INNER JOIN users u ON u.id = f.sender_id
+                LEFT JOIN student_profiles sp ON sp.user_id = u.id
                 WHERE f.is_public_web = 1
                 ORDER BY f.created_at DESC
                 LIMIT " . $limit;

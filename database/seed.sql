@@ -13,8 +13,8 @@ INSERT IGNORE INTO users (username, password, full_name, role_id, phone, email, 
 ('teacher@ec.local', '$2y$10$5luD5xfAGFeqHwRdPWq1ZezZW43r.qwE2wFcaXCanvh1O0DR8XYum', 'Teacher Demo', (SELECT id FROM roles WHERE role_name = 'teacher' LIMIT 1), '0900000003', 'teacher@ec.local', 'active'),
 ('student@ec.local', '$2y$10$5luD5xfAGFeqHwRdPWq1ZezZW43r.qwE2wFcaXCanvh1O0DR8XYum', 'Nguyen Van Student', (SELECT id FROM roles WHERE role_name = 'student' LIMIT 1), '0900000004', 'student@ec.local', 'active');
 
-INSERT INTO teacher_profiles (user_id, degree, experience_years, bio, intro_video_url)
-VALUES (3, 'Bachelor of English Language', 6, 'Teacher demo phu trach IELTS, giao tiep va phat am. Tap trung xay dung phan xa, tu vung hoc thuat va ky nang viet luan.', 'https://example.com/intro-teacher.mp4');
+INSERT INTO teacher_profiles (user_id, teacher_code, degree, experience_years, bio, intro_video_url)
+VALUES (3, 'GV00003', 'Bachelor of English Language', 6, 'Teacher demo phu trach IELTS, giao tiep va phat am. Tap trung xay dung phan xa, tu vung hoc thuat va ky nang viet luan.', 'https://example.com/intro-teacher.mp4');
 
 INSERT INTO teacher_certificates (teacher_id, certificate_name, score, image_url)
 VALUES
@@ -69,8 +69,8 @@ INSERT INTO attendance (schedule_id, student_id, status, note) VALUES
 INSERT INTO exams (class_id, student_id, exam_name, exam_type, exam_date, result, teacher_comment)
 VALUES (NULL, 4, 'Entry Test', 'entry', '2026-03-28', '5.0', 'Can tang cuong speaking va vocab.');
 
-INSERT INTO student_profiles (user_id, parent_name, parent_phone, school_name, target_score, entry_test_id)
-VALUES (4, 'Tran Thi Parent', '0909999999', 'THPT Demo', 'IELTS 6.5', 1);
+INSERT INTO student_profiles (user_id, student_code, parent_name, parent_phone, school_name, target_score, entry_test_id)
+VALUES (4, 'HV00004', 'Tran Thi Parent', '0909999999', 'THPT Demo', 'IELTS 6.5', 1);
 
 INSERT INTO student_leads (
 	student_name,
@@ -345,9 +345,9 @@ INSERT INTO staff_profiles (user_id, position) VALUES
 ((SELECT id FROM users WHERE username = 'staff@ec.local' LIMIT 1), 'Academic Coordinator'),
 ((SELECT id FROM users WHERE username = 'staff.finance@ec.local' LIMIT 1), 'Finance Officer');
 
-INSERT INTO teacher_profiles (user_id, degree, experience_years, bio, intro_video_url) VALUES
-((SELECT id FROM users WHERE username = 'teacher2@ec.local' LIMIT 1), 'Master of TESOL', 9, 'Teacher chuyen Business English va speaking workshop.', 'https://example.com/intro-teacher-2.mp4'),
-((SELECT id FROM users WHERE username = 'teacher3@ec.local' LIMIT 1), 'CELTA Certificate', 4, 'Teacher phu trach TOEIC va lop speaking co ban.', 'https://example.com/intro-teacher-3.mp4');
+INSERT INTO teacher_profiles (user_id, teacher_code, degree, experience_years, bio, intro_video_url) VALUES
+((SELECT id FROM users WHERE username = 'teacher2@ec.local' LIMIT 1), CONCAT('GV', LPAD((SELECT id FROM users WHERE username = 'teacher2@ec.local' LIMIT 1), 5, '0')), 'Master of TESOL', 9, 'Teacher chuyen Business English va speaking workshop.', 'https://example.com/intro-teacher-2.mp4'),
+((SELECT id FROM users WHERE username = 'teacher3@ec.local' LIMIT 1), CONCAT('GV', LPAD((SELECT id FROM users WHERE username = 'teacher3@ec.local' LIMIT 1), 5, '0')), 'CELTA Certificate', 4, 'Teacher phu trach TOEIC va lop speaking co ban.', 'https://example.com/intro-teacher-3.mp4');
 
 INSERT INTO teacher_certificates (teacher_id, certificate_name, score, image_url) VALUES
 ((SELECT tp.id FROM teacher_profiles tp INNER JOIN users u ON u.id = tp.user_id WHERE u.username = 'teacher2@ec.local' LIMIT 1), 'TESOL', 'A', 'https://example.com/cert-tesol.png'),
@@ -456,10 +456,10 @@ INSERT INTO exams (class_id, student_id, exam_name, exam_type, exam_date, result
 (NULL, (SELECT id FROM users WHERE username = 'student3@ec.local' LIMIT 1), 'Entry Test Student3', 'entry', '2026-03-02', '5.5', 'Phat am kha tot, can bo sung tu vung hoc thuat.'),
 (NULL, (SELECT id FROM users WHERE username = 'student4@ec.local' LIMIT 1), 'Entry Test Student4', 'entry', '2026-04-01', '3.5', 'Can hoc phat am va mau cau giao tiep co ban.');
 
-INSERT INTO student_profiles (user_id, parent_name, parent_phone, school_name, target_score, entry_test_id) VALUES
-((SELECT id FROM users WHERE username = 'student2@ec.local' LIMIT 1), 'Pham Thi Lan', '0911111111', 'Dai hoc Kinh te', 'TOEIC 750', (SELECT id FROM exams WHERE exam_name = 'Entry Test Student2' LIMIT 1)),
-((SELECT id FROM users WHERE username = 'student3@ec.local' LIMIT 1), 'Do Van Minh', '0922222222', 'Cong ty ABC', 'Business English B2', (SELECT id FROM exams WHERE exam_name = 'Entry Test Student3' LIMIT 1)),
-((SELECT id FROM users WHERE username = 'student4@ec.local' LIMIT 1), 'Vu Thi Hoa', '0933333333', 'THCS Nguyen Hue', 'TOEIC 550', (SELECT id FROM exams WHERE exam_name = 'Entry Test Student4' LIMIT 1));
+INSERT INTO student_profiles (user_id, student_code, parent_name, parent_phone, school_name, target_score, entry_test_id) VALUES
+((SELECT id FROM users WHERE username = 'student2@ec.local' LIMIT 1), CONCAT('HV', LPAD((SELECT id FROM users WHERE username = 'student2@ec.local' LIMIT 1), 5, '0')), 'Pham Thi Lan', '0911111111', 'Dai hoc Kinh te', 'TOEIC 750', (SELECT id FROM exams WHERE exam_name = 'Entry Test Student2' LIMIT 1)),
+((SELECT id FROM users WHERE username = 'student3@ec.local' LIMIT 1), CONCAT('HV', LPAD((SELECT id FROM users WHERE username = 'student3@ec.local' LIMIT 1), 5, '0')), 'Do Van Minh', '0922222222', 'Cong ty ABC', 'Business English B2', (SELECT id FROM exams WHERE exam_name = 'Entry Test Student3' LIMIT 1)),
+((SELECT id FROM users WHERE username = 'student4@ec.local' LIMIT 1), CONCAT('HV', LPAD((SELECT id FROM users WHERE username = 'student4@ec.local' LIMIT 1), 5, '0')), 'Vu Thi Hoa', '0933333333', 'THCS Nguyen Hue', 'TOEIC 550', (SELECT id FROM exams WHERE exam_name = 'Entry Test Student4' LIMIT 1));
 
 INSERT INTO assignments (lesson_id, title, description, deadline, file_url) VALUES
 ((SELECT id FROM lessons WHERE actual_title = 'Business Pitch Warm-up' LIMIT 1), 'Business Pitch Outline', 'Tao slide pitch 3 phut voi 5 bullet chinh.', '2026-05-12 23:59:00', '/assets/uploads/assignment-business-pitch.pdf'),

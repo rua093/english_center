@@ -15,9 +15,10 @@ final class StudentPortfoliosTableModel
     public function listDetailed(): array
     {
         $sql = "SELECT p.id, p.student_id, p.type, p.media_url, p.description, p.is_public_web, p.created_at,
-                u.full_name AS full_name
+                u.full_name AS full_name, sp.student_code
             FROM student_portfolios p
             INNER JOIN users u ON u.id = p.student_id
+            LEFT JOIN student_profiles sp ON sp.user_id = u.id
             ORDER BY p.id DESC";
         return $this->fetchAll($sql);
     }
@@ -29,9 +30,10 @@ final class StudentPortfoliosTableModel
         $offset = ($normalizedPage - 1) * $limit;
 
         $sql = "SELECT p.id, p.student_id, p.type, p.media_url, p.description, p.is_public_web, p.created_at,
-                u.full_name AS full_name
+                u.full_name AS full_name, sp.student_code
             FROM student_portfolios p
             INNER JOIN users u ON u.id = p.student_id
+            LEFT JOIN student_profiles sp ON sp.user_id = u.id
             ORDER BY p.id DESC
             LIMIT {$limit} OFFSET {$offset}";
         return $this->fetchAll($sql);

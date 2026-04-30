@@ -393,9 +393,9 @@ final class AcademicModel
     public function scheduleLookups(): array
     {
         return [
-            'classes' => $this->classesTable->listSimple(),
+            'classes' => $this->classesTable->listSimpleByStatus('active'),
             'rooms' => $this->roomsTable->listSimple(),
-            'teachers' => $this->usersTable->listByRoleNames(['teacher', 'staff', 'admin']),
+            'teachers' => $this->usersTable->listActiveByRoleNames(['teacher']),
         ];
     }
 

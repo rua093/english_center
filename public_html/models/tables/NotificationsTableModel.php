@@ -19,9 +19,11 @@ final class NotificationsTableModel
         $offset = ($normalizedPage - 1) * $limit;
 
         $sql = "SELECT n.id, n.user_id, n.title, n.message, n.is_read, n.created_at,
-                u.username, u.full_name
+                u.username, u.full_name, tp.teacher_code, sp.student_code
             FROM notifications n
             INNER JOIN users u ON u.id = n.user_id
+            LEFT JOIN teacher_profiles tp ON tp.user_id = u.id
+            LEFT JOIN student_profiles sp ON sp.user_id = u.id
             ORDER BY n.created_at DESC, n.id DESC
             LIMIT {$limit} OFFSET {$offset}";
 
@@ -36,9 +38,11 @@ final class NotificationsTableModel
 
         return $this->fetchOne(
             "SELECT n.id, n.user_id, n.title, n.message, n.is_read, n.created_at,
-                u.username, u.full_name
+                u.username, u.full_name, tp.teacher_code, sp.student_code
             FROM notifications n
             INNER JOIN users u ON u.id = n.user_id
+            LEFT JOIN teacher_profiles tp ON tp.user_id = u.id
+            LEFT JOIN student_profiles sp ON sp.user_id = u.id
             WHERE n.id = :id
             LIMIT 1",
             ['id' => $id]

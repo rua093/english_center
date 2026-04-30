@@ -51,7 +51,7 @@ $permissionActionOrder=['view','create','update','delete','submit','request','gr
 $permissionGroupLabels=[
     'admin'=>'Quản trị hệ thống','admin.user'=>'Người dùng','admin.role_permission'=>'Phân quyền vai trò',
     'academic.assignments'=>'Bài tập','academic.classes'=>'Lớp học','academic.courses'=>'Khóa học',
-    'academic.portfolios'=>'Portfolio học viên','academic.roadmaps'=>'Lộ trình','academic.rooms'=>'Phòng học',
+    'academic.portfolios'=>'Hồ sơ tiến bộ học viên','academic.roadmaps'=>'Lộ trình','academic.rooms'=>'Phòng học',
     'academic.schedules'=>'Lịch học','academic.submissions'=>'Bài nộp & Chấm điểm',
     'activity'=>'Hoạt động ngoại khóa','approval'=>'Phê duyệt','feedback'=>'Đánh giá',
     'finance.adjust'=>'Điều chỉnh tài chính','finance.payments'=>'Giao dịch thanh toán',
@@ -221,6 +221,7 @@ $isEditingStudent = $editingRoleName === 'student';
                     <tr>
                         <th>ID</th>
                         <th>Username</th>
+                        <th>Mã</th>
                         <th>Họ tên</th>
                         <th>Vai trò</th>
                         <th>Trạng thái</th>
@@ -230,13 +231,14 @@ $isEditingStudent = $editingRoleName === 'student';
                 </thead>
                 <tbody>
                     <?php if (empty($users)): ?>
-                        <tr><td colspan="7"><div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">Chưa có người dùng.</div></td></tr>
+                        <tr><td colspan="8"><div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">Chưa có người dùng.</div></td></tr>
                     <?php else: ?>
                         <?php foreach ($users as $item): ?>
                             <tr>
                                 <td><?= (int) $item['id']; ?></td>
                                 <td><?= e((string) $item['username']); ?></td>
-                                <td><?= e((string) $item['full_name']); ?></td>
+                                <td><?= e((string) ($item['teacher_code'] ?? $item['student_code'] ?? '-')); ?></td>
+                                <td><?= e((string) ($item['full_name'] ?? '')); ?></td>
                                 <td><span class="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-bold capitalize border-blue-200 bg-blue-50 text-blue-700"><?= e(strtoupper((string) $item['role_name'])); ?></span></td>
                                 <td><span class="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-bold capitalize is-<?= e((string) $item['status']); ?>"><?= e((string) $item['status']); ?></span></td>
                                 <td><?= e((string) $item['created_at']); ?></td>
@@ -469,7 +471,7 @@ $isEditingStudent = $editingRoleName === 'student';
             <div class="rbac-modal-head">
                 <div>
                     <div class="text-[11px] font-black uppercase tracking-[0.2em] text-blue-600">Mô tả quyền</div>
-                    <div id="rbac-detail-modal-title" class="rbac-modal-title">Role &amp; Permission</div>
+                    <div id="rbac-detail-modal-title" class="rbac-modal-title">Vai trò và quyền hạn</div>
                     <div id="rbac-detail-modal-subtitle" class="rbac-modal-sub"></div>
                 </div>
                 <button type="button" class="rbac-modal-close" data-rbac-close-detail="1" aria-label="Đóng">
@@ -567,13 +569,13 @@ $isEditingStudent = $editingRoleName === 'student';
             <div class="grid gap-3 <?= $isEditingStaff ? '' : 'hidden'; ?>" data-role-profile="staff">
                 <label>
                     Chức vụ
-                    <input type="text" name="staff_position" value="<?= e((string) ($editingRoleProfile['staff_position'] ?? '')); ?>" <?= $isEditingStaff ? '' : 'disabled'; ?> placeholder="Ví dụ: Academic Coordinator">
+                    <input type="text" name="staff_position" value="<?= e((string) ($editingRoleProfile['staff_position'] ?? '')); ?>" <?= $isEditingStaff ? '' : 'disabled'; ?> placeholder="Ví dụ: Điều phối học vụ">
                 </label>
             </div>
             <div class="grid gap-3 md:grid-cols-2 <?= $isEditingTeacher ? '' : 'hidden'; ?>" data-role-profile="teacher">
                 <label>
                     Bằng cấp
-                    <input type="text" name="teacher_degree" value="<?= e((string) ($editingRoleProfile['teacher_degree'] ?? '')); ?>" <?= $isEditingTeacher ? '' : 'disabled'; ?> placeholder="Ví dụ: Master of TESOL">
+                    <input type="text" name="teacher_degree" value="<?= e((string) ($editingRoleProfile['teacher_degree'] ?? '')); ?>" <?= $isEditingTeacher ? '' : 'disabled'; ?> placeholder="Ví dụ: Thạc sĩ TESOL">
                 </label>
                 <label>
                     Số năm kinh nghiệm

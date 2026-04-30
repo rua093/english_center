@@ -165,10 +165,11 @@ final class ExtracurricularActivitiesTableModel
         }
 
         $sql = "SELECT r.id, r.activity_id, r.user_id, r.payment_status, r.amount_paid, r.payment_date, r.registration_date,
-                u.username, u.full_name
+                u.username, u.full_name, sp.student_code
             FROM activity_registrations r
             INNER JOIN extracurricular_activities a ON a.id = r.activity_id AND a.deleted_at IS NULL
             INNER JOIN users u ON u.id = r.user_id
+            LEFT JOIN student_profiles sp ON sp.user_id = u.id
             WHERE r.activity_id = :activity_id
             ORDER BY r.registration_date DESC, r.id DESC";
 

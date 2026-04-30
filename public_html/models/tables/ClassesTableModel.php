@@ -22,7 +22,7 @@ final class ClassesTableModel extends BaseTableModel
     public function listDetailedWithProgress(): array
     {
         $sql = "SELECT c.id, c.class_name, c.start_date, c.end_date, c.status,
-                co.course_name, u.full_name AS teacher_name, c.course_id, c.teacher_id,
+                co.course_name, u.full_name AS teacher_name, tp.teacher_code, c.course_id, c.teacher_id,
                 COALESCE(lp.total_lessons, 0) AS total_lessons,
                 COALESCE(lp.completed_lessons, 0) AS completed_lessons,
                 CASE
@@ -32,6 +32,7 @@ final class ClassesTableModel extends BaseTableModel
             FROM classes c
             INNER JOIN courses co ON co.id = c.course_id AND co.deleted_at IS NULL
             INNER JOIN users u ON u.id = c.teacher_id
+            LEFT JOIN teacher_profiles tp ON tp.user_id = u.id
             LEFT JOIN (
                 SELECT l.class_id,
                        COUNT(*) AS total_lessons,
@@ -49,7 +50,7 @@ final class ClassesTableModel extends BaseTableModel
         $pagination = $this->pagination($page, $perPage, 10, 200);
         $whereClause = $teacherId > 0 ? 'WHERE c.teacher_id = ' . (int) $teacherId : '';
         $sql = "SELECT c.id, c.class_name, c.start_date, c.end_date, c.status,
-                co.course_name, u.full_name AS teacher_name, c.course_id, c.teacher_id,
+                co.course_name, u.full_name AS teacher_name, tp.teacher_code, c.course_id, c.teacher_id,
                 COALESCE(lp.total_lessons, 0) AS total_lessons,
                 COALESCE(lp.completed_lessons, 0) AS completed_lessons,
                 CASE
@@ -59,6 +60,7 @@ final class ClassesTableModel extends BaseTableModel
             FROM classes c
             INNER JOIN courses co ON co.id = c.course_id AND co.deleted_at IS NULL
             INNER JOIN users u ON u.id = c.teacher_id
+            LEFT JOIN teacher_profiles tp ON tp.user_id = u.id
             LEFT JOIN (
                 SELECT l.class_id,
                        COUNT(*) AS total_lessons,
@@ -135,13 +137,27 @@ final class ClassesTableModel extends BaseTableModel
         return $this->fetchAll('SELECT id, class_name, course_id, teacher_id FROM classes ORDER BY class_name ASC');
     }
 
+    public function listSimpleByStatus(string $status): array
+    {
+        $normalizedStatus = $this->normalizeStatus($status);
+
+        return $this->fetchAll(
+            'SELECT id, class_name, course_id, teacher_id, status
+             FROM classes
+             WHERE status = :status
+             ORDER BY class_name ASC',
+            ['status' => $normalizedStatus]
+        );
+    }
+
     public function listForRegistration(): array
     {
         $sql = "SELECT c.id, c.class_name, c.course_id, c.teacher_id, c.status, c.start_date, c.end_date,
-                co.course_name, co.base_price, u.full_name AS teacher_name
+                co.course_name, co.base_price, u.full_name AS teacher_name, tp.teacher_code
             FROM classes c
             INNER JOIN courses co ON co.id = c.course_id AND co.deleted_at IS NULL
             LEFT JOIN users u ON u.id = c.teacher_id
+            LEFT JOIN teacher_profiles tp ON tp.user_id = u.id
             ORDER BY co.course_name ASC, c.class_name ASC";
         return $this->fetchAll($sql);
     }

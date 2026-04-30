@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 
+require_once __DIR__ . '/../core/database.php';
 require_once __DIR__ . '/tables/PermissionsTableModel.php';
 require_once __DIR__ . '/tables/JobApplicationsTableModel.php';
 require_once __DIR__ . '/tables/RolePermissionsTableModel.php';
@@ -95,6 +96,42 @@ final class AdminModel
     public function listPermissions(): array
     {
         return $this->permissionsTable->listAll();
+    }
+
+    public function dashboardOverviewData(): array
+    {
+        $months = $this->buildRecentMonthKeys(6);
+        $studentMonthlyRows = $this->aggregateMonthlyUserCountsByRole('student', 6);
+        $teacherMonthlyRows = $this->aggregateMonthlyUserCountsByRole('teacher', 6);
+
+        $studentSeries = $this->mapMonthlyCounts($months, $studentMonthlyRows);
+        $teacherSeries = $this->mapMonthlyCounts($months, $teacherMonthlyRows);
+
+        $studentCurrentMonth = !empty($studentSeries['values']) ? (int) end($studentSeries['values']) : 0;
+        $studentPreviousMonth = count($studentSeries['values']) >= 2 ? (int) $studentSeries['values'][count($studentSeries['values']) - 2] : 0;
+        $teacherCurrentMonth = !empty($teacherSeries['values']) ? (int) end($teacherSeries['values']) : 0;
+        $teacherPreviousMonth = count($teacherSeries['values']) >= 2 ? (int) $teacherSeries['values'][count($teacherSeries['values']) - 2] : 0;
+
+        $leadSummary = $this->studentLeadConversionSummary();
+        $applicationSummary = $this->jobApplicationConversionSummary();
+        $feedbackSummary = $this->feedbackSummary();
+        $classStatusSummary = $this->classStatusSummary();
+
+        return [
+            'growth' => [
+                'labels' => $studentSeries['labels'],
+                'students' => $studentSeries['values'],
+                'teachers' => $teacherSeries['values'],
+                'student_current_month' => $studentCurrentMonth,
+                'student_previous_month' => $studentPreviousMonth,
+                'teacher_current_month' => $teacherCurrentMonth,
+                'teacher_previous_month' => $teacherPreviousMonth,
+            ],
+            'lead_conversion' => $leadSummary,
+            'teacher_conversion' => $applicationSummary,
+            'feedback' => $feedbackSummary,
+            'class_status' => $classStatusSummary,
+        ];
     }
 
     public function rolePermissionMap(): array
@@ -320,6 +357,185 @@ final class AdminModel
     private function updateUserPassword(int $id, string $plainPassword): void
     {
         $this->usersTable->updatePassword($id, $plainPassword);
+    }
+
+    private function aggregateMonthlyUserCountsByRole(string $roleName, int $limit): array
+    {
+        $limit = max(1, min(24, $limit));
+        $pdo = Database::connection();
+        $sql = "SELECT DATE_FORMAT(u.created_at, '%Y-%m') AS month_key, COUNT(*) AS total
+            FROM users u
+            INNER JOIN roles r ON r.id = u.role_id
+            WHERE r.role_name = :role_name
+              AND u.deleted_at IS NULL
+            GROUP BY DATE_FORMAT(u.created_at, '%Y-%m')
+            ORDER BY month_key DESC
+            LIMIT {$limit}";
+
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute(['role_name' => $roleName]);
+
+        return $stmt->fetchAll() ?: [];
+    }
+
+    private function studentLeadConversionSummary(): array
+    {
+        $pdo = Database::connection();
+        $row = $pdo->query(
+            "SELECT COUNT(*) AS total,
+                    SUM(CASE WHEN converted_user_id IS NOT NULL THEN 1 ELSE 0 END) AS converted,
+                    SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END) AS cancelled
+             FROM student_leads"
+        )->fetch();
+
+        $total = (int) ($row['total'] ?? 0);
+        $converted = (int) ($row['converted'] ?? 0);
+        $cancelled = (int) ($row['cancelled'] ?? 0);
+
+        return [
+            'total' => $total,
+            'converted' => $converted,
+            'unconverted' => max(0, $total - $converted),
+            'cancelled' => $cancelled,
+            'conversion_rate' => $total > 0 ? round(($converted / $total) * 100, 1) : 0.0,
+        ];
+    }
+
+    private function jobApplicationConversionSummary(): array
+    {
+        $pdo = Database::connection();
+        $row = $pdo->query(
+            "SELECT COUNT(*) AS total,
+                    SUM(CASE WHEN converted_user_id IS NOT NULL THEN 1 ELSE 0 END) AS converted,
+                    SUM(CASE WHEN status = 'REJECTED' THEN 1 ELSE 0 END) AS rejected
+             FROM job_applications"
+        )->fetch();
+
+        $total = (int) ($row['total'] ?? 0);
+        $converted = (int) ($row['converted'] ?? 0);
+        $rejected = (int) ($row['rejected'] ?? 0);
+
+        return [
+            'total' => $total,
+            'converted' => $converted,
+            'pending' => max(0, $total - $converted),
+            'rejected' => $rejected,
+            'conversion_rate' => $total > 0 ? round(($converted / $total) * 100, 1) : 0.0,
+        ];
+    }
+
+    private function feedbackSummary(): array
+    {
+        $pdo = Database::connection();
+        $summaryRow = $pdo->query(
+            "SELECT COUNT(*) AS total,
+                    COALESCE(AVG(rating), 0) AS avg_rating,
+                    SUM(CASE WHEN is_public_web = 1 THEN 1 ELSE 0 END) AS public_total
+             FROM feedbacks"
+        )->fetch();
+
+        $distributionRows = $pdo->query(
+            "SELECT rating, COUNT(*) AS total
+             FROM feedbacks
+             GROUP BY rating
+             ORDER BY rating ASC"
+        )->fetchAll() ?: [];
+
+        $distribution = [
+            1 => 0,
+            2 => 0,
+            3 => 0,
+            4 => 0,
+            5 => 0,
+        ];
+
+        foreach ($distributionRows as $row) {
+            $rating = (int) ($row['rating'] ?? 0);
+            if (!isset($distribution[$rating])) {
+                continue;
+            }
+
+            $distribution[$rating] = (int) ($row['total'] ?? 0);
+        }
+
+        $total = (int) ($summaryRow['total'] ?? 0);
+        $publicTotal = (int) ($summaryRow['public_total'] ?? 0);
+
+        return [
+            'total' => $total,
+            'avg_rating' => round((float) ($summaryRow['avg_rating'] ?? 0), 1),
+            'public_total' => $publicTotal,
+            'public_rate' => $total > 0 ? round(($publicTotal / $total) * 100, 1) : 0.0,
+            'distribution' => array_values($distribution),
+        ];
+    }
+
+    private function classStatusSummary(): array
+    {
+        $pdo = Database::connection();
+        $rows = $pdo->query(
+            "SELECT status, COUNT(*) AS total
+             FROM classes
+             GROUP BY status"
+        )->fetchAll() ?: [];
+
+        $summary = [
+            'upcoming' => 0,
+            'active' => 0,
+            'graduated' => 0,
+            'cancelled' => 0,
+        ];
+
+        foreach ($rows as $row) {
+            $status = strtolower(trim((string) ($row['status'] ?? '')));
+            if (!isset($summary[$status])) {
+                continue;
+            }
+
+            $summary[$status] = (int) ($row['total'] ?? 0);
+        }
+
+        return $summary;
+    }
+
+    private function buildRecentMonthKeys(int $limit): array
+    {
+        $limit = max(1, min(24, $limit));
+        $months = [];
+        $currentMonth = new DateTimeImmutable('first day of this month');
+
+        for ($offset = $limit - 1; $offset >= 0; $offset--) {
+            $month = $currentMonth->modify(sprintf('-%d month', $offset));
+            $months[] = $month->format('Y-m');
+        }
+
+        return $months;
+    }
+
+    private function mapMonthlyCounts(array $monthKeys, array $rows): array
+    {
+        $map = [];
+        foreach ($rows as $row) {
+            $key = (string) ($row['month_key'] ?? '');
+            if ($key === '') {
+                continue;
+            }
+
+            $map[$key] = (int) ($row['total'] ?? 0);
+        }
+
+        $labels = [];
+        $values = [];
+        foreach ($monthKeys as $monthKey) {
+            $parsedMonth = DateTimeImmutable::createFromFormat('Y-m', (string) $monthKey);
+            $labels[] = $parsedMonth instanceof DateTimeImmutable ? ('T' . $parsedMonth->format('m')) : (string) $monthKey;
+            $values[] = (int) ($map[(string) $monthKey] ?? 0);
+        }
+
+        return [
+            'labels' => $labels,
+            'values' => $values,
+        ];
     }
 
     private function buildUsernameSeed(array $record, string $prefix): string

@@ -28,9 +28,10 @@ final class TuitionFeesTableModel extends BaseTableModel
     public function listDetailed(): array
     {
         $sql = "SELECT t.id, t.student_id, t.class_id, t.total_amount, t.amount_paid, t.payment_plan, t.status,
-                NULL AS due_date, u.full_name AS full_name, c.class_name AS course_name
+                NULL AS due_date, u.full_name AS full_name, sp.student_code, c.class_name AS course_name
             FROM tuition_fees t
             INNER JOIN users u ON u.id = t.student_id
+            LEFT JOIN student_profiles sp ON sp.user_id = u.id
             INNER JOIN classes c ON c.id = t.class_id
             ORDER BY t.id DESC";
         return $this->fetchAll($sql);
@@ -40,9 +41,10 @@ final class TuitionFeesTableModel extends BaseTableModel
     {
         $pagination = $this->pagination($page, $perPage, 10, 200);
         $sql = "SELECT t.id, t.student_id, t.class_id, t.total_amount, t.amount_paid, t.payment_plan, t.status,
-                NULL AS due_date, u.full_name AS full_name, c.class_name AS course_name
+                NULL AS due_date, u.full_name AS full_name, sp.student_code, c.class_name AS course_name
             FROM tuition_fees t
             INNER JOIN users u ON u.id = t.student_id
+            LEFT JOIN student_profiles sp ON sp.user_id = u.id
             INNER JOIN classes c ON c.id = t.class_id
             ORDER BY t.id DESC
             LIMIT {$pagination['limit']} OFFSET {$pagination['offset']}";
@@ -51,9 +53,10 @@ final class TuitionFeesTableModel extends BaseTableModel
 
     public function findDetailedById(int $id): ?array
     {
-        $sql = "SELECT t.id, t.total_amount, t.amount_paid, t.status, u.full_name AS full_name, c.class_name AS class_name
+        $sql = "SELECT t.id, t.total_amount, t.amount_paid, t.status, u.full_name AS full_name, sp.student_code, c.class_name AS class_name
             FROM tuition_fees t
             INNER JOIN users u ON u.id = t.student_id
+            LEFT JOIN student_profiles sp ON sp.user_id = u.id
             INNER JOIN classes c ON c.id = t.class_id
             WHERE t.id = :id
             LIMIT 1";

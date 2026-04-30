@@ -343,7 +343,7 @@ if ($selectedClassId > 0) {
             . '-'
             . $formatTime((string) ($scheduleRow['end_time'] ?? ''))
             . ' | '
-            . (string) ($scheduleRow['room_name'] ?? 'Online')
+            . (string) ($scheduleRow['room_name'] ?? 'Trực tuyến')
         );
 
         if ($assignedLessonId > 0 && $assignedLessonTitle !== '') {
@@ -568,7 +568,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
                                                     $endTimeLabel = $formatTime((string) ($slotSchedule['end_time'] ?? ''));
                                                     $timeLabel = trim($startTimeLabel . '-' . $endTimeLabel, '-');
 
-                                                    $roomName = trim((string) ($slotSchedule['room_name'] ?? 'Online'));
+                                                    $roomName = trim((string) ($slotSchedule['room_name'] ?? 'Trực tuyến'));
                                                     $teacherName = trim((string) ($slotSchedule['teacher_name'] ?? ''));
                                                     if ($teacherName === '') {
                                                         $teacherId = (int) ($slotSchedule['teacher_id'] ?? 0);
@@ -598,7 +598,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
                                                     $slotLabel = ($lessonTitle !== '' ? $lessonTitle : 'Buổi học')
                                                         . ' | ' . ($studyDateLabel !== '' ? $studyDateLabel : (string) $weekDay['display'])
                                                         . ' ' . $timeLabel
-                                                        . ' | ' . ($roomName !== '' ? $roomName : 'Online');
+                                                        . ' | ' . ($roomName !== '' ? $roomName : 'Trực tuyến');
                                                     ?>
                                                     <div
                                                         class="classroom-week-chip mb-1 last:mb-0 max-w-full cursor-context-menu overflow-hidden rounded-lg border px-2 py-1 text-[11px] font-semibold leading-tight focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 <?= e($chipClasses); ?>"
@@ -618,7 +618,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
                                                         data-study-date="<?= e($studyDateValue); ?>"
                                                         data-start-time="<?= e($startTimeLabel); ?>"
                                                         data-end-time="<?= e($endTimeLabel); ?>"
-                                                        data-room-name="<?= e($roomName !== '' ? $roomName : 'Online'); ?>"
+                                                        data-room-name="<?= e($roomName !== '' ? $roomName : 'Trực tuyến'); ?>"
                                                         data-teacher-name="<?= e($teacherName); ?>"
                                                         data-roadmap-topic="<?= e($roadmapTopic); ?>"
                                                         data-lesson-content="<?= e($lessonContent); ?>"
@@ -635,7 +635,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
                                                         <div class="break-words whitespace-normal text-[11px] font-bold leading-snug"><?= e($lessonTitle !== '' ? $lessonTitle : 'Buổi học'); ?></div>
                                                         <div class="mt-0.5 flex flex-wrap gap-1 text-[10px]">
                                                             <span class="inline-flex items-center rounded-full border border-slate-200 bg-white/85 px-1.5 py-0.5 font-semibold"><?= e($timeLabel !== '' ? $timeLabel : '--:--'); ?></span>
-                                                            <span class="inline-flex max-w-full items-center truncate rounded-full border border-slate-200 bg-white/85 px-1.5 py-0.5 font-semibold"><?= e($roomName !== '' ? $roomName : 'Online'); ?></span>
+                                                            <span class="inline-flex max-w-full items-center truncate rounded-full border border-slate-200 bg-white/85 px-1.5 py-0.5 font-semibold"><?= e($roomName !== '' ? $roomName : 'Trực tuyến'); ?></span>
                                                         </div>
                                                     </div>
                                                 <?php endforeach; ?>
@@ -850,7 +850,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
                         <?php foreach ($roadmaps as $roadmap): ?>
                             <?php $roadmapId = (int) ($roadmap['id'] ?? 0); ?>
                             <option value="<?= $roadmapId; ?>">
-                                Buổi <?= (int) ($roadmap['order'] ?? 0); ?> | <?= e((string) ($roadmap['topic_title'] ?? ('Roadmap #' . $roadmapId))); ?>
+                                Buổi <?= (int) ($roadmap['order'] ?? 0); ?> | <?= e((string) ($roadmap['topic_title'] ?? ('Lộ trình #' . $roadmapId))); ?>
                             </option>
                         <?php endforeach; ?>
                     </select>
@@ -3779,14 +3779,6 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
         });
     }
 
-    function learningStatusBadgeClass(status) {
-        const normalized = normalizeText(status).toLowerCase();
-        if (normalized === 'trial') {
-            return 'border-blue-200 bg-blue-50 text-blue-700';
-        }
-        return 'border-emerald-200 bg-emerald-50 text-emerald-700';
-    }
-
     function renderAttendanceRows(rows) {
         if (!(attendanceList instanceof HTMLElement)) {
             return;
@@ -3810,8 +3802,10 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
                 return '';
             }
 
-            const studentName = escapeHtml(normalizeText(row.student_name) || ('Học viên #' + studentId));
-            const learningStatus = normalizeText(row.learning_status).toLowerCase() === 'trial' ? 'trial' : 'official';
+            const normalizedName = normalizeText(row.full_name) || normalizeText(row.student_name) || ('Học viên #' + studentId);
+            const normalizedCode = normalizeText(row.student_code) || '-';
+            const studentName = escapeHtml(normalizedName);
+            const studentCode = escapeHtml(normalizedCode);
             const attendanceStatus = normalizeText(row.attendance_status).toLowerCase();
             const attendanceNote = escapeHtml(normalizeText(row.attendance_note));
 
@@ -3822,20 +3816,18 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
 
             return ''
                 + '<tr class="border-b border-slate-100 last:border-b-0">'
-                    + '<td class="px-3 py-2 align-top"><strong>' + studentName + '</strong></td>'
-                    + '<td class="px-3 py-2 align-top">'
-                        + '<span class="inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold ' + learningStatusBadgeClass(learningStatus) + '">' + escapeHtml(formatLearningStatusLabel(learningStatus)) + '</span>'
-                    + '</td>'
-                    + '<td class="px-3 py-2 align-top">'
-                        + '<select data-attendance-select="1" name="attendance_status[' + studentId + ']" class="h-9 w-full rounded-md border border-slate-300 bg-white px-2 text-sm"' + statusDisabledAttr + '>'
+                    + '<td class="px-4 py-3 align-top text-slate-600">' + studentCode + '</td>'
+                    + '<td class="px-4 py-3 align-top font-semibold text-slate-800">' + studentName + '</td>'
+                    + '<td class="px-4 py-3 align-top">'
+                        + '<select data-attendance-select="1" data-no-search="1" name="attendance_status[' + studentId + ']" class="h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm font-medium text-slate-700 no-search"' + statusDisabledAttr + '>'
                             + '<option value=""' + optionUnmarked + '>Chưa đánh dấu</option>'
                             + '<option value="present"' + optionPresent + '>Có mặt</option>'
                             + '<option value="late"' + optionLate + '>Đi muộn</option>'
                             + '<option value="absent"' + optionAbsent + '>Vắng</option>'
                         + '</select>'
                     + '</td>'
-                    + '<td class="px-3 py-2 align-top">'
-                        + '<input type="text" name="attendance_note[' + studentId + ']" value="' + attendanceNote + '" placeholder="Ghi chú thêm (nếu có)" class="h-9 w-full rounded-md border border-slate-300 bg-white px-2 text-sm"' + noteReadonlyAttr + '>'
+                    + '<td class="px-4 py-3 align-top">'
+                        + '<input type="text" name="attendance_note[' + studentId + ']" value="' + attendanceNote + '" placeholder="Ghi chú thêm (nếu có)" class="h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-700"' + noteReadonlyAttr + '>'
                     + '</td>'
                 + '</tr>';
         }).join('');
@@ -3845,10 +3837,10 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
                 + '<table class="min-w-full border-collapse text-sm">'
                     + '<thead class="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">'
                         + '<tr>'
-                            + '<th class="px-3 py-2">Học viên</th>'
-                            + '<th class="px-3 py-2">Trạng thái</th>'
-                            + '<th class="px-3 py-2">Điểm danh</th>'
-                            + '<th class="px-3 py-2">Ghi chú</th>'
+                            + '<th class="px-4 py-3">Mã HV</th>'
+                            + '<th class="px-4 py-3">Học viên</th>'
+                            + '<th class="px-4 py-3">Điểm danh</th>'
+                            + '<th class="px-4 py-3">Ghi chú</th>'
                         + '</tr>'
                     + '</thead>'
                     + '<tbody>' + tableRows + '</tbody>'
@@ -4204,7 +4196,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
             ? ((startTimeLabel !== '' ? startTimeLabel : '--:--') + ' - ' + (endTimeLabel !== '' ? endTimeLabel : '--:--'))
             : '--:-- - --:--';
 
-        const roomLabel = normalizeText(context.roomName) !== '' ? normalizeText(context.roomName) : 'Online';
+        const roomLabel = normalizeText(context.roomName) !== '' ? normalizeText(context.roomName) : 'Trực tuyến';
         const teacherLabel = normalizeText(context.teacherName) !== '' ? normalizeText(context.teacherName) : 'Chưa cập nhật';
         const attendanceLabel = 'Có mặt ' + toInt(context.presentCount)
             + ' | Muộn ' + toInt(context.lateCount)
@@ -4432,7 +4424,12 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
         }
 
         const html = rows.map(function (row) {
-            const studentName = escapeHtml(normalizeText(row.student_name));
+            const studentId = toInt(row.student_id);
+            const studentName = escapeHtml(
+                normalizeText(row.full_name)
+                || normalizeText(row.student_name)
+                || ('Học viên #' + studentId)
+            );
             const submissionId = toInt(row.submission_id);
             const hasSubmission = submissionId > 0;
             const scoreValue = escapeHtml(normalizeText(row.score));

@@ -78,6 +78,7 @@ $error = get_flash('error');
             <table class="min-w-full border-collapse text-sm" data-enable-row-detail="1">
                 <thead>
                     <tr>
+                        <th>Mã HV</th>
                         <th>Học viên</th>
                         <th>Đánh giá</th>
                         <th>Nhận xét</th>
@@ -88,14 +89,15 @@ $error = get_flash('error');
                 <tbody>
                     <?php if (empty($feedbacks)): ?>
                         <tr>
-                            <td colspan="5">
+                            <td colspan="6">
                                 <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">Chưa có đánh giá nào.</div>
                             </td>
                         </tr>
                     <?php else: ?>
                         <?php foreach ($feedbacks as $fb): ?>
                             <tr>
-                                <td><?= e((string) ($fb['full_name'] ?? ($fb['student_name'] ?? ''))); ?></td>
+                                <td><?= e((string) ($fb['student_code'] ?? '-')); ?></td>
+                                <td><?= e((string) ($fb['full_name'] ?? 'Học viên')); ?></td>
                                 <td><?= (int) $fb['rating']; ?>/5</td>
                                 <td>
                                     <?php $fullComment = (string) ($fb['comment'] ?? ''); ?>

@@ -57,7 +57,7 @@ final class SubmissionsTableModel
                 a.title AS assignment_title, a.deadline AS assignment_deadline,
                 sch.id AS schedule_id, sch.class_id, sch.study_date AS lesson_date,
                 l.actual_title AS lesson_title,
-                c.class_name, u.full_name AS full_name
+                c.class_name, u.full_name AS full_name, sp.student_code
             FROM submissions s
             INNER JOIN assignments a ON a.id = s.assignment_id
             INNER JOIN schedules sch ON sch.id = a.schedule_id
@@ -69,6 +69,7 @@ final class SubmissionsTableModel
             ) l ON l.schedule_id = sch.id
             INNER JOIN classes c ON c.id = sch.class_id
             INNER JOIN users u ON u.id = s.student_id
+            LEFT JOIN student_profiles sp ON sp.user_id = u.id
             ORDER BY s.submitted_at DESC";
         return $this->fetchAll($sql);
     }
@@ -83,7 +84,7 @@ final class SubmissionsTableModel
                 a.title AS assignment_title, a.deadline AS assignment_deadline,
                 sch.id AS schedule_id, sch.class_id, sch.study_date AS lesson_date,
                 l.actual_title AS lesson_title,
-                c.class_name, u.full_name AS full_name
+                c.class_name, u.full_name AS full_name, sp.student_code
             FROM submissions s
             INNER JOIN assignments a ON a.id = s.assignment_id
             INNER JOIN schedules sch ON sch.id = a.schedule_id
@@ -95,6 +96,7 @@ final class SubmissionsTableModel
             ) l ON l.schedule_id = sch.id
             INNER JOIN classes c ON c.id = sch.class_id
             INNER JOIN users u ON u.id = s.student_id
+            LEFT JOIN student_profiles sp ON sp.user_id = u.id
             ORDER BY s.submitted_at DESC
             LIMIT {$limit} OFFSET {$offset}";
         return $this->fetchAll($sql);
@@ -123,7 +125,7 @@ final class SubmissionsTableModel
 
     public function listRosterByClassAndAssignment(int $classId, int $assignmentId): array
     {
-        $sql = "SELECT u.id AS student_id, u.full_name AS full_name,
+        $sql = "SELECT u.id AS student_id, u.full_name AS full_name, sp.student_code,
                 s.id AS submission_id, s.file_url, s.submitted_at, s.score, s.teacher_comment,
                 a.deadline AS assignment_deadline,
                 CASE
@@ -138,6 +140,7 @@ final class SubmissionsTableModel
             INNER JOIN schedules sch ON sch.id = a.schedule_id AND sch.class_id = :class_id
             INNER JOIN class_students cs ON cs.class_id = sch.class_id
             INNER JOIN users u ON u.id = cs.student_id AND u.deleted_at IS NULL
+            LEFT JOIN student_profiles sp ON sp.user_id = u.id
             LEFT JOIN submissions s ON s.assignment_id = a.id AND s.student_id = cs.student_id
             WHERE a.id = :assignment_id
             ORDER BY u.full_name ASC";
