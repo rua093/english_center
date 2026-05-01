@@ -1277,6 +1277,15 @@ if ($displayAdminDescription === '') {
                 </a>
             <?php endif; ?>
 
+            <?php if (can_access_page('exports-academic')): ?>
+                <a class="admin-sidebar-link<?= $activeModule === 'exports' ? ' is-active' : ''; ?>" href="<?= e(page_url('exports-academic')); ?>" title="Xuất Excel học viên">
+                    <span class="admin-sidebar-link-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24"><path d="M14 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><path d="M8 3h8v4H8z"></path><path d="m9 12 2 2 4-4"></path><path d="M8 17h8"></path></svg>
+                    </span>
+                    <span class="admin-sidebar-link-label">Xuất Excel học viên</span>
+                </a>
+            <?php endif; ?>
+
         </nav>
 
         <div class="admin-sidebar-actions">

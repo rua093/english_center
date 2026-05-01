@@ -316,6 +316,8 @@ function can_access_page(string $page): bool
 			return has_permission('academic.assignments.view');
 		case 'materials-academic':
 			return has_permission('materials.view');
+		case 'exports-academic':
+			return has_permission('academic.exports.view');
 		default:
 			return false;
 	}

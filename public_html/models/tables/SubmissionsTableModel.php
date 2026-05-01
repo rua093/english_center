@@ -150,4 +150,44 @@ final class SubmissionsTableModel
             'assignment_id' => $assignmentId,
         ]);
     }
+
+    public function listDetailedByClass(int $classId): array
+    {
+        if ($classId <= 0) {
+            return [];
+        }
+
+        $sql = "SELECT
+                cs.student_id,
+                u.full_name AS full_name,
+                sp.student_code,
+                a.id AS assignment_id,
+                a.title AS assignment_title,
+                a.deadline AS assignment_deadline,
+                s.id AS submission_id,
+                s.file_url,
+                s.submitted_at,
+                s.score,
+                s.teacher_comment,
+                CASE WHEN s.id IS NOT NULL THEN 'Đã nộp' ELSE 'Chưa nộp' END AS submission_status,
+                CASE
+                    WHEN s.id IS NOT NULL
+                        AND a.deadline IS NOT NULL
+                        AND s.submitted_at IS NOT NULL
+                        AND s.submitted_at > a.deadline
+                    THEN 1
+                    ELSE 0
+                END AS is_late_submission
+            FROM class_students cs
+            INNER JOIN users u ON u.id = cs.student_id AND u.deleted_at IS NULL
+            LEFT JOIN student_profiles sp ON sp.user_id = u.id
+            LEFT JOIN schedules sch ON sch.class_id = cs.class_id
+            LEFT JOIN assignments a ON a.schedule_id = sch.id
+            LEFT JOIN submissions s ON s.assignment_id = a.id AND s.student_id = cs.student_id
+            WHERE cs.class_id = :class_id
+              AND a.id IS NOT NULL
+            ORDER BY u.full_name ASC, a.deadline ASC, a.id ASC";
+
+        return $this->fetchAll($sql, ['class_id' => $classId]);
+    }
 }

@@ -51,6 +51,7 @@ $permissionActionOrder=['view','create','update','delete','submit','request','gr
 $permissionGroupLabels=[
     'admin'=>'Quản trị hệ thống','admin.user'=>'Người dùng','admin.role_permission'=>'Phân quyền vai trò',
     'academic.assignments'=>'Bài tập','academic.classes'=>'Lớp học','academic.courses'=>'Khóa học',
+    'academic.exports'=>'Xuất Excel học viên',
     'academic.portfolios'=>'Hồ sơ tiến bộ học viên','academic.roadmaps'=>'Lộ trình','academic.rooms'=>'Phòng học',
     'academic.schedules'=>'Lịch học','academic.submissions'=>'Bài nộp & Chấm điểm',
     'activity'=>'Hoạt động ngoại khóa','approval'=>'Phê duyệt','feedback'=>'Đánh giá',

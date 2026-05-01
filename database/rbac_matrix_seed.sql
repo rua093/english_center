@@ -35,6 +35,7 @@ INSERT INTO permissions (permission_name, slug) VALUES
 ('Xoa bai tap', 'academic.assignments.delete'),
 ('Xem bai nop', 'academic.submissions.view'),
 ('Cham diem bai nop', 'academic.submissions.grade'),
+('Xem xuat Excel hoc vien', 'academic.exports.view'),
 ('Xem phong hoc', 'academic.rooms.view'),
 ('Tao phong hoc', 'academic.rooms.create'),
 ('Cap nhat phong hoc', 'academic.rooms.update'),
@@ -118,6 +119,7 @@ INNER JOIN permissions p ON p.slug IN (
     'academic.schedules.view', 'academic.schedules.create', 'academic.schedules.update', 'academic.schedules.delete',
     'academic.assignments.view', 'academic.assignments.create', 'academic.assignments.update', 'academic.assignments.delete',
     'academic.submissions.view', 'academic.submissions.grade',
+    'academic.exports.view',
     'academic.rooms.view',
     -- Materials
     'materials.view', 'materials.create', 'materials.update', 'materials.delete',
@@ -152,6 +154,7 @@ INNER JOIN permissions p ON p.slug IN (
     'academic.schedules.view',
     'academic.assignments.view', 'academic.assignments.create', 'academic.assignments.update',
     'academic.submissions.view', 'academic.submissions.grade',
+    'academic.exports.view',
     'materials.view', 'materials.create', 'materials.update', 'materials.delete',
     'approval.request'
 )

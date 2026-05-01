@@ -382,6 +382,11 @@ final class AcademicModel
         return $this->submissionsTable->listRosterByClassAndAssignment($classId, $assignmentId);
     }
 
+    public function listSubmissionDetailsByClass(int $classId): array
+    {
+        return $this->submissionsTable->listDetailedByClass($classId);
+    }
+
     public function classLookups(): array
     {
         return [
@@ -425,6 +430,124 @@ final class AcademicModel
     public function countRoadmapsByCourse(int $courseId): int
     {
         return $this->courseRoadmapsTable->countByCourse($courseId);
+    }
+
+    public function buildStudentPerformanceExport(int $classId, array $studentIds): array
+    {
+        if ($classId <= 0) {
+            return [];
+        }
+
+        $selectedIds = [];
+        foreach ($studentIds as $studentId) {
+            $normalizedId = (int) $studentId;
+            if ($normalizedId > 0) {
+                $selectedIds[$normalizedId] = true;
+            }
+        }
+
+        if ($selectedIds === []) {
+            return [];
+        }
+
+        $classRow = $this->findClass($classId);
+        $students = $this->listStudentsForClass($classId);
+
+        $selectedStudents = [];
+        foreach ($students as $studentRow) {
+            $studentId = (int) ($studentRow['student_id'] ?? 0);
+            if ($studentId > 0 && isset($selectedIds[$studentId])) {
+                $selectedStudents[$studentId] = $studentRow;
+            }
+        }
+
+        if ($selectedStudents === []) {
+            return [];
+        }
+
+        $attendanceByStudent = [];
+        foreach ($this->summarizeAttendanceRateByClass($classId) as $row) {
+            $studentId = (int) ($row['student_id'] ?? 0);
+            if ($studentId > 0) {
+                $attendanceByStudent[$studentId] = $row;
+            }
+        }
+
+        $submissionByStudent = [];
+        foreach ($this->summarizeOnTimeSubmissionRateByClass($classId) as $row) {
+            $studentId = (int) ($row['student_id'] ?? 0);
+            if ($studentId > 0) {
+                $submissionByStudent[$studentId] = $row;
+            }
+        }
+
+        $assignmentRows = [];
+        $assignmentScoreBuckets = [];
+        foreach ($this->listSubmissionDetailsByClass($classId) as $row) {
+            $studentId = (int) ($row['student_id'] ?? 0);
+            if (!isset($selectedStudents[$studentId])) {
+                continue;
+            }
+
+            $score = $row['score'];
+            if ($score !== null && $score !== '') {
+                $assignmentScoreBuckets[$studentId][] = (float) $score;
+            }
+
+            $assignmentRows[] = $row;
+        }
+
+        $examRows = [];
+        foreach ($this->listExamRowsByClass($classId) as $row) {
+            $studentId = (int) ($row['student_id'] ?? 0);
+            if (isset($selectedStudents[$studentId])) {
+                $examRows[] = $row;
+            }
+        }
+
+        $summaryRows = [];
+        foreach ($selectedStudents as $studentId => $studentRow) {
+            $attendance = $attendanceByStudent[$studentId] ?? [];
+            $submission = $submissionByStudent[$studentId] ?? [];
+            $totalSessions = max(0, (int) ($attendance['total_sessions'] ?? 0));
+            $attendedSessions = max(0, (int) ($attendance['attended_sessions'] ?? 0));
+            $totalAssignments = max(0, (int) ($submission['total_assignments'] ?? 0));
+            $submittedAssignments = max(0, (int) ($submission['submitted_assignments'] ?? 0));
+            $gradedAssignments = $assignmentScoreBuckets[$studentId] ?? [];
+
+            $summaryRows[] = [
+                'student_id' => $studentId,
+                'student_name' => (string) ($studentRow['student_name'] ?? ''),
+                'student_code' => (string) ($studentRow['student_code'] ?? ''),
+                'total_sessions' => $totalSessions,
+                'attended_sessions' => $attendedSessions,
+                'present_sessions' => max(0, (int) ($attendance['present_sessions'] ?? 0)),
+                'late_sessions' => max(0, (int) ($attendance['late_sessions'] ?? 0)),
+                'absent_sessions' => max(0, (int) ($attendance['absent_sessions'] ?? 0)),
+                'attendance_rate' => $totalSessions > 0 ? round(($attendedSessions / $totalSessions) * 100, 1) : 0.0,
+                'total_assignments' => $totalAssignments,
+                'submitted_assignments' => $submittedAssignments,
+                'on_time_assignments' => max(0, (int) ($submission['on_time_assignments'] ?? 0)),
+                'late_assignments' => max(0, (int) ($submission['late_assignments'] ?? 0)),
+                'submission_rate' => $totalAssignments > 0 ? round(($submittedAssignments / $totalAssignments) * 100, 1) : 0.0,
+                'graded_assignment_count' => count($gradedAssignments),
+                'assignment_average' => $gradedAssignments !== []
+                    ? round(array_sum($gradedAssignments) / count($gradedAssignments), 2)
+                    : null,
+            ];
+        }
+
+        usort($summaryRows, static function (array $left, array $right): int {
+            return strcmp((string) ($left['student_name'] ?? ''), (string) ($right['student_name'] ?? ''));
+        });
+
+        return [
+            'class' => $classRow,
+            'students' => array_values($selectedStudents),
+            'summary_rows' => $summaryRows,
+            'assignment_rows' => $assignmentRows,
+            'exam_rows' => $examRows,
+        ];
     }
 
     public function listRoadmapsByCoursePage(int $courseId, int $page, int $perPage): array
