@@ -56,12 +56,8 @@ function api_tuitions_save_action(): void
 	}
 
 	$id = input_int($_POST, 'id');
-	$studentId = input_int($_POST, 'student_id');
-	$classId = input_int($_POST, 'class_id');
-	$totalAmount = input_float($_POST, 'total_amount');
-	$amountPaid = input_float($_POST, 'amount_paid');
 	$paymentPlan = input_string($_POST, 'payment_plan', 'full');
-	$requestedStatus = input_string($_POST, 'status', '');
+	$packageId = max(0, input_int($_POST, 'package_id'));
 	$academicModel = new AcademicModel();
 
 	if ($id <= 0) {
@@ -69,34 +65,66 @@ function api_tuitions_save_action(): void
 		redirect(page_url('registration-finance'));
 	}
 
-	if ($studentId <= 0 || $classId <= 0 || $totalAmount < 0 || $amountPaid < 0) {
-		set_flash('error', 'Vui lòng nhập đầy đủ học viên, lớp học và số tiền hợp lệ.');
+	$existingFee = $academicModel->findTuitionFeeForEdit($id);
+	if (!$existingFee) {
+		set_flash('error', 'Không tìm thấy hóa đơn học phí cần cập nhật.');
 		$query = $id > 0 ? ['edit' => $id] : [];
 		redirect(page_url('tuition-finance', $query));
 	}
 
-	if ($requestedStatus === 'paid' && $amountPaid < $totalAmount) {
-		set_flash('error', 'Không thể chuyển trạng thái paid khi số tiền đã thu chưa đủ tổng học phí.');
-		$query = $id > 0 ? ['edit' => $id] : [];
-		redirect(page_url('tuition-finance', $query));
+	$classId = (int) ($existingFee['class_id'] ?? 0);
+	$class = $classId > 0 ? $academicModel->findClass($classId) : null;
+	if (!$class) {
+		set_flash('error', 'Không tìm thấy lớp học gốc của hóa đơn.');
+		redirect(page_url('tuition-finance', ['edit' => $id]));
 	}
 
-	if (!$academicModel->isStudentEnrolledInClass($studentId, $classId)) {
-		set_flash('error', 'Học viên không thuộc lớp đã chọn. Vui lòng chọn đúng học viên trong lớp.');
-		$query = $id > 0 ? ['edit' => $id] : [];
-		redirect(page_url('tuition-finance', $query));
+	$courseId = (int) ($class['course_id'] ?? 0);
+	$baseAmount = max(0, (float) ($existingFee['base_amount'] ?? 0));
+	if ($baseAmount <= 0) {
+		$baseAmount = max(0, (float) ($existingFee['total_amount'] ?? 0));
 	}
 
-	$status = $amountPaid >= $totalAmount ? 'paid' : 'debt';
+	$discountType = 'none';
+	$discountPercent = 0.0;
+
+	if ($packageId > 0) {
+		$selectedPackage = $academicModel->findCoursePackage($packageId);
+		if (!$selectedPackage) {
+			set_flash('error', 'Ưu đãi đã chọn không tồn tại hoặc đã bị xóa.');
+			redirect(page_url('tuition-finance', ['edit' => $id]));
+		}
+
+		$packageCourseId = (int) ($selectedPackage['course_id'] ?? 0);
+		if ($packageCourseId > 0 && $packageCourseId !== $courseId) {
+			set_flash('error', 'Ưu đãi đã chọn không áp dụng cho lớp học này.');
+			redirect(page_url('tuition-finance', ['edit' => $id]));
+		}
+
+		$today = date('Y-m-d');
+		$startDate = trim((string) ($selectedPackage['start_date'] ?? ''));
+		$endDate = trim((string) ($selectedPackage['end_date'] ?? ''));
+		if ($startDate !== '' && $today < $startDate) {
+			set_flash('error', 'Ưu đãi đã chọn chưa đến ngày áp dụng.');
+			redirect(page_url('tuition-finance', ['edit' => $id]));
+		}
+
+		if ($endDate !== '' && $today > $endDate) {
+			set_flash('error', 'Ưu đãi đã chọn đã hết hạn áp dụng.');
+			redirect(page_url('tuition-finance', ['edit' => $id]));
+		}
+
+		$discountType = strtoupper(trim((string) ($selectedPackage['promo_type'] ?? '')));
+		$discountPercent = max(0, min(100, (float) ($selectedPackage['discount_value'] ?? 0)));
+	}
 
 	$academicModel->saveTuitionFee([
 		'id' => $id,
-		'student_id' => $studentId,
-		'class_id' => $classId,
-		'total_amount' => $totalAmount,
-		'amount_paid' => $amountPaid,
 		'payment_plan' => $paymentPlan,
-		'status' => $status,
+		'package_id' => $packageId,
+		'base_amount' => $baseAmount,
+		'discount_type' => $discountType,
+		'discount_amount' => $discountPercent,
 	]);
 
 	set_flash('success', 'Đã cập nhật học phí thành công.');
