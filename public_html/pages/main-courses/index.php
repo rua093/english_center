@@ -5,6 +5,10 @@ $courseRows = $courseTotal > 0
     ? $academicModel->listCoursesPage(1, $courseTotal)
     : [];
 
+$studentTotal = $academicModel->dashboardStats()['student_count'] ?? 0;
+$feedbackAverageRating = $academicModel->averageFeedbackRating();
+$satisfactionPercent = max(0, min(100, (int) round(($feedbackAverageRating / 5) * 100)));
+
 $buildCourseSlug = static function (string $value): string {
     $slug = strtolower(trim($value));
     $slug = preg_replace('/[^a-z0-9\s-]/u', '', $slug) ?? $slug;
@@ -61,9 +65,9 @@ foreach ($courseRows as $row) {
 }
 
 $stats = [
-    ['value' => '12+', 'label' => 'Chương trình học'],
-    ['value' => '1.500+', 'label' => 'Học viên đang theo học'],
-    ['value' => '98%', 'label' => 'Hài lòng sau khóa học'],
+    ['value' => number_format($courseTotal, 0, ',', '.') . '+', 'label' => 'Chương trình học'],
+    ['value' => number_format((int) $studentTotal, 0, ',', '.') . '+', 'label' => 'Học viên đang theo học'],
+    ['value' => $satisfactionPercent . '%', 'label' => 'Hài lòng sau khóa học'],
     ['value' => '100%', 'label' => 'Lộ trình được cá nhân hóa'],
 ];
 
@@ -297,60 +301,90 @@ $highlights = [
 
     <section id="dang-ky-tu-van" class="py-14 md:py-20">
         <div class="mx-auto max-w-[1450px] px-4 sm:px-6">
-            <div class="grid gap-8 lg:grid-cols-[0.95fr_1.05fr] items-stretch">
-                <div class="rounded-[2.5rem] bg-gradient-to-br from-red-600 to-rose-500 p-8 md:p-10 text-white shadow-[0_24px_60px_rgba(225,29,72,0.25)] transition-transform duration-300 hover:-translate-y-1" data-aos="fade-right" data-aos-duration="700">
-                    <div class="morph-content">
-                    <span class="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-xs font-black uppercase tracking-[0.2em]">
-                        <span class="h-2 w-2 rounded-full bg-lime-300"></span>
-                        Tư vấn nhanh
-                    </span>
-                    <h2 class="mt-6 text-3xl md:text-4xl font-black leading-tight">Nhận gợi ý khóa học phù hợp với trình độ hiện tại</h2>
-                    <p class="mt-4 max-w-xl text-rose-50/95 leading-relaxed">
-                        Gửi thông tin cho trung tâm, đội ngũ tư vấn sẽ phản hồi lịch học, cấp độ và lộ trình phù hợp nhất cho học viên.
-                    </p>
-
-                    <div class="mt-8 grid gap-4 sm:grid-cols-3">
-                        <div class="rounded-3xl bg-white/15 p-4 backdrop-blur-sm">
-                            <p class="text-2xl font-black">15'</p>
-                            <p class="mt-1 text-xs font-bold uppercase tracking-wider text-white/80">Phản hồi</p>
-                        </div>
-                        <div class="rounded-3xl bg-white/15 p-4 backdrop-blur-sm">
-                            <p class="text-2xl font-black">1:1</p>
-                            <p class="mt-1 text-xs font-bold uppercase tracking-wider text-white/80">Tư vấn</p>
-                        </div>
-                        <div class="rounded-3xl bg-white/15 p-4 backdrop-blur-sm">
-                            <p class="text-2xl font-black">100%</p>
-                            <p class="mt-1 text-xs font-bold uppercase tracking-wider text-white/80">Cá nhân hóa</p>
-                        </div>
-                    </div>
-                    </div>
+            <div class="relative overflow-hidden rounded-[2.75rem] border border-white/70 bg-white shadow-[0_24px_80px_rgba(15,23,42,0.08)]" data-aos="fade-up" data-aos-duration="700">
+                <div class="absolute inset-0 pointer-events-none">
+                    <div class="absolute -top-24 -right-20 h-72 w-72 rounded-full bg-rose-200/50 blur-3xl"></div>
+                    <div class="absolute -bottom-20 -left-16 h-64 w-64 rounded-full bg-lime-200/50 blur-3xl"></div>
+                    <div class="absolute inset-0 opacity-[0.04]" style="background-image: radial-gradient(#0f172a 1.5px, transparent 1.5px); background-size: 22px 22px;"></div>
                 </div>
 
-                <div class="rounded-[2.5rem] border border-white bg-white p-8 md:p-10 shadow-[0_24px_60px_rgba(15,23,42,0.08)] transition-transform duration-300 hover:-translate-y-1" data-aos="fade-left" data-aos-duration="700" data-aos-delay="100">
-                    <div class="morph-content">
-                    <div class="mb-8">
-                        <h3 class="text-2xl font-black text-slate-950">Đăng ký nhận tư vấn</h3>
-                        <p class="mt-2 text-slate-600">Để lại thông tin, trung tâm sẽ liên hệ sớm nhất.</p>
+                <div class="relative grid gap-0 lg:grid-cols-[1.05fr_0.95fr]">
+                    <div class="bg-gradient-to-br from-slate-950 via-rose-700 to-red-600 p-8 md:p-10 lg:p-12 text-white">
+                        <span class="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs font-black uppercase tracking-[0.22em] backdrop-blur">
+                            <span class="h-2 w-2 rounded-full bg-lime-300"></span>
+                            Tư vấn học tập
+                        </span>
+
+                        <h2 class="mt-6 max-w-xl text-3xl md:text-4xl lg:text-5xl font-black leading-[1.08] tracking-tight">
+                            Chọn đúng lộ trình, tiến bộ nhanh hơn ngay từ buổi đầu tiên
+                        </h2>
+
+                        <p class="mt-5 max-w-xl text-base md:text-lg leading-relaxed text-rose-50/90">
+                            Trang tư vấn giúp học viên được định hướng theo độ tuổi, năng lực và mục tiêu đầu ra. Từ đó trung tâm đề xuất khóa học phù hợp, dễ theo dõi và giàu tính thực hành.
+                        </p>
+
+                        <div class="mt-8 grid gap-4 sm:grid-cols-3">
+                            <div class="rounded-[1.5rem] border border-white/15 bg-white/10 p-4 backdrop-blur-sm">
+                                <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-rose-600 shadow-sm">
+                                    <i class="fa-solid fa-route text-lg"></i>
+                                </div>
+                                <p class="mt-4 text-sm font-black uppercase tracking-[0.16em]">Lộ trình rõ</p>
+                                <p class="mt-2 text-sm text-rose-50/85 leading-relaxed">Cá nhân hóa theo từng học viên.</p>
+                            </div>
+                            <div class="rounded-[1.5rem] border border-white/15 bg-white/10 p-4 backdrop-blur-sm">
+                                <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-emerald-600 shadow-sm">
+                                    <i class="fa-solid fa-user-graduate text-lg"></i>
+                                </div>
+                                <p class="mt-4 text-sm font-black uppercase tracking-[0.16em]">Đúng cấp độ</p>
+                                <p class="mt-2 text-sm text-rose-50/85 leading-relaxed">Từ nền tảng tới nâng cao.</p>
+                            </div>
+                            <div class="rounded-[1.5rem] border border-white/15 bg-white/10 p-4 backdrop-blur-sm">
+                                <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-blue-600 shadow-sm">
+                                    <i class="fa-solid fa-bolt text-lg"></i>
+                                </div>
+                                <p class="mt-4 text-sm font-black uppercase tracking-[0.16em]">Phản hồi nhanh</p>
+                                <p class="mt-2 text-sm text-rose-50/85 leading-relaxed">Định hướng sớm, tiết kiệm thời gian.</p>
+                            </div>
+                        </div>
                     </div>
 
-                    <form class="grid gap-4 sm:grid-cols-2">
-                        <input type="text" placeholder="Họ và tên" class="sm:col-span-2 rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-slate-900 outline-none transition focus:border-rose-300 focus:bg-white">
-                        <input type="tel" placeholder="Số điện thoại" class="rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-slate-900 outline-none transition focus:border-rose-300 focus:bg-white">
-                        <input type="email" placeholder="Email" class="rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-slate-900 outline-none transition focus:border-rose-300 focus:bg-white">
-                        <select class="sm:col-span-2 rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-slate-900 outline-none transition focus:border-rose-300 focus:bg-white">
-                            <option>Chọn chương trình quan tâm</option>
-                            <option>Tiếng Anh Mầm non</option>
-                            <option>Tiếng Anh Tiểu học</option>
-                            <option>Giao tiếp phản xạ</option>
-                            <option>IELTS</option>
-                            <option>Tiếng Anh Doanh nghiệp</option>
-                        </select>
-                        <textarea rows="4" placeholder="Ghi chú thêm" class="sm:col-span-2 rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-slate-900 outline-none transition focus:border-rose-300 focus:bg-white"></textarea>
-                        <button type="submit" class="sm:col-span-2 inline-flex items-center justify-center gap-3 rounded-full bg-slate-950 px-8 py-4 font-black text-white transition-all hover:-translate-y-1 hover:bg-emerald-600">
-                            Gửi yêu cầu tư vấn
-                            <i class="fa-solid fa-paper-plane"></i>
-                        </button>
-                    </form>
+                    <div class="relative bg-white p-8 md:p-10 lg:p-12">
+                        <div class="absolute inset-y-0 left-0 w-px bg-gradient-to-b from-transparent via-slate-200 to-transparent"></div>
+
+                        <div class="flex h-full flex-col justify-between gap-8">
+                            <div>
+                                <div class="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-emerald-700">
+                                    <i class="fa-solid fa-graduation-cap"></i>
+                                    Dành cho phụ huynh & học viên
+                                </div>
+
+                                <h3 class="mt-5 text-2xl md:text-3xl font-black text-slate-950 leading-tight">
+                                    Đi đến tư vấn để nhận gợi ý khóa học phù hợp nhất
+                                </h3>
+
+                                <p class="mt-4 text-sm md:text-base leading-relaxed text-slate-600">
+                                    Tại đây, bạn sẽ tìm thấy đầy đủ thông tin để trung tâm hỗ trợ đúng mục tiêu học tập, từ giao tiếp, học thuật.
+                                </p>
+                            </div>
+
+                            <div class="grid gap-4 sm:grid-cols-2">
+                                <div class="rounded-[1.5rem] bg-slate-50 p-4 border border-slate-200/70 shadow-sm">
+                                    <p class="text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">Phù hợp cho</p>
+                                    <p class="mt-2 text-sm font-bold text-slate-800">Mầm non, tiểu học, IELTS, doanh nghiệp</p>
+                                </div>
+                                <div class="rounded-[1.5rem] bg-slate-50 p-4 border border-slate-200/70 shadow-sm">
+                                    <p class="text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">Mục tiêu</p>
+                                    <p class="mt-2 text-sm font-bold text-slate-800">Học đúng lộ trình, tăng hiệu quả học tập</p>
+                                </div>
+                            </div>
+
+                            <div class="pt-2">
+                                <a href="<?= e(page_url('register-consultation')); ?>" class="group inline-flex w-full min-h-[64px] items-center justify-center gap-3 rounded-full bg-gradient-to-r from-rose-600 via-red-600 to-rose-500 px-8 py-5 md:py-6 text-base md:text-lg font-black text-white shadow-[0_18px_40px_rgba(225,29,72,0.28)] transition-all hover:-translate-y-1 hover:shadow-[0_22px_50px_rgba(225,29,72,0.34)]">
+                                    Đăng ký ngay
+                                    <i class="fa-solid fa-arrow-right transition-transform group-hover:translate-x-1"></i>
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

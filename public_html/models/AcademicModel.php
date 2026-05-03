@@ -357,6 +357,11 @@ final class AcademicModel
         return $this->assignmentsTable->countDetailed();
     }
 
+    public function averageFeedbackRating(): float
+    {
+        return $this->feedbacksTable->averageRating();
+    }
+
     public function listAssignmentsPage(int $page, int $perPage): array
     {
         return $this->assignmentsTable->listDetailedPage($page, $perPage);

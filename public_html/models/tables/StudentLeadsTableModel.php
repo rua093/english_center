@@ -137,6 +137,94 @@ final class StudentLeadsTableModel
         return (int) $this->pdo->lastInsertId();
     }
 
+    public function saveConsultationLead(array $data): int
+    {
+        $studentName = trim((string) ($data['student_name'] ?? ''));
+
+        $parentName = trim((string) ($data['parent_name'] ?? ''));
+        $parentPhone = $this->firstFilledPhone([
+            $data['parent_phone'] ?? null,
+            $data['father_phone'] ?? null,
+            $data['mother_phone'] ?? null,
+            $data['phone'] ?? null,
+        ]);
+
+        $referralSource = $this->combineSelections(
+            $data['source_channels'] ?? [],
+            trim((string) ($data['source_other_detail'] ?? '')),
+            120
+        );
+        if ($referralSource === '') {
+            $referralSource = 'website';
+        }
+
+        $studyTime = $this->combineSelections(
+            array_merge(
+                (array) ($data['available_shifts'] ?? []),
+                (array) ($data['available_days'] ?? [])
+            ),
+            '',
+            180
+        );
+
+        $parentExpectation = $this->combineSelections(
+            $data['parent_expectations'] ?? [],
+            '',
+            1000
+        );
+
+        $sql = 'INSERT INTO student_leads (
+                    student_name,
+                    gender,
+                    dob,
+                    interests,
+                    personality,
+                    parent_name,
+                    parent_phone,
+                    school_name,
+                    current_grade,
+                    referral_source,
+                    current_level,
+                    study_time,
+                    parent_expectation,
+                    status
+                ) VALUES (
+                    :student_name,
+                    :gender,
+                    :dob,
+                    :interests,
+                    :personality,
+                    :parent_name,
+                    :parent_phone,
+                    :school_name,
+                    :current_grade,
+                    :referral_source,
+                    :current_level,
+                    :study_time,
+                    :parent_expectation,
+                    :status
+                )';
+
+        $this->executeStatement($sql, [
+            'student_name' => $studentName,
+            'gender' => $this->nullIfEmpty($data['student_gender'] ?? $data['gender'] ?? null),
+            'dob' => $this->nullIfEmpty($data['student_dob'] ?? $data['dob'] ?? null),
+            'interests' => $this->nullIfEmpty($data['student_hobbies'] ?? $data['interests'] ?? null),
+            'personality' => $this->nullIfEmpty($data['student_personality'] ?? $data['personality'] ?? null),
+            'parent_name' => $this->nullIfEmpty($parentName),
+            'parent_phone' => $this->nullIfEmpty($parentPhone),
+            'school_name' => $this->nullIfEmpty($data['student_school'] ?? $data['school_name'] ?? null),
+            'current_grade' => $this->nullIfEmpty($data['student_grade'] ?? $data['current_grade'] ?? null),
+            'referral_source' => $this->nullIfEmpty($referralSource),
+            'current_level' => $this->nullIfEmpty($data['current_level'] ?? null),
+            'study_time' => $this->nullIfEmpty($studyTime),
+            'parent_expectation' => $this->nullIfEmpty($parentExpectation),
+            'status' => 'new',
+        ]);
+
+        return (int) $this->pdo->lastInsertId();
+    }
+
     public function updateReview(int $id, string $status, string $adminNote): void
     {
         $normalizedStatus = $this->normalizeStatus($status);
@@ -213,6 +301,47 @@ final class StudentLeadsTableModel
     {
         $normalized = trim((string) $value);
         return $normalized === '' ? null : $normalized;
+    }
+
+    private function firstFilledPhone(array $values): string
+    {
+        foreach ($values as $value) {
+            $phone = $this->normalizePhone($value);
+            if ($phone !== '') {
+                return $phone;
+            }
+        }
+
+        return '';
+    }
+
+    private function combineSelections(array|string $values, string $otherValue, int $limit): string
+    {
+        $items = [];
+        foreach ((array) $values as $value) {
+            $item = trim((string) $value);
+            if ($item !== '') {
+                $items[] = $item;
+            }
+        }
+
+        $otherValue = trim($otherValue);
+        if ($otherValue !== '') {
+            $items[] = $otherValue;
+        }
+
+        $items = array_values(array_unique($items));
+        $combined = trim(implode(', ', $items));
+
+        if ($combined === '') {
+            return '';
+        }
+
+        if (function_exists('mb_substr')) {
+            return mb_substr($combined, 0, $limit);
+        }
+
+        return substr($combined, 0, $limit);
     }
 
     private function normalizePhone(mixed $value): string

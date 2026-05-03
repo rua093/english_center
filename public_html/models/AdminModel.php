@@ -188,6 +188,11 @@ final class AdminModel
         return $this->studentLeadsTable->findById($id);
     }
 
+    public function saveConsultationLead(array $data): int
+    {
+        return $this->studentLeadsTable->saveConsultationLead($data);
+    }
+
     public function submitStudentLead(array $data): int
     {
         return $this->studentLeadsTable->createFromPublic($data);
