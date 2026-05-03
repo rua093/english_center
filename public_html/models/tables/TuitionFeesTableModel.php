@@ -5,14 +5,54 @@ require_once __DIR__ . '/BaseTableModel.php';
 
 final class TuitionFeesTableModel extends BaseTableModel
 {
+    private function detailedFromSql(): string
+    {
+        return " FROM tuition_fees t
+            INNER JOIN users u ON u.id = t.student_id
+            LEFT JOIN student_profiles sp ON sp.user_id = u.id
+            INNER JOIN classes c ON c.id = t.class_id
+            INNER JOIN courses co ON co.id = c.course_id AND co.deleted_at IS NULL";
+    }
+
+    private function searchWhereClause(string $searchQuery, array &$params): string
+    {
+        $searchQuery = trim($searchQuery);
+        if ($searchQuery === '') {
+            return '';
+        }
+
+        $likeVal = '%' . $searchQuery . '%';
+
+        // Gán tham số riêng biệt cho từng placeholder để tránh lỗi PDO Invalid parameter number
+        $params['search_id'] = $likeVal;
+        $params['search_code'] = $likeVal;
+        $params['search_name'] = $likeVal;
+        $params['search_class'] = $likeVal;
+        $params['search_course'] = $likeVal;
+        $params['search_plan'] = $likeVal;
+        $params['search_status'] = $likeVal;
+
+        return " WHERE (
+            CAST(t.id AS CHAR) LIKE :search_id
+            OR COALESCE(sp.student_code, '') LIKE :search_code
+            OR COALESCE(u.full_name, '') LIKE :search_name
+            OR COALESCE(c.class_name, '') LIKE :search_class
+            OR COALESCE(co.course_name, '') LIKE :search_course
+            OR COALESCE(t.payment_plan, '') LIKE :search_plan
+            OR COALESCE(t.status, '') LIKE :search_status
+        )";
+    }
+
     private function resolveStatus(float $totalAmount, float $amountPaid): string
     {
         return $amountPaid >= $totalAmount ? 'paid' : 'debt';
     }
 
-    public function countDetailed(): int
+    public function countDetailed(string $searchQuery = ''): int
     {
-        return (int) $this->fetchScalar('SELECT COUNT(*) AS total FROM tuition_fees', [], 'total', 0);
+        $params = [];
+        $sql = 'SELECT COUNT(*) AS total' . $this->detailedFromSql() . $this->searchWhereClause($searchQuery, $params);
+        return (int) $this->fetchScalar($sql, $params, 'total', 0);
     }
 
     public function sumTotalAmount(): float
@@ -38,19 +78,17 @@ final class TuitionFeesTableModel extends BaseTableModel
         return $this->fetchAll($sql);
     }
 
-    public function listDetailedPage(int $page, int $perPage): array
+    public function listDetailedPage(int $page, int $perPage, string $searchQuery = ''): array
     {
         $pagination = $this->pagination($page, $perPage, 10, 200);
+        $params = [];
         $sql = "SELECT t.id, t.student_id, t.class_id, t.package_id, t.discount_amount, t.total_amount, t.amount_paid, t.payment_plan, t.status,
-                NULL AS due_date, u.full_name AS full_name, sp.student_code, c.class_name AS class_name, co.course_name
-            FROM tuition_fees t
-            INNER JOIN users u ON u.id = t.student_id
-            LEFT JOIN student_profiles sp ON sp.user_id = u.id
-            INNER JOIN classes c ON c.id = t.class_id
-            INNER JOIN courses co ON co.id = c.course_id AND co.deleted_at IS NULL
-            ORDER BY t.id DESC
-            LIMIT {$pagination['limit']} OFFSET {$pagination['offset']}";
-        return $this->fetchAll($sql);
+                NULL AS due_date, u.full_name AS full_name, sp.student_code, c.class_name AS class_name, co.course_name" .
+            $this->detailedFromSql() .
+            $this->searchWhereClause($searchQuery, $params) .
+            " ORDER BY t.id DESC
+              LIMIT {$pagination['limit']} OFFSET {$pagination['offset']}";
+        return $this->fetchAll($sql, $params);
     }
 
     public function findDetailedById(int $id): ?array

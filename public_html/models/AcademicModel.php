@@ -1133,14 +1133,14 @@ final class AcademicModel
         return $this->tuitionFeesTable->listDetailed();
     }
 
-    public function countTuitionFees(): int
+    public function countTuitionFees(string $searchQuery = ''): int
     {
-        return $this->tuitionFeesTable->countDetailed();
+        return $this->tuitionFeesTable->countDetailed($searchQuery);
     }
 
-    public function listTuitionFeesPage(int $page, int $perPage): array
+    public function listTuitionFeesPage(int $page, int $perPage, string $searchQuery = ''): array
     {
-        return $this->tuitionFeesTable->listDetailedPage($page, $perPage);
+        return $this->tuitionFeesTable->listDetailedPage($page, $perPage, $searchQuery);
     }
 
     public function findTuitionFee(int $id): ?array
