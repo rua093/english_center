@@ -84,6 +84,9 @@ if ($studentId > 0) {
                 'time' => trim($startTime . ' - ' . $endTime, ' -'),
                 'teacher' => trim((string) ($scheduleRow['teacher_name'] ?? '')),
                 'room' => trim((string) ($scheduleRow['room_name'] ?? '')),
+                'lesson_title' => trim((string) ($scheduleRow['lesson_title'] ?? '')),
+                'lesson_content' => trim((string) ($scheduleRow['lesson_content'] ?? '')),
+                'lesson_attachment_file_path' => trim((string) ($scheduleRow['lesson_attachment_file_path'] ?? '')),
                 'type' => $palette($className . '|' . $date),
             ];
         }
@@ -295,7 +298,7 @@ $calendarFocusDate = $calendarFocusDate ?: date('Y-m-d');
         </div>
     </div>
 
-    <div id="event-tooltip" class="fixed hidden z-[9999] w-72 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-slate-200 p-5 pointer-events-none transition-all duration-200 opacity-0 scale-95 translate-y-2">
+        <div id="event-tooltip" class="fixed hidden z-[9999] w-72 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-slate-200 p-5 pointer-events-auto transition-all duration-200 opacity-0 scale-95 translate-y-2">
         <div class="flex items-start gap-3 mb-3">
             <div id="tooltip-color" class="w-1.5 h-10 rounded-full"></div>
             <div>
@@ -313,6 +316,12 @@ $calendarFocusDate = $calendarFocusDate ?: date('Y-m-d');
                 <p id="tooltip-room" class="text-xs font-bold text-slate-700"></p>
             </div>
         </div>
+        <div class="mt-3 rounded-2xl border border-blue-100 bg-blue-50/60 p-3">
+            <p class="text-[10px] uppercase font-bold text-blue-400 tracking-wider">Buổi học</p>
+            <p id="tooltip-lesson-title" class="mt-1 text-xs font-black text-slate-800"></p>
+            <p id="tooltip-lesson-content" class="mt-1 text-[11px] leading-relaxed text-slate-600"></p>
+            <p id="tooltip-material" class="mt-2 text-[11px] font-semibold text-blue-700"></p>
+        </div>
     </div>
 </section>
 
@@ -321,6 +330,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const eventsData = <?= json_encode($dbEvents, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
     let currentDate = new Date('<?= e($calendarFocusDate); ?>T00:00:00');
     let currentView = 'month';
+    let tooltipHideTimer = null;
+    let tooltipIsHovered = false;
+    let activeEventChip = null;
 
     const colorMap = {
         blue: 'bg-blue-50 text-blue-700 border-blue-200 border-l-[3px] border-l-blue-600',
@@ -401,7 +413,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!isDimmed) {
             eventsData.filter((event) => event.date === dateStr).forEach((event) => {
                 html += `<div class="event-chip ${colorMap[event.type]} text-[9px] font-black px-1.5 py-1 rounded-md cursor-help truncate shadow-sm hover:brightness-95"
-                    data-title="${event.title}" data-time="${event.time}" data-teacher="${event.teacher}" data-room="${event.room}" data-color="${event.type}">${event.title}</div>`;
+                    data-title="${event.title}" data-time="${event.time}" data-teacher="${event.teacher}" data-room="${event.room}" data-lesson-title="${encodeURIComponent(event.lesson_title || '')}" data-lesson-content="${encodeURIComponent(event.lesson_content || '')}" data-lesson-attachment="${encodeURIComponent(event.lesson_attachment_file_path || '')}" data-color="${event.type}">${event.title}</div>`;
             });
         }
 
@@ -419,7 +431,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         eventsData.filter((event) => event.date === dateStr).forEach((event) => {
             html += `<div class="event-chip ${colorMap[event.type]} p-2.5 rounded-xl text-[11px] font-black cursor-help shadow-sm"
-                data-title="${event.title}" data-time="${event.time}" data-teacher="${event.teacher}" data-room="${event.room}" data-color="${event.type}">
+                data-title="${event.title}" data-time="${event.time}" data-teacher="${event.teacher}" data-room="${event.room}" data-lesson-title="${encodeURIComponent(event.lesson_title || '')}" data-lesson-content="${encodeURIComponent(event.lesson_content || '')}" data-lesson-attachment="${encodeURIComponent(event.lesson_attachment_file_path || '')}" data-color="${event.type}">
                 <div class="opacity-70 text-[9px] mb-1 uppercase tracking-tighter">${event.time}</div>
                 <div class="leading-tight">${event.title}</div>
             </div>`;
@@ -464,20 +476,59 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
+        const cancelTooltipHide = () => {
+            if (tooltipHideTimer) {
+                clearTimeout(tooltipHideTimer);
+                tooltipHideTimer = null;
+            }
+        };
+
+        const scheduleTooltipHide = () => {
+            cancelTooltipHide();
+            tooltipHideTimer = window.setTimeout(() => {
+                if (tooltipIsHovered || activeEventChip) {
+                    return;
+                }
+                tooltip.classList.remove('opacity-100');
+                tooltip.classList.add('hidden');
+                tooltipHideTimer = null;
+            }, 220);
+        };
+
+        tooltip.onmouseenter = () => {
+            tooltipIsHovered = true;
+            cancelTooltipHide();
+        };
+        tooltip.onmouseleave = () => {
+            tooltipIsHovered = false;
+            scheduleTooltipHide();
+        };
+
         document.querySelectorAll('.event-chip').forEach((chip) => {
             chip.onmouseenter = () => {
+                activeEventChip = chip;
+                cancelTooltipHide();
                 const rect = chip.getBoundingClientRect();
                 const tooltipTitle = document.getElementById('tooltip-title');
                 const tooltipTime = document.getElementById('tooltip-time');
                 const tooltipTeacher = document.getElementById('tooltip-teacher');
                 const tooltipRoom = document.getElementById('tooltip-room');
                 const tooltipColor = document.getElementById('tooltip-color');
+                const tooltipLessonTitle = document.getElementById('tooltip-lesson-title');
+                const tooltipLessonContent = document.getElementById('tooltip-lesson-content');
+                const tooltipMaterial = document.getElementById('tooltip-material');
 
                 if (tooltipTitle) tooltipTitle.innerText = chip.dataset.title || '';
                 if (tooltipTime) tooltipTime.innerText = chip.dataset.time || '';
                 if (tooltipTeacher) tooltipTeacher.innerText = chip.dataset.teacher || '';
                 if (tooltipRoom) tooltipRoom.innerText = chip.dataset.room || '';
                 if (tooltipColor) tooltipColor.className = `w-1.5 h-10 rounded-full ${tooltipColorMap[chip.dataset.color || 'blue']}`;
+                if (tooltipLessonTitle) tooltipLessonTitle.innerText = decodeURIComponent(chip.dataset.lessonTitle || '') || 'Chưa có nội dung buổi học';
+                if (tooltipLessonContent) tooltipLessonContent.innerText = decodeURIComponent(chip.dataset.lessonContent || '') || 'Giáo viên chưa ghi nội dung chi tiết cho buổi này.';
+                if (tooltipMaterial) {
+                    const attachment = decodeURIComponent(chip.dataset.lessonAttachment || '');
+                    tooltipMaterial.innerText = attachment ? `Tài liệu: ${attachment.split('/').pop()}` : 'Tài liệu: Chưa có file đính kèm';
+                }
 
                 tooltip.style.left = `${rect.left + rect.width / 2}px`;
                 tooltip.style.top = `${rect.top - 10}px`;
@@ -487,8 +538,10 @@ document.addEventListener('DOMContentLoaded', function () {
             };
 
             chip.onmouseleave = () => {
-                tooltip.classList.remove('opacity-100');
-                setTimeout(() => tooltip.classList.add('hidden'), 200);
+                if (activeEventChip === chip) {
+                    activeEventChip = null;
+                }
+                scheduleTooltipHide();
             };
         });
     }

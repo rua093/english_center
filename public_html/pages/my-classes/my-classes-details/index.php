@@ -116,10 +116,12 @@ foreach ($assignmentRows as $assignmentRow) {
         'id' => (int) ($assignmentRow['id'] ?? 0),
         'title' => (string) ($assignmentRow['title'] ?? ''),
         'note' => (string) ($assignmentRow['description'] ?? ''),
+        'file_url' => (string) ($assignmentRow['file_url'] ?? ''),
         'deadline' => $deadlineRaw !== '' ? date('d/m/Y H:i', $deadlineTs !== false ? $deadlineTs : strtotime($deadlineRaw)) : '---',
         'deadline_raw' => $deadlineRaw,
         'status' => $status,
         'score' => $score !== null ? number_format($score, 1) : '--',
+        'teacher_comment' => (string) ($assignmentRow['teacher_comment'] ?? ''),
         'color' => $color,
         'submitted_at' => $submittedAt !== '' ? date('d/m/Y H:i', strtotime($submittedAt)) : '',
         'can_resubmit' => $submittedAt !== '' && !$isExpired,
@@ -327,6 +329,16 @@ foreach ($examRows as $examRow) {
                         <tr>
                             <td>
                                 <div class="font-black text-slate-800 text-sm"><?= e($hw['title']) ?></div>
+                                <?php if (!empty($hw['file_url'])): ?>
+                                    <a
+                                        href="<?= e(normalize_public_file_url((string) $hw['file_url'])); ?>"
+                                        target="_blank"
+                                        rel="noopener"
+                                        class="mt-1 inline-flex items-center gap-1 rounded-full border border-blue-100 bg-blue-50 px-2 py-1 text-[10px] font-black uppercase tracking-widest text-blue-700 transition hover:bg-blue-100"
+                                    >
+                                        <i class="fa-solid fa-paperclip"></i> Tải file đề
+                                    </a>
+                                <?php endif; ?>
                             </td>
                             <td>
                                 <span class="text-slate-500 font-bold bg-slate-50 px-2 py-1 rounded-md border border-slate-200 text-[11px]">
@@ -357,7 +369,14 @@ foreach ($examRows as $examRow) {
                             </td>
                             <td>
                                 <?php if($hw['score'] !== '--'): ?>
-                                    <span class="font-black text-lg <?= (float) $hw['score'] >= 5.0 ? 'text-emerald-600' : 'text-rose-600' ?>"><?= e($hw['score']) ?></span>
+                                    <div class="space-y-1">
+                                        <span class="font-black text-lg <?= (float) $hw['score'] >= 5.0 ? 'text-emerald-600' : 'text-rose-600' ?>"><?= e($hw['score']) ?></span>
+                                        <?php if (!empty($hw['teacher_comment'])): ?>
+                                            <p class="max-w-[260px] text-[11px] leading-relaxed text-slate-500">
+                                                <?= e($hw['teacher_comment']) ?>
+                                            </p>
+                                        <?php endif; ?>
+                                    </div>
                                 <?php else: ?>
                                     <span class="text-slate-300 font-black">--</span>
                                 <?php endif; ?>
