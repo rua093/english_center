@@ -44,7 +44,7 @@ function api_applications_submit_action(): void
 
     $fullName = input_string($_POST, 'full_name');
     $email = input_string($_POST, 'email');
-    $phone = input_string($_POST, 'phone');
+    $phone = normalize_phone_string(input_string($_POST, 'phone'));
     $address = input_string($_POST, 'address');
 
     $positionApplied = input_string($_POST, 'position_applied');
@@ -130,7 +130,7 @@ function api_applications_submit_action(): void
 
 function api_applications_update_action(): void
 {
-    api_guard_permission('job_application.manage');
+    api_guard_permission('job_application.update');
     api_require_post(page_url('job-applications-manage'));
 
     $applicationId = input_int($_POST, 'id');
@@ -157,8 +157,7 @@ function api_applications_update_action(): void
 
 function api_applications_convert_action(): void
 {
-    api_guard_permission('job_application.manage');
-    api_guard_permission('admin.user.manage');
+    api_guard_permission('job_application.update');
     api_require_post(page_url('job-applications-manage'));
 
     $applicationId = input_int($_POST, 'id');
@@ -192,4 +191,25 @@ function api_applications_convert_action(): void
     }
 
     redirect(page_url('job-applications-manage', ['edit' => $applicationId]));
+}
+
+function api_applications_delete_action(): void
+{
+    api_guard_permission('job_application.delete');
+    api_require_post(page_url('job-applications-manage'));
+
+    $applicationId = (int) ($_GET['id'] ?? 0);
+    if ($applicationId <= 0) {
+        set_flash('error', 'Ho so ung tuyen khong hop le.');
+        redirect(page_url('job-applications-manage'));
+    }
+
+    try {
+        (new AdminModel())->deleteJobApplication($applicationId);
+        set_flash('success', 'Da xoa ho so ung tuyen.');
+    } catch (Throwable $exception) {
+        set_flash('error', 'Khong the xoa ho so ung tuyen nay.');
+    }
+
+    redirect(page_url('job-applications-manage'));
 }

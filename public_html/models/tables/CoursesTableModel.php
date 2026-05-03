@@ -7,7 +7,7 @@ final class CoursesTableModel extends BaseTableModel
 {
     public function countDetailed(): int
     {
-        return (int) $this->fetchScalar('SELECT COUNT(*) AS total FROM courses', [], 'total', 0);
+        return $this->countActiveFrom('courses');
     }
 
     public function listDetailedPage(int $page, int $perPage): array
@@ -30,6 +30,7 @@ final class CoursesTableModel extends BaseTableModel
                 FROM course_roadmaps roadmap_source
                 GROUP BY roadmap_source.course_id
             ) rs ON rs.course_id = c.id
+            WHERE c.deleted_at IS NULL
             ORDER BY c.id DESC
             LIMIT {$limit} OFFSET {$offset}";
 
@@ -38,7 +39,7 @@ final class CoursesTableModel extends BaseTableModel
 
     public function listSimple(): array
     {
-        return $this->fetchAll('SELECT id, course_name FROM courses ORDER BY course_name ASC');
+        return $this->fetchAll('SELECT id, course_name FROM courses WHERE deleted_at IS NULL ORDER BY course_name ASC');
     }
 
     public function listForRegistration(): array
@@ -46,19 +47,14 @@ final class CoursesTableModel extends BaseTableModel
         return $this->fetchAll(
             'SELECT id, course_name, base_price, total_sessions, image_thumbnail
              FROM courses
+             WHERE deleted_at IS NULL
              ORDER BY course_name ASC'
         );
     }
 
     public function findById(int $id): ?array
     {
-        return $this->fetchOne(
-            'SELECT id, course_name, description, base_price, total_sessions, image_thumbnail
-             FROM courses
-             WHERE id = :id
-             LIMIT 1',
-            ['id' => $id]
-        );
+        return $this->findActiveByIdFrom('courses', $id, 'id, course_name, description, base_price, total_sessions, image_thumbnail');
     }
 
     public function save(array $data): void
@@ -68,6 +64,7 @@ final class CoursesTableModel extends BaseTableModel
         $description = trim((string) ($data['description'] ?? ''));
         $basePrice = max(0, (float) ($data['base_price'] ?? 0));
         $totalSessions = max(0, (int) ($data['total_sessions'] ?? 0));
+        $imageThumbnail = trim((string) ($data['image_thumbnail'] ?? ''));
 
         if ($id > 0) {
             $this->executeStatement(
@@ -75,33 +72,37 @@ final class CoursesTableModel extends BaseTableModel
                  SET course_name = :course_name,
                      description = :description,
                      base_price = :base_price,
-                     total_sessions = :total_sessions
-                 WHERE id = :id',
+                     total_sessions = :total_sessions,
+                     image_thumbnail = :image_thumbnail
+                 WHERE id = :id
+                   AND deleted_at IS NULL',
                 [
                     'id' => $id,
                     'course_name' => $courseName,
                     'description' => $description !== '' ? $description : null,
                     'base_price' => $basePrice,
                     'total_sessions' => $totalSessions,
+                    'image_thumbnail' => $imageThumbnail !== '' ? $imageThumbnail : null,
                 ]
             );
             return;
         }
 
         $this->executeStatement(
-            'INSERT INTO courses (course_name, description, base_price, total_sessions)
-             VALUES (:course_name, :description, :base_price, :total_sessions)',
+            'INSERT INTO courses (course_name, description, base_price, total_sessions, image_thumbnail)
+             VALUES (:course_name, :description, :base_price, :total_sessions, :image_thumbnail)',
             [
                 'course_name' => $courseName,
                 'description' => $description !== '' ? $description : null,
                 'base_price' => $basePrice,
                 'total_sessions' => $totalSessions,
+                'image_thumbnail' => $imageThumbnail !== '' ? $imageThumbnail : null,
             ]
         );
     }
 
     public function deleteById(int $id): void
     {
-        $this->executeStatement('DELETE FROM courses WHERE id = :id', ['id' => $id]);
+        $this->softDeleteByIdFrom('courses', $id);
     }
 }

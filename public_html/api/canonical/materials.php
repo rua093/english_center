@@ -14,9 +14,6 @@ function api_materials_save_action(): void
 	$editPath = $materialId > 0 ? page_url('materials-academic-edit', ['id' => $materialId]) : page_url('materials-academic-edit');
 
 	$payload = $_POST;
-	if (empty($payload['course_id']) && !empty($payload['class_id'])) {
-		$payload['course_id'] = $payload['class_id'];
-	}
 
 	$uploadPath = input_string($payload, 'existing_file_path');
 	$manualFilePath = input_string($payload, 'file_path');
@@ -40,11 +37,10 @@ function api_materials_save_action(): void
 	}
 
 	if (
-		input_int($payload, 'course_id') <= 0 ||
 		$uploadPath === '' ||
 		input_string($payload, 'title') === ''
 	) {
-		set_flash('error', 'Vui lòng nhập đầy đủ khóa học, tiêu đề và tải lên file.');
+		set_flash('error', 'Vui lòng nhập tiêu đề và tải lên file.');
 		redirect($editPath);
 	}
 
@@ -66,7 +62,11 @@ function api_materials_delete_action(): void
 	api_guard_permission('materials.delete');
 	api_require_post(page_url('materials-academic'));
 
-	(new AcademicModel())->deleteMaterial((int) ($_GET['id'] ?? 0));
-	set_flash('success', 'Đã xóa tài liệu.');
+	try {
+		(new AcademicModel())->deleteMaterial((int) ($_GET['id'] ?? 0));
+		set_flash('success', 'Đã xóa tài liệu.');
+	} catch (Throwable) {
+		set_flash('error', 'Không thể xóa tài liệu. Tài liệu này có thể đang được sử dụng hoặc dữ liệu không hợp lệ.');
+	}
 	redirect(page_url('materials-academic'));
 }

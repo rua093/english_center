@@ -27,7 +27,12 @@ function api_classes_save_action(): void
 		redirect($classId > 0 ? page_url('classes-academic-edit', ['id' => $classId]) : page_url('classes-academic-edit'));
 	}
 
-	(new AcademicModel())->saveClass($payload);
+	$academicModel = new AcademicModel();
+	if ($classId > 0) {
+		teacher_assert_class_scope($academicModel, $classId, page_url('classes-academic-edit', ['id' => $classId]));
+	}
+
+	$academicModel->saveClass($payload);
 	set_flash('success', 'Đã lưu lớp học thành công.');
 
 	redirect(page_url('classes-academic'));
@@ -36,7 +41,14 @@ function api_classes_save_action(): void
 function api_classes_edit_action(): void
 {
 	api_guard_permission('academic.classes.update');
-	redirect(page_url('classes-academic-edit', ['id' => (int) ($_GET['id'] ?? 0)]));
+
+	$classId = (int) ($_GET['id'] ?? 0);
+	$academicModel = new AcademicModel();
+	if ($classId > 0) {
+		teacher_assert_class_scope($academicModel, $classId, page_url('classes-academic'));
+	}
+
+	redirect(page_url('classes-academic-edit', ['id' => $classId]));
 }
 
 function api_classes_delete_action(): void
@@ -44,14 +56,24 @@ function api_classes_delete_action(): void
 	api_guard_permission('academic.classes.delete');
 	api_require_post(page_url('classes-academic'));
 
-	(new AcademicModel())->deleteClass((int) ($_GET['id'] ?? 0));
-	set_flash('success', 'Đã xóa lớp học.');
+	$classId = (int) ($_GET['id'] ?? 0);
+	$academicModel = new AcademicModel();
+	if ($classId > 0) {
+		teacher_assert_class_scope($academicModel, $classId, page_url('classes-academic'));
+	}
+
+	try {
+		$academicModel->deleteClass($classId);
+		set_flash('success', 'Đã xóa lớp học.');
+	} catch (Throwable) {
+		set_flash('error', 'Không thể xóa lớp học. Lớp này có thể đang được tham chiếu bởi học viên, lịch học, buổi học, bài kiểm tra hoặc học phí.');
+	}
 	redirect(page_url('classes-academic'));
 }
 
 function api_classes_student_profile_action(): void
 {
-	api_guard_permission('academic.classes.view');
+	require_login();
 
 	if (strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET')) !== 'GET') {
 		api_error('Method not allowed.', ['code' => 'METHOD_NOT_ALLOWED'], 405);
@@ -64,6 +86,20 @@ function api_classes_student_profile_action(): void
 	}
 
 	$academicModel = new AcademicModel();
+	$class = $academicModel->findClass($classId);
+	if (!is_array($class)) {
+		api_error('Không tìm thấy lớp học.', ['code' => 'CLASS_NOT_FOUND'], 404);
+	}
+
+	if (!has_permission('academic.classes.view')) {
+		$user = auth_user() ?? [];
+		if ((string) ($user['role'] ?? '') === 'teacher') {
+			teacher_assert_class_scope($academicModel, $classId, page_url('classes-academic'));
+		} else {
+			api_error('Không có quyền xem lớp học.', ['code' => 'FORBIDDEN'], 403);
+		}
+	}
+
 	if (!$academicModel->isStudentEnrolledInClass($studentId, $classId)) {
 		api_error('Học viên không thuộc lớp học.', ['code' => 'STUDENT_NOT_IN_CLASS'], 403);
 	}

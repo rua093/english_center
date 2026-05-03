@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../../core/api_helpers.php';
+require_once __DIR__ . '/../../core/file_storage.php';
 require_once __DIR__ . '/../../models/AcademicModel.php';
 
 function lessons_manage_redirect_query(array $source): array
@@ -66,12 +67,46 @@ function lessons_manage_redirect_page(array $source, string $fallback): string
     return $fallback;
 }
 
+function lessons_teacher_can_manage_class(AcademicModel $academicModel, int $classId): bool
+{
+    $user = auth_user() ?? [];
+    $role = (string) ($user['role'] ?? '');
+    if ($role !== 'teacher') {
+        return true;
+    }
+
+    $teacherId = (int) ($user['id'] ?? 0);
+    if ($teacherId <= 0 || $classId <= 0) {
+        return false;
+    }
+
+    $classRow = $academicModel->findClass($classId);
+    if (!is_array($classRow)) {
+        return false;
+    }
+
+    return (int) ($classRow['teacher_id'] ?? 0) === $teacherId;
+}
+
+function lessons_assert_teacher_class_access(AcademicModel $academicModel, int $classId, string $redirectPath): void
+{
+    if (lessons_teacher_can_manage_class($academicModel, $classId)) {
+        return;
+    }
+
+    if (api_expects_json()) {
+        api_error('Ban chi co the quan ly lop hoc minh dang day.', ['code' => 'CLASS_ACCESS_DENIED'], 403);
+    }
+
+    set_flash('error', 'Ban chi co the quan ly lop hoc minh dang day.');
+    redirect($redirectPath);
+}
+
 function api_lessons_save_action(): void
 {
     api_require_post(page_url('classrooms-academic'));
 
     $lessonId = input_int($_POST, 'id');
-    api_guard_permission($lessonId > 0 ? 'academic.classes.update' : 'academic.classes.create');
 
     $redirectPage = lessons_manage_redirect_page($_POST, 'classrooms-academic');
     $redirectQuery = lessons_manage_redirect_query($_POST);
@@ -84,17 +119,53 @@ function api_lessons_save_action(): void
         redirect($redirectPath);
     }
 
+    $academicModel = new AcademicModel();
+    $currentRole = (string) (auth_user()['role'] ?? '');
+    $teacherOwnsClass = $currentRole === 'teacher' && teacher_can_manage_class($academicModel, $classId);
+
+    if (!$teacherOwnsClass) {
+        api_guard_permission($lessonId > 0 ? 'academic.classes.update' : 'academic.classes.create');
+    }
+
+    lessons_assert_teacher_class_access($academicModel, $classId, $redirectPath);
+
+    $scheduleId = input_int($_POST, 'schedule_id');
+    if ($scheduleId > 0) {
+        $schedule = $academicModel->findSchedule($scheduleId);
+        if (!is_array($schedule) || (int) ($schedule['class_id'] ?? 0) !== $classId) {
+            set_flash('error', 'Lich hoc duoc chon khong thuoc lop hoc nay.');
+            redirect($redirectPath);
+        }
+
+        lessons_assert_teacher_class_access($academicModel, (int) ($schedule['class_id'] ?? 0), $redirectPath);
+    }
+
     $payload = [
         'id' => $lessonId,
         'class_id' => $classId,
         'roadmap_id' => input_int($_POST, 'roadmap_id'),
         'actual_title' => $title,
         'actual_content' => input_string($_POST, 'actual_content'),
-        'schedule_id' => input_int($_POST, 'schedule_id'),
+        'attachment_file_path' => input_string($_POST, 'existing_attachment_file_path'),
+        'schedule_id' => $scheduleId,
     ];
 
+    if (
+        isset($_FILES['lesson_attachment_file'])
+        && is_array($_FILES['lesson_attachment_file'])
+        && (int) ($_FILES['lesson_attachment_file']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE
+    ) {
+        $attachmentPath = store_uploaded_file($_FILES['lesson_attachment_file'], 'lesson_attachment', 'lessons');
+        if ($attachmentPath === null) {
+            set_flash('error', 'Không thể tải lên tài liệu buổi học. Vui lòng thử lại với file PDF, PPT, DOC hoặc DOCX hợp lệ.');
+            redirect($redirectPath);
+        }
+
+        $payload['attachment_file_path'] = $attachmentPath;
+    }
+
     try {
-        (new AcademicModel())->saveLesson($payload);
+        $academicModel->saveLesson($payload);
     } catch (InvalidArgumentException | DomainException $exception) {
         if (api_expects_json()) {
             api_error($exception->getMessage(), ['code' => 'LESSON_VALIDATION_FAILED'], 422);
@@ -130,6 +201,18 @@ function api_lessons_attendance_roster_action(): void
     if (!is_array($schedule)) {
         api_error('Không tìm thấy lịch học cần điểm danh.', ['code' => 'SCHEDULE_NOT_FOUND'], 404);
     }
+
+    $classId = (int) ($schedule['class_id'] ?? 0);
+    $teacherRedirectQuery = [];
+    if ($classId > 0) {
+        $teacherRedirectQuery['class_id'] = $classId;
+    }
+
+    lessons_assert_teacher_class_access(
+        $academicModel,
+        $classId,
+        page_url('classrooms-academic', $teacherRedirectQuery)
+    );
 
     $rows = $academicModel->listAttendanceRosterBySchedule($scheduleId);
 
@@ -172,7 +255,6 @@ function api_lessons_attendance_roster_action(): void
 function api_lessons_attendance_action(): void
 {
     api_require_post(page_url('classrooms-academic'));
-    api_guard_permission('academic.schedules.update');
 
     $scheduleId = input_int($_POST, 'schedule_id');
     if ($scheduleId <= 0) {
@@ -193,6 +275,26 @@ function api_lessons_attendance_action(): void
         set_flash('error', 'Vui lòng chọn buổi lịch học cần điểm danh.');
         redirect($redirectPath);
     }
+
+    $academicModel = new AcademicModel();
+    $schedule = $academicModel->findSchedule($scheduleId);
+    if (!is_array($schedule)) {
+        set_flash('error', 'Khong tim thay lich hoc can diem danh.');
+        redirect($redirectPath);
+    }
+
+    $currentRole = (string) (auth_user()['role'] ?? '');
+    $teacherOwnsClass = $currentRole === 'teacher' && teacher_can_manage_class($academicModel, (int) ($schedule['class_id'] ?? 0));
+
+    if (!$teacherOwnsClass) {
+        api_guard_permission('academic.schedules.update');
+    }
+
+    lessons_assert_teacher_class_access(
+        $academicModel,
+        (int) ($schedule['class_id'] ?? 0),
+        $redirectPath
+    );
 
     $statusMap = $_POST['attendance_status'] ?? [];
     $noteMap = $_POST['attendance_note'] ?? [];
@@ -217,7 +319,7 @@ function api_lessons_attendance_action(): void
     }
 
     try {
-        $updatedCount = (new AcademicModel())->saveAttendanceRosterBySchedule($scheduleId, $entries);
+        $updatedCount = $academicModel->saveAttendanceRosterBySchedule($scheduleId, $entries);
     } catch (InvalidArgumentException | DomainException $exception) {
         if (api_expects_json()) {
             api_error($exception->getMessage(), ['code' => 'ATTENDANCE_VALIDATION_FAILED'], 422);

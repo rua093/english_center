@@ -1,6 +1,6 @@
 <?php
 require_admin_or_staff();
-require_permission('finance.tuition.view');
+require_any_permission(['finance.registration.view']);
 
 $academicModel = new AcademicModel();
 $lookups = $academicModel->registrationLookups();
@@ -11,14 +11,8 @@ $promotions = is_array($lookups['promotions'] ?? null) ? $lookups['promotions'] 
 
 $viewer = auth_user();
 $isAdmin = (($viewer['role'] ?? '') === 'admin');
-$canCreateRegistration = $isAdmin || has_any_permission(['finance.tuition.manage', 'finance.tuition.create', 'finance.tuition.update']);
-$canChangeLearningStatus = $isAdmin || has_any_permission(['finance.tuition.manage', 'finance.tuition.create', 'finance.tuition.update']);
+$canCreateRegistration = $isAdmin || has_any_permission(['finance.registration.create', 'finance.registration.update']);
 $registrationRows = $academicModel->listRegistrationEnrollmentRows(400);
-
-$learningStatusLabels = [
-    'official' => 'Chính thức',
-    'trial' => 'Học thử',
-];
 
 $success = get_flash('success');
 $error = get_flash('error');
@@ -29,7 +23,6 @@ $formState = [
     'class_id' => 0,
     'package_id' => 0,
     'payment_plan' => 'full',
-    'learning_status' => 'official',
 ];
 
 $oldFormPayloadRaw = get_flash('registration_form_old');
@@ -45,11 +38,6 @@ if (is_string($oldFormPayloadRaw) && $oldFormPayloadRaw !== '') {
         $formState['payment_plan'] = in_array($paymentPlan, ['full', 'monthly'], true)
             ? $paymentPlan
             : 'full';
-
-        $learningStatus = (string) ($decoded['learning_status'] ?? 'official');
-        $formState['learning_status'] = in_array($learningStatus, ['trial', 'official'], true)
-            ? $learningStatus
-            : 'official';
     }
 }
 
@@ -109,7 +97,7 @@ $adminTitle = 'Đăng ký khóa học';
                         <option value="">-- Chọn học viên --</option>
                         <?php foreach ($students as $student): ?>
                             <option value="<?= (int) ($student['id'] ?? 0); ?>" <?= $formState['student_id'] === (int) ($student['id'] ?? 0) ? 'selected' : ''; ?>>
-                                <?= e((string) ($student['full_name'] ?? '')); ?>
+                                <?= e(student_dropdown_label($student)); ?>
                             </option>
                         <?php endforeach; ?>
                     </select>
@@ -225,7 +213,7 @@ $adminTitle = 'Đăng ký khóa học';
     <?php else: ?>
         <article class="rounded-2xl border border-amber-200 bg-amber-50 p-5 shadow-sm">
             <h3>Bạn chưa có quyền tạo đăng ký</h3>
-            <p class="text-sm text-amber-800">Tài khoản hiện tại chưa có quyền tạo học phí trực tiếp. Vui lòng liên hệ Admin để cấp quyền <strong>finance.tuition.create</strong> hoặc <strong>finance.tuition.manage</strong>.</p>
+            <p class="text-sm text-amber-800">Tài khoản hiện tại chưa có quyền tạo học phí trực tiếp. Vui lòng liên hệ Admin để cấp quyền <strong>finance.tuition.create</strong>.</p>
         </article>
     <?php endif; ?>
 
@@ -243,8 +231,6 @@ $adminTitle = 'Đăng ký khóa học';
         const previewDiscountAmount = document.getElementById('preview-discount-amount');
         const previewTotalAmount = document.getElementById('preview-total-amount');
         const previewInvoiceStatus = document.getElementById('preview-invoice-status');
-        const learningStatusSelect = document.querySelector('#registration-form select[name="learning_status"]');
-
         const courseMap = <?= json_encode($courseMapForJs, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
 
         const allClassOptions = classSelect ? Array.from(classSelect.options).map(function(o) { return o.cloneNode(true); }) : [];
@@ -410,10 +396,6 @@ $adminTitle = 'Đăng ký khóa học';
             const discountPercent = getSelectedDiscountPercent();
             const discountApplied = (baseAmount * discountPercent) / 100;
             const totalAmount = Math.max(0, baseAmount - discountApplied);
-            const selectedLearningStatus = learningStatusSelect ? String(learningStatusSelect.value || 'official') : 'official';
-            const isTrialMode = selectedLearningStatus === 'trial';
-            const invoiceTotal = isTrialMode ? 0 : totalAmount;
-
             if (previewBaseAmount) {
                 previewBaseAmount.textContent = toMoney(baseAmount);
             }
@@ -421,16 +403,11 @@ $adminTitle = 'Đăng ký khóa học';
                 previewDiscountAmount.textContent = toMoney(discountApplied);
             }
             if (previewTotalAmount) {
-                previewTotalAmount.textContent = toMoney(invoiceTotal);
+                previewTotalAmount.textContent = toMoney(totalAmount);
             }
             if (previewInvoiceStatus) {
-                if (isTrialMode) {
-                    previewInvoiceStatus.textContent = 'trial | chưa tạo học phí';
-                    previewInvoiceStatus.className = 'mt-1 inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-blue-700';
-                } else {
-                    previewInvoiceStatus.textContent = 'debt | đã thu 0 đ';
-                    previewInvoiceStatus.className = 'mt-1 inline-flex items-center rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-rose-700';
-                }
+                previewInvoiceStatus.textContent = 'debt | đã thu 0 đ';
+                previewInvoiceStatus.className = 'mt-1 inline-flex items-center rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-rose-700';
             }
         }
 
@@ -447,12 +424,6 @@ $adminTitle = 'Đăng ký khóa học';
         packageSelect.addEventListener('change', function () {
             updatePreview();
         });
-
-        if (learningStatusSelect) {
-            learningStatusSelect.addEventListener('change', function () {
-                updatePreview();
-            });
-        }
 
         syncClassOptions();
         syncPackageOptions();

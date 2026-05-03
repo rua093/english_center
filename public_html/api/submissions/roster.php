@@ -18,6 +18,17 @@ if ($classId <= 0 || $assignmentId <= 0) {
 }
 
 $academicModel = new AcademicModel();
+
+$currentUser = auth_user() ?? [];
+$currentRole = (string) ($currentUser['role'] ?? '');
+if ($currentRole === 'teacher') {
+    $teacherId = (int) ($currentUser['id'] ?? 0);
+    $classRow = $academicModel->findClass($classId);
+    if (!is_array($classRow) || (int) ($classRow['teacher_id'] ?? 0) !== $teacherId) {
+        api_error('Ban chi co the xem bai nop cua lop minh dang day.', ['code' => 'CLASS_ACCESS_DENIED'], 403);
+    }
+}
+
 $rows = $academicModel->listSubmissionRosterByClassAndAssignment($classId, $assignmentId);
 
 $summary = [

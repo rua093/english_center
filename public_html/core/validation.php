@@ -19,6 +19,17 @@ function input_float(array $source, string $key, float $default = 0): float
 	return (float) $value;
 }
 
+function normalize_phone_string(mixed $value): string
+{
+	$normalized = trim((string) $value);
+	if ($normalized === '') {
+		return '';
+	}
+
+	$digits = preg_replace('/\D+/', '', $normalized);
+	return is_string($digits) ? $digits : '';
+}
+
 function validate_required_fields(array $source, array $requiredMap): array
 {
 	$errors = [];

@@ -1,6 +1,6 @@
 <?php
 require_admin_or_staff();
-require_permission('finance.payment.view');
+require_any_permission(['finance.payments.view']);
 
 $academicModel = new AcademicModel();
 $paymentsPage = max(1, (int) ($_GET['payments_page'] ?? 1));
@@ -34,12 +34,9 @@ if ($selectedPaymentMethod !== '' && !isset($paymentMethodOptions[$selectedPayme
 $module = 'payments';
 $adminTitle = 'Giao dịch thanh toán';
 
-$viewer = auth_user();
-$isAdmin = (($viewer['role'] ?? '') === 'admin');
-
-$canCreatePayment = $isAdmin || has_any_permission(['finance.payment.manage', 'finance.payment.create']);
-$canUpdatePayment = $isAdmin || has_any_permission(['finance.payment.manage', 'finance.payment.update']);
-$canDeletePayment = $isAdmin || has_any_permission(['finance.payment.manage', 'finance.payment.delete']);
+$canCreatePayment = has_permission('finance.payments.create');
+$canUpdatePayment = has_permission('finance.payments.update');
+$canDeletePayment = has_permission('finance.payments.delete');
 
 $success = get_flash('success');
 $error = get_flash('error');
@@ -53,7 +50,7 @@ $error = get_flash('error');
         <div class="rounded-xl border-l-4 border-rose-500 bg-rose-50 p-3 text-sm text-rose-700"><?= e($error); ?></div>
     <?php endif; ?>
 
-    <?php if ($canCreatePayment || $canUpdatePayment): ?>
+    <?php if ($canCreatePayment || ($canUpdatePayment && $editingPayment)): ?>
         <article class="order-2 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <h3><?= $editingPayment ? 'Sửa giao dịch thanh toán' : 'Tạo giao dịch thanh toán'; ?></h3>
             <form class="grid gap-3 md:grid-cols-2" method="post" action="/api/payments/save">
@@ -65,14 +62,10 @@ $error = get_flash('error');
                         <option value="">-- Chọn hóa đơn --</option>
                         <?php foreach ($tuitionOptions as $fee): ?>
                             <option value="<?= (int) $fee['id']; ?>" <?= (int) ($editingPayment['tuition_fee_id'] ?? 0) === (int) $fee['id'] ? 'selected' : ''; ?>>
-                                #<?= (int) $fee['id']; ?> - <?= e((string) $fee['full_name']); ?> - <?= e((string) $fee['course_name']); ?>
+                                #<?= (int) $fee['id']; ?> - <?= e(student_dropdown_label($fee)); ?> - <?= e((string) $fee['course_name']); ?>
                             </option>
                         <?php endforeach; ?>
                     </select>
-                </label>
-                <label>
-                    Mã giao dịch
-                    <input type="text" name="transaction_no" value="<?= e((string) ($editingPayment['transaction_no'] ?? '')); ?>" placeholder="Để trống để hệ thống tự sinh cho giao dịch tại trung tâm">
                 </label>
                 <label>
                     Phương thức
@@ -110,9 +103,9 @@ $error = get_flash('error');
             <table class="min-w-full border-collapse text-sm">
                 <thead>
                     <tr>
+                        <th>Mã HV</th>
                         <th>Học viên</th>
                         <th>Khóa học</th>
-                        <th>Mã giao dịch</th>
                         <th>Số tiền</th>
                         <th>Phương thức</th>
                         <th>Trạng thái</th>
@@ -130,9 +123,9 @@ $error = get_flash('error');
                     <?php else: ?>
                         <?php foreach ($transactions as $txn): ?>
                             <tr>
-                                <td><?= e((string) $txn['full_name']); ?></td>
+                                <td><?= e((string) ($txn['student_code'] ?? '-')); ?></td>
+                                <td><?= e((string) ($txn['full_name'] ?? 'Học viên')); ?></td>
                                 <td><?= e((string) $txn['course_name']); ?></td>
-                                <td><?= e((string) $txn['transaction_no']); ?></td>
                                 <td><?= format_money((float) $txn['amount']); ?></td>
                                 <td><span class="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-bold capitalize text-blue-700 whitespace-nowrap"><?= e((string) ($paymentMethodOptions[$txn['method']] ?? $txn['method'])); ?></span></td>
                                 <td><span class="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-bold capitalize is-<?= e((string) $txn['transaction_status']); ?>"><?= e((string) $txn['transaction_status']); ?></span></td>

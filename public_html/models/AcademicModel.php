@@ -302,14 +302,14 @@ final class AcademicModel
         return $this->classesTable->listDetailedWithProgress();
     }
 
-    public function countClasses(): int
+    public function countClasses(int $teacherId = 0): int
     {
-        return $this->classesTable->countDetailed();
+        return $this->classesTable->countDetailed($teacherId);
     }
 
-    public function listClassesPage(int $page, int $perPage): array
+    public function listClassesPage(int $page, int $perPage, int $teacherId = 0): array
     {
-        return $this->classesTable->listDetailedWithProgressPage($page, $perPage);
+        return $this->classesTable->listDetailedWithProgressPage($page, $perPage, $teacherId);
     }
 
     public function listSchedules(): array
@@ -382,6 +382,11 @@ final class AcademicModel
         return $this->submissionsTable->listRosterByClassAndAssignment($classId, $assignmentId);
     }
 
+    public function listSubmissionDetailsByClass(int $classId): array
+    {
+        return $this->submissionsTable->listDetailedByClass($classId);
+    }
+
     public function classLookups(): array
     {
         return [
@@ -393,9 +398,9 @@ final class AcademicModel
     public function scheduleLookups(): array
     {
         return [
-            'classes' => $this->classesTable->listSimple(),
+            'classes' => $this->classesTable->listSimpleByStatus('active'),
             'rooms' => $this->roomsTable->listSimple(),
-            'teachers' => $this->usersTable->listByRoleNames(['teacher', 'staff', 'admin']),
+            'teachers' => $this->usersTable->listActiveByRoleNames(['teacher']),
         ];
     }
 
@@ -425,6 +430,124 @@ final class AcademicModel
     public function countRoadmapsByCourse(int $courseId): int
     {
         return $this->courseRoadmapsTable->countByCourse($courseId);
+    }
+
+    public function buildStudentPerformanceExport(int $classId, array $studentIds): array
+    {
+        if ($classId <= 0) {
+            return [];
+        }
+
+        $selectedIds = [];
+        foreach ($studentIds as $studentId) {
+            $normalizedId = (int) $studentId;
+            if ($normalizedId > 0) {
+                $selectedIds[$normalizedId] = true;
+            }
+        }
+
+        if ($selectedIds === []) {
+            return [];
+        }
+
+        $classRow = $this->findClass($classId);
+        $students = $this->listStudentsForClass($classId);
+
+        $selectedStudents = [];
+        foreach ($students as $studentRow) {
+            $studentId = (int) ($studentRow['student_id'] ?? 0);
+            if ($studentId > 0 && isset($selectedIds[$studentId])) {
+                $selectedStudents[$studentId] = $studentRow;
+            }
+        }
+
+        if ($selectedStudents === []) {
+            return [];
+        }
+
+        $attendanceByStudent = [];
+        foreach ($this->summarizeAttendanceRateByClass($classId) as $row) {
+            $studentId = (int) ($row['student_id'] ?? 0);
+            if ($studentId > 0) {
+                $attendanceByStudent[$studentId] = $row;
+            }
+        }
+
+        $submissionByStudent = [];
+        foreach ($this->summarizeOnTimeSubmissionRateByClass($classId) as $row) {
+            $studentId = (int) ($row['student_id'] ?? 0);
+            if ($studentId > 0) {
+                $submissionByStudent[$studentId] = $row;
+            }
+        }
+
+        $assignmentRows = [];
+        $assignmentScoreBuckets = [];
+        foreach ($this->listSubmissionDetailsByClass($classId) as $row) {
+            $studentId = (int) ($row['student_id'] ?? 0);
+            if (!isset($selectedStudents[$studentId])) {
+                continue;
+            }
+
+            $score = $row['score'];
+            if ($score !== null && $score !== '') {
+                $assignmentScoreBuckets[$studentId][] = (float) $score;
+            }
+
+            $assignmentRows[] = $row;
+        }
+
+        $examRows = [];
+        foreach ($this->listExamRowsByClass($classId) as $row) {
+            $studentId = (int) ($row['student_id'] ?? 0);
+            if (isset($selectedStudents[$studentId])) {
+                $examRows[] = $row;
+            }
+        }
+
+        $summaryRows = [];
+        foreach ($selectedStudents as $studentId => $studentRow) {
+            $attendance = $attendanceByStudent[$studentId] ?? [];
+            $submission = $submissionByStudent[$studentId] ?? [];
+            $totalSessions = max(0, (int) ($attendance['total_sessions'] ?? 0));
+            $attendedSessions = max(0, (int) ($attendance['attended_sessions'] ?? 0));
+            $totalAssignments = max(0, (int) ($submission['total_assignments'] ?? 0));
+            $submittedAssignments = max(0, (int) ($submission['submitted_assignments'] ?? 0));
+            $gradedAssignments = $assignmentScoreBuckets[$studentId] ?? [];
+
+            $summaryRows[] = [
+                'student_id' => $studentId,
+                'student_name' => (string) ($studentRow['student_name'] ?? ''),
+                'student_code' => (string) ($studentRow['student_code'] ?? ''),
+                'total_sessions' => $totalSessions,
+                'attended_sessions' => $attendedSessions,
+                'present_sessions' => max(0, (int) ($attendance['present_sessions'] ?? 0)),
+                'late_sessions' => max(0, (int) ($attendance['late_sessions'] ?? 0)),
+                'absent_sessions' => max(0, (int) ($attendance['absent_sessions'] ?? 0)),
+                'attendance_rate' => $totalSessions > 0 ? round(($attendedSessions / $totalSessions) * 100, 1) : 0.0,
+                'total_assignments' => $totalAssignments,
+                'submitted_assignments' => $submittedAssignments,
+                'on_time_assignments' => max(0, (int) ($submission['on_time_assignments'] ?? 0)),
+                'late_assignments' => max(0, (int) ($submission['late_assignments'] ?? 0)),
+                'submission_rate' => $totalAssignments > 0 ? round(($submittedAssignments / $totalAssignments) * 100, 1) : 0.0,
+                'graded_assignment_count' => count($gradedAssignments),
+                'assignment_average' => $gradedAssignments !== []
+                    ? round(array_sum($gradedAssignments) / count($gradedAssignments), 2)
+                    : null,
+            ];
+        }
+
+        usort($summaryRows, static function (array $left, array $right): int {
+            return strcmp((string) ($left['student_name'] ?? ''), (string) ($right['student_name'] ?? ''));
+        });
+
+        return [
+            'class' => $classRow,
+            'students' => array_values($selectedStudents),
+            'summary_rows' => $summaryRows,
+            'assignment_rows' => $assignmentRows,
+            'exam_rows' => $examRows,
+        ];
     }
 
     public function listRoadmapsByCoursePage(int $courseId, int $page, int $perPage): array
@@ -470,6 +593,11 @@ final class AcademicModel
     public function studentLookups(): array
     {
         return $this->usersTable->listByRoleNames(['student']);
+    }
+
+    public function notificationRecipientLookups(): array
+    {
+        return $this->usersTable->listActiveByRoleNames(['admin', 'staff', 'teacher', 'student']);
     }
 
     public function registrationLookups(): array
@@ -576,106 +704,7 @@ final class AcademicModel
 
     public function updateRegistrationLearningStatus(int $studentId, int $classId, string $targetStatus): array
     {
-        if ($studentId <= 0 || $classId <= 0) {
-            throw new InvalidArgumentException('Dữ liệu học viên/lớp học không hợp lệ.');
-        }
-
-        $normalizedTargetStatus = in_array($targetStatus, ['trial', 'official'], true)
-            ? $targetStatus
-            : '';
-        if ($normalizedTargetStatus === '') {
-            throw new InvalidArgumentException('Trạng thái học viên không hợp lệ.');
-        }
-
-        $enrollment = $this->classStudentsTable->findEnrollment($classId, $studentId);
-        if (!is_array($enrollment)) {
-            throw new RuntimeException('Không tìm thấy ghi danh học viên trong lớp đã chọn.');
-        }
-
-        $currentStatus = (string) ($enrollment['learning_status'] ?? 'official');
-        if ($currentStatus === $normalizedTargetStatus) {
-            return [
-                'updated' => false,
-                'from_status' => $currentStatus,
-                'to_status' => $normalizedTargetStatus,
-                'tuition_created_id' => 0,
-                'tuition_deleted_id' => 0,
-            ];
-        }
-
-        $tuitionCreatedId = 0;
-        $tuitionDeletedId = 0;
-
-        $this->tuitionFeesTable->executeInTransaction(function () use (
-            $studentId,
-            $classId,
-            $normalizedTargetStatus,
-            &$tuitionCreatedId,
-            &$tuitionDeletedId
-        ): void {
-            $existingTuition = $this->tuitionFeesTable->findByStudentAndClass($studentId, $classId);
-
-            if ($normalizedTargetStatus === 'official') {
-                if (!$existingTuition) {
-                    $class = $this->classesTable->findById($classId);
-                    if (!is_array($class)) {
-                        throw new RuntimeException('Không tìm thấy lớp học để tính học phí.');
-                    }
-
-                    $courseId = (int) ($class['course_id'] ?? 0);
-                    if ($courseId <= 0) {
-                        throw new RuntimeException('Lớp học chưa liên kết khóa học hợp lệ.');
-                    }
-
-                    $course = $this->coursesTable->findById($courseId);
-                    if (!is_array($course)) {
-                        throw new RuntimeException('Không tìm thấy khóa học để tính học phí.');
-                    }
-
-                    $baseAmount = max(0, (float) ($course['base_price'] ?? 0));
-                    $tuitionCreatedId = $this->tuitionFeesTable->createDebtForRegistration([
-                        'student_id' => $studentId,
-                        'class_id' => $classId,
-                        'package_id' => 0,
-                        'base_amount' => $baseAmount,
-                        'discount_type' => 'none',
-                        'discount_amount' => 0,
-                        'payment_plan' => 'full',
-                    ]);
-                }
-            } else {
-                if ($existingTuition) {
-                    $tuitionId = (int) ($existingTuition['id'] ?? 0);
-                    $amountPaid = max(0, (float) ($existingTuition['amount_paid'] ?? 0));
-                    $paidFromTransactions = $tuitionId > 0
-                        ? max(0, $this->paymentTransactionsTable->sumSuccessAmountByTuitionId($tuitionId))
-                        : 0.0;
-
-                    if (max($amountPaid, $paidFromTransactions) > 0.0001) {
-                        throw new DomainException('Không thể chuyển từ chính thức sang học thử vì học viên đã thanh toán học phí.');
-                    }
-
-                    if ($tuitionId > 0) {
-                        $this->paymentTransactionsTable->deleteByTuitionFeeId($tuitionId);
-                        $this->tuitionFeesTable->deleteById($tuitionId);
-                        $tuitionDeletedId = $tuitionId;
-                    }
-                }
-            }
-
-            $updated = $this->classStudentsTable->updateLearningStatus($classId, $studentId, $normalizedTargetStatus);
-            if (!$updated) {
-                throw new RuntimeException('Không thể cập nhật trạng thái học viên trong lớp.');
-            }
-        });
-
-        return [
-            'updated' => true,
-            'from_status' => $currentStatus,
-            'to_status' => $normalizedTargetStatus,
-            'tuition_created_id' => $tuitionCreatedId,
-            'tuition_deleted_id' => $tuitionDeletedId,
-        ];
+        throw new RuntimeException('Trạng thái học viên trong lớp đã được chuẩn hóa mặc định là chính thức.');
     }
 
     public function registerCourseAndCreateDebtTuition(array $data): array
@@ -687,16 +716,11 @@ final class AcademicModel
         $discountType = (string) ($data['discount_type'] ?? 'none');
         $discountAmount = max(0, (float) ($data['discount_amount'] ?? 0));
         $paymentPlan = (string) ($data['payment_plan'] ?? 'full');
-        $learningStatus = (string) ($data['learning_status'] ?? 'official');
         $enrollmentDate = trim((string) ($data['enrollment_date'] ?? ''));
 
         if ($studentId <= 0 || $classId <= 0) {
             throw new InvalidArgumentException('Dữ liệu đăng ký không hợp lệ.');
         }
-
-        $normalizedLearningStatus = in_array($learningStatus, ['trial', 'official'], true)
-            ? $learningStatus
-            : 'official';
 
         if ($enrollmentDate === '') {
             $enrollmentDate = date('Y-m-d');
@@ -713,7 +737,6 @@ final class AcademicModel
             $discountType,
             $discountAmount,
             $paymentPlan,
-            $normalizedLearningStatus,
             $enrollmentDate,
             &$alreadyEnrolled,
             &$tuitionId
@@ -725,26 +748,11 @@ final class AcademicModel
 
             $alreadyEnrolled = $this->classStudentsTable->existsEnrollment($classId, $studentId);
             if (!$alreadyEnrolled) {
-                $this->classStudentsTable->enrollStudent($classId, $studentId, $normalizedLearningStatus, $enrollmentDate);
+                $this->classStudentsTable->enrollStudent($classId, $studentId, 'official', $enrollmentDate);
             }
 
             if (!$this->classStudentsTable->existsEnrollment($classId, $studentId)) {
                 throw new RuntimeException('Không thể thêm học viên vào lớp đã chọn. Vui lòng thử lại.');
-            }
-
-            $enrollment = $this->classStudentsTable->findEnrollment($classId, $studentId);
-            if (!is_array($enrollment)) {
-                throw new RuntimeException('Không thể xác định trạng thái ghi danh của học viên.');
-            }
-
-            $currentStatus = (string) ($enrollment['learning_status'] ?? 'official');
-            if ($currentStatus !== $normalizedLearningStatus) {
-                $this->classStudentsTable->updateLearningStatus($classId, $studentId, $normalizedLearningStatus);
-            }
-
-            if ($normalizedLearningStatus === 'trial') {
-                $tuitionId = 0;
-                return;
             }
 
             $tuitionId = $this->tuitionFeesTable->createDebtForRegistration([
@@ -761,7 +769,7 @@ final class AcademicModel
         return [
             'tuition_id' => $tuitionId,
             'already_enrolled' => $alreadyEnrolled,
-            'learning_status' => $normalizedLearningStatus,
+            'learning_status' => 'official',
         ];
     }
 
@@ -817,14 +825,34 @@ final class AcademicModel
         return $this->notificationsTable->listRecent(100);
     }
 
+    public function countNotifications(): int
+    {
+        return $this->notificationsTable->countDetailed();
+    }
+
+    public function listNotificationsPage(int $page, int $perPage): array
+    {
+        return $this->notificationsTable->listDetailedPage($page, $perPage);
+    }
+
+    public function findNotification(int $id): ?array
+    {
+        return $this->notificationsTable->findById($id);
+    }
+
     public function saveNotification(array $data): void
     {
-        $this->notificationsTable->insert($data);
+        $this->notificationsTable->save($data);
     }
 
     public function markNotificationRead(int $id): void
     {
         $this->notificationsTable->markRead($id);
+    }
+
+    public function deleteNotification(int $id): void
+    {
+        $this->notificationsTable->deleteById($id);
     }
 
     public function listFeedbacks(): array
@@ -842,6 +870,10 @@ final class AcademicModel
         return $this->feedbacksTable->listDetailedPage($page, $perPage);
     }
 
+    public function findFeedback(int $id): ?array
+    {
+        return $this->feedbacksTable->findById($id);
+    }
     public function listPublicFeedbacks(int $limit = 6): array
     {
         return $this->feedbacksTable->listPublicReviews($limit);
@@ -1026,6 +1058,46 @@ final class AcademicModel
         $this->activitiesTable->deleteById($id);
     }
 
+    public function listActivityRegistrations(int $activityId): array
+    {
+        return $this->activitiesTable->listRegistrationsByActivity($activityId);
+    }
+
+    public function removeActivityRegistration(int $activityId, int $userId): bool
+    {
+        return $this->activitiesTable->removeRegistration($activityId, $userId);
+    }
+
+    public function updateActivityRegistrationPayment(int $activityId, int $userId, string $paymentStatus, float $amountPaid, ?string $paymentDate): bool
+    {
+        return $this->activitiesTable->updateRegistrationPayment($activityId, $userId, $paymentStatus, $amountPaid, $paymentDate);
+    }
+
+    public function countRooms(): int
+    {
+        return $this->roomsTable->countDetailed();
+    }
+
+    public function listRoomsPage(int $page, int $perPage): array
+    {
+        return $this->roomsTable->listDetailedPage($page, $perPage);
+    }
+
+    public function findRoom(int $id): ?array
+    {
+        return $this->roomsTable->findById($id);
+    }
+
+    public function saveRoom(array $data): void
+    {
+        $this->roomsTable->save($data);
+    }
+
+    public function deleteRoom(int $id): void
+    {
+        $this->roomsTable->deleteById($id);
+    }
+
     public function listBankAccounts(): array
     {
         return $this->bankAccountsTable->listDetailed();
@@ -1091,27 +1163,6 @@ final class AcademicModel
         $this->tuitionFeesTable->deleteById($id);
     }
 
-    private function generateTransactionNo(string $prefix, int $tuitionId): string
-    {
-        return sprintf('%s-%d-%s-%03d', $prefix, $tuitionId, date('YmdHis'), random_int(0, 999));
-    }
-
-    private function resolveTransactionNo(array $data, ?array $oldTransaction = null): string
-    {
-        $requestedNo = trim((string) ($data['transaction_no'] ?? ''));
-        if ($requestedNo !== '') {
-            return $requestedNo;
-        }
-
-        $existingNo = trim((string) ($oldTransaction['transaction_no'] ?? ''));
-        if ($existingNo !== '') {
-            return $existingNo;
-        }
-
-        $tuitionId = (int) ($data['tuition_fee_id'] ?? 0);
-        return $this->generateTransactionNo('CENTER', max(0, $tuitionId));
-    }
-
     private function syncTuitionFromPayments(int $tuitionId): void
     {
         if ($tuitionId <= 0) {
@@ -1150,7 +1201,6 @@ final class AcademicModel
 
         $this->paymentTransactionsTable->save([
             'tuition_fee_id' => $tuitionId,
-            'transaction_no' => $this->generateTransactionNo('LEGACY', $tuitionId),
             'payment_method' => 'cash',
             'amount' => $currentPaid,
             'transaction_status' => 'success',
@@ -1173,7 +1223,6 @@ final class AcademicModel
 
             $this->paymentTransactionsTable->save([
                 'tuition_fee_id' => $tuitionId,
-                'transaction_no' => $this->generateTransactionNo('WEB', $tuitionId),
                 'payment_method' => $method,
                 'amount' => $amount,
                 'transaction_status' => 'success',
@@ -1196,7 +1245,6 @@ final class AcademicModel
 
             $this->paymentTransactionsTable->save([
                 'tuition_fee_id' => $tuitionId,
-                'transaction_no' => $this->generateTransactionNo('TXN', $tuitionId),
                 'payment_method' => $method,
                 'amount' => $amount,
                 'transaction_status' => 'success',
@@ -1231,7 +1279,6 @@ final class AcademicModel
         $id = (int) ($data['id'] ?? 0);
         $old = $id > 0 ? $this->paymentTransactionsTable->findById($id) : null;
         $newTuitionId = (int) ($data['tuition_fee_id'] ?? 0);
-        $data['transaction_no'] = $this->resolveTransactionNo($data, $old);
 
         $this->tuitionFeesTable->executeInTransaction(function () use ($data, $old, $newTuitionId): void {
             if ($newTuitionId > 0) {

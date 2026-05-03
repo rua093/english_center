@@ -21,9 +21,8 @@ final class MaterialsTableModel extends BaseTableModel
     public function listDetailed(): array
     {
         $descriptionSql = $this->descriptionSelectSql('m');
-        $sql = "SELECT m.id, m.course_id, m.title, {$descriptionSql} AS description, m.file_path, c.course_name
+        $sql = "SELECT m.id, m.title, {$descriptionSql} AS description, m.file_path
             FROM materials m
-            INNER JOIN courses c ON c.id = m.course_id
             ORDER BY m.id DESC";
         return $this->fetchAll($sql);
     }
@@ -32,9 +31,8 @@ final class MaterialsTableModel extends BaseTableModel
     {
         $pagination = $this->pagination($page, $perPage, 10, 200);
         $descriptionSql = $this->descriptionSelectSql('m');
-        $sql = "SELECT m.id, m.course_id, m.title, {$descriptionSql} AS description, m.file_path, c.course_name
+        $sql = "SELECT m.id, m.title, {$descriptionSql} AS description, m.file_path
             FROM materials m
-            INNER JOIN courses c ON c.id = m.course_id
             ORDER BY m.id DESC
             LIMIT {$pagination['limit']} OFFSET {$pagination['offset']}";
         return $this->fetchAll($sql);
@@ -43,7 +41,7 @@ final class MaterialsTableModel extends BaseTableModel
     public function findById(int $id): ?array
     {
         $descriptionSql = $this->descriptionSelectSql('m');
-        $sql = "SELECT m.id, m.course_id, m.title, {$descriptionSql} AS description, m.file_path
+        $sql = "SELECT m.id, m.title, {$descriptionSql} AS description, m.file_path
             FROM materials m
             WHERE m.id = :id
             LIMIT 1";
@@ -59,19 +57,17 @@ final class MaterialsTableModel extends BaseTableModel
         $hasType = $this->hasTypeColumn();
 
         $payload = [
-            'course_id' => (int) ($data['course_id'] ?? $data['class_id'] ?? 0),
             'title' => trim((string) ($data['title'] ?? '')),
             'file_path' => $filePath,
         ];
 
         $updateColumns = [
-            'course_id = :course_id',
             'title = :title',
             'file_path = :file_path',
         ];
 
-        $insertColumns = ['course_id', 'title', 'file_path'];
-        $insertValues = [':course_id', ':title', ':file_path'];
+        $insertColumns = ['title', 'file_path'];
+        $insertValues = [':title', ':file_path'];
 
         if ($hasDescription) {
             $payload['description'] = $description !== '' ? $description : null;
@@ -165,9 +161,8 @@ final class MaterialsTableModel extends BaseTableModel
     public function listRecent(int $limit = 6): array
     {
         $limit = $this->clampLimit($limit, 6, 100);
-        $sql = "SELECT m.id, m.title, c.course_name
+        $sql = "SELECT m.id, m.title
             FROM materials m
-            INNER JOIN courses c ON c.id = m.course_id
             ORDER BY m.id DESC
             LIMIT " . $limit;
         return $this->fetchAll($sql);

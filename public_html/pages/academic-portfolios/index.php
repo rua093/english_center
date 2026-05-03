@@ -1,5 +1,6 @@
 <?php
-require_login();
+require_admin_or_staff();
+require_any_permission(['academic.portfolios.view']);
 require_once __DIR__ . '/../../core/file_storage.php';
 
 $academicModel = new AcademicModel();
@@ -22,12 +23,11 @@ if (!empty($_GET['edit'])) {
 }
 
 $module = 'portfolios';
-$adminTitle = 'Học vụ - Portfolio học viên';
+$adminTitle = 'Học vụ - Hồ sơ tiến bộ học viên';
 
 $viewer = auth_user();
 $viewerRole = (string) ($viewer['role'] ?? '');
 $viewerId = (int) ($viewer['id'] ?? 0);
-$isStudentViewer = $viewerRole === 'student';
 
 $success = get_flash('success');
 $error = get_flash('error');
@@ -35,7 +35,7 @@ $error = get_flash('error');
 $portfolioTypeLabels = [
     'progress_video' => 'Video tiến bộ',
     'activity_photo' => 'Ảnh hoạt động',
-    'feedback' => 'Feedback',
+    'feedback' => 'Phản hồi',
 ];
 
 $selectedType = (string) ($editingPortfolio['type'] ?? 'progress_video');
@@ -54,27 +54,22 @@ $editingPortfolioMediaPath = normalize_public_file_url((string) ($editingPortfol
     <?php endif; ?>
 
     <article class="order-2 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h3><?= $editingPortfolio ? 'Sửa portfolio' : 'Thêm portfolio'; ?></h3>
+        <h3><?= $editingPortfolio ? 'Sửa hồ sơ tiến bộ' : 'Thêm hồ sơ tiến bộ'; ?></h3>
         <form class="grid gap-3" method="post" action="/api/portfolios/save" enctype="multipart/form-data">
             <?= csrf_input(); ?>
             <input type="hidden" name="id" value="<?= (int) ($editingPortfolio['id'] ?? 0); ?>">
 
             <label>
                 Học viên
-                <?php if ($isStudentViewer): ?>
-                    <input type="hidden" name="student_id" value="<?= $viewerId; ?>">
-                    <input type="text" value="<?= e((string) ($viewer['full_name'] ?? '')); ?>" disabled>
-                <?php else: ?>
-                    <select name="student_id" required>
-                        <?php if (empty($students)): ?>
-                            <option value="">-- Chưa có học viên --</option>
-                        <?php else: ?>
-                            <?php foreach ($students as $student): ?>
-                                <option value="<?= (int) ($student['id'] ?? 0); ?>" <?= (int) ($editingPortfolio['student_id'] ?? 0) === (int) ($student['id'] ?? 0) ? 'selected' : ''; ?>><?= e((string) ($student['full_name'] ?? '')); ?></option>
-                            <?php endforeach; ?>
-                        <?php endif; ?>
-                    </select>
-                <?php endif; ?>
+                <select name="student_id" required>
+                    <?php if (empty($students)): ?>
+                        <option value="">-- Chưa có học viên --</option>
+                    <?php else: ?>
+                        <?php foreach ($students as $student): ?>
+                            <option value="<?= (int) ($student['id'] ?? 0); ?>" <?= (int) ($editingPortfolio['student_id'] ?? 0) === (int) ($student['id'] ?? 0) ? 'selected' : ''; ?>><?= e(student_dropdown_label($student)); ?></option>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </select>
             </label>
 
             <label>
@@ -88,18 +83,18 @@ $editingPortfolioMediaPath = normalize_public_file_url((string) ($editingPortfol
 
             <label>
                 Mô tả
-                <textarea name="description" rows="4" placeholder="Ghi chú ngắn về nội dung portfolio"><?= e($selectedDescription); ?></textarea>
+                <textarea name="description" rows="4" placeholder="Ghi chú ngắn về nội dung hồ sơ tiến bộ"><?= e($selectedDescription); ?></textarea>
             </label>
 
             <label>
-                Tải lên media
+                Tải lên tệp phương tiện
                 <input type="file" name="portfolio_file" accept=".jpg,.jpeg,.png,.mp4,.mov,.webm" <?= $editingPortfolio ? '' : 'required'; ?>>
             </label>
 
             <?php if ($editingPortfolioMediaPath !== ''): ?>
                 <p class="text-xs text-slate-500">
-                    Media hiện tại:
-                    <a class="font-semibold text-blue-700 hover:underline" href="<?= e($editingPortfolioMediaPath); ?>" target="_blank" rel="noopener noreferrer">Mở media</a>.
+                    Tệp hiện tại:
+                    <a class="font-semibold text-blue-700 hover:underline" href="<?= e($editingPortfolioMediaPath); ?>" target="_blank" rel="noopener noreferrer">Mở tệp</a>.
                     Chọn file mới để thay thế.
                 </p>
             <?php endif; ?>
@@ -113,7 +108,7 @@ $editingPortfolioMediaPath = normalize_public_file_url((string) ($editingPortfol
             </label>
 
             <div class="inline-flex flex-wrap items-center gap-2">
-                <button class="<?= ui_btn_primary_classes(); ?>" type="submit"><?= $editingPortfolio ? 'Cập nhật portfolio' : 'Lưu portfolio'; ?></button>
+                <button class="<?= ui_btn_primary_classes(); ?>" type="submit"><?= $editingPortfolio ? 'Cập nhật hồ sơ tiến bộ' : 'Lưu hồ sơ tiến bộ'; ?></button>
                 <?php if ($editingPortfolio): ?>
                     <a class="<?= ui_btn_secondary_classes(); ?>" href="<?= e(page_url('portfolios-academic', ['portfolio_page' => $portfolioPage, 'portfolio_per_page' => $portfolioPerPage])); ?>">Hủy chỉnh sửa</a>
                 <?php endif; ?>
@@ -122,11 +117,12 @@ $editingPortfolioMediaPath = normalize_public_file_url((string) ($editingPortfol
     </article>
 
     <article class="order-1 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h3>Danh sách portfolio</h3>
+        <h3>Danh sách hồ sơ tiến bộ</h3>
         <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
             <table class="min-w-full border-collapse text-sm">
                 <thead>
                     <tr>
+                        <th>Mã HV</th>
                         <th>Học viên</th>
                         <th>Loại</th>
                         <th>Media</th>
@@ -139,8 +135,8 @@ $editingPortfolioMediaPath = normalize_public_file_url((string) ($editingPortfol
                 <tbody>
                     <?php if (empty($portfolios)): ?>
                         <tr>
-                            <td colspan="7">
-                                <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">Chưa có portfolio nào.</div>
+                            <td colspan="8">
+                                <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">Chưa có hồ sơ tiến bộ nào.</div>
                             </td>
                         </tr>
                     <?php else: ?>
@@ -161,10 +157,11 @@ $editingPortfolioMediaPath = normalize_public_file_url((string) ($editingPortfol
                             $createdAtTimestamp = $createdAtRaw !== '' ? strtotime($createdAtRaw) : false;
                             $createdAtText = $createdAtTimestamp ? date('d/m/Y H:i', $createdAtTimestamp) : '-';
 
-                            $canManagePortfolio = !$isStudentViewer || $viewerId === $portfolioStudentId;
+                            $canManagePortfolio = true;
                             ?>
                             <tr>
-                                <td><?= e((string) ($portfolio['full_name'] ?? '')); ?></td>
+                                <td><?= e((string) ($portfolio['student_code'] ?? '-')); ?></td>
+                                <td><?= e((string) ($portfolio['full_name'] ?? 'Học viên')); ?></td>
                                 <td>
                                     <span class="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-xs font-semibold text-slate-700"><?= e($portfolioTypeLabel); ?></span>
                                 </td>
@@ -173,7 +170,7 @@ $editingPortfolioMediaPath = normalize_public_file_url((string) ($editingPortfol
                                         <span class="text-xs text-slate-400">-</span>
                                     <?php elseif ($isImage): ?>
                                         <a href="<?= e($portfolioMediaUrl); ?>" target="_blank" rel="noopener noreferrer" aria-label="Xem ảnh" class="inline-block">
-                                            <img src="<?= e($portfolioMediaUrl); ?>" alt="Preview" class="h-10 w-14 rounded-md border border-slate-200 object-cover">
+                                            <img src="<?= e($portfolioMediaUrl); ?>" alt="Xem trước" class="h-10 w-14 rounded-md border border-slate-200 object-cover">
                                         </a>
                                     <?php elseif ($isVideo): ?>
                                         <a href="<?= e($portfolioMediaUrl); ?>" target="_blank" rel="noopener noreferrer" class="text-xs font-semibold text-blue-700 hover:underline">Xem video</a>
@@ -206,7 +203,7 @@ $editingPortfolioMediaPath = normalize_public_file_url((string) ($editingPortfol
                                                     <svg viewBox="0 0 24 24"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
                                                 </span>
                                             </a>
-                                            <form class="inline-block" method="post" action="/api/portfolios/delete?id=<?= $portfolioId; ?>" onsubmit="return confirm('Bạn có chắc muốn xóa portfolio này không?');">
+                                            <form class="inline-block" method="post" action="/api/portfolios/delete?id=<?= $portfolioId; ?>" onsubmit="return confirm('Bạn có chắc muốn xóa hồ sơ tiến bộ này không?');">
                                                 <?= csrf_input(); ?>
                                                 <button
                                                     class="<?= ui_btn_danger_classes('sm'); ?> admin-action-icon-btn"
@@ -236,7 +233,7 @@ $editingPortfolioMediaPath = normalize_public_file_url((string) ($editingPortfol
             <?php if ($portfolioTotal > 0): ?>
                 <div class="border-t border-slate-200 bg-slate-50/80 px-3 py-2">
                     <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600">
-                        <span class="font-medium">Trang <?= (int) $portfolioPage; ?>/<?= (int) $portfolioTotalPages; ?> - Tổng <?= (int) $portfolioTotal; ?> portfolio</span>
+                        <span class="font-medium">Trang <?= (int) $portfolioPage; ?>/<?= (int) $portfolioTotalPages; ?> - Tổng <?= (int) $portfolioTotal; ?> hồ sơ tiến bộ</span>
                         <div class="inline-flex items-center gap-1.5">
                             <form class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2 py-1" method="get" action="<?= e(page_url('portfolios-academic')); ?>">
                                 <input type="hidden" name="page" value="portfolios-academic">

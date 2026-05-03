@@ -108,3 +108,24 @@ mainNav?.querySelectorAll("a").forEach((link) => {
 		menuToggle?.setAttribute("aria-expanded", "false");
 	});
 });
+
+document.querySelectorAll('input[type="tel"], input[name*="phone"]').forEach((input) => {
+	if (!(input instanceof HTMLInputElement)) {
+		return;
+	}
+	if (input.dataset.phoneSanitized === "1") {
+		return;
+	}
+
+	const sanitizePhoneValue = () => {
+		input.value = input.value.replace(/\D+/g, "");
+	};
+
+	input.dataset.phoneSanitized = "1";
+	input.setAttribute("inputmode", "numeric");
+	input.setAttribute("pattern", "[0-9]*");
+	input.addEventListener("input", sanitizePhoneValue);
+	input.addEventListener("paste", () => {
+		requestAnimationFrame(sanitizePhoneValue);
+	});
+});

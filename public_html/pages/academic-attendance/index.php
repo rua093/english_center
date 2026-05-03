@@ -155,7 +155,7 @@ $adminTitle = 'Học vụ - Điểm danh';
                             . ' | ' . $formatDate((string) ($scheduleRow['study_date'] ?? ''))
                             . ' ' . $formatTime((string) ($scheduleRow['start_time'] ?? ''))
                             . '-' . $formatTime((string) ($scheduleRow['end_time'] ?? ''))
-                            . ' | ' . trim((string) ($scheduleRow['room_name'] ?? 'Online'));
+                            . ' | ' . trim((string) ($scheduleRow['room_name'] ?? 'Trực tuyến'));
                         ?>
                         <option value="<?= $scheduleId; ?>" <?= $selectedScheduleId === $scheduleId ? 'selected' : ''; ?>><?= e($label); ?></option>
                     <?php endforeach; ?>
@@ -193,7 +193,7 @@ $adminTitle = 'Học vụ - Điểm danh';
                 <strong><?= e($selectedLessonTitle); ?></strong>
                 | <?= e($formatDate((string) ($selectedSchedule['study_date'] ?? ''))); ?>
                 <?= e($formatTime((string) ($selectedSchedule['start_time'] ?? ''))); ?> - <?= e($formatTime((string) ($selectedSchedule['end_time'] ?? ''))); ?>
-                | <?= e((string) ($selectedSchedule['room_name'] ?? 'Online')); ?>
+                | <?= e((string) ($selectedSchedule['room_name'] ?? 'Trực tuyến')); ?>
             </p>
 
             <?php if (!$canManageAttendance): ?>
@@ -213,8 +213,8 @@ $adminTitle = 'Học vụ - Điểm danh';
                     <table class="min-w-full border-collapse text-sm">
                         <thead>
                             <tr>
+                                <th>Mã HV</th>
                                 <th>Học viên</th>
-                                <th>Trạng thái học viên</th>
                                 <th>Điểm danh</th>
                                 <th>Ghi chú</th>
                             </tr>
@@ -230,12 +230,8 @@ $adminTitle = 'Học vụ - Điểm danh';
                                 <?php foreach ($attendanceRoster as $studentRow): ?>
                                     <?php $studentId = (int) ($studentRow['student_id'] ?? 0); ?>
                                     <tr>
+                                        <td><?= e((string) ($studentRow['student_code'] ?? '-')); ?></td>
                                         <td><strong><?= e((string) ($studentRow['full_name'] ?? ($studentRow['student_name'] ?? ('Học viên #' . $studentId)))); ?></strong></td>
-                                        <td>
-                                            <span class="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-bold capitalize is-<?= e((string) ($studentRow['learning_status'] ?? 'official')); ?>">
-                                                <?= e((string) ($studentRow['learning_status'] ?? 'official')); ?>
-                                            </span>
-                                        </td>
                                         <td>
                                             <select name="attendance_status[<?= $studentId; ?>]" <?= $canManageAttendance ? '' : 'disabled'; ?>>
                                                 <option value="" <?= trim((string) ($studentRow['attendance_status'] ?? '')) === '' ? 'selected' : ''; ?>>Chưa đánh dấu</option>

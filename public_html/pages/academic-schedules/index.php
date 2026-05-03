@@ -14,9 +14,45 @@ $allSchedules = $academicModel->listSchedules();
 $schedulePerPageOptions = ui_pagination_per_page_options();
 $lookups = $academicModel->scheduleLookups();
 
+$currentUser = auth_user() ?? [];
+$currentUserRole = (string) ($currentUser['role'] ?? '');
+$currentUserId = (int) ($currentUser['id'] ?? 0);
+
+if ($currentUserRole === 'teacher' && $currentUserId > 0) {
+    $allSchedules = array_values(array_filter($allSchedules, static function (array $schedule) use ($currentUserId): bool {
+        return (int) ($schedule['teacher_id'] ?? 0) === $currentUserId;
+    }));
+
+    $scheduleTotal = count($allSchedules);
+    $scheduleTotalPages = max(1, (int) ceil($scheduleTotal / $schedulePerPage));
+    if ($schedulePage > $scheduleTotalPages) {
+        $schedulePage = $scheduleTotalPages;
+    }
+
+    $scheduleOffset = ($schedulePage - 1) * $schedulePerPage;
+    $schedules = array_slice($allSchedules, $scheduleOffset, $schedulePerPage);
+
+    $lookupClasses = is_array($lookups['classes'] ?? null) ? $lookups['classes'] : [];
+    $lookups['classes'] = array_values(array_filter($lookupClasses, static function (array $classRow) use ($currentUserId): bool {
+        return (int) ($classRow['teacher_id'] ?? 0) === $currentUserId;
+    }));
+
+    $lookupTeachers = is_array($lookups['teachers'] ?? null) ? $lookups['teachers'] : [];
+    $lookups['teachers'] = array_values(array_filter($lookupTeachers, static function (array $teacherRow) use ($currentUserId): bool {
+        return (int) ($teacherRow['id'] ?? 0) === $currentUserId;
+    }));
+}
+
 $editingSchedule = null;
 if (!empty($_GET['edit'])) {
     $editingSchedule = $academicModel->findSchedule((int) $_GET['edit']);
+    if (
+        $currentUserRole === 'teacher' &&
+        is_array($editingSchedule) &&
+        (int) ($editingSchedule['teacher_id'] ?? 0) !== $currentUserId
+    ) {
+        $editingSchedule = null;
+    }
 }
 
 $module = 'schedules';
@@ -168,7 +204,7 @@ $scheduleConflictDataset = array_map(static function (array $schedule): array {
                     Giáo viên
                     <select name="teacher_id" required>
                         <?php foreach ($lookups['teachers'] as $teacher): ?>
-                            <option value="<?= (int) $teacher['id']; ?>" <?= (int) ($editingSchedule['teacher_id'] ?? 0) === (int) $teacher['id'] ? 'selected' : ''; ?>><?= e((string) $teacher['full_name']); ?></option>
+                            <option value="<?= (int) $teacher['id']; ?>" <?= (int) ($editingSchedule['teacher_id'] ?? 0) === (int) $teacher['id'] ? 'selected' : ''; ?>><?= e(teacher_dropdown_label($teacher)); ?></option>
                         <?php endforeach; ?>
                     </select>
                 </label>
@@ -250,9 +286,9 @@ $scheduleConflictDataset = array_map(static function (array $schedule): array {
                                                         data-weekly-chip="1"
                                                         data-class-name="<?= e($slotClassName !== '' ? $slotClassName : '-'); ?>"
                                                         data-teacher-name="<?= e($slotTeacherName !== '' ? $slotTeacherName : '-'); ?>"
-                                                        data-room-name="<?= e($slotRoomName !== '' ? $slotRoomName : 'Online'); ?>"
+                                                        data-room-name="<?= e($slotRoomName !== '' ? $slotRoomName : 'Trực tuyến'); ?>"
                                                         data-time-label="<?= e($slotStart . ' - ' . $slotEnd); ?>"
-                                                        title="<?= e($slotClassName . ' | ' . $slotTeacherName . ' | ' . ($slotRoomName !== '' ? $slotRoomName : 'Online') . ' | ' . $slotStart . '-' . $slotEnd); ?>"
+                                                        title="<?= e($slotClassName . ' | ' . $slotTeacherName . ' | ' . ($slotRoomName !== '' ? $slotRoomName : 'Trực tuyến') . ' | ' . $slotStart . '-' . $slotEnd); ?>"
                                                     >
                                                         <?= e($slotClassName !== '' ? $slotClassName : 'Buổi học'); ?>
                                                     </div>
@@ -275,17 +311,18 @@ $scheduleConflictDataset = array_map(static function (array $schedule): array {
             <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
                 <table class="min-w-full border-collapse text-sm">
                 <thead>
-                    <tr><th>Lớp học</th><th>Phòng</th><th>Giáo viên</th><th>Ngày học</th><th>Giờ</th><th>Hành động</th></tr>
+                    <tr><th>Lớp học</th><th>Phòng</th><th>Mã GV</th><th>Giáo viên</th><th>Ngày học</th><th>Giờ</th><th>Hành động</th></tr>
                 </thead>
                 <tbody>
                     <?php if (empty($schedules)): ?>
-                        <tr><td colspan="6"><div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">Chưa có lịch dạy nào.</div></td></tr>
+                        <tr><td colspan="7"><div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">Chưa có lịch dạy nào.</div></td></tr>
                     <?php else: ?>
                     <?php foreach ($schedules as $schedule): ?>
                         <tr>
                             <td><?= e((string) $schedule['class_name']); ?></td>
                             <td><?= e((string) ($schedule['room_name'] ?? '')); ?></td>
-                            <td><?= e((string) $schedule['teacher_name']); ?></td>
+                            <td><?= e((string) ($schedule['teacher_code'] ?? '-')); ?></td>
+                            <td><?= e((string) ($schedule['teacher_name'] ?? 'Giáo viên')); ?></td>
                             <td><?= e((string) $schedule['study_date']); ?></td>
                             <td><?= e((string) $schedule['start_time']); ?> - <?= e((string) $schedule['end_time']); ?></td>
                             <td>
@@ -427,13 +464,13 @@ $scheduleConflictDataset = array_map(static function (array $schedule): array {
 
             if (startMinutes === null || endMinutes === null) {
                 event.preventDefault();
-                window.alert('Gio hoc khong hop le.');
+                window.alert('Giờ học không hợp lệ.');
                 return;
             }
 
             if (startMinutes >= endMinutes) {
                 event.preventDefault();
-                window.alert('Gio ket thuc phai sau gio bat dau.');
+                window.alert('Giờ kết thúc phải sau giờ bắt đầu.');
                 return;
             }
 
@@ -457,7 +494,7 @@ $scheduleConflictDataset = array_map(static function (array $schedule): array {
 
             if (classConflict) {
                 event.preventDefault();
-                window.alert('Lop hoc da co lich trung gio (' + formatTime(classConflict.start_time) + ' - ' + formatTime(classConflict.end_time) + ').');
+                window.alert('Lớp học đã có lịch trùng giờ (' + formatTime(classConflict.start_time) + ' - ' + formatTime(classConflict.end_time) + ').');
                 return;
             }
 
@@ -482,7 +519,7 @@ $scheduleConflictDataset = array_map(static function (array $schedule): array {
             if (teacherConflict) {
                 event.preventDefault();
                 const conflictClass = String(teacherConflict.class_name ?? '').trim();
-                window.alert('Giao vien da co lich trung gio' + (conflictClass !== '' ? ' voi lop ' + conflictClass : '') + '.');
+                window.alert('Giáo viên đã có lịch trùng giờ' + (conflictClass !== '' ? ' với lớp ' + conflictClass : '') + '.');
                 return;
             }
 
@@ -508,7 +545,7 @@ $scheduleConflictDataset = array_map(static function (array $schedule): array {
                 if (roomConflict) {
                     event.preventDefault();
                     const roomName = String(roomConflict.room_name ?? '').trim();
-                    window.alert('Phong hoc da co lich trung gio' + (roomName !== '' ? ' tai ' + roomName : '') + '.');
+                    window.alert('Phòng học đã có lịch trùng giờ' + (roomName !== '' ? ' tại ' + roomName : '') + '.');
                 }
             }
         });

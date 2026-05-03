@@ -432,7 +432,7 @@ $error = get_flash('error');
                                     <label class="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">Số điện thoại <span class="text-rose-500">*</span></label>
                                     <div class="relative">
                                         <i class="fa-solid fa-phone absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-                                        <input type="tel" name="phone" value="<?= e($phone) ?>" required class="input-modern w-full pl-11 pr-4 py-4 rounded-2xl bg-slate-50 text-slate-800 text-sm font-bold border border-slate-200 transition-all">
+                                        <input type="tel" inputmode="numeric" pattern="[0-9]*" name="phone" value="<?= e($phone) ?>" required class="input-modern w-full pl-11 pr-4 py-4 rounded-2xl bg-slate-50 text-slate-800 text-sm font-bold border border-slate-200 transition-all">
                                     </div>
                                 </div>
                             </div>

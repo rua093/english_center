@@ -17,9 +17,8 @@ function api_promotions_can_manage_directly(): bool
     }
 
     return has_any_permission([
-        'finance.tuition.manage',
-        'finance.tuition.create',
-        'finance.tuition.update',
+        'finance.promotions.create',
+        'finance.promotions.update',
         'finance.adjust.request',
     ]);
 }
@@ -31,8 +30,7 @@ function api_promotions_can_delete_directly(): bool
     }
 
     return has_any_permission([
-        'finance.tuition.manage',
-        'finance.tuition.delete',
+        'finance.promotions.delete',
         'finance.adjust.request',
     ]);
 }
@@ -46,7 +44,7 @@ function api_promotions_is_valid_date(string $value): bool
 function api_promotions_save_action(): void
 {
     api_guard_admin_or_staff();
-    api_guard_permission('finance.tuition.view');
+    api_guard_permission('finance.promotions.view');
     api_require_post(page_url('promotions-manage'));
 
     if (!api_promotions_can_manage_directly()) {
@@ -128,7 +126,7 @@ function api_promotions_save_action(): void
 function api_promotions_delete_action(): void
 {
     api_guard_admin_or_staff();
-    api_guard_permission('finance.tuition.view');
+    api_guard_permission('finance.promotions.view');
     api_require_post(page_url('promotions-manage'));
 
     if (!api_promotions_can_delete_directly()) {
@@ -149,6 +147,6 @@ function api_promotions_delete_action(): void
         redirect(page_url('promotions-manage'));
     }
 
-    set_flash('success', 'Đã xóa ưu đãi thành công.');
+    set_flash('success', 'Đã chuyển ưu đãi vào trạng thái xóa mềm.');
     redirect(page_url('promotions-manage'));
 }

@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 require_admin_or_staff();
-require_permission('job_application.manage');
+require_any_permission(['job_application.view']);
 
 if (!function_exists('job_application_extract_email')) {
     function job_application_extract_email(string $value): string
@@ -179,7 +179,8 @@ $adminDescription = 'Theo dõi thông tin ứng viên, cập nhật trạng thá
 
 $success = get_flash('success');
 $error = get_flash('error');
-$canConvertApplication = has_permission('admin.user.manage');
+$canConvertApplication = has_any_permission(['job_application.update']);
+$canDeleteApplication = has_permission('job_application.delete');
 ?>
 <div class="grid gap-4">
     <?php if ($success): ?>
@@ -288,7 +289,14 @@ $canConvertApplication = has_permission('admin.user.manage');
                 <?php if ((int) ($editingApplication['converted_user_id'] ?? 0) > 0): ?>
                     <div class="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">
                         <p class="font-semibold">Hồ sơ này đã được chuyển thành tài khoản giáo viên.</p>
-                        <p class="mt-1">Mã tài khoản: <a class="font-bold text-emerald-800 underline" href="<?= e(page_url('users-admin', ['edit' => (int) $editingApplication['converted_user_id']])); ?>">#<?= (int) $editingApplication['converted_user_id']; ?></a></p>
+                        <p class="mt-1">Mã tài khoản:
+                            <button
+                                type="button"
+                                class="font-bold text-emerald-800 underline"
+                                data-admin-row-detail="1"
+                                data-detail-url="<?= e(page_url('users-admin', ['edit' => (int) $editingApplication['converted_user_id']])); ?>"
+                            >#<?= (int) $editingApplication['converted_user_id']; ?></button>
+                        </p>
                         <p class="mt-1 text-xs">Thời gian chuyển đổi: <?= e(job_application_format_datetime((string) ($editingApplication['converted_at'] ?? ''))); ?></p>
                     </div>
                 <?php elseif ($canConvertApplication): ?>
@@ -329,26 +337,9 @@ $canConvertApplication = has_permission('admin.user.manage');
             <span class="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-bold text-slate-600">Tổng: <?= (int) $applicationTotal; ?> hồ sơ</span>
         </div>
 
-        <div class="table-filter-bar">
-            <form class="table-filter-controls" method="get" action="<?= e(page_url('job-applications-manage')); ?>">
-                <input type="hidden" name="application_per_page" value="<?= (int) $applicationPerPage; ?>">
-                <label class="text-xs font-semibold text-slate-500" for="application-status-filter">Trạng thái</label>
-                <select id="application-status-filter" name="application_status">
-                    <option value="">Tất cả trạng thái</option>
-                    <?php foreach ($statusOptions as $statusValue => $statusLabel): ?>
-                        <option value="<?= e($statusValue); ?>" <?= $statusFilter === $statusValue ? 'selected' : ''; ?>><?= e($statusLabel); ?></option>
-                    <?php endforeach; ?>
-                </select>
-                <button type="submit">Áp dụng lọc</button>
-                <?php if ($statusFilter !== ''): ?>
-                    <a class="inline-flex items-center rounded-md border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('job-applications-manage', ['application_per_page' => $applicationPerPage])); ?>">Bỏ lọc</a>
-                <?php endif; ?>
-            </form>
-            <span class="table-filter-counter">Trang <?= (int) $applicationPage; ?>/<?= (int) $applicationTotalPages; ?></span>
-        </div>
 
         <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
-            <table class="min-w-full border-collapse text-sm" data-enable-row-detail="1" data-disable-global-filter="1">
+            <table class="min-w-full border-collapse text-sm" data-enable-row-detail="1">
                 <thead>
                     <tr>
                         <th>Mã</th>
@@ -393,7 +384,12 @@ $canConvertApplication = has_permission('admin.user.manage');
                                 </td>
                                 <td>
                                     <?php if ((int) ($application['converted_user_id'] ?? 0) > 0): ?>
-                                        <a class="font-semibold text-blue-700 hover:underline" href="<?= e(page_url('users-admin', ['edit' => (int) $application['converted_user_id']])); ?>">User #<?= (int) $application['converted_user_id']; ?></a>
+                                        <button
+                                            type="button"
+                                            class="font-semibold text-blue-700 hover:underline"
+                                            data-admin-row-detail="1"
+                                            data-detail-url="<?= e(page_url('users-admin', ['edit' => (int) $application['converted_user_id']])); ?>"
+                                        >User #<?= (int) $application['converted_user_id']; ?></button>
                                     <?php else: ?>
                                         <span class="text-xs font-semibold text-slate-500">Chưa tạo user</span>
                                     <?php endif; ?>
@@ -428,6 +424,24 @@ $canConvertApplication = has_permission('admin.user.manage');
                                                 <svg viewBox="0 0 24 24"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
                                             </span>
                                         </a>
+                                        <?php if ($canDeleteApplication): ?>
+                                            <form class="inline-block" method="post" action="/api/applications/delete?id=<?= (int) $application['id']; ?>" onsubmit="return confirm('Bạn có chắc muốn xóa hồ sơ ứng tuyển này?');">
+                                                <?= csrf_input(); ?>
+                                                <button
+                                                    class="<?= ui_btn_danger_classes('sm'); ?> admin-action-icon-btn"
+                                                    data-action-kind="delete"
+                                                    data-skip-action-icon="1"
+                                                    type="submit"
+                                                    title="Xóa"
+                                                    aria-label="Xóa"
+                                                >
+                                                    <span class="admin-action-icon-label">Xóa</span>
+                                                    <span class="admin-action-icon-glyph" aria-hidden="true">
+                                                        <svg viewBox="0 0 24 24"><path d="M3 6h18"></path><path d="M8 6V4h8v2"></path><path d="M19 6l-1 14H6L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>
+                                                    </span>
+                                                </button>
+                                            </form>
+                                        <?php endif; ?>
                                     </div>
                                 </td>
                             </tr>

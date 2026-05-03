@@ -12,14 +12,7 @@ function api_approvals_is_admin(): bool
 
 function api_approvals_can_create(): bool
 {
-    if (api_approvals_is_admin()) {
-        return true;
-    }
-
-    return has_any_permission([
-        'approval.manage',
-        'approval.request',
-    ]);
+    return api_approvals_is_admin();
 }
 
 function api_approvals_can_update(): bool
@@ -29,9 +22,13 @@ function api_approvals_can_update(): bool
     }
 
     return has_any_permission([
-        'approval.manage',
         'approval.update',
     ]);
+}
+
+function api_approvals_can_staff_update_type(string $type): bool
+{
+    return in_array(strtolower(trim($type)), ['schedule_change', 'teacher_leave'], true);
 }
 
 function api_approvals_can_delete(): bool
@@ -41,7 +38,6 @@ function api_approvals_can_delete(): bool
     }
 
     return has_any_permission([
-        'approval.manage',
         'approval.delete',
     ]);
 }
@@ -148,6 +144,11 @@ function api_approvals_save_action(): void
             redirect(page_url('approvals-manage'));
         }
 
+        if (!api_approvals_is_admin() && !api_approvals_can_staff_update_type((string) ($existing['type'] ?? ''))) {
+            set_flash('error', 'Bạn chỉ có thể chỉnh sửa yêu cầu Giáo viên xin nghỉ hoặc Thay đổi lịch học.');
+            redirect(page_url('approvals-manage'));
+        }
+
         $oldStatus = (string) ($existing['status'] ?? 'pending');
         $allowedStatus = ['pending', 'approved', 'rejected'];
         $requestedStatus = input_string($_POST, 'status', $oldStatus);
@@ -244,8 +245,12 @@ function api_approvals_delete_action(): void
 
     $id = input_int($_POST, 'id', input_int($_GET, 'id'));
     if ($id > 0) {
-        (new AcademicModel())->deleteApproval($id);
-        set_flash('success', 'Đã xóa phiếu phê duyệt.');
+        try {
+            (new AcademicModel())->deleteApproval($id);
+            set_flash('success', 'Đã xóa phiếu phê duyệt.');
+        } catch (Throwable) {
+            set_flash('error', 'Không thể xóa phiếu phê duyệt. Vui lòng thử lại.');
+        }
     }
 
     redirect(page_url('approvals-manage'));

@@ -32,7 +32,7 @@ $adminTitle = $editingClass ? 'Học vụ - Sửa lớp học' : 'Học vụ - T
                     <select name="teacher_id" required>
                         <option value="">-- Chọn giáo viên --</option>
                         <?php foreach ($lookups['teachers'] as $teacher): ?>
-                            <option value="<?= (int) $teacher['id']; ?>" <?= (int) ($editingClass['teacher_id'] ?? 0) === (int) $teacher['id'] ? 'selected' : ''; ?>><?= e((string) $teacher['full_name']); ?></option>
+                            <option value="<?= (int) $teacher['id']; ?>" <?= (int) ($editingClass['teacher_id'] ?? 0) === (int) $teacher['id'] ? 'selected' : ''; ?>><?= e(teacher_dropdown_label($teacher)); ?></option>
                         <?php endforeach; ?>
                     </select>
                 </label>

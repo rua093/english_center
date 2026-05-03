@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 require_admin_or_staff();
-require_permission('admin.user.manage');
+require_any_permission(['admin.role_permission.update']);
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 redirect(page_url('users-admin'));

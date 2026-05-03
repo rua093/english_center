@@ -23,10 +23,21 @@ if ($user && $user['role'] === 'student') {
 redirect(page_url('dashboard-student'));
 }
 if ($user && $user['role'] === 'teacher') {
-redirect(page_url('dashboard-teacher'));
+redirect(page_url('admin'));
+}
+if ($user && $user['role'] === 'staff') {
+redirect(page_url('admin'));
 }
 if (has_permission('admin.dashboard.view')) {
 redirect(page_url('dashboard-admin'));
 }
 
+if (can_access_page('admin')) {
+redirect(page_url('admin'));
+}
+
+if (can_access_page('classes-academic')) {
 redirect(page_url('classes-academic'));
+}
+
+redirect(page_url('home'));

@@ -118,12 +118,21 @@ PREPARE stmt FROM @sql;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
 
--- Restore feedbacks to sender/class/teacher/rating/content/status.
+-- Normalize feedbacks to the simplified structure:
+-- sender_id, rating, content, is_public_web, created_at
 SET @has_feedbacks := (
     SELECT COUNT(*)
     FROM information_schema.tables
     WHERE table_schema = DATABASE()
       AND table_name = 'feedbacks'
+);
+
+SET @has_feedbacks_status := (
+    SELECT COUNT(*)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'feedbacks'
+      AND column_name = 'status'
 );
 
 SET @has_feedbacks_class := (
@@ -140,6 +149,14 @@ SET @has_feedbacks_teacher := (
     WHERE table_schema = DATABASE()
       AND table_name = 'feedbacks'
       AND column_name = 'teacher_id'
+);
+
+SET @has_feedbacks_is_public_web := (
+    SELECT COUNT(*)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'feedbacks'
+      AND column_name = 'is_public_web'
 );
 
 SET @has_fk_feedbacks_class := (
@@ -160,45 +177,285 @@ SET @has_fk_feedbacks_teacher := (
       AND constraint_type = 'FOREIGN KEY'
 );
 
-SET @default_feedback_class_id := (
-    SELECT id FROM classes ORDER BY id ASC LIMIT 1
+SET @sql := IF(
+    @has_feedbacks = 1 AND @has_feedbacks_is_public_web = 0,
+    "ALTER TABLE feedbacks ADD COLUMN is_public_web TINYINT(1) NOT NULL DEFAULT 0 AFTER content",
+    "SELECT 'Skip: feedbacks.is_public_web already exists or table missing' AS info"
 );
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
 
-SET @default_feedback_teacher_id := (
-    SELECT teacher_id FROM classes ORDER BY id ASC LIMIT 1
+SET @has_teacher_profiles_teacher_code := (
+    SELECT COUNT(*)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'teacher_profiles'
+      AND column_name = 'teacher_code'
 );
+SET @sql := IF(
+    @has_teacher_profiles_teacher_code = 0,
+    "ALTER TABLE teacher_profiles ADD COLUMN teacher_code VARCHAR(30) NULL AFTER user_id",
+    "SELECT 'Skip: teacher_profiles.teacher_code already exists' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+UPDATE teacher_profiles
+SET teacher_code = CONCAT('GV', LPAD(user_id, 5, '0'))
+WHERE teacher_code IS NULL OR teacher_code = '';
+
+SET @teacher_profiles_teacher_code_nullable := (
+    SELECT IS_NULLABLE
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'teacher_profiles'
+      AND column_name = 'teacher_code'
+    LIMIT 1
+);
+SET @sql := IF(
+    COALESCE(@teacher_profiles_teacher_code_nullable, '') = 'YES',
+    "ALTER TABLE teacher_profiles MODIFY COLUMN teacher_code VARCHAR(30) NOT NULL",
+    "SELECT 'Skip: teacher_profiles.teacher_code already NOT NULL' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @has_teacher_profiles_teacher_code_idx := (
+    SELECT COUNT(*)
+    FROM information_schema.statistics
+    WHERE table_schema = DATABASE()
+      AND table_name = 'teacher_profiles'
+      AND index_name = 'teacher_code'
+);
+SET @sql := IF(
+    @has_teacher_profiles_teacher_code_idx = 0,
+    "ALTER TABLE teacher_profiles ADD UNIQUE KEY teacher_code (teacher_code)",
+    "SELECT 'Skip: teacher_profiles.teacher_code unique already exists' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @has_student_profiles_student_code := (
+    SELECT COUNT(*)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'student_profiles'
+      AND column_name = 'student_code'
+);
+SET @sql := IF(
+    @has_student_profiles_student_code = 0,
+    "ALTER TABLE student_profiles ADD COLUMN student_code VARCHAR(30) NULL AFTER user_id",
+    "SELECT 'Skip: student_profiles.student_code already exists' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+UPDATE student_profiles
+SET student_code = CONCAT('HV', LPAD(user_id, 5, '0'))
+WHERE student_code IS NULL OR student_code = '';
+
+SET @student_profiles_student_code_nullable := (
+    SELECT IS_NULLABLE
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'student_profiles'
+      AND column_name = 'student_code'
+    LIMIT 1
+);
+SET @sql := IF(
+    COALESCE(@student_profiles_student_code_nullable, '') = 'YES',
+    "ALTER TABLE student_profiles MODIFY COLUMN student_code VARCHAR(30) NOT NULL",
+    "SELECT 'Skip: student_profiles.student_code already NOT NULL' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @has_student_profiles_student_code_idx := (
+    SELECT COUNT(*)
+    FROM information_schema.statistics
+    WHERE table_schema = DATABASE()
+      AND table_name = 'student_profiles'
+      AND index_name = 'student_code'
+);
+SET @sql := IF(
+    @has_student_profiles_student_code_idx = 0,
+    "ALTER TABLE student_profiles ADD UNIQUE KEY student_code (student_code)",
+    "SELECT 'Skip: student_profiles.student_code unique already exists' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+-- Phase 3 schema cleanup: remove deprecated columns/tables and add new media fields.
 
 SET @sql := IF(
-    @has_feedbacks = 1 AND @has_feedbacks_class = 0,
-    "ALTER TABLE feedbacks ADD COLUMN class_id BIGINT UNSIGNED NULL AFTER sender_id",
-    "SELECT 'Skip: feedbacks.class_id already exists or table missing' AS info"
+    EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = DATABASE() AND table_name = 'activity_registrations' AND column_name = 'updated_at'
+    ),
+    'ALTER TABLE activity_registrations DROP COLUMN updated_at',
+    "SELECT 'Skip: activity_registrations.updated_at missing' AS info"
 );
 PREPARE stmt FROM @sql;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
 
 SET @sql := IF(
-    @has_feedbacks = 1 AND @has_feedbacks_teacher = 0,
-    "ALTER TABLE feedbacks ADD COLUMN teacher_id BIGINT UNSIGNED NULL AFTER class_id",
-    "SELECT 'Skip: feedbacks.teacher_id already exists or table missing' AS info"
+    EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = DATABASE() AND table_name = 'activity_registrations' AND column_name = 'created_at'
+    ),
+    'ALTER TABLE activity_registrations DROP COLUMN created_at',
+    "SELECT 'Skip: activity_registrations.created_at missing' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+DROP TABLE IF EXISTS bank_accounts;
+
+SET @sql := IF(
+    EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = DATABASE() AND table_name = 'class_students' AND column_name = 'learning_status'
+    ),
+    'ALTER TABLE class_students DROP COLUMN learning_status',
+    "SELECT 'Skip: class_students.learning_status missing' AS info"
 );
 PREPARE stmt FROM @sql;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
 
 SET @sql := IF(
-    @has_feedbacks = 1 AND @has_feedbacks_class = 0 AND @default_feedback_class_id IS NOT NULL,
-    CONCAT('UPDATE feedbacks SET class_id = ', @default_feedback_class_id, ' WHERE class_id IS NULL'),
-    "SELECT 'Skip: feedbacks.class_id backfill not required' AS info"
+    EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = DATABASE() AND table_name = 'courses' AND column_name = 'image_thumbnail'
+    ),
+    "SELECT 'Skip: courses.image_thumbnail exists' AS info",
+    'ALTER TABLE courses ADD COLUMN image_thumbnail VARCHAR(255) NULL AFTER total_sessions'
 );
 PREPARE stmt FROM @sql;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
 
 SET @sql := IF(
-    @has_feedbacks = 1 AND @has_feedbacks_teacher = 0 AND @default_feedback_teacher_id IS NOT NULL,
-    CONCAT('UPDATE feedbacks SET teacher_id = ', @default_feedback_teacher_id, ' WHERE teacher_id IS NULL'),
-    "SELECT 'Skip: feedbacks.teacher_id backfill not required' AS info"
+    EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = DATABASE() AND table_name = 'exams' AND column_name = 'level_suggested'
+    ),
+    'ALTER TABLE exams DROP COLUMN level_suggested',
+    "SELECT 'Skip: exams.level_suggested missing' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @sql := IF(
+    EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = DATABASE() AND table_name = 'lessons' AND column_name = 'attachment_file_path'
+    ),
+    "SELECT 'Skip: lessons.attachment_file_path exists' AS info",
+    'ALTER TABLE lessons ADD COLUMN attachment_file_path VARCHAR(255) NULL AFTER actual_content'
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @materialsFk := (
+    SELECT constraint_name
+    FROM information_schema.key_column_usage
+    WHERE table_schema = DATABASE()
+      AND table_name = 'materials'
+      AND column_name = 'course_id'
+      AND referenced_table_name IS NOT NULL
+    LIMIT 1
+);
+SET @sql := IF(
+    @materialsFk IS NOT NULL,
+    CONCAT('ALTER TABLE materials DROP FOREIGN KEY ', @materialsFk),
+    "SELECT 'Skip: materials.course_id foreign key missing' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @sql := IF(
+    EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = DATABASE() AND table_name = 'materials' AND column_name = 'course_id'
+    ),
+    'ALTER TABLE materials DROP COLUMN course_id',
+    "SELECT 'Skip: materials.course_id missing' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @sql := IF(
+    EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = DATABASE() AND table_name = 'payment_transactions' AND column_name = 'transaction_no'
+    ),
+    'ALTER TABLE payment_transactions DROP COLUMN transaction_no',
+    "SELECT 'Skip: payment_transactions.transaction_no missing' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @sql := IF(
+    EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = DATABASE() AND table_name = 'payment_transactions' AND column_name = 'raw_response'
+    ),
+    'ALTER TABLE payment_transactions DROP COLUMN raw_response',
+    "SELECT 'Skip: payment_transactions.raw_response missing' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @sql := IF(
+    EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = DATABASE() AND table_name = 'staff_profiles' AND column_name = 'approval_limit'
+    ),
+    'ALTER TABLE staff_profiles DROP COLUMN approval_limit',
+    "SELECT 'Skip: staff_profiles.approval_limit missing' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @sql := IF(
+    @has_feedbacks = 1 AND @has_feedbacks_status = 1,
+    "UPDATE feedbacks SET is_public_web = CASE WHEN status = 'reviewed' THEN 1 ELSE 0 END",
+    "SELECT 'Skip: feedbacks.status backfill not required' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @sql := IF(
+    @has_feedbacks = 1 AND @has_fk_feedbacks_class = 1,
+    "ALTER TABLE feedbacks DROP FOREIGN KEY fk_feedbacks_class",
+    "SELECT 'Skip: feedbacks.class FK drop not required' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @sql := IF(
+    @has_feedbacks = 1 AND @has_fk_feedbacks_teacher = 1,
+    "ALTER TABLE feedbacks DROP FOREIGN KEY fk_feedbacks_teacher",
+    "SELECT 'Skip: feedbacks.teacher FK drop not required' AS info"
 );
 PREPARE stmt FROM @sql;
 EXECUTE stmt;
@@ -206,8 +463,8 @@ DEALLOCATE PREPARE stmt;
 
 SET @sql := IF(
     @has_feedbacks = 1 AND @has_feedbacks_class = 1,
-    "UPDATE feedbacks SET class_id = COALESCE(class_id, (SELECT id FROM classes ORDER BY id ASC LIMIT 1))",
-    "SELECT 'Skip: feedbacks.class_id normalize not required' AS info"
+    "ALTER TABLE feedbacks DROP COLUMN class_id",
+    "SELECT 'Skip: feedbacks.class_id drop not required' AS info"
 );
 PREPARE stmt FROM @sql;
 EXECUTE stmt;
@@ -215,44 +472,17 @@ DEALLOCATE PREPARE stmt;
 
 SET @sql := IF(
     @has_feedbacks = 1 AND @has_feedbacks_teacher = 1,
-    "UPDATE feedbacks SET teacher_id = COALESCE(teacher_id, (SELECT teacher_id FROM classes ORDER BY id ASC LIMIT 1))",
-    "SELECT 'Skip: feedbacks.teacher_id normalize not required' AS info"
+    "ALTER TABLE feedbacks DROP COLUMN teacher_id",
+    "SELECT 'Skip: feedbacks.teacher_id drop not required' AS info"
 );
 PREPARE stmt FROM @sql;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
 
 SET @sql := IF(
-    @has_feedbacks = 1 AND @has_feedbacks_class = 1,
-    "ALTER TABLE feedbacks MODIFY COLUMN class_id BIGINT UNSIGNED NOT NULL",
-    "SELECT 'Skip: feedbacks.class_id not required' AS info"
-);
-PREPARE stmt FROM @sql;
-EXECUTE stmt;
-DEALLOCATE PREPARE stmt;
-
-SET @sql := IF(
-    @has_feedbacks = 1 AND @has_feedbacks_teacher = 1,
-    "ALTER TABLE feedbacks MODIFY COLUMN teacher_id BIGINT UNSIGNED NOT NULL",
-    "SELECT 'Skip: feedbacks.teacher_id not required' AS info"
-);
-PREPARE stmt FROM @sql;
-EXECUTE stmt;
-DEALLOCATE PREPARE stmt;
-
-SET @sql := IF(
-    @has_feedbacks = 1 AND @has_fk_feedbacks_class = 0,
-    "ALTER TABLE feedbacks ADD CONSTRAINT fk_feedbacks_class FOREIGN KEY (class_id) REFERENCES classes(id)",
-    "SELECT 'Skip: feedbacks.class foreign key exists or table missing' AS info"
-);
-PREPARE stmt FROM @sql;
-EXECUTE stmt;
-DEALLOCATE PREPARE stmt;
-
-SET @sql := IF(
-    @has_feedbacks = 1 AND @has_fk_feedbacks_teacher = 0,
-    "ALTER TABLE feedbacks ADD CONSTRAINT fk_feedbacks_teacher FOREIGN KEY (teacher_id) REFERENCES users(id)",
-    "SELECT 'Skip: feedbacks.teacher foreign key exists or table missing' AS info"
+    @has_feedbacks = 1 AND @has_feedbacks_status = 1,
+    "ALTER TABLE feedbacks DROP COLUMN status",
+    "SELECT 'Skip: feedbacks.status drop not required' AS info"
 );
 PREPARE stmt FROM @sql;
 EXECUTE stmt;
@@ -575,6 +805,166 @@ SET @sql := IF(
 PREPARE stmt FROM @sql;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
+
+-- Ensure activity_registrations.amount_paid and payment_date exist.
+SET @has_activity_registrations := (
+    SELECT COUNT(*)
+    FROM information_schema.tables
+    WHERE table_schema = DATABASE()
+      AND table_name = 'activity_registrations'
+);
+
+SET @has_activity_reg_amount_paid := (
+    SELECT COUNT(*)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'activity_registrations'
+      AND column_name = 'amount_paid'
+);
+
+SET @has_activity_reg_payment_date := (
+    SELECT COUNT(*)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'activity_registrations'
+      AND column_name = 'payment_date'
+);
+
+SET @sql := IF(
+    @has_activity_registrations = 1 AND @has_activity_reg_amount_paid = 0,
+    "ALTER TABLE activity_registrations ADD COLUMN amount_paid DECIMAL(12,2) NOT NULL DEFAULT 0 AFTER payment_status",
+    "SELECT 'Skip: activity_registrations.amount_paid exists or table missing' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @sql := IF(
+    @has_activity_registrations = 1 AND @has_activity_reg_payment_date = 0,
+    "ALTER TABLE activity_registrations ADD COLUMN payment_date DATETIME NULL AFTER amount_paid",
+    "SELECT 'Skip: activity_registrations.payment_date exists or table missing' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @sql := IF(
+    @has_activity_registrations = 1,
+    "UPDATE activity_registrations ar INNER JOIN extracurricular_activities a ON a.id = ar.activity_id SET ar.amount_paid = CASE WHEN ar.payment_status = 'paid' AND ar.amount_paid = 0 THEN COALESCE(a.fee, 0) ELSE ar.amount_paid END, ar.payment_date = CASE WHEN ar.payment_date IS NULL AND ar.payment_status = 'paid' THEN ar.registration_date ELSE ar.payment_date END",
+    "SELECT 'Skip: activity_registrations backfill not required' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+-- Phase 1 audit columns: add created_at / updated_at for audit-friendly tables.
+DROP PROCEDURE IF EXISTS ensure_audit_columns_phase1;
+
+DELIMITER $$
+CREATE PROCEDURE ensure_audit_columns_phase1(
+    IN p_table_name VARCHAR(128),
+    IN p_created_after VARCHAR(128),
+    IN p_updated_after VARCHAR(128),
+    IN p_created_backfill TEXT,
+    IN p_updated_backfill TEXT
+)
+BEGIN
+    DECLARE v_has_table INT DEFAULT 0;
+    DECLARE v_has_created_at INT DEFAULT 0;
+    DECLARE v_has_updated_at INT DEFAULT 0;
+
+    SELECT COUNT(*)
+    INTO v_has_table
+    FROM information_schema.tables
+    WHERE table_schema = DATABASE()
+      AND table_name = p_table_name;
+
+    IF v_has_table = 0 THEN
+        SELECT CONCAT('Skip: table ', p_table_name, ' missing') AS info;
+    ELSE
+        SELECT COUNT(*)
+        INTO v_has_created_at
+        FROM information_schema.columns
+        WHERE table_schema = DATABASE()
+          AND table_name = p_table_name
+          AND column_name = 'created_at';
+
+        SELECT COUNT(*)
+        INTO v_has_updated_at
+        FROM information_schema.columns
+        WHERE table_schema = DATABASE()
+          AND table_name = p_table_name
+          AND column_name = 'updated_at';
+
+        IF v_has_created_at = 0 THEN
+            SET @sql := CONCAT(
+                'ALTER TABLE ', p_table_name,
+                ' ADD COLUMN created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP AFTER ', p_created_after
+            );
+            PREPARE stmt FROM @sql;
+            EXECUTE stmt;
+            DEALLOCATE PREPARE stmt;
+
+            IF p_created_backfill IS NOT NULL AND p_created_backfill <> '' THEN
+                SET @sql := CONCAT('UPDATE ', p_table_name, ' SET created_at = ', p_created_backfill);
+                PREPARE stmt FROM @sql;
+                EXECUTE stmt;
+                DEALLOCATE PREPARE stmt;
+            END IF;
+        ELSE
+            SELECT CONCAT('Skip: ', p_table_name, '.created_at exists') AS info;
+        END IF;
+
+        IF v_has_updated_at = 0 THEN
+            SET @sql := CONCAT(
+                'ALTER TABLE ', p_table_name,
+                ' ADD COLUMN updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP AFTER ', p_updated_after
+            );
+            PREPARE stmt FROM @sql;
+            EXECUTE stmt;
+            DEALLOCATE PREPARE stmt;
+
+            IF p_updated_backfill IS NOT NULL AND p_updated_backfill <> '' THEN
+                SET @sql := CONCAT('UPDATE ', p_table_name, ' SET updated_at = ', p_updated_backfill);
+                PREPARE stmt FROM @sql;
+                EXECUTE stmt;
+                DEALLOCATE PREPARE stmt;
+            END IF;
+        ELSE
+            SELECT CONCAT('Skip: ', p_table_name, '.updated_at exists') AS info;
+        END IF;
+    END IF;
+END$$
+DELIMITER ;
+
+CALL ensure_audit_columns_phase1('roles', 'description', 'created_at', NULL, 'created_at');
+CALL ensure_audit_columns_phase1('teacher_profiles', 'intro_video_url', 'created_at', NULL, 'created_at');
+CALL ensure_audit_columns_phase1('teacher_certificates', 'image_url', 'created_at', NULL, 'created_at');
+CALL ensure_audit_columns_phase1('courses', 'total_sessions', 'created_at', NULL, 'created_at');
+CALL ensure_audit_columns_phase1('course_roadmaps', 'outline_content', 'created_at', NULL, 'created_at');
+CALL ensure_audit_columns_phase1('promotions', 'end_date', 'created_at', NULL, 'created_at');
+CALL ensure_audit_columns_phase1('rooms', 'room_name', 'created_at', NULL, 'created_at');
+CALL ensure_audit_columns_phase1('classes', 'status', 'created_at', NULL, 'created_at');
+CALL ensure_audit_columns_phase1('class_students', 'enrollment_date', 'created_at', 'COALESCE(TIMESTAMP(enrollment_date, ''00:00:00''), CURRENT_TIMESTAMP)', 'created_at');
+CALL ensure_audit_columns_phase1('lessons', 'schedule_id', 'created_at', NULL, 'created_at');
+CALL ensure_audit_columns_phase1('schedules', 'end_time', 'created_at', NULL, NULL);
+CALL ensure_audit_columns_phase1('attendance', 'note', 'created_at', NULL, 'created_at');
+CALL ensure_audit_columns_phase1('exams', 'teacher_comment', 'created_at', 'TIMESTAMP(exam_date, ''00:00:00'')', 'created_at');
+CALL ensure_audit_columns_phase1('student_profiles', 'entry_test_id', 'created_at', NULL, 'created_at');
+CALL ensure_audit_columns_phase1('staff_profiles', 'position', 'created_at', NULL, 'created_at');
+CALL ensure_audit_columns_phase1('job_applications', 'created_at', 'created_at', NULL, 'created_at');
+CALL ensure_audit_columns_phase1('assignments', 'file_url', 'created_at', NULL, 'created_at');
+CALL ensure_audit_columns_phase1('submissions', 'teacher_comment', 'created_at', 'COALESCE(submitted_at, CURRENT_TIMESTAMP)', 'COALESCE(submitted_at, created_at)');
+CALL ensure_audit_columns_phase1('tuition_fees', 'status', 'created_at', NULL, 'created_at');
+CALL ensure_audit_columns_phase1('payment_transactions', 'created_at', 'created_at', NULL, 'created_at');
+CALL ensure_audit_columns_phase1('extracurricular_activities', 'status', 'created_at', 'COALESCE(TIMESTAMP(start_date, ''00:00:00''), CURRENT_TIMESTAMP)', 'created_at');
+CALL ensure_audit_columns_phase1('student_portfolios', 'created_at', 'created_at', NULL, 'created_at');
+CALL ensure_audit_columns_phase1('notifications', 'created_at', 'created_at', NULL, 'created_at');
+CALL ensure_audit_columns_phase1('materials', 'file_path', 'created_at', NULL, 'created_at');
+CALL ensure_audit_columns_phase1('feedbacks', 'created_at', 'created_at', NULL, 'created_at');
+CALL ensure_audit_columns_phase1('approvals', 'created_at', 'created_at', NULL, 'created_at');
+
+DROP PROCEDURE IF EXISTS ensure_audit_columns_phase1;
 
 -- Ensure materials.description exists.
 SET @has_materials := (
@@ -1882,15 +2272,137 @@ DEALLOCATE PREPARE stmt;
 
 -- Add permissions for lead/application management and grant to admin role.
 INSERT INTO permissions (permission_name, slug) VALUES
-('Quan ly dau moi hoc vien', 'student_lead.manage'),
-('Quan ly ho so ung tuyen giao vien', 'job_application.manage')
+('Xem nguoi dung', 'admin.user.view'),
+('Tao nguoi dung', 'admin.user.create'),
+('Cap nhat nguoi dung', 'admin.user.update'),
+('Xoa nguoi dung', 'admin.user.delete'),
+('Xem phan quyen vai tro', 'admin.role_permission.view'),
+('Cap nhat phan quyen vai tro', 'admin.role_permission.update'),
+('Tao hoc phi', 'finance.tuition.create'),
+('Cap nhat hoc phi', 'finance.tuition.update'),
+('Xoa hoc phi', 'finance.tuition.delete'),
+('Xem dang ky', 'finance.registration.view'),
+('Tao dang ky', 'finance.registration.create'),
+('Cap nhat dang ky', 'finance.registration.update'),
+('Xoa dang ky', 'finance.registration.delete'),
+('Xem khuyen mai', 'finance.promotions.view'),
+('Tao khuyen mai', 'finance.promotions.create'),
+('Cap nhat khuyen mai', 'finance.promotions.update'),
+('Xoa khuyen mai', 'finance.promotions.delete'),
+('Xem giao dich thanh toan chi tiet', 'finance.payments.view'),
+('Tao giao dich thanh toan', 'finance.payments.create'),
+('Cap nhat giao dich thanh toan', 'finance.payments.update'),
+('Xoa giao dich thanh toan', 'finance.payments.delete'),
+('Tao phe duyet', 'approval.create'),
+('Xoa phe duyet', 'approval.delete'),
+('Xem dau moi hoc vien', 'student_lead.view'),
+('Tao dau moi hoc vien', 'student_lead.create'),
+('Cap nhat dau moi hoc vien', 'student_lead.update'),
+('Xoa dau moi hoc vien', 'student_lead.delete'),
+('Xem ho so ung tuyen giao vien', 'job_application.view'),
+('Tao ho so ung tuyen giao vien', 'job_application.create'),
+('Cap nhat ho so ung tuyen giao vien', 'job_application.update'),
+('Xoa ho so ung tuyen giao vien', 'job_application.delete'),
+('Xem portfolio hoc vien', 'academic.portfolios.view'),
+('Tao portfolio hoc vien', 'academic.portfolios.create'),
+('Cap nhat portfolio hoc vien', 'academic.portfolios.update'),
+('Xoa portfolio hoc vien', 'academic.portfolios.delete')
 ON DUPLICATE KEY UPDATE permission_name = VALUES(permission_name);
 
 INSERT IGNORE INTO role_permissions (role_id, permission_id)
 SELECT r.id, p.id
 FROM roles r
-INNER JOIN permissions p ON p.slug IN ('student_lead.manage', 'job_application.manage')
+INNER JOIN permissions p ON p.slug IN (
+    'admin.user.view', 'admin.user.create', 'admin.user.update', 'admin.user.delete', 'admin.role_permission.view', 'admin.role_permission.update',
+    'student_lead.view', 'student_lead.create', 'student_lead.update', 'student_lead.delete',
+    'job_application.view', 'job_application.create', 'job_application.update', 'job_application.delete',
+    'finance.tuition.create', 'finance.tuition.update', 'finance.tuition.delete',
+    'finance.registration.view', 'finance.registration.create', 'finance.registration.update', 'finance.registration.delete',
+    'finance.promotions.view', 'finance.promotions.create', 'finance.promotions.update', 'finance.promotions.delete',
+    'finance.payments.view', 'finance.payments.create', 'finance.payments.update', 'finance.payments.delete',
+    'approval.create', 'approval.delete',
+    'academic.portfolios.view', 'academic.portfolios.create', 'academic.portfolios.update', 'academic.portfolios.delete'
+)
 WHERE r.role_name = 'admin';
+
+-- Safety net: backfill all current permissions to admin role on existing databases.
+INSERT IGNORE INTO role_permissions (role_id, permission_id)
+SELECT r.id, p.id
+FROM roles r
+INNER JOIN permissions p ON 1 = 1
+WHERE r.role_name = 'admin';
+
+INSERT IGNORE INTO role_permissions (role_id, permission_id)
+SELECT r.id, p.id
+FROM roles r
+INNER JOIN permissions p ON p.slug IN (
+    'finance.tuition.view', 'finance.tuition.create', 'finance.tuition.update',
+    'finance.registration.view', 'finance.registration.create', 'finance.registration.update',
+    'finance.promotions.view', 'finance.promotions.create', 'finance.promotions.update',
+    'finance.payments.view',
+    'student_lead.view', 'student_lead.create', 'student_lead.update',
+    'job_application.view', 'job_application.update',
+    'approval.view', 'approval.create', 'approval.update', 'approval.delete',
+    'activity.view', 'activity.create', 'activity.update', 'activity.delete',
+    'bank.view', 'bank.create', 'bank.update', 'bank.delete',
+    'academic.portfolios.view'
+)
+WHERE r.role_name = 'staff';
+
+-- Remove deprecated grouped permissions and their grants after CRUD rollout.
+DELETE rp
+FROM role_permissions rp
+INNER JOIN permissions p ON p.id = rp.permission_id
+WHERE p.slug IN (
+    'academic.classes.manage',
+    'academic.schedules.manage',
+    'academic.assignments.manage',
+    'materials.manage',
+    'admin.user.manage',
+    'admin.role_permission.manage',
+    'finance.tuition.manage',
+    'finance.payment.manage',
+    'finance.payment.view',
+    'finance.promotions.manage',
+    'student_lead.manage',
+    'job_application.manage',
+    'approval.manage',
+    'activity.manage',
+    'bank.manage'
+);
+
+DELETE FROM permissions
+WHERE slug IN (
+    'academic.classes.manage',
+    'academic.schedules.manage',
+    'academic.assignments.manage',
+    'materials.manage',
+    'admin.user.manage',
+    'admin.role_permission.manage',
+    'finance.tuition.manage',
+    'finance.payment.manage',
+    'finance.payment.view',
+    'finance.promotions.manage',
+    'student_lead.manage',
+    'job_application.manage',
+    'approval.manage',
+    'activity.manage',
+    'bank.manage'
+);
+
+DELETE rp
+FROM role_permissions rp
+INNER JOIN roles r ON r.id = rp.role_id
+WHERE r.role_name = 'guest';
+
+DELETE r
+FROM roles r
+WHERE r.role_name = 'guest'
+    AND NOT EXISTS (
+            SELECT 1
+            FROM users u
+            WHERE u.role_id = r.id
+    );
 
 -- Migrate assignments.lesson_id to assignments.schedule_id
 SET @has_assignments := (
@@ -1983,6 +2495,134 @@ SET @sql := IF(
     @has_assignments = 1 AND @has_assignments_schedule_id = 1,
     "ALTER TABLE assignments MODIFY COLUMN schedule_id BIGINT UNSIGNED NOT NULL",
     "SELECT 'Skip: assignments table missing' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @has_courses_deleted_at := (
+    SELECT COUNT(*)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'courses'
+      AND column_name = 'deleted_at'
+);
+SET @sql := IF(
+    @has_courses_deleted_at = 0,
+    "ALTER TABLE courses ADD COLUMN deleted_at TIMESTAMP NULL DEFAULT NULL AFTER updated_at",
+    "SELECT 'Skip: courses.deleted_at already exists' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @has_courses_deleted_idx := (
+    SELECT COUNT(*)
+    FROM information_schema.statistics
+    WHERE table_schema = DATABASE()
+      AND table_name = 'courses'
+      AND index_name = 'idx_courses_deleted_at'
+);
+SET @sql := IF(
+    @has_courses_deleted_idx = 0,
+    "ALTER TABLE courses ADD INDEX idx_courses_deleted_at (deleted_at)",
+    "SELECT 'Skip: idx_courses_deleted_at already exists' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @has_promotions_deleted_at := (
+    SELECT COUNT(*)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'promotions'
+      AND column_name = 'deleted_at'
+);
+SET @sql := IF(
+    @has_promotions_deleted_at = 0,
+    "ALTER TABLE promotions ADD COLUMN deleted_at TIMESTAMP NULL DEFAULT NULL AFTER updated_at",
+    "SELECT 'Skip: promotions.deleted_at already exists' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @has_promotions_deleted_idx := (
+    SELECT COUNT(*)
+    FROM information_schema.statistics
+    WHERE table_schema = DATABASE()
+      AND table_name = 'promotions'
+      AND index_name = 'idx_promotions_deleted_at'
+);
+SET @sql := IF(
+    @has_promotions_deleted_idx = 0,
+    "ALTER TABLE promotions ADD INDEX idx_promotions_deleted_at (deleted_at)",
+    "SELECT 'Skip: idx_promotions_deleted_at already exists' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @has_rooms_deleted_at := (
+    SELECT COUNT(*)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'rooms'
+      AND column_name = 'deleted_at'
+);
+SET @sql := IF(
+    @has_rooms_deleted_at = 0,
+    "ALTER TABLE rooms ADD COLUMN deleted_at TIMESTAMP NULL DEFAULT NULL AFTER updated_at",
+    "SELECT 'Skip: rooms.deleted_at already exists' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @has_rooms_deleted_idx := (
+    SELECT COUNT(*)
+    FROM information_schema.statistics
+    WHERE table_schema = DATABASE()
+      AND table_name = 'rooms'
+      AND index_name = 'idx_rooms_deleted_at'
+);
+SET @sql := IF(
+    @has_rooms_deleted_idx = 0,
+    "ALTER TABLE rooms ADD INDEX idx_rooms_deleted_at (deleted_at)",
+    "SELECT 'Skip: idx_rooms_deleted_at already exists' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @has_activities_deleted_at := (
+    SELECT COUNT(*)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'extracurricular_activities'
+      AND column_name = 'deleted_at'
+);
+SET @sql := IF(
+    @has_activities_deleted_at = 0,
+    "ALTER TABLE extracurricular_activities ADD COLUMN deleted_at TIMESTAMP NULL DEFAULT NULL AFTER updated_at",
+    "SELECT 'Skip: extracurricular_activities.deleted_at already exists' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @has_activities_deleted_idx := (
+    SELECT COUNT(*)
+    FROM information_schema.statistics
+    WHERE table_schema = DATABASE()
+      AND table_name = 'extracurricular_activities'
+      AND index_name = 'idx_extracurricular_activities_deleted_at'
+);
+SET @sql := IF(
+    @has_activities_deleted_idx = 0,
+    "ALTER TABLE extracurricular_activities ADD INDEX idx_extracurricular_activities_deleted_at (deleted_at)",
+    "SELECT 'Skip: idx_extracurricular_activities_deleted_at already exists' AS info"
 );
 PREPARE stmt FROM @sql;
 EXECUTE stmt;

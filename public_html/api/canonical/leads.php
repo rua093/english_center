@@ -51,7 +51,7 @@ function api_leads_submit_action(): void
     $legacyEmail = input_string($_POST, 'email');
 
     $parentName = input_string($_POST, 'parent_name');
-    $parentPhone = input_string($_POST, 'parent_phone');
+    $parentPhone = normalize_phone_string(input_string($_POST, 'parent_phone'));
 
     $interests = input_string($_POST, 'interests');
     if ($interests === '') {
@@ -102,7 +102,7 @@ function api_leads_submit_action(): void
     ];
 
     // Require name and at least one contact method (phone or email)
-    $contactPhone = api_leads_extract_phone($parentPhone . ' ' . $legacyPhone . ' ' . $parentName);
+    $contactPhone = api_leads_extract_phone($parentPhone . ' ' . normalize_phone_string($legacyPhone) . ' ' . $parentName);
     $contactEmail = api_leads_extract_email($legacyEmail . ' ' . $parentName);
 
     if ($payload['student_name'] === '' || ($contactPhone === '' && $contactEmail === '')) {
@@ -127,7 +127,7 @@ function api_leads_submit_action(): void
 
 function api_leads_update_action(): void
 {
-    api_guard_permission('student_lead.manage');
+    api_guard_permission('student_lead.update');
     api_require_post(page_url('student-leads-manage'));
 
     $leadId = input_int($_POST, 'id');
@@ -151,8 +151,7 @@ function api_leads_update_action(): void
 
 function api_leads_convert_action(): void
 {
-    api_guard_permission('student_lead.manage');
-    api_guard_permission('admin.user.manage');
+    api_guard_permission('student_lead.update');
     api_require_post(page_url('student-leads-manage'));
 
     $leadId = input_int($_POST, 'id');
@@ -183,4 +182,25 @@ function api_leads_convert_action(): void
     }
 
     redirect(page_url('student-leads-manage', ['edit' => $leadId]));
+}
+
+function api_leads_delete_action(): void
+{
+    api_guard_permission('student_lead.delete');
+    api_require_post(page_url('student-leads-manage'));
+
+    $leadId = (int) ($_GET['id'] ?? 0);
+    if ($leadId <= 0) {
+        set_flash('error', 'Lead hoc vien khong hop le.');
+        redirect(page_url('student-leads-manage'));
+    }
+
+    try {
+        (new AdminModel())->deleteStudentLead($leadId);
+        set_flash('success', 'Da xoa lead hoc vien.');
+    } catch (Throwable $exception) {
+        set_flash('error', 'Khong the xoa lead hoc vien nay.');
+    }
+
+    redirect(page_url('student-leads-manage'));
 }

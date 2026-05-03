@@ -7,25 +7,18 @@ require_once __DIR__ . '/../../models/AcademicModel.php';
 
 function api_portfolios_save_action(): void
 {
+	api_guard_admin_or_staff();
 	api_guard_login();
 	api_require_post(page_url('portfolios-academic'));
 
 	$user = auth_user();
 	$academicModel = new AcademicModel();
 	$portfolioId = input_int($_POST, 'id');
+	api_guard_permission($portfolioId > 0 ? 'academic.portfolios.update' : 'academic.portfolios.create');
 	$existing = null;
 
 	if ($portfolioId > 0) {
 		$existing = $academicModel->findPortfolio($portfolioId);
-		if ($existing && $user && (string) $user['role'] === 'student' && (int) $existing['student_id'] !== (int) $user['id']) {
-			http_response_code(403);
-			echo '403 Forbidden';
-			exit;
-		}
-	}
-
-	if ($user && (string) $user['role'] === 'student') {
-		$_POST['student_id'] = (string) $user['id'];
 	}
 
 	$uploadPath = trim((string) (($existing['media_url'] ?? '')));
@@ -56,35 +49,29 @@ function api_portfolios_save_action(): void
 
 function api_portfolios_edit_action(): void
 {
+	api_guard_admin_or_staff();
 	api_guard_login();
+	api_guard_permission('academic.portfolios.update');
 
-	$user = auth_user();
 	$portfolioId = (int) ($_GET['id'] ?? 0);
-	$portfolio = (new AcademicModel())->findPortfolio($portfolioId);
-	if ($portfolio && $user && (string) $user['role'] === 'student' && (int) $portfolio['student_id'] !== (int) $user['id']) {
-		http_response_code(403);
-		echo '403 Forbidden';
-		exit;
-	}
 
 	redirect(page_url('portfolios-academic', ['edit' => $portfolioId]));
 }
 
 function api_portfolios_delete_action(): void
 {
+	api_guard_admin_or_staff();
 	api_guard_login();
+	api_guard_permission('academic.portfolios.delete');
 	api_require_post(page_url('portfolios-academic'));
 
-	$user = auth_user();
 	$portfolioId = (int) ($_GET['id'] ?? 0);
-	$portfolio = (new AcademicModel())->findPortfolio($portfolioId);
-	if ($portfolio && $user && (string) $user['role'] === 'student' && (int) $portfolio['student_id'] !== (int) $user['id']) {
-		http_response_code(403);
-		echo '403 Forbidden';
-		exit;
-	}
 
-	(new AcademicModel())->deletePortfolio($portfolioId);
-	set_flash('success', 'Đã xóa portfolio.');
+	try {
+		(new AcademicModel())->deletePortfolio($portfolioId);
+		set_flash('success', 'Đã xóa portfolio.');
+	} catch (Throwable) {
+		set_flash('error', 'Không thể xóa portfolio. Vui lòng thử lại.');
+	}
 	redirect(page_url('portfolios-academic'));
 }

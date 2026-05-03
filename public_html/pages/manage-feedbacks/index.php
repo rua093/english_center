@@ -1,6 +1,6 @@
 <?php
 require_admin_or_staff();
-require_permission('feedback.view');
+require_any_permission(['feedback.view']);
 
 $academicModel = new AcademicModel();
 
@@ -22,7 +22,13 @@ $error = get_flash('error');
 ?>
 <div class="grid gap-4">
     <?php
+    $canUpdateFeedback = has_permission('feedback.update');
     $canDeleteFeedback = has_permission('feedback.delete');
+    
+    $editingFeedback = null;
+    if (!empty($_GET['edit'])) {
+        $editingFeedback = $academicModel->findFeedback((int) $_GET['edit']);
+    }
     ?>
 
     <?php if ($success): ?>
@@ -33,12 +39,46 @@ $error = get_flash('error');
         <div class="rounded-xl border-l-4 border-rose-500 bg-rose-50 p-3 text-sm text-rose-700"><?= e($error); ?></div>
     <?php endif; ?>
 
+    <?php if ($canUpdateFeedback && $editingFeedback): ?>
+        <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <h3>Sửa đánh giá</h3>
+            <form class="grid gap-3 md:grid-cols-2" method="post" action="/api/feedbacks/save">
+                <?= csrf_input(); ?>
+                <input type="hidden" name="id" value="<?= (int) $editingFeedback['id']; ?>">
+                
+                <label>
+                    Đánh giá (1-5 sao)
+                    <input type="number" min="1" max="5" name="rating" required value="<?= (int) ($editingFeedback['rating'] ?? 5); ?>">
+                </label>
+                
+                <label>
+                    Hiển thị ngoài website
+                    <select name="is_public_web">
+                        <option value="0" <?= ((int) ($editingFeedback['is_public_web'] ?? 0) === 0) ? 'selected' : ''; ?>>0 - Không</option>
+                        <option value="1" <?= ((int) ($editingFeedback['is_public_web'] ?? 0) === 1) ? 'selected' : ''; ?>>1 - Có</option>
+                    </select>
+                </label>
+
+                <label class="md:col-span-2">
+                    Nhận xét (không bắt buộc)
+                    <textarea name="comment" rows="3"><?= e((string) ($editingFeedback['comment'] ?? '')); ?></textarea>
+                </label>
+
+                <div class="md:col-span-2 inline-flex flex-wrap items-center gap-2">
+                    <button class="<?= ui_btn_primary_classes(); ?>" type="submit">Cập nhật đánh giá</button>
+                    <a class="<?= ui_btn_secondary_classes(); ?>" href="<?= e(page_url('feedbacks-manage')); ?>">Hủy</a>
+                </div>
+            </form>
+        </article>
+    <?php endif; ?>
+
     <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <h3>Danh sách đánh giá</h3>
         <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
             <table class="min-w-full border-collapse text-sm" data-enable-row-detail="1">
                 <thead>
                     <tr>
+                        <th>Mã HV</th>
                         <th>Học viên</th>
                         <th>Đánh giá</th>
                         <th>Nhận xét</th>
@@ -69,14 +109,46 @@ $error = get_flash('error');
                                     </span>
                                 </td>
                                 <td>
-                                    <?php if ($canDeleteFeedback): ?>
-                                        <form class="inline-block" method="post" action="/api/feedbacks/delete?id=<?= (int) $fb['id']; ?>" onsubmit="return confirm('Có chắc không?')">
-                                            <?= csrf_input(); ?>
-                                            <button class="<?= ui_btn_danger_classes('sm'); ?>" type="submit">Xóa</button>
-                                        </form>
-                                    <?php else: ?>
-                                        <span class="text-sm text-slate-500">Không có quyền xóa</span>
-                                    <?php endif; ?>
+                                    <div class="inline-flex flex-wrap items-center gap-2">
+                                        <?php if ($canUpdateFeedback): ?>
+                                            <a
+                                                href="<?= e(page_url('feedbacks-manage', ['edit' => (int) $fb['id'], 'feedback_page' => $feedbackPage, 'feedback_per_page' => $feedbackPerPage])); ?>"
+                                                class="admin-action-icon-btn"
+                                                data-action-kind="edit"
+                                                data-skip-action-icon="1"
+                                                title="Sửa"
+                                                aria-label="Sửa"
+                                            >
+                                                <span class="admin-action-icon-label">Sửa</span>
+                                                <span class="admin-action-icon-glyph" aria-hidden="true">
+                                                    <svg viewBox="0 0 24 24"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
+                                                </span>
+                                            </a>
+                                        <?php endif; ?>
+                                        
+                                        <?php if ($canDeleteFeedback): ?>
+                                            <form class="inline-block" method="post" action="/api/feedbacks/delete?id=<?= (int) $fb['id']; ?>" onsubmit="return confirm('Có chắc không?')">
+                                                <?= csrf_input(); ?>
+                                                <button
+                                                    class="<?= ui_btn_danger_classes('sm'); ?> admin-action-icon-btn"
+                                                    data-action-kind="delete"
+                                                    data-skip-action-icon="1"
+                                                    type="submit"
+                                                    title="Xóa"
+                                                    aria-label="Xóa"
+                                                >
+                                                    <span class="admin-action-icon-label">Xóa</span>
+                                                    <span class="admin-action-icon-glyph" aria-hidden="true">
+                                                        <svg viewBox="0 0 24 24"><path d="M3 6h18"></path><path d="M8 6V4h8v2"></path><path d="M19 6l-1 14H6L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>
+                                                    </span>
+                                                </button>
+                                            </form>
+                                        <?php endif; ?>
+                                        
+                                        <?php if (!$canUpdateFeedback && !$canDeleteFeedback): ?>
+                                            <span class="text-sm text-slate-500">Không có quyền</span>
+                                        <?php endif; ?>
+                                    </div>
                                 </td>
                             </tr>
                         <?php endforeach; ?>

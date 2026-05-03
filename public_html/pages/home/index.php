@@ -134,6 +134,13 @@ if (is_logged_in()) {
 
 	<script>
 	document.addEventListener('DOMContentLoaded', function() {
+	    if ('scrollRestoration' in window.history) {
+	        window.history.scrollRestoration = 'manual';
+	    }
+	    if (!window.location.hash) {
+	        window.scrollTo(0, 0);
+	    }
+
 	    // 1. Khởi tạo AOS với offset = 0 để hiện sớm hơn
 	    AOS.init({ 
 	        duration: 350,  

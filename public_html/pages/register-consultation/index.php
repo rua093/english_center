@@ -220,11 +220,11 @@
                     <div class="grid md:grid-cols-2 gap-6">
                         <div class="space-y-2">
                             <label class="text-xs font-black text-slate-500 uppercase ml-1">Số điện thoại Ba</label>
-                            <input type="tel" name="father_phone" placeholder="09xx xxx xxx" class="w-full px-5 py-3.5 rounded-xl bg-slate-50 outline-none focus-lime font-bold text-slate-700">
+                            <input type="tel" inputmode="numeric" pattern="[0-9]*" name="father_phone" placeholder="09xx xxx xxx" class="w-full px-5 py-3.5 rounded-xl bg-slate-50 outline-none focus-lime font-bold text-slate-700">
                         </div>
                         <div class="space-y-2">
                             <label class="text-xs font-black text-slate-500 uppercase ml-1">Số điện thoại Mẹ</label>
-                            <input type="tel" name="mother_phone" placeholder="09xx xxx xxx" class="w-full px-5 py-3.5 rounded-xl bg-slate-50 outline-none focus-lime font-bold text-slate-700">
+                            <input type="tel" inputmode="numeric" pattern="[0-9]*" name="mother_phone" placeholder="09xx xxx xxx" class="w-full px-5 py-3.5 rounded-xl bg-slate-50 outline-none focus-lime font-bold text-slate-700">
                         </div>
                     </div>
 

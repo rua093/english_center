@@ -95,8 +95,7 @@
                                     <?php if (can_access_page('activities-student')): ?><a class="block px-5 py-2.5 text-[14px] font-bold text-slate-700 hover:bg-slate-50 hover:text-[#27318b]" href="<?= e(page_url('activities-student')); ?>">Ngoại khoá</a><?php endif; ?>
                                 <?php endif; ?>
                                 <?php if (can_access_page('dashboard-student')): ?><a class="block px-5 py-2.5 text-[14px] font-bold text-slate-700 hover:bg-slate-50 hover:text-[#27318b]" href="<?= e(page_url('dashboard-student')); ?>">Trang Học viên</a><?php endif; ?>
-                                <?php if (can_access_page('dashboard-teacher')): ?><a class="block px-5 py-2.5 text-[14px] font-bold text-slate-700 hover:bg-slate-50 hover:text-[#27318b]" href="<?= e(page_url('dashboard-teacher')); ?>">Trang Giáo viên</a><?php endif; ?>
-                                <?php if (can_access_page('dashboard-admin')): ?><a class="block px-5 py-2.5 text-[14px] font-bold text-[#27318b] bg-blue-50/50 hover:bg-blue-50" href="/admin">Quản trị hệ thống</a><?php endif; ?>
+                                <?php if (can_access_page('admin')): ?><a class="block px-5 py-2.5 text-[14px] font-bold text-[#27318b] bg-blue-50/50 hover:bg-blue-50" href="<?= e(page_url('admin')); ?>">Quản trị hệ thống</a><?php endif; ?>
                                 <div class="h-px bg-slate-100 my-1"></div>
                                 <a class="block px-5 py-2.5 text-[14px] font-bold text-rose-600 hover:bg-rose-50" href="<?= e(page_url('logout')); ?>">Đăng xuất</a>
                             </div>
@@ -126,7 +125,7 @@
                 
                 <?php if (is_logged_in()): ?>
                     <div class="bg-slate-50 px-6 py-4">
-                        <p class="text-[13px] font-bold text-slate-500 uppercase mb-2">Tài khoản: <?= e($user['full_name'] ?? 'Guest') ?></p>
+                        <p class="text-[13px] font-bold text-slate-500 uppercase mb-2">Tài khoản: <?= e($user['full_name'] ?? 'Khách') ?></p>
                         <div class="grid gap-2">
                             <a class="text-[15px] font-bold text-[#27318b]" href="<?= e(page_url('profile')); ?>">Trang cá nhân</a>
                             <a class="text-[15px] font-bold text-[#27318b]" href="<?= e(page_url('profile', ['open_password' => 1])); ?>">Thay đổi mật khẩu</a>

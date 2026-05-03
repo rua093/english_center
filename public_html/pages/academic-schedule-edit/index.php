@@ -54,7 +54,7 @@ $adminTitle = $editingSchedule ? 'Học vụ - Sửa lịch dạy' : 'Học vụ
                 </label>
                 <label>Phòng học
                     <select name="room_id">
-                        <option value="">Online / chưa chọn phòng</option>
+                        <option value="">Trực tuyến / chưa chọn phòng</option>
                         <?php foreach ($lookups['rooms'] as $room): ?>
                             <option value="<?= (int) $room['id']; ?>" <?= (int) ($editingSchedule['room_id'] ?? 0) === (int) $room['id'] ? 'selected' : ''; ?>><?= e((string) $room['room_name']); ?></option>
                         <?php endforeach; ?>
@@ -64,7 +64,7 @@ $adminTitle = $editingSchedule ? 'Học vụ - Sửa lịch dạy' : 'Học vụ
                     <select name="teacher_id" required>
                         <option value="">-- Chọn giáo viên --</option>
                         <?php foreach ($lookups['teachers'] as $teacher): ?>
-                            <option value="<?= (int) $teacher['id']; ?>" <?= (int) ($editingSchedule['teacher_id'] ?? 0) === (int) $teacher['id'] ? 'selected' : ''; ?>><?= e((string) $teacher['full_name']); ?></option>
+                            <option value="<?= (int) $teacher['id']; ?>" <?= (int) ($editingSchedule['teacher_id'] ?? 0) === (int) $teacher['id'] ? 'selected' : ''; ?>><?= e(teacher_dropdown_label($teacher)); ?></option>
                         <?php endforeach; ?>
                     </select>
                 </label>
@@ -140,13 +140,13 @@ $adminTitle = $editingSchedule ? 'Học vụ - Sửa lịch dạy' : 'Học vụ
 
             if (startMinutes === null || endMinutes === null) {
                 event.preventDefault();
-                window.alert('Gio hoc khong hop le.');
+                window.alert('Giờ học không hợp lệ.');
                 return;
             }
 
             if (startMinutes >= endMinutes) {
                 event.preventDefault();
-                window.alert('Gio ket thuc phai sau gio bat dau.');
+                window.alert('Giờ kết thúc phải sau giờ bắt đầu.');
                 return;
             }
 
@@ -170,7 +170,7 @@ $adminTitle = $editingSchedule ? 'Học vụ - Sửa lịch dạy' : 'Học vụ
 
             if (classConflict) {
                 event.preventDefault();
-                window.alert('Lop hoc da co lich trung gio (' + formatTime(classConflict.start_time) + ' - ' + formatTime(classConflict.end_time) + ').');
+                window.alert('Lớp học đã có lịch trùng giờ (' + formatTime(classConflict.start_time) + ' - ' + formatTime(classConflict.end_time) + ').');
                 return;
             }
 
@@ -195,7 +195,7 @@ $adminTitle = $editingSchedule ? 'Học vụ - Sửa lịch dạy' : 'Học vụ
             if (teacherConflict) {
                 event.preventDefault();
                 const conflictClass = String(teacherConflict.class_name ?? '').trim();
-                window.alert('Giao vien da co lich trung gio' + (conflictClass !== '' ? ' voi lop ' + conflictClass : '') + '.');
+                window.alert('Giáo viên đã có lịch trùng giờ' + (conflictClass !== '' ? ' với lớp ' + conflictClass : '') + '.');
                 return;
             }
 
@@ -221,7 +221,7 @@ $adminTitle = $editingSchedule ? 'Học vụ - Sửa lịch dạy' : 'Học vụ
                 if (roomConflict) {
                     event.preventDefault();
                     const roomName = String(roomConflict.room_name ?? '').trim();
-                    window.alert('Phong hoc da co lich trung gio' + (roomName !== '' ? ' tai ' + roomName : '') + '.');
+                    window.alert('Phòng học đã có lịch trùng giờ' + (roomName !== '' ? ' tại ' + roomName : '') + '.');
                 }
             }
         });

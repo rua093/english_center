@@ -1,6 +1,6 @@
 <?php
 require_admin_or_staff();
-require_permission('finance.tuition.view');
+require_any_permission(['finance.tuition.view']);
 
 $academicModel = new AcademicModel();
 $tuitionPage = max(1, (int) ($_GET['tuition_page'] ?? 1));
@@ -13,6 +13,9 @@ if ($tuitionPage > $tuitionTotalPages) {
 $tuitionFees = $academicModel->listTuitionFeesPage($tuitionPage, $tuitionPerPage);
 $tuitionPerPageOptions = ui_pagination_per_page_options();
 $tuitionOptions = $academicModel->listTuitionFeesPage(1, 200);
+$registrationLookups = $academicModel->registrationLookups();
+$promotions = $registrationLookups['promotions'] ?? [];
+$registrationClasses = $registrationLookups['classes'] ?? [];
 
 $lookups = $academicModel->scheduleLookups();
 $classes = $lookups['classes'] ?? [];
@@ -23,7 +26,22 @@ $studentNameMap = [];
 foreach ($students as $student) {
     $studentId = (int) ($student['id'] ?? 0);
     if ($studentId > 0) {
-        $studentNameMap[$studentId] = (string) ($student['full_name'] ?? ('Học viên #' . $studentId));
+        $studentNameMap[$studentId] = student_dropdown_label($student, 'Học viên #' . $studentId);
+    }
+}
+
+$classMap = [];
+foreach ($classes as $class) {
+    $classId = (int) ($class['id'] ?? 0);
+    if ($classId > 0) {
+        $classMap[$classId] = $class;
+    }
+}
+foreach ($registrationClasses as $class) {
+    $classId = (int) ($class['id'] ?? 0);
+    if ($classId > 0) {
+        $existing = $classMap[$classId] ?? [];
+        $classMap[$classId] = array_merge($existing, $class);
     }
 }
 
@@ -41,7 +59,7 @@ foreach ($classStudentRows as $row) {
 
     $classStudentMap[$classId][] = [
         'id' => $studentId,
-        'name' => (string) ($row['full_name'] ?? ($studentNameMap[$studentId] ?? ('Học viên #' . $studentId))),
+        'name' => student_dropdown_label($row, $studentNameMap[$studentId] ?? ('Học viên #' . $studentId)),
     ];
 }
 
@@ -52,6 +70,13 @@ if (!empty($_GET['edit'])) {
 
 $editingClassId = (int) ($editingTuition['class_id'] ?? 0);
 $editingStudentId = (int) ($editingTuition['student_id'] ?? 0);
+$editingPackageId = max(0, (int) ($editingTuition['package_id'] ?? 0));
+$editingBaseAmount = max(0, (float) ($editingTuition['base_amount'] ?? 0));
+$editingClass = $editingClassId > 0 ? ($classMap[$editingClassId] ?? $academicModel->findClass($editingClassId)) : null;
+$editingCourseId = (int) ($editingClass['course_id'] ?? 0);
+$editingClassName = (string) ($editingClass['class_name'] ?? '');
+$editingCourseName = (string) ($editingClass['course_name'] ?? '');
+$editingStudentName = $editingStudentId > 0 ? ($studentNameMap[$editingStudentId] ?? ('Học viên #' . $editingStudentId)) : '';
 $studentOptionsForSelectedClass = $editingClassId > 0 ? ($classStudentMap[$editingClassId] ?? []) : [];
 
 if ($editingClassId > 0 && $editingStudentId > 0) {
@@ -86,13 +111,28 @@ $viewer = auth_user();
 $isAdmin = (($viewer['role'] ?? '') === 'admin');
 $isStaff = (($viewer['role'] ?? '') === 'staff');
 
-$canCreateTuition = $isAdmin || has_any_permission(['finance.tuition.manage', 'finance.tuition.create']);
-$canUpdateTuition = $isAdmin || has_any_permission(['finance.tuition.manage', 'finance.tuition.update']);
-$canDeleteTuition = $isAdmin || has_any_permission(['finance.tuition.manage', 'finance.tuition.delete']);
+$canCreateTuition = $isAdmin;
+$canUpdateTuition = $isAdmin;
+$canDeleteTuition = $isAdmin;
 
 $success = get_flash('success');
 $error = get_flash('error');
 ?>
+<style>
+    .tuition-readonly-field {
+        position: relative;
+    }
+
+    .tuition-readonly-field > input[readonly],
+    .tuition-readonly-field > select[disabled],
+    .tuition-readonly-field > textarea[readonly] {
+        cursor: not-allowed;
+        background: #f8fafc !important;
+        color: #475569 !important;
+        border-color: #cbd5e1 !important;
+    }
+
+</style>
 <div class="grid gap-4">
     <?php if ($success): ?>
         <div class="rounded-xl border-l-4 border-emerald-500 bg-emerald-50 p-3 text-sm text-emerald-700"><?= e($success); ?></div>
@@ -103,65 +143,92 @@ $error = get_flash('error');
     <?php endif; ?>
 
     <?php if ($canUpdateTuition && $editingTuition): ?>
-        <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <h3>Sửa hóa đơn học phí</h3>
+        <div class="hidden" aria-hidden="true">
             <form class="grid gap-3 md:grid-cols-2" method="post" action="/api/tuitions/save">
                 <?= csrf_input(); ?>
                 <input type="hidden" name="id" value="<?= (int) ($editingTuition['id'] ?? 0); ?>">
-                <label>
+                <label class="tuition-readonly-field">
                     Học viên
-                    <select id="tuition-student-select" name="student_id" data-selected="<?= (int) $editingStudentId; ?>" <?= empty($studentOptionsForSelectedClass) ? 'disabled' : ''; ?> required>
-                        <option value=""><?= $editingClassId > 0 ? '-- Chọn học viên của lớp --' : '-- Chọn lớp trước --'; ?></option>
-                        <?php foreach ($studentOptionsForSelectedClass as $student): ?>
-                            <option value="<?= (int) ($student['id'] ?? 0); ?>" <?= $editingStudentId === (int) ($student['id'] ?? 0) ? 'selected' : ''; ?>>
-                                <?= e((string) ($student['name'] ?? '')); ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                    <small id="tuition-student-hint" class="mt-1 block text-xs text-slate-500">Chỉ hiển thị học viên thuộc lớp đã chọn.</small>
+                    <input type="text" value="<?= e($editingStudentName); ?>" readonly>
                 </label>
-                <label>
+                <label class="tuition-readonly-field">
                     Lớp học
-                    <select id="tuition-class-select" name="class_id" required>
-                        <option value="">-- Chọn lớp học --</option>
-                        <?php foreach ($classes as $class): ?>
-                            <option value="<?= (int) $class['id']; ?>" <?= (int) ($editingTuition['class_id'] ?? 0) === (int) $class['id'] ? 'selected' : ''; ?>>
-                                <?= e((string) $class['class_name']); ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
+                    <input type="text" value="<?= e($editingClassName !== '' ? $editingClassName : '-- Chọn lớp học --'); ?>" readonly>
                 </label>
-                <label>
+                <label class="tuition-readonly-field">
+                    Khóa học
+                    <input type="text" value="<?= e($editingCourseName !== '' ? $editingCourseName : '-- Chưa có khóa học --'); ?>" readonly>
+                </label>
+                <label class="tuition-readonly-field">
                     Tổng tiền
-                    <input type="number" step="1000" min="0" name="total_amount" required value="<?= e((string) ($editingTuition['total_amount'] ?? '0')); ?>">
+                    <input
+                        id="tuition-total-amount"
+                        type="number"
+                        step="1000"
+                        min="0"
+                        value="<?= e((string) ($editingTuition['total_amount'] ?? '0')); ?>"
+                        readonly
+                    >
                 </label>
-                <label>
+                <label class="tuition-readonly-field">
                     Đã thu
-                    <input type="number" step="1000" min="0" name="amount_paid" required value="<?= e((string) ($editingTuition['amount_paid'] ?? '0')); ?>">
+                    <input id="tuition-amount-paid" type="number" step="1000" min="0" value="<?= e((string) ($editingTuition['amount_paid'] ?? '0')); ?>" readonly>
                 </label>
                 <label>
                     Chế độ đóng
                     <select name="payment_plan">
-                        <option value="full" <?= (($editingTuition['payment_plan'] ?? 'full') === 'full') ? 'selected' : ''; ?>>full</option>
-                        <option value="monthly" <?= (($editingTuition['payment_plan'] ?? '') === 'monthly') ? 'selected' : ''; ?>>monthly</option>
+                        <option value="full" <?= (($editingTuition['payment_plan'] ?? 'full') === 'full') ? 'selected' : ''; ?>>Đóng một lần (full)</option>
+                        <option value="monthly" <?= (($editingTuition['payment_plan'] ?? '') === 'monthly') ? 'selected' : ''; ?>>Đóng theo tháng (monthly)</option>
                     </select>
                 </label>
                 <label>
-                    Trạng thái
-                    <select name="status">
-                        <option value="debt" <?= (($editingTuition['status'] ?? '') === 'debt') ? 'selected' : ''; ?>>debt</option>
-                        <option value="paid" <?= (($editingTuition['status'] ?? '') === 'paid') ? 'selected' : ''; ?>>paid</option>
+                    Ưu đãi áp dụng
+                    <select
+                        id="tuition-package-select"
+                        name="package_id"
+                        data-base-amount="<?= e(number_format($editingBaseAmount, 2, '.', '')); ?>"
+                        data-current-course-id="<?= (int) $editingCourseId; ?>"
+                        onchange="window.updateTuitionEditPreview && window.updateTuitionEditPreview(this.form);"
+                    >
+                        <option value="0" data-discount-value="0" data-course-id="0" <?= $editingPackageId === 0 ? 'selected' : ''; ?>>Không áp dụng ưu đãi</option>
+                        <?php foreach ($promotions as $promo): ?>
+                            <?php
+                            $promoId = (int) ($promo['id'] ?? 0);
+                            if ($promoId <= 0) {
+                                continue;
+                            }
+
+                            $promoCourseId = (int) ($promo['course_id'] ?? 0);
+                            if ($editingCourseId > 0 && $promoCourseId > 0 && $promoCourseId !== $editingCourseId) {
+                                continue;
+                            }
+
+                            $discountPercent = max(0, min(100, (float) ($promo['discount_value'] ?? 0)));
+                            $discountPercentText = rtrim(rtrim(number_format($discountPercent, 2, '.', ''), '0'), '.');
+                            $promoName = trim((string) ($promo['name'] ?? ('Ưu đãi #' . $promoId)));
+                            ?>
+                            <option
+                                value="<?= $promoId; ?>"
+                                data-course-id="<?= $promoCourseId; ?>"
+                                data-discount-value="<?= e((string) $discountPercent); ?>"
+                                <?= $editingPackageId === $promoId ? 'selected' : ''; ?>
+                            >
+                                <?= e($promoName . ' - ' . $discountPercentText . '%'); ?>
+                            </option>
+                        <?php endforeach; ?>
                     </select>
+                </label>
+                <label class="tuition-readonly-field">
+                    Trạng thái
+                    <input id="tuition-status" type="text" value="<?= e((string) ($editingTuition['status'] ?? 'debt')); ?>" readonly>
                 </label>
                 <p class="md:col-span-2 text-xs text-slate-500">Trạng thái sẽ tự động là <strong>debt</strong> nếu số đã thu chưa đủ và tự chuyển <strong>paid</strong> khi thu đủ.</p>
                 <div class="md:col-span-2 inline-flex flex-wrap items-center gap-2">
                     <button class="<?= ui_btn_primary_classes(); ?>" type="submit">Cập nhật hóa đơn</button>
-                    <?php if ($editingTuition): ?>
-                        <a class="<?= ui_btn_secondary_classes(); ?>" href="<?= e(page_url('tuition-finance')); ?>">Hủy chỉnh sửa</a>
-                    <?php endif; ?>
+                    <a class="<?= ui_btn_secondary_classes(); ?>" href="<?= e(page_url('tuition-finance')); ?>">Hủy chỉnh sửa</a>
                 </div>
             </form>
-        </article>
+        </div>
     <?php endif; ?>
 
     <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -170,7 +237,9 @@ $error = get_flash('error');
             <table class="min-w-full border-collapse text-sm">
                 <thead>
                     <tr>
+                        <th>Mã HV</th>
                         <th>Học viên</th>
+                        <th>Khóa học</th>
                         <th>Lớp học</th>
                         <th>Tổng tiền</th>
                         <th>Đã thu</th>
@@ -183,15 +252,17 @@ $error = get_flash('error');
                 <tbody>
                     <?php if (empty($tuitionFees)): ?>
                         <tr>
-                            <td colspan="8">
+                            <td colspan="10">
                                 <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">Chưa có dữ liệu học phí.</div>
                             </td>
                         </tr>
                     <?php else: ?>
                         <?php foreach ($tuitionFees as $fee): ?>
                             <tr>
-                                <td><?= e((string) $fee['full_name']); ?></td>
-                                <td><?= e((string) $fee['course_name']); ?></td>
+                                <td><?= e((string) ($fee['student_code'] ?? '-')); ?></td>
+                                <td><?= e((string) ($fee['full_name'] ?? 'Học viên')); ?></td>
+                                <td><?= e((string) ($fee['course_name'] ?? '')); ?></td>
+                                <td><?= e((string) ($fee['class_name'] ?? '')); ?></td>
                                 <td><?= format_money((float) $fee['total_amount']); ?></td>
                                 <td><?= format_money((float) $fee['amount_paid']); ?></td>
                                 <td><?= format_money((float) ($fee['total_amount'] - $fee['amount_paid'])); ?></td>
@@ -267,7 +338,7 @@ $error = get_flash('error');
                         <option value="">-- Chọn hóa đơn --</option>
                         <?php foreach ($tuitionOptions as $fee): ?>
                             <option value="<?= (int) $fee['id']; ?>">
-                                #<?= (int) $fee['id']; ?> - <?= e((string) $fee['full_name']); ?> - <?= e((string) $fee['course_name']); ?>
+                                #<?= (int) $fee['id']; ?> - <?= e(student_dropdown_label($fee)); ?> - <?= e((string) $fee['course_name']); ?>
                             </option>
                         <?php endforeach; ?>
                     </select>
@@ -290,62 +361,30 @@ $error = get_flash('error');
 
 <script>
     (function () {
-        const classSelect = document.getElementById('tuition-class-select');
-        const studentSelect = document.getElementById('tuition-student-select');
-        const studentHint = document.getElementById('tuition-student-hint');
-        const classStudentMap = <?= json_encode($classStudentMap, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
+        window.updateTuitionEditPreview = function (scope) {
+            const root = scope instanceof HTMLFormElement || scope instanceof HTMLElement ? scope : document;
+            const packageSelect = root.querySelector('#tuition-package-select');
+            const totalAmountInput = root.querySelector('#tuition-total-amount');
+            const amountPaidInput = root.querySelector('#tuition-amount-paid');
+            const statusInput = root.querySelector('#tuition-status');
 
-        if (!classSelect || !studentSelect) {
-            return;
-        }
-
-        function renderStudents(preferredStudentId) {
-            const classId = String(Number(classSelect.value || 0));
-            const students = Array.isArray(classStudentMap[classId]) ? classStudentMap[classId] : [];
-
-            studentSelect.innerHTML = '';
-            const placeholder = document.createElement('option');
-            placeholder.value = '';
-            placeholder.textContent = Number(classId) > 0 ? '-- Chọn học viên của lớp --' : '-- Chọn lớp trước --';
-            studentSelect.appendChild(placeholder);
-
-            let hasPreferred = false;
-            students.forEach(function (student) {
-                const option = document.createElement('option');
-                option.value = String(student.id || '');
-                option.textContent = String(student.name || '');
-                if (Number(option.value) === Number(preferredStudentId || 0)) {
-                    option.selected = true;
-                    hasPreferred = true;
-                }
-                studentSelect.appendChild(option);
-            });
-
-            if (students.length === 0) {
-                studentSelect.value = '';
-                studentSelect.disabled = true;
-                if (studentHint) {
-                    studentHint.textContent = Number(classId) > 0
-                        ? 'Lớp này chưa có học viên phù hợp để chỉnh sửa học phí.'
-                        : 'Vui lòng chọn lớp trước để chọn học viên.';
-                }
+            if (!(packageSelect instanceof HTMLSelectElement) || !(totalAmountInput instanceof HTMLInputElement) || !(statusInput instanceof HTMLInputElement)) {
                 return;
             }
 
-            studentSelect.disabled = false;
-            if (!hasPreferred) {
-                studentSelect.value = '';
-            }
-            if (studentHint) {
-                studentHint.textContent = 'Chỉ hiển thị học viên thuộc lớp đã chọn.';
-            }
-        }
+            const baseAmount = Number(packageSelect.dataset.baseAmount || 0);
+            const amountPaid = amountPaidInput instanceof HTMLInputElement ? Number(amountPaidInput.value || 0) : 0;
+            const selectedOption = packageSelect.selectedOptions[0];
+            const discountPercent = selectedOption ? Number(selectedOption.dataset.discountValue || 0) : 0;
+            const discountApplied = Math.max(0, (baseAmount * discountPercent) / 100);
+            const totalAmount = Math.max(0, Math.round((baseAmount - discountApplied) * 100) / 100);
+            const status = amountPaid >= totalAmount ? 'paid' : 'debt';
 
-        classSelect.addEventListener('change', function () {
-            renderStudents(0);
-        });
+            totalAmountInput.value = totalAmount.toFixed(2);
+            statusInput.value = status;
+        };
 
-        renderStudents(Number(studentSelect.dataset.selected || 0));
+        window.updateTuitionEditPreview(document);
     })();
 </script>
 

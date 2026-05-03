@@ -27,10 +27,11 @@ final class PaymentTransactionsTableModel
     public function listDetailed(): array
     {
         $sql = "SELECT pt.id, pt.tuition_fee_id, pt.amount, pt.payment_method AS method, pt.created_at AS transaction_date,
-            pt.transaction_no, pt.transaction_status, t.student_id, u.full_name AS full_name, c.class_name AS course_name
+            pt.transaction_status, t.student_id, u.full_name AS full_name, sp.student_code, c.class_name AS course_name
             FROM payment_transactions pt
             INNER JOIN tuition_fees t ON t.id = pt.tuition_fee_id
             INNER JOIN users u ON u.id = t.student_id
+            LEFT JOIN student_profiles sp ON sp.user_id = u.id
             INNER JOIN classes c ON c.id = t.class_id
             ORDER BY pt.created_at DESC";
         return $this->fetchAll($sql);
@@ -43,10 +44,11 @@ final class PaymentTransactionsTableModel
         $offset = ($normalizedPage - 1) * $limit;
 
         $sql = "SELECT pt.id, pt.tuition_fee_id, pt.amount, pt.payment_method AS method, pt.created_at AS transaction_date,
-            pt.transaction_no, pt.transaction_status, t.student_id, u.full_name AS full_name, c.class_name AS course_name
+            pt.transaction_status, t.student_id, u.full_name AS full_name, sp.student_code, c.class_name AS course_name
             FROM payment_transactions pt
             INNER JOIN tuition_fees t ON t.id = pt.tuition_fee_id
             INNER JOIN users u ON u.id = t.student_id
+            LEFT JOIN student_profiles sp ON sp.user_id = u.id
             INNER JOIN classes c ON c.id = t.class_id
             ORDER BY pt.created_at DESC
             LIMIT {$limit} OFFSET {$offset}";
@@ -56,7 +58,7 @@ final class PaymentTransactionsTableModel
     public function findById(int $id): ?array
     {
         return $this->fetchOne(
-            'SELECT id, tuition_fee_id, transaction_no, payment_method, amount, transaction_status
+            'SELECT id, tuition_fee_id, payment_method, amount, transaction_status
              FROM payment_transactions WHERE id = :id LIMIT 1',
             ['id' => $id]
         );
@@ -79,7 +81,6 @@ final class PaymentTransactionsTableModel
     {
         $id = (int) ($data['id'] ?? 0);
         $tuitionFeeId = (int) ($data['tuition_fee_id'] ?? 0);
-        $transactionNo = trim((string) ($data['transaction_no'] ?? ''));
         $paymentMethod = trim((string) ($data['payment_method'] ?? 'bank_transfer'));
         $amount = max(0, (float) ($data['amount'] ?? 0));
         $status = (string) ($data['transaction_status'] ?? 'pending');
@@ -91,7 +92,6 @@ final class PaymentTransactionsTableModel
             $this->executeStatement(
                 'UPDATE payment_transactions
                  SET tuition_fee_id = :tuition_fee_id,
-                     transaction_no = :transaction_no,
                      payment_method = :payment_method,
                      amount = :amount,
                      transaction_status = :transaction_status
@@ -99,7 +99,6 @@ final class PaymentTransactionsTableModel
                 [
                     'id' => $id,
                     'tuition_fee_id' => $tuitionFeeId,
-                    'transaction_no' => $transactionNo,
                     'payment_method' => $paymentMethod,
                     'amount' => $amount,
                     'transaction_status' => $status,
@@ -110,17 +109,15 @@ final class PaymentTransactionsTableModel
 
         $this->executeStatement(
             'INSERT INTO payment_transactions (
-                tuition_fee_id, transaction_no, payment_method, amount, transaction_status, raw_response
+                tuition_fee_id, payment_method, amount, transaction_status
              ) VALUES (
-                :tuition_fee_id, :transaction_no, :payment_method, :amount, :transaction_status, :raw_response
+                :tuition_fee_id, :payment_method, :amount, :transaction_status
              )',
             [
                 'tuition_fee_id' => $tuitionFeeId,
-                'transaction_no' => $transactionNo,
                 'payment_method' => $paymentMethod,
                 'amount' => $amount,
                 'transaction_status' => $status,
-                'raw_response' => null,
             ]
         );
     }
@@ -142,13 +139,12 @@ final class PaymentTransactionsTableModel
         );
     }
 
-    public function insertSuccess(int $tuitionId, string $transactionNo, string $paymentMethod, float $amount): void
+    public function insertSuccess(int $tuitionId, string $paymentMethod, float $amount): void
     {
-        $sql = "INSERT INTO payment_transactions (tuition_fee_id, transaction_no, payment_method, amount, transaction_status, raw_response)
-            VALUES (:tuition_id, :transaction_no, :payment_method, :amount, 'success', NULL)";
+        $sql = "INSERT INTO payment_transactions (tuition_fee_id, payment_method, amount, transaction_status)
+            VALUES (:tuition_id, :payment_method, :amount, 'success')";
         $this->executeStatement($sql, [
             'tuition_id' => $tuitionId,
-            'transaction_no' => $transactionNo,
             'payment_method' => $paymentMethod,
             'amount' => $amount,
         ]);

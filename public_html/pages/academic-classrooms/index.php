@@ -1,11 +1,33 @@
 <?php
-require_permission('academic.classes.view');
+require_any_permission(['academic.classes.view', 'academic.schedules.view']);
 
 $academicModel = new AcademicModel();
 $lookups = $academicModel->classroomLookups();
 
 $courses = is_array($lookups['courses'] ?? null) ? $lookups['courses'] : [];
 $classRows = is_array($lookups['classes'] ?? null) ? $lookups['classes'] : [];
+$currentUser = auth_user() ?? [];
+$currentUserRole = (string) ($currentUser['role'] ?? '');
+$currentUserId = (int) ($currentUser['id'] ?? 0);
+
+if ($currentUserRole === 'teacher' && $currentUserId > 0) {
+    $classRows = array_values(array_filter($classRows, static function (array $classRow) use ($currentUserId): bool {
+        return (int) ($classRow['teacher_id'] ?? 0) === $currentUserId;
+    }));
+
+    $teacherCourseIdMap = [];
+    foreach ($classRows as $classRow) {
+        $courseId = (int) ($classRow['course_id'] ?? 0);
+        if ($courseId > 0) {
+            $teacherCourseIdMap[$courseId] = true;
+        }
+    }
+
+    $courses = array_values(array_filter($courses, static function (array $courseRow) use ($teacherCourseIdMap): bool {
+        $courseId = (int) ($courseRow['id'] ?? 0);
+        return $courseId > 0 && isset($teacherCourseIdMap[$courseId]);
+    }));
+}
 
 $selectedCourseId = max(0, (int) ($_GET['course_id'] ?? 0));
 $selectedClassId = max(0, (int) ($_GET['class_id'] ?? 0));
@@ -23,7 +45,9 @@ if ($classReturnPerPage > 0) {
     $classroomReturnQuery['class_per_page'] = $classReturnPerPage;
 }
 
-$classroomBackToClassesUrl = page_url('classes-academic', $classroomReturnQuery);
+$classroomBackToClassesUrl = can_access_page('classes-academic')
+    ? page_url('classes-academic', $classroomReturnQuery)
+    : page_url('admin');
 
 $weekRefInput = trim((string) ($_GET['week_ref'] ?? ''));
 $weekStartInput = trim((string) ($_GET['week_start'] ?? ''));
@@ -73,6 +97,13 @@ foreach ($classRows as $classRow) {
     if ($classId > 0) {
         $classMap[$classId] = $classRow;
     }
+}
+
+if ($selectedClassId > 0 && !isset($classMap[$selectedClassId])) {
+    $selectedClassId = 0;
+    $editingLessonId = 0;
+    $prefillScheduleId = 0;
+    $focusedScheduleId = 0;
 }
 
 if ($selectedClassId > 0 && isset($classMap[$selectedClassId]) && $selectedCourseId <= 0) {
@@ -132,6 +163,7 @@ if ($selectedClassId > 0) {
             'roadmap_id' => (int) ($lessonRow['roadmap_id'] ?? 0),
             'actual_title' => (string) ($lessonRow['actual_title'] ?? ''),
             'actual_content' => (string) ($lessonRow['actual_content'] ?? ''),
+            'attachment_file_path' => (string) ($lessonRow['attachment_file_path'] ?? ''),
             'schedule_id' => (int) ($lessonRow['schedule_id'] ?? 0),
         ];
     }
@@ -311,7 +343,7 @@ if ($selectedClassId > 0) {
             . '-'
             . $formatTime((string) ($scheduleRow['end_time'] ?? ''))
             . ' | '
-            . (string) ($scheduleRow['room_name'] ?? 'Online')
+            . (string) ($scheduleRow['room_name'] ?? 'Trực tuyến')
         );
 
         if ($assignedLessonId > 0 && $assignedLessonTitle !== '') {
@@ -330,12 +362,17 @@ if ($selectedClassId > 0) {
 $success = get_flash('success');
 $error = get_flash('error');
 
-$canCreateLesson = has_permission('academic.classes.create');
-$canUpdateLesson = has_permission('academic.classes.update');
-$canViewAttendance = has_permission('academic.schedules.view');
-$canManageAttendance = has_permission('academic.schedules.update');
-$canCreateAssignment = has_permission('academic.assignments.create');
-$canGradeSubmission = has_permission('academic.submissions.grade');
+$teacherOwnsSelectedClass = $currentUserRole === 'teacher'
+    && $currentUserId > 0
+    && is_array($selectedClass)
+    && (int) ($selectedClass['teacher_id'] ?? 0) === $currentUserId;
+
+$canCreateLesson = has_permission('academic.classes.create') || $teacherOwnsSelectedClass;
+$canUpdateLesson = has_permission('academic.classes.update') || $teacherOwnsSelectedClass;
+$canViewAttendance = has_permission('academic.schedules.view') || $teacherOwnsSelectedClass;
+$canManageAttendance = has_permission('academic.schedules.update') || $teacherOwnsSelectedClass;
+$canCreateAssignment = has_permission('academic.assignments.create') || $teacherOwnsSelectedClass;
+$canGradeSubmission = has_permission('academic.submissions.grade') || $teacherOwnsSelectedClass;
 $canManageExams = $canGradeSubmission;
 
 $classroomAssignmentsByScheduleJson = json_encode($classroomAssignmentsBySchedule, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
@@ -522,6 +559,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
                                                         ? trim((string) ($linkedLesson['actual_title'] ?? ($slotSchedule['assigned_lesson_title'] ?? 'Buổi học')))
                                                         : 'Chưa soạn giáo án';
                                                     $lessonContent = is_array($linkedLesson) ? trim((string) ($linkedLesson['actual_content'] ?? '')) : '';
+                                                    $lessonAttachmentPath = is_array($linkedLesson) ? trim((string) ($linkedLesson['attachment_file_path'] ?? '')) : '';
                                                     $roadmapTopic = is_array($linkedLesson) ? trim((string) ($linkedLesson['roadmap_topic'] ?? '')) : '';
 
                                                     $studyDateValue = trim((string) ($slotSchedule['study_date'] ?? ''));
@@ -530,7 +568,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
                                                     $endTimeLabel = $formatTime((string) ($slotSchedule['end_time'] ?? ''));
                                                     $timeLabel = trim($startTimeLabel . '-' . $endTimeLabel, '-');
 
-                                                    $roomName = trim((string) ($slotSchedule['room_name'] ?? 'Online'));
+                                                    $roomName = trim((string) ($slotSchedule['room_name'] ?? 'Trực tuyến'));
                                                     $teacherName = trim((string) ($slotSchedule['teacher_name'] ?? ''));
                                                     if ($teacherName === '') {
                                                         $teacherId = (int) ($slotSchedule['teacher_id'] ?? 0);
@@ -560,7 +598,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
                                                     $slotLabel = ($lessonTitle !== '' ? $lessonTitle : 'Buổi học')
                                                         . ' | ' . ($studyDateLabel !== '' ? $studyDateLabel : (string) $weekDay['display'])
                                                         . ' ' . $timeLabel
-                                                        . ' | ' . ($roomName !== '' ? $roomName : 'Online');
+                                                        . ' | ' . ($roomName !== '' ? $roomName : 'Trực tuyến');
                                                     ?>
                                                     <div
                                                         class="classroom-week-chip mb-1 last:mb-0 max-w-full cursor-context-menu overflow-hidden rounded-lg border px-2 py-1 text-[11px] font-semibold leading-tight focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 <?= e($chipClasses); ?>"
@@ -580,10 +618,11 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
                                                         data-study-date="<?= e($studyDateValue); ?>"
                                                         data-start-time="<?= e($startTimeLabel); ?>"
                                                         data-end-time="<?= e($endTimeLabel); ?>"
-                                                        data-room-name="<?= e($roomName !== '' ? $roomName : 'Online'); ?>"
+                                                        data-room-name="<?= e($roomName !== '' ? $roomName : 'Trực tuyến'); ?>"
                                                         data-teacher-name="<?= e($teacherName); ?>"
                                                         data-roadmap-topic="<?= e($roadmapTopic); ?>"
                                                         data-lesson-content="<?= e($lessonContent); ?>"
+                                                        data-lesson-attachment-path="<?= e($lessonAttachmentPath); ?>"
                                                         data-has-lesson="<?= $hasLesson ? '1' : '0'; ?>"
                                                         data-slot-label="<?= e($slotLabel); ?>"
                                                         data-lesson-title="<?= e($lessonTitle !== '' ? $lessonTitle : 'Buổi học'); ?>"
@@ -596,7 +635,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
                                                         <div class="break-words whitespace-normal text-[11px] font-bold leading-snug"><?= e($lessonTitle !== '' ? $lessonTitle : 'Buổi học'); ?></div>
                                                         <div class="mt-0.5 flex flex-wrap gap-1 text-[10px]">
                                                             <span class="inline-flex items-center rounded-full border border-slate-200 bg-white/85 px-1.5 py-0.5 font-semibold"><?= e($timeLabel !== '' ? $timeLabel : '--:--'); ?></span>
-                                                            <span class="inline-flex max-w-full items-center truncate rounded-full border border-slate-200 bg-white/85 px-1.5 py-0.5 font-semibold"><?= e($roomName !== '' ? $roomName : 'Online'); ?></span>
+                                                            <span class="inline-flex max-w-full items-center truncate rounded-full border border-slate-200 bg-white/85 px-1.5 py-0.5 font-semibold"><?= e($roomName !== '' ? $roomName : 'Trực tuyến'); ?></span>
                                                         </div>
                                                     </div>
                                                 <?php endforeach; ?>
@@ -790,9 +829,10 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
         <?php if (!$canCreateLesson && !$canUpdateLesson): ?>
             <div class="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-700">Bạn chưa có quyền soạn hoặc cập nhật giáo án buổi học.</div>
         <?php else: ?>
-            <form id="classroom-lesson-form" class="grid min-h-0 gap-3" method="post" action="/api/lessons/save">
+            <form id="classroom-lesson-form" class="grid min-h-0 gap-3" method="post" action="/api/lessons/save" enctype="multipart/form-data">
                 <?= csrf_input(); ?>
                 <input id="classroom-lesson-id" type="hidden" name="id" value="0">
+                <input id="classroom-lesson-existing-attachment-file-path" type="hidden" name="existing_attachment_file_path" value="">
                 <input type="hidden" name="redirect_page" value="classrooms-academic">
                 <input type="hidden" name="course_id" value="<?= (int) $selectedCourseId; ?>">
                 <input type="hidden" name="class_id" value="<?= (int) $selectedClassId; ?>">
@@ -810,7 +850,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
                         <?php foreach ($roadmaps as $roadmap): ?>
                             <?php $roadmapId = (int) ($roadmap['id'] ?? 0); ?>
                             <option value="<?= $roadmapId; ?>">
-                                Buổi <?= (int) ($roadmap['order'] ?? 0); ?> | <?= e((string) ($roadmap['topic_title'] ?? ('Roadmap #' . $roadmapId))); ?>
+                                Buổi <?= (int) ($roadmap['order'] ?? 0); ?> | <?= e((string) ($roadmap['topic_title'] ?? ('Lộ trình #' . $roadmapId))); ?>
                             </option>
                         <?php endforeach; ?>
                     </select>
@@ -823,6 +863,11 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
                     Nội dung giáo án
                     <textarea id="classroom-lesson-actual-content" name="actual_content" rows="5" placeholder="Mục tiêu, hoạt động lớp, tổng hợp nội dung buổi học..."></textarea>
                 </label>
+                <label>
+                    Tài liệu buổi học (PDF, PPT, DOCX)
+                    <input id="classroom-lesson-attachment-file" type="file" name="lesson_attachment_file" accept=".pdf,.ppt,.pptx,.doc,.docx">
+                </label>
+                <p id="classroom-lesson-attachment-hint" class="text-xs text-slate-500">Có thể tải lên tài liệu dùng riêng cho buổi học này.</p>
 
                 <div class="mt-1 flex flex-wrap gap-2">
                     <button id="classroom-lesson-submit" class="<?= ui_btn_primary_classes(); ?>" type="submit">Lưu giáo án</button>
@@ -853,6 +898,12 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
                 Nội dung giáo án
                 <textarea id="classroom-lesson-info-content" rows="4" readonly class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700"></textarea>
             </label>
+            <div class="grid gap-1 text-sm font-semibold text-slate-700">
+                Tài liệu đính kèm
+                <div id="classroom-lesson-info-attachment-shell" class="rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700">
+                    Chưa có tài liệu đính kèm.
+                </div>
+            </div>
 
             <div class="grid gap-3 sm:grid-cols-2">
                 <label class="grid gap-1 text-sm font-semibold text-slate-700">
@@ -1625,6 +1676,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
     const lessonInfoAttendanceInput = document.getElementById('classroom-lesson-info-attendance');
     const lessonInfoAssignmentInput = document.getElementById('classroom-lesson-info-assignment');
     const lessonInfoRoadmapInput = document.getElementById('classroom-lesson-info-roadmap');
+    const lessonInfoAttachmentShell = document.getElementById('classroom-lesson-info-attachment-shell');
 
     const assignmentModal = document.getElementById('classroom-assignment-modal');
     const assignmentForm = document.getElementById('classroom-assignment-form');
@@ -3467,6 +3519,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
             roomName: normalizeText(slotElement.getAttribute('data-room-name')),
             teacherName: normalizeText(slotElement.getAttribute('data-teacher-name')),
             lessonContent: normalizeText(slotElement.getAttribute('data-lesson-content')),
+            lessonAttachmentPath: normalizeText(slotElement.getAttribute('data-lesson-attachment-path')),
             roadmapTopic: normalizeText(slotElement.getAttribute('data-roadmap-topic')),
             lessonTitle: normalizeText(slotElement.getAttribute('data-lesson-title')),
             slotLabel: normalizeText(slotElement.getAttribute('data-slot-label')),
@@ -3726,14 +3779,6 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
         });
     }
 
-    function learningStatusBadgeClass(status) {
-        const normalized = normalizeText(status).toLowerCase();
-        if (normalized === 'trial') {
-            return 'border-blue-200 bg-blue-50 text-blue-700';
-        }
-        return 'border-emerald-200 bg-emerald-50 text-emerald-700';
-    }
-
     function renderAttendanceRows(rows) {
         if (!(attendanceList instanceof HTMLElement)) {
             return;
@@ -3757,8 +3802,10 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
                 return '';
             }
 
-            const studentName = escapeHtml(normalizeText(row.student_name) || ('Học viên #' + studentId));
-            const learningStatus = normalizeText(row.learning_status).toLowerCase() === 'trial' ? 'trial' : 'official';
+            const normalizedName = normalizeText(row.full_name) || normalizeText(row.student_name) || ('Học viên #' + studentId);
+            const normalizedCode = normalizeText(row.student_code) || '-';
+            const studentName = escapeHtml(normalizedName);
+            const studentCode = escapeHtml(normalizedCode);
             const attendanceStatus = normalizeText(row.attendance_status).toLowerCase();
             const attendanceNote = escapeHtml(normalizeText(row.attendance_note));
 
@@ -3769,20 +3816,18 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
 
             return ''
                 + '<tr class="border-b border-slate-100 last:border-b-0">'
-                    + '<td class="px-3 py-2 align-top"><strong>' + studentName + '</strong></td>'
-                    + '<td class="px-3 py-2 align-top">'
-                        + '<span class="inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold ' + learningStatusBadgeClass(learningStatus) + '">' + escapeHtml(formatLearningStatusLabel(learningStatus)) + '</span>'
-                    + '</td>'
-                    + '<td class="px-3 py-2 align-top">'
-                        + '<select data-attendance-select="1" name="attendance_status[' + studentId + ']" class="h-9 w-full rounded-md border border-slate-300 bg-white px-2 text-sm"' + statusDisabledAttr + '>'
+                    + '<td class="px-4 py-3 align-top text-slate-600">' + studentCode + '</td>'
+                    + '<td class="px-4 py-3 align-top font-semibold text-slate-800">' + studentName + '</td>'
+                    + '<td class="px-4 py-3 align-top">'
+                        + '<select data-attendance-select="1" data-no-search="1" name="attendance_status[' + studentId + ']" class="h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm font-medium text-slate-700 no-search"' + statusDisabledAttr + '>'
                             + '<option value=""' + optionUnmarked + '>Chưa đánh dấu</option>'
                             + '<option value="present"' + optionPresent + '>Có mặt</option>'
                             + '<option value="late"' + optionLate + '>Đi muộn</option>'
                             + '<option value="absent"' + optionAbsent + '>Vắng</option>'
                         + '</select>'
                     + '</td>'
-                    + '<td class="px-3 py-2 align-top">'
-                        + '<input type="text" name="attendance_note[' + studentId + ']" value="' + attendanceNote + '" placeholder="Ghi chú thêm (nếu có)" class="h-9 w-full rounded-md border border-slate-300 bg-white px-2 text-sm"' + noteReadonlyAttr + '>'
+                    + '<td class="px-4 py-3 align-top">'
+                        + '<input type="text" name="attendance_note[' + studentId + ']" value="' + attendanceNote + '" placeholder="Ghi chú thêm (nếu có)" class="h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-700"' + noteReadonlyAttr + '>'
                     + '</td>'
                 + '</tr>';
         }).join('');
@@ -3792,10 +3837,10 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
                 + '<table class="min-w-full border-collapse text-sm">'
                     + '<thead class="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">'
                         + '<tr>'
-                            + '<th class="px-3 py-2">Học viên</th>'
-                            + '<th class="px-3 py-2">Trạng thái</th>'
-                            + '<th class="px-3 py-2">Điểm danh</th>'
-                            + '<th class="px-3 py-2">Ghi chú</th>'
+                            + '<th class="px-4 py-3">Mã HV</th>'
+                            + '<th class="px-4 py-3">Học viên</th>'
+                            + '<th class="px-4 py-3">Điểm danh</th>'
+                            + '<th class="px-4 py-3">Ghi chú</th>'
                         + '</tr>'
                     + '</thead>'
                     + '<tbody>' + tableRows + '</tbody>'
@@ -4059,6 +4104,20 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
         if (lessonContentInput instanceof HTMLTextAreaElement) {
             lessonContentInput.value = String(isEditing ? (lessonRecord.actual_content || '') : '');
         }
+        const lessonExistingAttachmentInput = document.getElementById('classroom-lesson-existing-attachment-file-path');
+        const lessonAttachmentHint = document.getElementById('classroom-lesson-attachment-hint');
+        if (lessonExistingAttachmentInput instanceof HTMLInputElement) {
+            lessonExistingAttachmentInput.value = String(isEditing ? (lessonRecord.attachment_file_path || '') : '');
+        }
+        if (lessonAttachmentHint instanceof HTMLElement) {
+            if (isEditing && normalizeText(lessonRecord.attachment_file_path) !== '') {
+                lessonAttachmentHint.innerHTML = 'Tài liệu hiện tại: <a class="font-semibold text-blue-700 hover:underline" href="'
+                    + escapeHtml(normalizeText(lessonRecord.attachment_file_path))
+                    + '" target="_blank" rel="noopener noreferrer">Mở file</a>. Chọn file mới để thay thế.';
+            } else {
+                lessonAttachmentHint.textContent = 'Có thể tải lên tài liệu dùng riêng cho buổi học này.';
+            }
+        }
 
         const preferredScheduleId = isEditing
             ? toInt(lessonRecord.schedule_id)
@@ -4137,7 +4196,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
             ? ((startTimeLabel !== '' ? startTimeLabel : '--:--') + ' - ' + (endTimeLabel !== '' ? endTimeLabel : '--:--'))
             : '--:-- - --:--';
 
-        const roomLabel = normalizeText(context.roomName) !== '' ? normalizeText(context.roomName) : 'Online';
+        const roomLabel = normalizeText(context.roomName) !== '' ? normalizeText(context.roomName) : 'Trực tuyến';
         const teacherLabel = normalizeText(context.teacherName) !== '' ? normalizeText(context.teacherName) : 'Chưa cập nhật';
         const attendanceLabel = 'Có mặt ' + toInt(context.presentCount)
             + ' | Muộn ' + toInt(context.lateCount)
@@ -4147,6 +4206,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
             + ' | Đã nộp ' + toInt(context.submissionCount)
             + ' | Chưa chấm ' + toInt(context.ungradedCount);
         const roadmapLabel = normalizeText(context.roadmapTopic) !== '' ? normalizeText(context.roadmapTopic) : '--';
+        const attachmentPath = normalizeText(context.lessonAttachmentPath);
 
         if (lessonInfoContext instanceof HTMLElement) {
             lessonInfoContext.textContent = normalizeText(context.slotLabel) !== ''
@@ -4179,6 +4239,15 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
         }
         if (lessonInfoRoadmapInput instanceof HTMLInputElement) {
             lessonInfoRoadmapInput.value = roadmapLabel;
+        }
+        if (lessonInfoAttachmentShell instanceof HTMLElement) {
+            if (attachmentPath !== '') {
+                lessonInfoAttachmentShell.innerHTML = '<a class="font-semibold text-blue-700 hover:underline" href="'
+                    + escapeHtml(attachmentPath)
+                    + '" target="_blank" rel="noopener noreferrer">Mở tài liệu buổi học</a>';
+            } else {
+                lessonInfoAttachmentShell.textContent = 'Chưa có tài liệu đính kèm.';
+            }
         }
 
         closeMenu(false);
@@ -4355,7 +4424,12 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
         }
 
         const html = rows.map(function (row) {
-            const studentName = escapeHtml(normalizeText(row.student_name));
+            const studentId = toInt(row.student_id);
+            const studentName = escapeHtml(
+                normalizeText(row.full_name)
+                || normalizeText(row.student_name)
+                || ('Học viên #' + studentId)
+            );
             const submissionId = toInt(row.submission_id);
             const hasSubmission = submissionId > 0;
             const scoreValue = escapeHtml(normalizeText(row.score));

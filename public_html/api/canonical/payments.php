@@ -17,8 +17,7 @@ function api_payments_can_create(): bool
     }
 
     return has_any_permission([
-        'finance.payment.manage',
-        'finance.payment.create',
+        'finance.payments.create',
     ]);
 }
 
@@ -29,8 +28,7 @@ function api_payments_can_update(): bool
     }
 
     return has_any_permission([
-        'finance.payment.manage',
-        'finance.payment.update',
+        'finance.payments.update',
     ]);
 }
 
@@ -41,15 +39,14 @@ function api_payments_can_delete(): bool
     }
 
     return has_any_permission([
-        'finance.payment.manage',
-        'finance.payment.delete',
+        'finance.payments.delete',
     ]);
 }
 
 function api_payments_save_action(): void
 {
     api_guard_admin_or_staff();
-    api_guard_permission('finance.payment.view');
+    api_guard_permission('finance.payments.view');
     api_require_post(page_url('payments-finance'));
 
     $id = input_int($_POST, 'id');
@@ -62,7 +59,6 @@ function api_payments_save_action(): void
     }
 
     $tuitionFeeId = input_int($_POST, 'tuition_fee_id');
-    $transactionNo = input_string($_POST, 'transaction_no');
     $paymentMethod = input_string($_POST, 'payment_method', 'bank_transfer');
     $amount = input_float($_POST, 'amount');
     $status = input_string($_POST, 'transaction_status', 'pending');
@@ -81,7 +77,6 @@ function api_payments_save_action(): void
     (new AcademicModel())->savePaymentTransaction([
         'id' => $id,
         'tuition_fee_id' => $tuitionFeeId,
-        'transaction_no' => $transactionNo,
         'payment_method' => $paymentMethod,
         'amount' => $amount,
         'transaction_status' => $status,
@@ -94,7 +89,7 @@ function api_payments_save_action(): void
 function api_payments_delete_action(): void
 {
     api_guard_admin_or_staff();
-    api_guard_permission('finance.payment.view');
+    api_guard_permission('finance.payments.view');
     api_require_post(page_url('payments-finance'));
 
     if (!api_payments_can_delete()) {
@@ -104,8 +99,12 @@ function api_payments_delete_action(): void
 
     $id = input_int($_POST, 'id', input_int($_GET, 'id'));
     if ($id > 0) {
-        (new AcademicModel())->deletePaymentTransaction($id);
-        set_flash('success', 'Đã xóa giao dịch thanh toán.');
+        try {
+            (new AcademicModel())->deletePaymentTransaction($id);
+            set_flash('success', 'Đã xóa giao dịch thanh toán.');
+        } catch (Throwable) {
+            set_flash('error', 'Không thể xóa giao dịch thanh toán. Vui lòng thử lại.');
+        }
     }
 
     redirect(page_url('payments-finance'));

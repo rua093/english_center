@@ -37,7 +37,7 @@ if ($roadmapPage > $roadmapTotalPages) {
 $roadmaps = $selectedCourseId > 0 ? $academicModel->listRoadmapsByCoursePage($selectedCourseId, $roadmapPage, $roadmapPerPage) : [];
 
 $module = 'roadmaps';
-$adminTitle = 'Học vụ - Roadmap khóa học';
+$adminTitle = 'Học vụ - Lộ trình khóa học';
 
 $success = get_flash('success');
 $error = get_flash('error');
@@ -60,7 +60,7 @@ $selectedOutlineContent = trim((string) ($editingRoadmap['outline_content'] ?? '
     <?php endif; ?>
 
     <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h3>Bộ lọc roadmap theo khóa học</h3>
+        <h3>Bộ lọc lộ trình theo khóa học</h3>
         <form class="grid gap-3 md:grid-cols-3" method="get" action="<?= e(page_url('roadmaps-academic')); ?>">
             <input type="hidden" name="page" value="roadmaps-academic">
             <label>
@@ -84,18 +84,18 @@ $selectedOutlineContent = trim((string) ($editingRoadmap['outline_content'] ?? '
             </div>
         </form>
         <?php if (is_array($selectedCourse)): ?>
-            <p class="mt-3 text-sm text-slate-600">Đang quản lý roadmap cho khóa <strong><?= e((string) ($selectedCourse['course_name'] ?? '')); ?></strong>.</p>
+            <p class="mt-3 text-sm text-slate-600">Đang quản lý lộ trình cho khóa <strong><?= e((string) ($selectedCourse['course_name'] ?? '')); ?></strong>.</p>
         <?php endif; ?>
     </article>
 
     <?php if (!is_array($selectedCourse)): ?>
         <article class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500 shadow-sm">
-            Chọn một khóa học để xem và quản lý roadmap theo từng chủ đề.
+            Chọn một khóa học để xem và quản lý lộ trình theo từng chủ đề.
         </article>
     <?php else: ?>
         <?php if ($canCreateRoadmap || $canUpdateRoadmap): ?>
             <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                <h3><?= $editingRoadmap ? 'Sửa chủ đề roadmap' : 'Thêm chủ đề roadmap'; ?></h3>
+                <h3><?= $editingRoadmap ? 'Sửa chủ đề lộ trình' : 'Thêm chủ đề lộ trình'; ?></h3>
                 <form class="grid gap-3 md:grid-cols-2" method="post" action="/api/roadmaps/save">
                     <?= csrf_input(); ?>
                     <input type="hidden" name="id" value="<?= (int) ($editingRoadmap['id'] ?? 0); ?>">
@@ -104,7 +104,7 @@ $selectedOutlineContent = trim((string) ($editingRoadmap['outline_content'] ?? '
                     <input type="hidden" name="roadmap_per_page" value="<?= (int) $roadmapPerPage; ?>">
 
                     <label>
-                        Thứ tự roadmap
+                        Thứ tự lộ trình
                         <input type="number" min="1" step="1" name="order" required value="<?= e((string) $selectedOrder); ?>">
                     </label>
 
@@ -119,7 +119,7 @@ $selectedOutlineContent = trim((string) ($editingRoadmap['outline_content'] ?? '
                     </label>
 
                     <div class="md:col-span-2 inline-flex flex-wrap items-center gap-2">
-                        <button class="<?= ui_btn_primary_classes(); ?>" type="submit"><?= $editingRoadmap ? 'Cập nhật roadmap' : 'Tạo roadmap'; ?></button>
+                        <button class="<?= ui_btn_primary_classes(); ?>" type="submit"><?= $editingRoadmap ? 'Cập nhật lộ trình' : 'Tạo lộ trình'; ?></button>
                         <?php if ($editingRoadmap): ?>
                             <a class="<?= ui_btn_secondary_classes(); ?>" href="<?= e(page_url('roadmaps-academic', ['course_id' => $selectedCourseId, 'roadmap_page' => $roadmapPage, 'roadmap_per_page' => $roadmapPerPage])); ?>">Hủy chỉnh sửa</a>
                         <?php endif; ?>
@@ -129,7 +129,7 @@ $selectedOutlineContent = trim((string) ($editingRoadmap['outline_content'] ?? '
         <?php endif; ?>
 
         <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <h3>Danh sách roadmap</h3>
+            <h3>Danh sách lộ trình</h3>
             <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
                 <table class="min-w-full border-collapse text-sm">
                     <thead>
@@ -145,7 +145,7 @@ $selectedOutlineContent = trim((string) ($editingRoadmap['outline_content'] ?? '
                         <?php if (empty($roadmaps)): ?>
                             <tr>
                                 <td colspan="5">
-                                    <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">Chưa có roadmap nào cho khóa học này.</div>
+                                    <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">Chưa có lộ trình nào cho khóa học này.</div>
                                 </td>
                             </tr>
                         <?php else: ?>
@@ -189,7 +189,7 @@ $selectedOutlineContent = trim((string) ($editingRoadmap['outline_content'] ?? '
                                             <?php endif; ?>
 
                                             <?php if ($canDeleteRoadmap): ?>
-                                                <form class="inline-block" method="post" action="/api/roadmaps/delete?id=<?= $roadmapId; ?>&course_id=<?= (int) $selectedCourseId; ?>&roadmap_page=<?= (int) $roadmapPage; ?>&roadmap_per_page=<?= (int) $roadmapPerPage; ?>" onsubmit="return confirm('Bạn có chắc muốn xóa chủ đề roadmap này không?');">
+                                                <form class="inline-block" method="post" action="/api/roadmaps/delete?id=<?= $roadmapId; ?>&course_id=<?= (int) $selectedCourseId; ?>&roadmap_page=<?= (int) $roadmapPage; ?>&roadmap_per_page=<?= (int) $roadmapPerPage; ?>" onsubmit="return confirm('Bạn có chắc muốn xóa chủ đề lộ trình này không?');">
                                                     <?= csrf_input(); ?>
                                                     <button
                                                         class="<?= ui_btn_danger_classes('sm'); ?> admin-action-icon-btn"

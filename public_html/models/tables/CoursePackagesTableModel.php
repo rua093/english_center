@@ -18,24 +18,36 @@ final class CoursePackagesTableModel extends BaseTableModel
 
         $table = $this->tableName();
         $projection = $this->projectionSql('cp');
+        $joinCourses = $this->hasColumn('course_id')
+            ? 'LEFT JOIN courses c ON c.id = cp.course_id AND c.deleted_at IS NULL'
+            : '';
+        $courseVisibilityWhere = $this->hasColumn('course_id')
+            ? ' AND (cp.course_id IS NULL OR cp.course_id = 0 OR c.id IS NOT NULL)'
+            : '';
 
         if ($this->usesPromotionSchema()) {
             return $this->fetchAll(
                 "SELECT {$projection}
                  FROM {$table} cp
-                                 WHERE (cp.start_date IS NULL OR cp.start_date <= :effective_start)
-                                     AND (cp.end_date IS NULL OR cp.end_date >= :effective_end)
+                 {$joinCourses}
+                 WHERE {$this->activeWhereSql('cp')}
+                   {$courseVisibilityWhere}
+                   AND (cp.start_date IS NULL OR cp.start_date <= :effective_start)
+                   AND (cp.end_date IS NULL OR cp.end_date >= :effective_end)
                  ORDER BY (course_id = 0) DESC, course_id ASC, promo_type ASC, discount_value DESC, name ASC",
-                                [
-                                        'effective_start' => $effectiveDate,
-                                        'effective_end' => $effectiveDate,
-                                ]
+                [
+                    'effective_start' => $effectiveDate,
+                    'effective_end' => $effectiveDate,
+                ]
             );
         }
 
         return $this->fetchAll(
             "SELECT {$projection}
              FROM {$table} cp
+             {$joinCourses}
+             WHERE {$this->activeWhereSql('cp')}
+               {$courseVisibilityWhere}
              ORDER BY (course_id = 0) DESC, course_id ASC, discount_value DESC, name ASC"
         );
     }
@@ -43,10 +55,19 @@ final class CoursePackagesTableModel extends BaseTableModel
     public function findById(int $id): ?array
     {
         $table = $this->tableName();
+        $joinCourses = $this->hasColumn('course_id')
+            ? 'LEFT JOIN courses c ON c.id = cp.course_id AND c.deleted_at IS NULL'
+            : '';
+        $courseVisibilityWhere = $this->hasColumn('course_id')
+            ? ' AND (cp.course_id IS NULL OR cp.course_id = 0 OR c.id IS NOT NULL)'
+            : '';
         return $this->fetchOne(
             "SELECT {$this->projectionSql('cp')}
              FROM {$table} cp
+             {$joinCourses}
              WHERE cp.id = :id
+               AND {$this->activeWhereSql('cp')}
+               {$courseVisibilityWhere}
              LIMIT 1",
             ['id' => $id]
         );
@@ -63,7 +84,12 @@ final class CoursePackagesTableModel extends BaseTableModel
 
     public function countDetailed(): int
     {
-        return (int) $this->fetchScalar('SELECT COUNT(*) AS total FROM ' . $this->tableName(), [], 'total', 0);
+        return (int) $this->fetchScalar(
+            'SELECT COUNT(*) AS total FROM ' . $this->tableName() . ' cp WHERE ' . $this->activeWhereSql('cp'),
+            [],
+            'total',
+            0
+        );
     }
 
     public function listDetailedPage(int $page, int $perPage): array
@@ -78,12 +104,16 @@ final class CoursePackagesTableModel extends BaseTableModel
             ? "COALESCE(c.course_name, '') AS course_name"
             : "'' AS course_name";
         $joinCourses = $this->hasColumn('course_id')
-            ? 'LEFT JOIN courses c ON c.id = cp.course_id'
+            ? 'LEFT JOIN courses c ON c.id = cp.course_id AND c.deleted_at IS NULL'
+            : '';
+        $courseVisibilityWhere = $this->hasColumn('course_id')
+            ? ' AND (cp.course_id IS NULL OR cp.course_id = 0 OR c.id IS NOT NULL)'
             : '';
 
         $sql = "SELECT {$projection}, {$courseNameSelect}
             FROM {$table} cp
             {$joinCourses}
+            WHERE {$this->activeWhereSql('cp')}{$courseVisibilityWhere}
             ORDER BY (course_id = 0) DESC, course_id ASC, discount_value DESC, name ASC
             LIMIT {$limit} OFFSET {$offset}";
 
@@ -98,7 +128,10 @@ final class CoursePackagesTableModel extends BaseTableModel
             ? "COALESCE(c.course_name, '') AS course_name"
             : "'' AS course_name";
         $joinCourses = $this->hasColumn('course_id')
-            ? 'LEFT JOIN courses c ON c.id = cp.course_id'
+            ? 'LEFT JOIN courses c ON c.id = cp.course_id AND c.deleted_at IS NULL'
+            : '';
+        $courseVisibilityWhere = $this->hasColumn('course_id')
+            ? ' AND (cp.course_id IS NULL OR cp.course_id = 0 OR c.id IS NOT NULL)'
             : '';
 
         return $this->fetchOne(
@@ -106,6 +139,7 @@ final class CoursePackagesTableModel extends BaseTableModel
              FROM {$table} cp
              {$joinCourses}
              WHERE cp.id = :id
+               AND {$this->activeWhereSql('cp')}{$courseVisibilityWhere}
              LIMIT 1",
             ['id' => $id]
         );
@@ -177,6 +211,11 @@ final class CoursePackagesTableModel extends BaseTableModel
 
     public function deleteById(int $id): void
     {
+        if ($this->hasColumn('deleted_at')) {
+            $this->softDeleteByIdFrom($this->tableName(), $id);
+            return;
+        }
+
         $this->deleteByIdFrom($this->tableName(), $id);
     }
 
@@ -252,7 +291,19 @@ final class CoursePackagesTableModel extends BaseTableModel
         }
 
         $sql = 'UPDATE ' . $this->tableName() . ' SET ' . implode(', ', $setParts) . ' WHERE id = :id';
+        if ($this->hasColumn('deleted_at')) {
+            $sql .= ' AND deleted_at IS NULL';
+        }
         $this->executeStatement($sql, $params);
+    }
+
+    private function activeWhereSql(string $alias): string
+    {
+        if ($this->hasColumn('deleted_at')) {
+            return "{$alias}.deleted_at IS NULL";
+        }
+
+        return '1=1';
     }
 
     private function insertRow(array $values): void

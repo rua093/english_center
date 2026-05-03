@@ -32,6 +32,7 @@ $selectedCourseName = trim((string) ($editingCourse['course_name'] ?? ''));
 $selectedDescription = trim((string) ($editingCourse['description'] ?? ''));
 $selectedBasePrice = (float) ($editingCourse['base_price'] ?? 0);
 $selectedTotalSessions = max(0, (int) ($editingCourse['total_sessions'] ?? 0));
+$selectedThumbnailUrl = normalize_public_file_url((string) ($editingCourse['image_thumbnail'] ?? ''));
 ?>
 <div class="grid gap-4">
     <?php if ($success): ?>
@@ -45,11 +46,12 @@ $selectedTotalSessions = max(0, (int) ($editingCourse['total_sessions'] ?? 0));
     <?php if ($canCreateCourse || $canUpdateCourse): ?>
         <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <h3><?= $editingCourse ? 'Sửa khóa học' : 'Thêm khóa học'; ?></h3>
-            <form class="grid gap-3 md:grid-cols-2" method="post" action="/api/courses/save">
+            <form class="grid gap-3 md:grid-cols-2" method="post" action="/api/courses/save" enctype="multipart/form-data">
                 <?= csrf_input(); ?>
                 <input type="hidden" name="id" value="<?= (int) ($editingCourse['id'] ?? 0); ?>">
                 <input type="hidden" name="course_page" value="<?= (int) $coursePage; ?>">
                 <input type="hidden" name="course_per_page" value="<?= (int) $coursePerPage; ?>">
+                <input type="hidden" name="existing_image_thumbnail" value="<?= e((string) ($editingCourse['image_thumbnail'] ?? '')); ?>">
 
                 <label>
                     Tên khóa học
@@ -71,6 +73,18 @@ $selectedTotalSessions = max(0, (int) ($editingCourse['total_sessions'] ?? 0));
                     <textarea name="description" rows="4" placeholder="Mô tả ngắn nội dung, mục tiêu và đối tượng học viên."><?= e($selectedDescription); ?></textarea>
                 </label>
 
+                <label class="md:col-span-2">
+                    Ảnh minh họa khóa học
+                    <input type="file" name="course_thumbnail" accept=".jpg,.jpeg,.png,.gif,.webp">
+                </label>
+                <?php if ($selectedThumbnailUrl !== ''): ?>
+                    <div class="md:col-span-2 text-xs text-slate-500">
+                        Ảnh hiện tại:
+                        <a class="font-semibold text-blue-700 hover:underline" href="<?= e($selectedThumbnailUrl); ?>" target="_blank" rel="noopener noreferrer">Mở ảnh</a>.
+                        Chọn ảnh mới để thay thế.
+                    </div>
+                <?php endif; ?>
+
                 <div class="md:col-span-2 inline-flex flex-wrap items-center gap-2">
                     <button class="<?= ui_btn_primary_classes(); ?>" type="submit"><?= $editingCourse ? 'Cập nhật khóa học' : 'Tạo khóa học'; ?></button>
                     <?php if ($editingCourse): ?>
@@ -84,7 +98,7 @@ $selectedTotalSessions = max(0, (int) ($editingCourse['total_sessions'] ?? 0));
     <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
             <h3>Danh sách khóa học</h3>
-            <a class="<?= ui_btn_secondary_classes('sm'); ?>" href="<?= e(page_url('roadmaps-academic')); ?>">Quản lý roadmap</a>
+            <a class="<?= ui_btn_secondary_classes('sm'); ?>" href="<?= e(page_url('roadmaps-academic')); ?>">Quản lý lộ trình</a>
         </div>
 
         <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
@@ -117,6 +131,12 @@ $selectedTotalSessions = max(0, (int) ($editingCourse['total_sessions'] ?? 0));
                             ?>
                             <tr>
                                 <td>
+                                    <?php $courseThumbUrl = normalize_public_file_url((string) ($course['image_thumbnail'] ?? '')); ?>
+                                    <?php if ($courseThumbUrl !== ''): ?>
+                                        <a class="mb-2 inline-flex" href="<?= e($courseThumbUrl); ?>" target="_blank" rel="noopener noreferrer">
+                                            <img class="h-12 w-16 rounded-md border border-slate-200 object-cover" src="<?= e($courseThumbUrl); ?>" alt="Ảnh khóa học">
+                                        </a>
+                                    <?php endif; ?>
                                     <div class="font-semibold text-slate-800"><?= e($courseName); ?></div>
                                     <?php if (!empty($course['description'])): ?>
                                         <div class="mt-1 text-xs text-slate-500"><?= e((string) $course['description']); ?></div>
@@ -137,10 +157,10 @@ $selectedTotalSessions = max(0, (int) ($editingCourse['total_sessions'] ?? 0));
                                             class="admin-action-icon-btn"
                                             data-action-kind="detail"
                                             data-skip-action-icon="1"
-                                            title="Roadmap"
-                                            aria-label="Roadmap"
+                                            title="Lộ trình"
+                                            aria-label="Lộ trình"
                                         >
-                                            <span class="admin-action-icon-label">Roadmap</span>
+                                            <span class="admin-action-icon-label">Lộ trình</span>
                                             <span class="admin-action-icon-glyph" aria-hidden="true">
                                                 <svg viewBox="0 0 24 24"><path d="M3 6h18"></path><path d="M3 12h18"></path><path d="M3 18h18"></path><circle cx="7" cy="6" r="1.5"></circle><circle cx="12" cy="12" r="1.5"></circle><circle cx="17" cy="18" r="1.5"></circle></svg>
                                             </span>

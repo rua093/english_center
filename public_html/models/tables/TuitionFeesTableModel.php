@@ -27,11 +27,13 @@ final class TuitionFeesTableModel extends BaseTableModel
 
     public function listDetailed(): array
     {
-        $sql = "SELECT t.id, t.student_id, t.class_id, t.total_amount, t.amount_paid, t.payment_plan, t.status,
-                NULL AS due_date, u.full_name AS full_name, c.class_name AS course_name
+        $sql = "SELECT t.id, t.student_id, t.class_id, t.package_id, t.discount_amount, t.total_amount, t.amount_paid, t.payment_plan, t.status,
+                NULL AS due_date, u.full_name AS full_name, sp.student_code, c.class_name AS class_name, co.course_name
             FROM tuition_fees t
             INNER JOIN users u ON u.id = t.student_id
+            LEFT JOIN student_profiles sp ON sp.user_id = u.id
             INNER JOIN classes c ON c.id = t.class_id
+            INNER JOIN courses co ON co.id = c.course_id AND co.deleted_at IS NULL
             ORDER BY t.id DESC";
         return $this->fetchAll($sql);
     }
@@ -39,11 +41,13 @@ final class TuitionFeesTableModel extends BaseTableModel
     public function listDetailedPage(int $page, int $perPage): array
     {
         $pagination = $this->pagination($page, $perPage, 10, 200);
-        $sql = "SELECT t.id, t.student_id, t.class_id, t.total_amount, t.amount_paid, t.payment_plan, t.status,
-                NULL AS due_date, u.full_name AS full_name, c.class_name AS course_name
+        $sql = "SELECT t.id, t.student_id, t.class_id, t.package_id, t.discount_amount, t.total_amount, t.amount_paid, t.payment_plan, t.status,
+                NULL AS due_date, u.full_name AS full_name, sp.student_code, c.class_name AS class_name, co.course_name
             FROM tuition_fees t
             INNER JOIN users u ON u.id = t.student_id
+            LEFT JOIN student_profiles sp ON sp.user_id = u.id
             INNER JOIN classes c ON c.id = t.class_id
+            INNER JOIN courses co ON co.id = c.course_id AND co.deleted_at IS NULL
             ORDER BY t.id DESC
             LIMIT {$pagination['limit']} OFFSET {$pagination['offset']}";
         return $this->fetchAll($sql);
@@ -51,9 +55,10 @@ final class TuitionFeesTableModel extends BaseTableModel
 
     public function findDetailedById(int $id): ?array
     {
-        $sql = "SELECT t.id, t.total_amount, t.amount_paid, t.status, u.full_name AS full_name, c.class_name AS class_name
+        $sql = "SELECT t.id, t.total_amount, t.amount_paid, t.status, u.full_name AS full_name, sp.student_code, c.class_name AS class_name
             FROM tuition_fees t
             INNER JOIN users u ON u.id = t.student_id
+            LEFT JOIN student_profiles sp ON sp.user_id = u.id
             INNER JOIN classes c ON c.id = t.class_id
             WHERE t.id = :id
             LIMIT 1";
@@ -72,34 +77,67 @@ final class TuitionFeesTableModel extends BaseTableModel
     public function save(array $data): void
     {
         $id = (int) ($data['id'] ?? 0);
-        $studentId = (int) ($data['student_id'] ?? 0);
-        $classId = (int) ($data['class_id'] ?? 0);
-        $totalAmount = max(0, (float) ($data['total_amount'] ?? 0));
-        $amountPaid = max(0, (float) ($data['amount_paid'] ?? 0));
         $paymentPlan = (string) ($data['payment_plan'] ?? 'full');
         if (!in_array($paymentPlan, ['full', 'monthly'], true)) {
             $paymentPlan = 'full';
         }
-        $status = $this->resolveStatus($totalAmount, $amountPaid);
 
         if ($id > 0) {
+            $current = $this->findForEdit($id);
+            if (!$current) {
+                return;
+            }
+
+            $baseAmount = max(0, (float) ($data['base_amount'] ?? ($current['base_amount'] ?? 0)));
+            if ($baseAmount <= 0) {
+                $baseAmount = max(0, (float) ($current['total_amount'] ?? 0));
+            }
+
+            $packageId = max(0, (int) ($data['package_id'] ?? ($current['package_id'] ?? 0)));
+            $discountType = trim((string) ($data['discount_type'] ?? ($current['discount_type'] ?? 'none')));
+            $discountPercent = max(0, min(100, (float) ($data['discount_amount'] ?? ($current['discount_amount'] ?? 0))));
+            $amountPaid = max(0, (float) ($current['amount_paid'] ?? 0));
+
+            $storedDiscountType = null;
+            $storedDiscountAmount = 0.0;
+            if ($discountType !== '' && strtolower($discountType) !== 'none' && $discountPercent > 0) {
+                $storedDiscountType = strtoupper($discountType);
+                $storedDiscountAmount = $discountPercent;
+            }
+
+            $appliedDiscount = round(($baseAmount * $storedDiscountAmount) / 100, 2);
+            $totalAmount = max(0, round($baseAmount - $appliedDiscount, 2));
+            $status = $this->resolveStatus($totalAmount, $amountPaid);
+
             $this->executeStatement(
                 'UPDATE tuition_fees
-                 SET student_id = :student_id, class_id = :class_id, total_amount = :total_amount,
-                     amount_paid = :amount_paid, payment_plan = :payment_plan, status = :status
+                 SET package_id = :package_id,
+                     base_amount = :base_amount,
+                     discount_type = :discount_type,
+                     discount_amount = :discount_amount,
+                     total_amount = :total_amount,
+                     payment_plan = :payment_plan,
+                     status = :status
                  WHERE id = :id',
                 [
                     'id' => $id,
-                    'student_id' => $studentId,
-                    'class_id' => $classId,
+                    'package_id' => $packageId > 0 ? $packageId : null,
+                    'base_amount' => round($baseAmount, 2),
+                    'discount_type' => $storedDiscountType,
+                    'discount_amount' => round($storedDiscountAmount, 2),
                     'total_amount' => $totalAmount,
-                    'amount_paid' => $amountPaid,
                     'payment_plan' => $paymentPlan,
                     'status' => $status,
                 ]
             );
             return;
         }
+
+        $studentId = (int) ($data['student_id'] ?? 0);
+        $classId = (int) ($data['class_id'] ?? 0);
+        $totalAmount = max(0, (float) ($data['total_amount'] ?? 0));
+        $amountPaid = max(0, (float) ($data['amount_paid'] ?? 0));
+        $status = $this->resolveStatus($totalAmount, $amountPaid);
 
         $this->executeStatement(
             'INSERT INTO tuition_fees (

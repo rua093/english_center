@@ -1,6 +1,6 @@
 <?php
 require_admin_or_staff();
-require_permission('approval.view');
+require_any_permission(['approval.view']);
 
 $academicModel = new AcademicModel();
 $approvalPage = max(1, (int) ($_GET['approval_page'] ?? 1));
@@ -23,10 +23,11 @@ $adminTitle = 'Hệ thống phê duyệt';
 
 $viewer = auth_user();
 $isAdmin = (($viewer['role'] ?? '') === 'admin');
+$staffEditableTypes = ['schedule_change', 'teacher_leave'];
 
-$canCreateApproval = $isAdmin || has_any_permission(['approval.manage', 'approval.request']);
-$canUpdateApproval = $isAdmin || has_any_permission(['approval.manage', 'approval.update']);
-$canDeleteApproval = $isAdmin || has_any_permission(['approval.manage', 'approval.delete']);
+$canCreateApproval = $isAdmin;
+$canUpdateApproval = $isAdmin || has_any_permission(['approval.update']);
+$canDeleteApproval = $isAdmin;
 
 $approvalTypeOptions = [
     'schedule_change'  => 'Thay đổi lịch học',
@@ -67,7 +68,7 @@ $error = get_flash('error');
         <div class="rounded-xl border-l-4 border-rose-500 bg-rose-50 p-3 text-sm text-rose-700"><?= e($error); ?></div>
     <?php endif; ?>
 
-    <?php if ($canCreateApproval || $canUpdateApproval): ?>
+    <?php if ($canCreateApproval || ($canUpdateApproval && $editingApproval && in_array((string) $approvalType, $staffEditableTypes, true))): ?>
         <article class="order-2 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <h3><?= $editingApproval ? 'Sửa phiếu phê duyệt' : 'Tạo phiếu phê duyệt'; ?></h3>
             <form class="grid gap-3 md:grid-cols-2" method="post" action="/api/approvals/save">
@@ -154,9 +155,13 @@ $error = get_flash('error');
                                 <td><?= $app['approver_name'] ? e((string) $app['approver_name']) : '-'; ?></td>
                                 <td><?= e((string) ($app['created_at'] ?? '')); ?></td>
                                 <td>
-                                    <?php if ($canUpdateApproval || $canDeleteApproval): ?>
+                                    <?php
+                                    $approvalRowType = strtolower(trim((string) $displayType));
+                                    $canEditThisApproval = $isAdmin || ($canUpdateApproval && in_array($approvalRowType, $staffEditableTypes, true));
+                                    ?>
+                                    <?php if ($canEditThisApproval || $canDeleteApproval): ?>
                                         <div class="inline-flex flex-wrap items-center gap-2">
-                                            <?php if ($canUpdateApproval): ?>
+                                            <?php if ($canEditThisApproval): ?>
                                                 <a
                                                     href="<?= e(page_url('approvals-manage', ['edit' => (int) $app['id'], 'approval_page' => $approvalPage, 'approval_per_page' => $approvalPerPage])); ?>"
                                                     class="admin-action-icon-btn"
