@@ -40,18 +40,16 @@ $error = get_flash('error');
                 <thead>
                     <tr>
                         <th>Học viên</th>
-                        <th>Giáo viên</th>
-                        <th>Lớp học</th>
                         <th>Đánh giá</th>
                         <th>Nhận xét</th>
-                        <th>Trạng thái</th>
+                        <th>Hiển thị web</th>
                         <th>Hành động</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php if (empty($feedbacks)): ?>
                         <tr>
-                            <td colspan="7">
+                            <td colspan="5">
                                 <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">Chưa có đánh giá nào.</div>
                             </td>
                         </tr>
@@ -59,14 +57,17 @@ $error = get_flash('error');
                         <?php foreach ($feedbacks as $fb): ?>
                             <tr>
                                 <td><?= e((string) ($fb['full_name'] ?? ($fb['student_name'] ?? ''))); ?></td>
-                                <td><?= !empty($fb['teacher_name']) ? e((string) $fb['teacher_name']) : '-'; ?></td>
-                                <td><?= !empty($fb['course_name']) ? e((string) $fb['course_name']) : '-'; ?></td>
                                 <td><?= (int) $fb['rating']; ?>/5</td>
                                 <td>
                                     <?php $fullComment = (string) ($fb['comment'] ?? ''); ?>
                                     <span data-full-value="<?= e($fullComment); ?>"><?= e((string) substr($fullComment, 0, 50)); ?></span>
                                 </td>
-                                <td><span class="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-bold capitalize border-blue-200 bg-blue-50 text-blue-700"><?= e((string) ($fb['status'] ?? 'reviewed')); ?></span></td>
+                                <td>
+                                    <?php $isPublicWeb = (int) ($fb['is_public_web'] ?? 0) === 1; ?>
+                                    <span class="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-bold capitalize <?= $isPublicWeb ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-slate-200 bg-slate-50 text-slate-600'; ?>">
+                                        <?= $isPublicWeb ? 'Công khai' : 'Ẩn'; ?>
+                                    </span>
+                                </td>
                                 <td>
                                     <?php if ($canDeleteFeedback): ?>
                                         <form class="inline-block" method="post" action="/api/feedbacks/delete?id=<?= (int) $fb['id']; ?>" onsubmit="return confirm('Có chắc không?')">

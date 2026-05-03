@@ -19,6 +19,19 @@ $buildCourseSlug = static function (string $value): string {
 	return trim($slug, '-');
 };
 
+$resolveCourseImage = static function (?string $value): string {
+	$value = trim((string) $value);
+	if ($value === '') {
+		return '';
+	}
+
+	if (preg_match('#^(?:https?:)?//#i', $value) === 1) {
+		return $value;
+	}
+
+	return str_starts_with($value, '/') ? $value : '/' . ltrim($value, '/');
+};
+
 $homeCourses = [];
 foreach ($courseRows as $row) {
 	$courseName = trim((string) ($row['course_name'] ?? ''));
@@ -34,7 +47,7 @@ foreach ($courseRows as $row) {
 		'price' => number_format((float) ($row['base_price'] ?? 0), 0, ',', '.') . 'đ',
 		'total_sessions' => max(0, (int) ($row['total_sessions'] ?? 0)),
 		'level' => 'Đang cập nhật',
-		'image' => trim((string) ($row['image_url'] ?? '')),
+		'image' => $resolveCourseImage((string) ($row['image_thumbnail'] ?? '')),
 		'roadmap_count' => max(0, (int) ($row['roadmap_count'] ?? 0)),
 		'class_count' => max(0, (int) ($row['class_count'] ?? 0)),
 	];

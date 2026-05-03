@@ -10,6 +10,19 @@ $activityModel = new ExtracurricularActivitiesTableModel();
 $currentUser = auth_user() ?? [];
 $currentUserId = (int) ($currentUser['id'] ?? 0);
 
+$resolveActivityImage = static function (?string $value): string {
+	$value = trim((string) $value);
+	if ($value === '') {
+		return '/assets/images/center.jpg';
+	}
+
+	if (preg_match('#^(?:https?:)?//#i', $value) === 1) {
+		return $value;
+	}
+
+	return str_starts_with($value, '/') ? $value : '/' . ltrim($value, '/');
+};
+
 $activityFilter = strtolower(trim((string) ($_GET['filter'] ?? 'all')));
 if (!in_array($activityFilter, ['all', 'registered', 'available'], true)) {
 	$activityFilter = 'all';
@@ -38,6 +51,7 @@ foreach ($activityRows as $row) {
 		'title' => (string) ($row['activity_name'] ?? ''),
 		'description' => (string) ($row['description'] ?? ''),
 		'content' => (string) ($row['content'] ?? ''),
+		'image_thumbnail' => $resolveActivityImage((string) ($row['image_thumbnail'] ?? '')),
 		'date' => $startDate,
 		'location' => (string) ($row['location'] ?? ''),
 		'fee' => (float) ($row['fee'] ?? 0),
@@ -69,6 +83,22 @@ $availableActivitiesPage = array_slice($availableActivities, $pageOffset, $activ
 $shouldShowRegistered = $activityFilter === 'all' || $activityFilter === 'registered';
 $shouldShowAvailable = $activityFilter === 'all' || $activityFilter === 'available';
 ?>
+<link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css">
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<style>
+	.activity-card:hover .activity-card-img {
+		transform: scale(1.08);
+	}
+
+	.activity-card {
+		transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+	}
+
+	.activity-card:hover {
+		transform: translateY(-0.5rem);
+		box-shadow: 0 24px 60px rgba(15, 23, 42, 0.14);
+	}
+</style>
 <section class="min-h-screen bg-[#f8fafc] py-8 px-2 sm:px-4 lg:px-6 xl:px-8">
 	<div class="mx-auto w-full max-w-[1800px]">
 		<div class="grid grid-cols-1 gap-8 lg:grid-cols-[16rem_minmax(0,1fr)] xl:grid-cols-[17rem_minmax(0,1fr)] lg:items-start">
@@ -117,10 +147,12 @@ $shouldShowAvailable = $activityFilter === 'all' || $activityFilter === 'availab
 							</div>
 						<?php else: ?>
 							<div class="grid grid-cols-1 gap-6 items-stretch sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+								<?php $registeredDelay = 0; ?>
 								<?php foreach ($registeredActivitiesPage as $activity): ?>
-									<article class="flex flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition-all duration-300 group hover:shadow-xl">
-										<div class="relative h-36 overflow-hidden bg-gradient-to-br from-blue-900 to-indigo-800"<?= !empty($activity['content']) ? ' style="background-image: linear-gradient(rgba(15, 23, 42, 0.35), rgba(15, 23, 42, 0.35));"' : ''; ?>>
-											<div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition"></div>
+									<article class="activity-card flex flex-col overflow-hidden rounded-[2rem] border border-white bg-white/95 shadow-[0_14px_40px_rgba(15,23,42,0.08)] group transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_24px_60px_rgba(15,23,42,0.14)]" data-aos="fade-up" data-aos-delay="<?= $registeredDelay; ?>" data-aos-duration="700">
+										<div class="relative h-56 overflow-hidden">
+											<img src="<?= e((string) $activity['image_thumbnail']); ?>" alt="<?= e((string) $activity['title']); ?>" class="activity-card-img h-full w-full object-cover transition-transform duration-700">
+											<div class="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-950/15 to-transparent"></div>
 											<div class="absolute top-4 right-4 rounded-full bg-white/90 px-3 py-1.5 text-xs font-bold text-blue-900 backdrop-blur">
 												<?= e($activity['date']); ?>
 											</div>
@@ -162,6 +194,7 @@ $shouldShowAvailable = $activityFilter === 'all' || $activityFilter === 'availab
 											</div>
 										</div>
 									</article>
+									<?php $registeredDelay += 100; ?>
 								<?php endforeach; ?>
 							</div>
 						<?php endif; ?>
@@ -213,10 +246,12 @@ $shouldShowAvailable = $activityFilter === 'all' || $activityFilter === 'availab
 							</div>
 						<?php else: ?>
 							<div class="grid grid-cols-1 gap-6 items-stretch sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+								<?php $availableDelay = 0; ?>
 								<?php foreach ($availableActivitiesPage as $activity): ?>
-									<article class="flex flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition-all duration-300 group hover:shadow-xl">
-										<div class="relative h-36 overflow-hidden bg-gradient-to-br from-blue-900 to-indigo-800"<?= !empty($activity['content']) ? ' style="background-image: linear-gradient(rgba(15, 23, 42, 0.35), rgba(15, 23, 42, 0.35));"' : ''; ?>>
-											<div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition"></div>
+									<article class="activity-card flex flex-col overflow-hidden rounded-[2rem] border border-white bg-white/95 shadow-[0_14px_40px_rgba(15,23,42,0.08)] group transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_24px_60px_rgba(15,23,42,0.14)]" data-aos="fade-up" data-aos-delay="<?= $availableDelay; ?>" data-aos-duration="700">
+										<div class="relative h-56 overflow-hidden">
+											<img src="<?= e((string) $activity['image_thumbnail']); ?>" alt="<?= e((string) $activity['title']); ?>" class="activity-card-img h-full w-full object-cover transition-transform duration-700">
+											<div class="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-950/15 to-transparent"></div>
 											<div class="absolute top-4 right-4 rounded-full bg-white/90 px-3 py-1.5 text-xs font-bold text-blue-900 backdrop-blur">
 												<?= e($activity['date']); ?>
 											</div>
@@ -253,6 +288,7 @@ $shouldShowAvailable = $activityFilter === 'all' || $activityFilter === 'availab
 											</div>
 										</div>
 									</article>
+									<?php $availableDelay += 100; ?>
 								<?php endforeach; ?>
 							</div>
 						<?php endif; ?>
@@ -294,3 +330,20 @@ $shouldShowAvailable = $activityFilter === 'all' || $activityFilter === 'availab
 		</div>
 	</div>
 </section>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+	if (typeof AOS !== 'undefined') {
+		AOS.init({
+			duration: 350,
+			once: true,
+			offset: 0
+		});
+	}
+});
+
+window.addEventListener('load', function () {
+	if (typeof AOS !== 'undefined') {
+		AOS.refresh();
+	}
+});
+</script>

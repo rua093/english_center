@@ -12,6 +12,19 @@ $buildCourseSlug = static function (string $value): string {
     return trim($slug, '-');
 };
 
+$resolveCourseImage = static function (?string $value): string {
+    $value = trim((string) $value);
+    if ($value === '') {
+        return '/assets/images/center.jpg';
+    }
+
+    if (preg_match('#^(?:https?:)?//#i', $value) === 1) {
+        return $value;
+    }
+
+    return str_starts_with($value, '/') ? $value : '/' . ltrim($value, '/');
+};
+
 $dbCourses = [];
 foreach ($courseRows as $row) {
     $courseName = trim((string) ($row['course_name'] ?? ''));
@@ -34,7 +47,7 @@ foreach ($courseRows as $row) {
         'lessons_count' => (int) ($row['total_sessions'] ?? 0),
         'rating' => 0.0,
         'students' => 0,
-        'image' => '',
+        'image' => $resolveCourseImage((string) ($row['image_thumbnail'] ?? '')),
         'instructor' => [
             'name' => '',
             'role' => '',

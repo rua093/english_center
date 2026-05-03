@@ -2,8 +2,6 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../../core/api_helpers.php';
-require_once __DIR__ . '/../../models/tables/ClassStudentsTableModel.php';
-require_once __DIR__ . '/../../models/tables/ClassesTableModel.php';
 require_once __DIR__ . '/../../models/AcademicModel.php';
 
 function api_feedbacks_save_action(): void
@@ -29,40 +27,9 @@ function api_feedbacks_save_action(): void
 
 	$user = auth_user() ?? [];
 	$userId = (int) ($user['id'] ?? 0);
-	$classId = input_int($_POST, 'class_id');
-	$teacherId = input_int($_POST, 'teacher_id');
-	$classStudentsTable = new ClassStudentsTableModel();
-	$classesTable = new ClassesTableModel();
-
-	if ($classId <= 0 && $userId > 0) {
-		$studentClasses = $classStudentsTable->listMyClassesForStudent($userId);
-		if (!empty($studentClasses)) {
-			$classId = (int) ($studentClasses[0]['class_id'] ?? 0);
-		}
-	}
-
-	if ($classId <= 0) {
-		$firstClass = $classesTable->listDetailedWithProgressPage(1, 1)[0] ?? null;
-		if (is_array($firstClass)) {
-			$classId = (int) ($firstClass['id'] ?? 0);
-			$teacherId = (int) ($firstClass['teacher_id'] ?? 0);
-		}
-	}
-
-	if ($teacherId <= 0 && $classId > 0) {
-		$classRow = $classesTable->findById($classId);
-		$teacherId = (int) ($classRow['teacher_id'] ?? 0);
-	}
-
-	if ($classId <= 0 || $teacherId <= 0) {
-		set_flash('error', 'Không thể xác định lớp học và giáo viên để lưu đánh giá.');
-		redirect($redirectTo);
-	}
 
 	$_POST['sender_id'] = $userId;
-	$_POST['class_id'] = $classId;
-	$_POST['teacher_id'] = $teacherId;
-	$_POST['status'] = (string) ($_POST['status'] ?? 'pending');
+	$_POST['is_public_web'] = input_int($_POST, 'is_public_web', 0) === 1 ? 1 : 0;
 	(new AcademicModel())->saveFeedback($_POST);
 	set_flash('success', 'Đã lưu feedback thành công.');
 

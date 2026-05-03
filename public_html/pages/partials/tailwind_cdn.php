@@ -7,7 +7,8 @@ tailwind.config = {
     theme: {
         extend: {
             fontFamily: {
-                sans: ['Manrope', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+                sans: ['Be Vietnam Pro', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+                jakarta: ['Be Vietnam Pro', 'ui-sans-serif', 'system-ui', 'sans-serif'],
                 display: ['Sora', 'ui-sans-serif', 'system-ui', 'sans-serif'],
             },
             boxShadow: {

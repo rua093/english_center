@@ -149,6 +149,9 @@ function api_users_update_action(): void
 		if ($avatarPath !== null) {
 			$_SESSION['auth_user']['avatar'] = $avatarPath;
 		}
+		$_SESSION['auth_user']['role_profile'] = is_array($existingProfile['role_profile'] ?? null)
+			? $existingProfile['role_profile']
+			: [];
 		if ((string) ($existingProfile['role_name'] ?? '') === 'teacher') {
 			$_SESSION['auth_user']['role_profile']['teacher_intro_video_url'] = $teacherIntroVideoUrl;
 		}

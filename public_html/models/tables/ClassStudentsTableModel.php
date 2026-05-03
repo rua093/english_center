@@ -31,7 +31,17 @@ final class ClassStudentsTableModel
             return [];
         }
 
-        $sql = "SELECT DISTINCT cs.class_id, cs.student_id, cs.learning_status, u.full_name AS student_name
+        $sql = "SELECT DISTINCT cs.class_id, cs.student_id,
+                CASE
+                    WHEN EXISTS (
+                        SELECT 1
+                        FROM tuition_fees tf
+                        WHERE tf.class_id = cs.class_id
+                          AND tf.student_id = cs.student_id
+                    ) THEN 'official'
+                    ELSE 'trial'
+                END AS learning_status,
+                u.full_name AS student_name
             FROM class_students cs
             INNER JOIN users u ON u.id = cs.student_id
             WHERE cs.class_id = :class_id
@@ -43,7 +53,17 @@ final class ClassStudentsTableModel
 
     public function listStudentsByClass(): array
     {
-        $sql = "SELECT DISTINCT cs.class_id, cs.student_id, cs.learning_status, c.class_name, u.full_name AS student_name
+        $sql = "SELECT DISTINCT cs.class_id, cs.student_id,
+                CASE
+                    WHEN EXISTS (
+                        SELECT 1
+                        FROM tuition_fees tf
+                        WHERE tf.class_id = cs.class_id
+                          AND tf.student_id = cs.student_id
+                    ) THEN 'official'
+                    ELSE 'trial'
+                END AS learning_status,
+                c.class_name, u.full_name AS student_name
             FROM class_students cs
             INNER JOIN classes c ON c.id = cs.class_id
             INNER JOIN users u ON u.id = cs.student_id
@@ -73,7 +93,17 @@ final class ClassStudentsTableModel
         }
 
         return $this->fetchOne(
-            'SELECT class_id, student_id, learning_status, enrollment_date
+            'SELECT class_id, student_id,
+                    CASE
+                        WHEN EXISTS (
+                            SELECT 1
+                            FROM tuition_fees tf
+                            WHERE tf.class_id = class_students.class_id
+                              AND tf.student_id = class_students.student_id
+                        ) THEN "official"
+                        ELSE "trial"
+                    END AS learning_status,
+                    enrollment_date
              FROM class_students
              WHERE class_id = :class_id AND student_id = :student_id
              LIMIT 1',
@@ -90,22 +120,7 @@ final class ClassStudentsTableModel
             return false;
         }
 
-        $normalizedStatus = in_array($learningStatus, ['trial', 'official'], true)
-            ? $learningStatus
-            : 'official';
-
-        $affectedRows = $this->executeStatement(
-            'UPDATE class_students
-             SET learning_status = :learning_status
-             WHERE class_id = :class_id AND student_id = :student_id',
-            [
-                'learning_status' => $normalizedStatus,
-                'class_id' => $classId,
-                'student_id' => $studentId,
-            ]
-        );
-
-        return $affectedRows > 0;
+        return $this->existsEnrollment($classId, $studentId);
     }
 
     public function enrollStudent(int $classId, int $studentId, string $learningStatus = 'official', ?string $enrollmentDate = null): void
@@ -123,13 +138,12 @@ final class ClassStudentsTableModel
             : date('Y-m-d');
 
         $this->executeStatement(
-            'INSERT INTO class_students (class_id, student_id, learning_status, enrollment_date)
-             VALUES (:class_id, :student_id, :learning_status, :enrollment_date)
-             ON DUPLICATE KEY UPDATE student_id = student_id',
+            'INSERT INTO class_students (class_id, student_id, enrollment_date)
+             VALUES (:class_id, :student_id, :enrollment_date)
+             ON DUPLICATE KEY UPDATE enrollment_date = VALUES(enrollment_date)',
             [
                 'class_id' => $classId,
                 'student_id' => $studentId,
-                'learning_status' => $normalizedStatus,
                 'enrollment_date' => $normalizedDate,
             ]
         );
@@ -158,7 +172,15 @@ final class ClassStudentsTableModel
                 c.status AS class_status,
                 c.start_date,
                 c.end_date,
-                cs.learning_status,
+                CASE
+                    WHEN EXISTS (
+                        SELECT 1
+                        FROM tuition_fees tf
+                        WHERE tf.class_id = cs.class_id
+                          AND tf.student_id = cs.student_id
+                    ) THEN 'official'
+                    ELSE 'trial'
+                END AS learning_status,
                 co.course_name,
                 u.full_name AS teacher_name,
                 COALESCE(sched.total_schedules, 0) AS total_schedules,
@@ -216,7 +238,15 @@ final class ClassStudentsTableModel
         $sql = "SELECT
                 cs.class_id,
                 cs.student_id,
-                cs.learning_status,
+                CASE
+                    WHEN EXISTS (
+                        SELECT 1
+                        FROM tuition_fees tf
+                        WHERE tf.class_id = cs.class_id
+                          AND tf.student_id = cs.student_id
+                    ) THEN 'official'
+                    ELSE 'trial'
+                END AS learning_status,
                 cs.enrollment_date,
                 u.full_name AS student_name,
                 c.class_name,
@@ -255,7 +285,15 @@ final class ClassStudentsTableModel
         $sql = "SELECT
                 cs.class_id,
                 cs.student_id,
-                cs.learning_status,
+                CASE
+                    WHEN EXISTS (
+                        SELECT 1
+                        FROM tuition_fees tf
+                        WHERE tf.class_id = cs.class_id
+                          AND tf.student_id = cs.student_id
+                    ) THEN 'official'
+                    ELSE 'trial'
+                END AS learning_status,
                 cs.enrollment_date,
                 u.full_name AS student_name,
                 c.class_name,

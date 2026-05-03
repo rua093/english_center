@@ -49,9 +49,23 @@ foreach ($teacherRows as $teacherRow) {
 }
 ?>
 
+<link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css">
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
 <style>
-    .teacher-card { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
-    .teacher-card:hover { transform: translateY(-10px); box-shadow: 0 25px 50px -12px rgba(16, 185, 129, 0.25); border-color: #10b981; }
+    .teacher-card:hover .teacher-card-img {
+        transform: scale(1.08);
+    }
+
+    .teacher-card {
+        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .teacher-card:hover {
+        transform: translateY(-0.5rem);
+        box-shadow: 0 24px 60px rgba(15, 23, 42, 0.14);
+        border-color: rgba(16, 185, 129, 0.28);
+    }
 </style>
 
 <section class="min-h-screen bg-slate-50 font-jakarta pb-24">
@@ -72,12 +86,13 @@ foreach ($teacherRows as $teacherRow) {
     <div class="container mx-auto px-4 max-w-6xl relative z-20 -mt-16">
         
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <?php $teacherDelay = 0; ?>
             <?php foreach($teachers as $teacher): ?>
-            <div class="teacher-card bg-white rounded-[2rem] p-4 border border-slate-100 flex flex-col group cursor-pointer relative" onclick="window.location.href='/teacher-detail?id=<?= $teacher['id'] ?>'">
+            <div class="teacher-card bg-white/95 rounded-[2rem] p-4 border border-white shadow-[0_14px_40px_rgba(15,23,42,0.08)] flex flex-col group cursor-pointer relative overflow-hidden transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_24px_60px_rgba(15,23,42,0.14)]" onclick="window.location.href='/teacher-detail?id=<?= $teacher['id'] ?>'" data-aos="fade-up" data-aos-delay="<?= $teacherDelay; ?>" data-aos-duration="700">
                 
                 <div class="relative h-72 rounded-[1.5rem] overflow-hidden mb-5 bg-slate-100">
-                    <img src="<?= e($teacher['avatar']) ?>" alt="<?= e($teacher['name']) ?>" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
-                    <div class="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity"></div>
+                    <img src="<?= e($teacher['avatar']) ?>" alt="<?= e($teacher['name']) ?>" class="teacher-card-img w-full h-full object-cover transition-transform duration-700">
+                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/5 to-transparent opacity-75 group-hover:opacity-90 transition-opacity duration-500"></div>
                     
                     <div class="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-xl flex items-center gap-2 shadow-sm">
                         <div class="w-6 h-6 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center text-[10px]"><i class="fa-solid fa-briefcase"></i></div>
@@ -87,7 +102,7 @@ foreach ($teacherRows as $teacherRow) {
 
                 <div class="px-2 flex flex-col flex-1">
                     <p class="text-[10px] font-black uppercase tracking-widest text-emerald-600 mb-1"><?= e($teacher['role']) ?></p>
-                    <h3 class="text-2xl font-black text-slate-800 mb-3 group-hover:text-emerald-600 transition-colors"><?= e($teacher['name']) ?></h3>
+                    <h3 class="text-2xl font-black text-slate-800 mb-3 group-hover:text-emerald-600 transition-colors duration-300"><?= e($teacher['name']) ?></h3>
                     
                     <div class="flex items-start gap-2 text-sm font-bold text-slate-500 mb-5">
                         <i class="fa-solid fa-graduation-cap text-slate-400 mt-1"></i>
@@ -102,11 +117,12 @@ foreach ($teacherRows as $teacherRow) {
                         <?php endforeach; ?>
                     </div>
 
-                    <div class="w-full py-3.5 rounded-xl bg-slate-50 text-slate-600 font-black text-xs uppercase tracking-widest text-center group-hover:bg-emerald-500 group-hover:text-white transition-colors flex items-center justify-center gap-2">
+                    <div class="w-full py-3.5 rounded-xl bg-slate-50 text-slate-600 font-black text-xs uppercase tracking-widest text-center group-hover:bg-emerald-500 group-hover:text-white transition-all duration-300 flex items-center justify-center gap-2">
                         Xem hồ sơ chi tiết <i class="fa-solid fa-arrow-right"></i>
                     </div>
                 </div>
             </div>
+            <?php $teacherDelay += 100; ?>
             <?php endforeach; ?>
         </div>
 
@@ -114,3 +130,21 @@ foreach ($teacherRows as $teacherRow) {
 </section>
 
 <?php include __DIR__ . '/../partials/social_contact.php'; ?>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    if (typeof AOS !== 'undefined') {
+        AOS.init({
+            duration: 350,
+            once: true,
+            offset: 0
+        });
+    }
+});
+
+window.addEventListener('load', function () {
+    if (typeof AOS !== 'undefined') {
+        AOS.refresh();
+    }
+});
+</script>

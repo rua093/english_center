@@ -16,7 +16,7 @@ final class CoursesTableModel extends BaseTableModel
         $limit = (int) $pagination['limit'];
         $offset = (int) $pagination['offset'];
 
-        $sql = "SELECT c.id, c.course_name, c.description, c.base_price, c.total_sessions,
+        $sql = "SELECT c.id, c.course_name, c.description, c.base_price, c.total_sessions, c.image_thumbnail,
                 COALESCE(cs.class_count, 0) AS class_count,
                 COALESCE(rs.roadmap_count, 0) AS roadmap_count
             FROM courses c
@@ -44,7 +44,7 @@ final class CoursesTableModel extends BaseTableModel
     public function listForRegistration(): array
     {
         return $this->fetchAll(
-            'SELECT id, course_name, base_price, total_sessions
+            'SELECT id, course_name, base_price, total_sessions, image_thumbnail
              FROM courses
              ORDER BY course_name ASC'
         );
@@ -53,7 +53,7 @@ final class CoursesTableModel extends BaseTableModel
     public function findById(int $id): ?array
     {
         return $this->fetchOne(
-            'SELECT id, course_name, description, base_price, total_sessions
+            'SELECT id, course_name, description, base_price, total_sessions, image_thumbnail
              FROM courses
              WHERE id = :id
              LIMIT 1',

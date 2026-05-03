@@ -93,7 +93,16 @@ final class AttendanceTableModel
         }
 
         $sql = "SELECT s.id AS schedule_id, s.class_id,
-                cs.student_id, u.full_name AS full_name, cs.learning_status,
+                cs.student_id, u.full_name AS full_name,
+                CASE
+                    WHEN EXISTS (
+                        SELECT 1
+                        FROM tuition_fees tf
+                        WHERE tf.class_id = cs.class_id
+                          AND tf.student_id = cs.student_id
+                    ) THEN 'official'
+                    ELSE 'trial'
+                END AS learning_status,
                 COALESCE(a.status, '') AS attendance_status,
                 COALESCE(a.note, '') AS attendance_note
             FROM schedules s
