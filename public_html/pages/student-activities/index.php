@@ -10,6 +10,19 @@ $activityModel = new ExtracurricularActivitiesTableModel();
 $currentUser = auth_user() ?? [];
 $currentUserId = (int) ($currentUser['id'] ?? 0);
 
+$resolveActivityImage = static function (?string $value): string {
+	$value = trim((string) $value);
+	if ($value === '') {
+		return '/assets/images/center.jpg';
+	}
+
+	if (preg_match('#^(?:https?:)?//#i', $value) === 1) {
+		return $value;
+	}
+
+	return str_starts_with($value, '/') ? $value : '/' . ltrim($value, '/');
+};
+
 $activityFilter = strtolower(trim((string) ($_GET['filter'] ?? 'all')));
 if (!in_array($activityFilter, ['all', 'registered', 'available'], true)) {
 	$activityFilter = 'all';
@@ -38,6 +51,7 @@ foreach ($activityRows as $row) {
 		'title' => (string) ($row['activity_name'] ?? ''),
 		'description' => (string) ($row['description'] ?? ''),
 		'content' => (string) ($row['content'] ?? ''),
+		'image_thumbnail' => $resolveActivityImage((string) ($row['image_thumbnail'] ?? '')),
 		'date' => $startDate,
 		'location' => (string) ($row['location'] ?? ''),
 		'fee' => (float) ($row['fee'] ?? 0),
@@ -69,18 +83,35 @@ $availableActivitiesPage = array_slice($availableActivities, $pageOffset, $activ
 $shouldShowRegistered = $activityFilter === 'all' || $activityFilter === 'registered';
 $shouldShowAvailable = $activityFilter === 'all' || $activityFilter === 'available';
 ?>
-<section class="min-h-screen bg-[#f8fafc] py-8 px-2 sm:px-4 lg:px-6 xl:px-8">
+<link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css">
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<style>
+	.activity-card:hover .activity-card-img {
+		transform: scale(1.08);
+	}
+
+	.activity-card {
+		transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+	}
+
+	.activity-card:hover {
+		transform: translateY(-0.5rem);
+		box-shadow: 0 24px 60px rgba(15, 23, 42, 0.14);
+	}
+</style>
+<section class="relative min-h-screen overflow-hidden bg-slate-200 py-8 px-2 sm:px-4 lg:px-6 xl:px-8">
+	<div class="absolute inset-0 z-0 opacity-[0.10] pointer-events-none" style="background-image: radial-gradient(#475569 1.5px, transparent 1.5px); background-size: 24px 24px;"></div>
+	<div class="absolute inset-x-0 top-0 z-0 h-72 bg-gradient-to-b from-rose-200/75 via-slate-100/45 to-transparent pointer-events-none"></div>
 	<div class="mx-auto w-full max-w-[1800px]">
 		<div class="grid grid-cols-1 gap-8 lg:grid-cols-[16rem_minmax(0,1fr)] xl:grid-cols-[17rem_minmax(0,1fr)] lg:items-start">
 			<aside class="lg:sticky lg:top-24">
 				<?php require __DIR__ . '/../student-dashboard/partials/nav.php'; ?>
 			</aside>
 
-			<div class="min-w-0 space-y-8">
+			<div class="relative z-10 min-w-0 space-y-8">
 				<header class="flex flex-col gap-2">
 					<div>
 						<h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">Hoạt động <span class="text-blue-600">Ngoại khóa</span></h1>
-						<p class="mt-2 text-slate-500">Danh sách hoạt động ngoại khoá được lấy trực tiếp từ database và phân theo trạng thái đăng ký của bạn.</p>
 					</div>
 				</header>
 
@@ -112,15 +143,17 @@ $shouldShowAvailable = $activityFilter === 'all' || $activityFilter === 'availab
 						</div>
 
 						<?php if ($registeredActivitiesPage === []): ?>
-							<div class="rounded-3xl border border-dashed border-slate-200 bg-white p-8 text-center text-sm font-semibold text-slate-500 shadow-sm">
+							<div class="rounded-3xl border border-dashed border-slate-300 bg-white p-8 text-center text-sm font-semibold text-slate-500 shadow-lg shadow-slate-200/60">
 								Bạn chưa đăng ký hoạt động ngoại khoá nào.
 							</div>
 						<?php else: ?>
 							<div class="grid grid-cols-1 gap-6 items-stretch sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+								<?php $registeredDelay = 0; ?>
 								<?php foreach ($registeredActivitiesPage as $activity): ?>
-									<article class="flex flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition-all duration-300 group hover:shadow-xl">
-										<div class="relative h-36 overflow-hidden bg-gradient-to-br from-blue-900 to-indigo-800"<?= !empty($activity['content']) ? ' style="background-image: linear-gradient(rgba(15, 23, 42, 0.35), rgba(15, 23, 42, 0.35));"' : ''; ?>>
-											<div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition"></div>
+									<article class="activity-card flex flex-col overflow-hidden rounded-[2rem] border border-slate-300 bg-white shadow-[0_22px_65px_rgba(15,23,42,0.16)] group transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_32px_85px_rgba(15,23,42,0.22)]" data-aos="fade-up" data-aos-delay="<?= $registeredDelay; ?>" data-aos-duration="700">
+										<div class="relative h-56 overflow-hidden">
+											<img src="<?= e((string) $activity['image_thumbnail']); ?>" alt="<?= e((string) $activity['title']); ?>" class="activity-card-img h-full w-full object-cover transition-transform duration-700">
+											<div class="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-950/15 to-transparent"></div>
 											<div class="absolute top-4 right-4 rounded-full bg-white/90 px-3 py-1.5 text-xs font-bold text-blue-900 backdrop-blur">
 												<?= e($activity['date']); ?>
 											</div>
@@ -146,7 +179,7 @@ $shouldShowAvailable = $activityFilter === 'all' || $activityFilter === 'availab
 													</div>
 												</div>
 
-												<div class="rounded-2xl border border-slate-100 bg-slate-50 p-3 text-xs">
+												<div class="rounded-2xl border border-slate-200 bg-slate-50 p-3 text-xs shadow-sm">
 													<span class="block uppercase tracking-wide text-slate-400 font-semibold">Đã đăng ký</span>
 													<span class="mt-1 block font-bold text-slate-800"><?= (int) $activity['registered']; ?> người</span>
 												</div>
@@ -162,12 +195,13 @@ $shouldShowAvailable = $activityFilter === 'all' || $activityFilter === 'availab
 											</div>
 										</div>
 									</article>
+									<?php $registeredDelay += 100; ?>
 								<?php endforeach; ?>
 							</div>
 						<?php endif; ?>
 
 						<?php if ($registeredTotalPages > 1): ?>
-							<div class="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm text-xs font-semibold text-slate-600">
+							<div class="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-lg shadow-slate-200/50 text-xs font-semibold text-slate-600">
 								<div>
 									Trang <?= (int) $activityPage; ?>/<?= (int) $registeredTotalPages; ?> · Hiển thị <?= (int) $activityPerPage; ?> hoạt động mỗi trang
 								</div>
@@ -208,15 +242,17 @@ $shouldShowAvailable = $activityFilter === 'all' || $activityFilter === 'availab
 						</div>
 
 						<?php if ($availableActivitiesPage === []): ?>
-							<div class="rounded-3xl border border-dashed border-slate-200 bg-white p-8 text-center text-sm font-semibold text-slate-500 shadow-sm">
+							<div class="rounded-3xl border border-dashed border-slate-300 bg-white p-8 text-center text-sm font-semibold text-slate-500 shadow-lg shadow-slate-200/60">
 								Chưa có hoạt động ngoại khoá nào trong database.
 							</div>
 						<?php else: ?>
 							<div class="grid grid-cols-1 gap-6 items-stretch sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+								<?php $availableDelay = 0; ?>
 								<?php foreach ($availableActivitiesPage as $activity): ?>
-									<article class="flex flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition-all duration-300 group hover:shadow-xl">
-										<div class="relative h-36 overflow-hidden bg-gradient-to-br from-blue-900 to-indigo-800"<?= !empty($activity['content']) ? ' style="background-image: linear-gradient(rgba(15, 23, 42, 0.35), rgba(15, 23, 42, 0.35));"' : ''; ?>>
-											<div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition"></div>
+									<article class="activity-card flex flex-col overflow-hidden rounded-[2rem] border border-slate-300 bg-white shadow-[0_22px_65px_rgba(15,23,42,0.16)] group transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_32px_85px_rgba(15,23,42,0.22)]" data-aos="fade-up" data-aos-delay="<?= $availableDelay; ?>" data-aos-duration="700">
+										<div class="relative h-56 overflow-hidden">
+											<img src="<?= e((string) $activity['image_thumbnail']); ?>" alt="<?= e((string) $activity['title']); ?>" class="activity-card-img h-full w-full object-cover transition-transform duration-700">
+											<div class="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-950/15 to-transparent"></div>
 											<div class="absolute top-4 right-4 rounded-full bg-white/90 px-3 py-1.5 text-xs font-bold text-blue-900 backdrop-blur">
 												<?= e($activity['date']); ?>
 											</div>
@@ -242,7 +278,7 @@ $shouldShowAvailable = $activityFilter === 'all' || $activityFilter === 'availab
 													</div>
 												</div>
 
-												<div class="rounded-2xl border border-slate-100 bg-slate-50 p-3 text-xs">
+												<div class="rounded-2xl border border-slate-200 bg-slate-50 p-3 text-xs shadow-sm">
 													<span class="block uppercase tracking-wide text-slate-400 font-semibold">Đã đăng ký</span>
 													<span class="mt-1 block font-bold text-slate-800"><?= (int) $activity['registered']; ?> người</span>
 												</div>
@@ -253,12 +289,13 @@ $shouldShowAvailable = $activityFilter === 'all' || $activityFilter === 'availab
 											</div>
 										</div>
 									</article>
+									<?php $availableDelay += 100; ?>
 								<?php endforeach; ?>
 							</div>
 						<?php endif; ?>
 
 						<?php if ($availableTotalPages > 1): ?>
-							<div class="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm text-xs font-semibold text-slate-600">
+							<div class="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-lg shadow-slate-200/50 text-xs font-semibold text-slate-600">
 								<div>
 									Trang <?= (int) $activityPage; ?>/<?= (int) $availableTotalPages; ?> · Hiển thị <?= (int) $activityPerPage; ?> hoạt động mỗi trang
 								</div>
@@ -294,3 +331,20 @@ $shouldShowAvailable = $activityFilter === 'all' || $activityFilter === 'availab
 		</div>
 	</div>
 </section>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+	if (typeof AOS !== 'undefined') {
+		AOS.init({
+			duration: 350,
+			once: true,
+			offset: 0
+		});
+	}
+});
+
+window.addEventListener('load', function () {
+	if (typeof AOS !== 'undefined') {
+		AOS.refresh();
+	}
+});
+</script>

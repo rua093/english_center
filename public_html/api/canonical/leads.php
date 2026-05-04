@@ -125,6 +125,55 @@ function api_leads_submit_action(): void
     redirect($redirectPath);
 }
 
+function api_leads_submit_consultation_action(): void
+{
+    $redirectPath = page_url('register-consultation');
+    api_require_post($redirectPath);
+
+    $studentName = input_string($_POST, 'student_name');
+    $parentName = input_string($_POST, 'parent_name');
+    $fatherPhone = normalize_phone_string(input_string($_POST, 'father_phone'));
+    $motherPhone = normalize_phone_string(input_string($_POST, 'mother_phone'));
+    $legacyPhone = normalize_phone_string(input_string($_POST, 'parent_phone', input_string($_POST, 'phone')));
+    $contactPhone = api_leads_extract_phone($fatherPhone . ' ' . $motherPhone . ' ' . $legacyPhone . ' ' . $parentName);
+
+    if ($studentName === '' || $parentName === '' || $contactPhone === '') {
+        set_flash('home_error', 'Vui long nhap ten hoc vien, ho ten phu huynh va it nhat mot so dien thoai lien he.');
+        redirect($redirectPath);
+    }
+
+    $payload = [
+        'student_name' => $studentName,
+        'gender' => input_string($_POST, 'student_gender'),
+        'dob' => input_string($_POST, 'student_dob'),
+        'interests' => input_string($_POST, 'student_hobbies'),
+        'personality' => input_string($_POST, 'student_personality'),
+        'parent_name' => $parentName,
+        'parent_phone' => $contactPhone,
+        'school_name' => input_string($_POST, 'student_school'),
+        'current_grade' => input_string($_POST, 'student_grade'),
+        'referral_source' => implode(', ', array_filter((array) ($_POST['source_channels'] ?? []), static fn ($value) => trim((string) $value) !== '')),
+        'current_level' => input_string($_POST, 'current_level'),
+        'study_time' => implode(', ', array_filter(array_merge((array) ($_POST['available_shifts'] ?? []), (array) ($_POST['available_days'] ?? [])), static fn ($value) => trim((string) $value) !== '')),
+        'parent_expectation' => implode(', ', array_filter((array) ($_POST['parent_expectations'] ?? []), static fn ($value) => trim((string) $value) !== '')),
+    ];
+
+    $otherChannel = trim((string) ($_POST['source_other_detail'] ?? ''));
+    if ($otherChannel !== '') {
+        $payload['referral_source'] = trim((string) ($payload['referral_source'] ?? ''));
+        $payload['referral_source'] = $payload['referral_source'] !== '' ? $payload['referral_source'] . ', ' . $otherChannel : $otherChannel;
+    }
+
+    try {
+        (new AdminModel())->saveConsultationLead($payload);
+        set_flash('home_success', 'Yeu cau tu van da duoc ghi nhan. Trung tam se lien he voi ban som nhat.');
+    } catch (Throwable $exception) {
+        set_flash('home_error', 'Khong the gui yeu cau tu van. Vui long thu lai sau.');
+    }
+
+    redirect($redirectPath);
+}
+
 function api_leads_update_action(): void
 {
     api_guard_permission('student_lead.update');

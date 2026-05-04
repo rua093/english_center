@@ -159,7 +159,8 @@ final class UsersTableModel extends BaseTableModel
         $sql = 'SELECT tc.id, tc.certificate_name, tc.score, tc.image_url
             FROM teacher_certificates tc
             INNER JOIN teacher_profiles tp ON tp.id = tc.teacher_id
-            WHERE tp.user_id = :user_id
+            INNER JOIN users u ON u.id = tp.user_id
+            WHERE u.id = :user_id
             ORDER BY tc.id ASC';
 
         return $this->fetchAll($sql, ['user_id' => $userId]);
@@ -361,22 +362,63 @@ final class UsersTableModel extends BaseTableModel
         }
 
         if ($normalizedRole === 'teacher') {
-            return $this->fetchOne(
-                'SELECT teacher_code,
-                        degree AS teacher_degree,
-                        experience_years AS teacher_experience_years,
-                        bio AS teacher_bio,
-                        intro_video_url AS teacher_intro_video_url
-                 FROM teacher_profiles
-                 WHERE user_id = :user_id
+            $teacherProfile = $this->fetchOne(
+                'SELECT u.id AS user_id,
+                        u.username AS teacher_username,
+                        u.full_name AS teacher_full_name,
+                        u.phone AS teacher_phone,
+                        u.email AS teacher_email,
+                        u.avatar AS teacher_avatar,
+                        u.status AS teacher_status,
+                        tp.id AS teacher_profile_id,
+                        tp.teacher_code AS teacher_code,
+                        tp.degree AS teacher_degree,
+                        tp.experience_years AS teacher_experience_years,
+                        tp.bio AS teacher_bio,
+                        tp.intro_video_url AS teacher_intro_video_url
+                 FROM users u
+                 INNER JOIN teacher_profiles tp ON tp.user_id = u.id
+                 WHERE u.id = :user_id
+                   AND u.deleted_at IS NULL
                  LIMIT 1',
                 ['user_id' => $userId]
-            ) ?? [];
+            );
+
+            if (!is_array($teacherProfile) || $teacherProfile === []) {
+                return [];
+            }
+
+            $teacherProfile['teacher_certificates'] = $this->listTeacherCertificatesByUserId($userId);
+            return $teacherProfile;
         }
 
         if ($normalizedRole === 'student') {
+            $studentLeadProfile = $this->fetchOne(
+                'SELECT sl.id AS student_lead_id,
+                        sl.student_name AS student_name,
+                        COALESCE(sp.student_code, CONCAT("HV", LPAD(u.id, 5, "0"))) AS student_code,
+                        sl.parent_name AS student_parent_name,
+                        sl.parent_phone AS student_parent_phone,
+                        sl.school_name AS student_school_name,
+                        sl.current_grade AS student_current_grade,
+                        sl.current_level AS student_target_score,
+                        sl.study_time AS student_study_time,
+                        sl.status AS student_lead_status,
+                        sl.converted_at AS student_converted_at
+                 FROM student_leads sl
+                 INNER JOIN users u ON u.id = sl.converted_user_id
+                 LEFT JOIN student_profiles sp ON sp.user_id = u.id
+                 WHERE u.id = :user_id
+                 LIMIT 1',
+                ['user_id' => $userId]
+            );
+
+            if (is_array($studentLeadProfile) && !empty($studentLeadProfile)) {
+                return $studentLeadProfile;
+            }
+
             return $this->fetchOne(
-                'SELECT student_code,
+                'SELECT student_code AS student_code,
                         parent_name AS student_parent_name,
                         parent_phone AS student_parent_phone,
                         school_name AS student_school_name,

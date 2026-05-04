@@ -15,15 +15,15 @@ docker compose up -d --build
 ## 2) Import CSDL
 
 ```powershell
-docker exec -i mysql_db mysql -uuser -puser_password english_center_db < database/schema.sql
-docker exec -i mysql_db mysql -uuser -puser_password english_center_db < database/seed.sql
+docker exec -i mysql_db mysql --default-character-set=utf8mb4 -uuser -puser_password english_center_db < database/schema.sql
+docker exec -i mysql_db mysql --default-character-set=utf8mb4 -uuser -puser_password english_center_db < database/seed.sql
 ```
 
 ## 2.1) Nang cap DB dang chay (khong reset du lieu)
 
 ```powershell
-docker exec -i mysql_db mysql -uuser -puser_password english_center_db < database/migrate_existing_db.sql
-docker exec -i mysql_db mysql -uuser -puser_password english_center_db < database/rbac_matrix_seed.sql
+docker exec -i mysql_db mysql --default-character-set=utf8mb4 -uuser -puser_password english_center_db < database/migrate_existing_db.sql
+docker exec -i mysql_db mysql --default-character-set=utf8mb4 -uuser -puser_password english_center_db < database/rbac_matrix_seed.sql
 ```
 
 - Dung buoc nay khi he thong da co du lieu cu va ban chi muon cap nhat RBAC + approval workflow moi.

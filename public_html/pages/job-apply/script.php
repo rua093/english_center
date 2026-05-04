@@ -1,4 +1,29 @@
 <style>
+    @keyframes cardRiseIn {
+        from {
+            opacity: 0;
+            transform: translateY(24px) scale(0.98);
+            filter: blur(6px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            filter: blur(0);
+        }
+    }
+
+    .animate-card {
+        opacity: 0;
+        animation: cardRiseIn 0.75s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        animation-delay: var(--card-delay, 0s);
+        will-change: transform, opacity, filter;
+    }
+
+    .animate-card:hover {
+        transform: translateY(-4px);
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
     .focus-lime:focus { border-color: #a3e635; box-shadow: 0 0 0 4px rgba(163, 230, 53, 0.1); }
     .form-card { background: #ffffff; border-radius: 2.5rem; border: 1px solid #f1f5f9; }
     .section-title { border-left: 6px solid #e11d48; padding-left: 1rem; margin-bottom: 2rem; font-weight: 900; color: #1e293b; text-transform: uppercase; letter-spacing: 0.05em; }
@@ -54,6 +79,11 @@
 </style>
 <script>
     document.addEventListener('DOMContentLoaded', () => {
+        const animatedCards = document.querySelectorAll('[data-animate-card]');
+        animatedCards.forEach((card, index) => {
+            card.style.setProperty('--card-delay', `${index * 0.12}s`);
+        });
+
         /* =========================================
            1. AUTO FORMAT TIỀN TỆ (Mức lương)
            ========================================= */
@@ -72,7 +102,7 @@
            ========================================= */
         window.addExperience = function addExperience() {
             const html = `
-            <div class="repeater-box animate-fade-in-down mt-4">
+            <div class="repeater-box animate-card animate-fade-in-down mt-4" style="--card-delay: 0s;">
                 <i class="fa-solid fa-circle-xmark text-xl btn-remove" onclick="this.parentElement.remove()"></i>
                 <div class="grid md:grid-cols-2 gap-4 mb-4">
                     <input type="text" name="exp_company[]" placeholder="Công ty / Tổ chức đã làm việc" class="px-4 py-3 rounded-xl bg-white border border-slate-200 outline-none focus-lime font-bold text-sm">
@@ -98,7 +128,7 @@
 
         window.addProSkill = function addProSkill() {
             const html = `
-                <div class="relative group animate-fade-in-down">
+                <div class="relative group animate-card animate-fade-in-down" style="--card-delay: 0s;">
                     <input type="text" name="skill_pro[]" placeholder="Nhập kỹ năng chuyên môn..." class="w-full px-5 py-3.5 rounded-xl bg-white border border-slate-200 outline-none focus-lime font-bold text-sm">
                     <button type="button" onclick="this.parentElement.remove()" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 hover:text-red-500 transition-colors">
                         <i class="fa-solid fa-circle-xmark text-lg"></i>
@@ -112,7 +142,7 @@
 
         window.addOtherSkill = function addOtherSkill() {
             const html = `
-            <div class="relative group animate-fade-in-down">
+            <div class="relative group animate-card animate-fade-in-down" style="--card-delay: 0s;">
                 <input type="text" name="skill_other[]" placeholder="Nhập kỹ năng khác..." class="w-full px-5 py-3.5 rounded-xl bg-white border border-slate-200 outline-none focus-lime font-bold text-sm">
                 <button type="button" onclick="this.parentElement.remove()" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 hover:text-red-500 transition-colors">
                     <i class="fa-solid fa-circle-xmark text-lg"></i>

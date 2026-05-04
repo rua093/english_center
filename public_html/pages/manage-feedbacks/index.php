@@ -139,21 +139,25 @@ $error = get_flash('error');
                 <tbody data-ajax-tbody="1">
                     <?php if (empty($feedbacks)): ?>
                         <tr>
-                            <td colspan="6">
+                            <td colspan="5">
                                 <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">Chưa có đánh giá nào.</div>
                             </td>
                         </tr>
                     <?php else: ?>
                         <?php foreach ($feedbacks as $fb): ?>
                             <tr>
-                                <td><?= e((string) ($fb['student_code'] ?? '-')); ?></td>
-                                <td><?= e((string) ($fb['full_name'] ?? 'Học viên')); ?></td>
+                                <td><?= e((string) ($fb['full_name'] ?? ($fb['student_name'] ?? ''))); ?></td>
                                 <td><?= (int) $fb['rating']; ?>/5</td>
                                 <td>
                                     <?php $fullComment = (string) ($fb['comment'] ?? ''); ?>
                                     <span data-full-value="<?= e($fullComment); ?>"><?= e((string) substr($fullComment, 0, 50)); ?></span>
                                 </td>
-                                <td><span class="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-bold <?= (int) ($fb['is_public_web'] ?? 0) === 1 ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-slate-200 bg-slate-50 text-slate-600'; ?>"><?= (int) ($fb['is_public_web'] ?? 0); ?></span></td>
+                                <td>
+                                    <?php $isPublicWeb = (int) ($fb['is_public_web'] ?? 0) === 1; ?>
+                                    <span class="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-bold capitalize <?= $isPublicWeb ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-slate-200 bg-slate-50 text-slate-600'; ?>">
+                                        <?= $isPublicWeb ? 'Công khai' : 'Ẩn'; ?>
+                                    </span>
+                                </td>
                                 <td>
                                     <div class="inline-flex flex-wrap items-center gap-2">
                                         <?php if ($canUpdateFeedback): ?>

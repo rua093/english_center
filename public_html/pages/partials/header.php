@@ -7,7 +7,7 @@
     <meta name="description" content="Nền tảng quản lý trung tâm tiếng Anh: marketing, portal học viên và quản trị vận hành toàn diện.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <?php require_once __DIR__ . '/tailwind_cdn.php'; ?>
     <style>
@@ -16,7 +16,7 @@
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #bae6fd; border-radius: 10px; } 
     </style>
 </head>
-<body class="min-h-screen bg-slate-50 font-sans leading-relaxed text-slate-800 antialiased flex flex-col">
+<body class="min-h-screen bg-slate-50 font-jakarta leading-relaxed text-slate-800 antialiased flex flex-col">
     <?php
     $headerUser = auth_user() ?? [];
     $currentUserRole = (string) ($headerUser['role'] ?? '');
@@ -102,13 +102,11 @@
                         </div>
                     </div>
                 <?php else: ?>
-                    <a class="text-[16px] font-extrabold text-slate-800 hover:text-[#27318b] transition-colors" href="<?= e(page_url('login')); ?>">Đăng nhập</a>
+                    <a href="<?= e(page_url('login')); ?>" class="group inline-flex items-center gap-3 rounded-full bg-red-600 px-7 py-3 text-[15px] font-black uppercase text-white transition-all hover:bg-red-700 hover:shadow-lg">
+                        ĐĂNG NHẬP
+                        <span class="w-2.5 h-2.5 rounded-full bg-white/90"></span>
+                    </a>
                 <?php endif; ?>
-                
-                <a href="<?= e(page_url('register')); ?>" class="group inline-flex items-center gap-3 rounded-full bg-red-600 px-7 py-3 text-[15px] font-black uppercase text-white transition-all hover:bg-red-700 hover:shadow-lg">
-                    ĐĂNG KÝ NGAY
-                    <span class="w-2.5 h-2.5 rounded-full bg-white/90"></span>
-                </a>
             </div>
 
             <button id="mobile-menu-toggle" class="inline-flex h-10 w-10 flex-col items-center justify-center gap-1.5 text-slate-800 hover:text-[#27318b] lg:hidden" type="button">
@@ -141,10 +139,9 @@
                         </div>
                     </div>
                 <?php else: ?>
-                    <a class="block border-b border-slate-50 px-6 py-4 text-[15px] font-bold text-slate-800 hover:bg-slate-50" href="<?= e(page_url('login')); ?>">Đăng nhập</a>
                     <div class="p-6">
-                        <a href="<?= e(page_url('register')); ?>" class="flex w-full items-center justify-center gap-3 rounded-full bg-red-600 px-6 py-3.5 text-[15px] font-black uppercase text-white hover:bg-red-700">
-                            ĐĂNG KÝ NGAY
+                        <a href="<?= e(page_url('login')); ?>" class="flex w-full items-center justify-center gap-3 rounded-full bg-red-600 px-6 py-3.5 text-[15px] font-black uppercase text-white hover:bg-red-700 hover:shadow-lg">
+                            ĐĂNG NHẬP
                             <span class="w-2.5 h-2.5 rounded-full bg-white/90"></span>
                         </a>
                     </div>

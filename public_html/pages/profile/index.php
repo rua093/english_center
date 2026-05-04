@@ -23,6 +23,16 @@ $status = (string) ($profileUser['status'] ?? '');
 $createdAt = isset($profileUser['created_at']) && $profileUser['created_at'] !== null
     ? date('d/m/Y', strtotime((string) $profileUser['created_at']))
     : '';
+$studentCode = trim((string) (($profileUser['role_profile']['student_code'] ?? '') ?: ($profileUser['student_code'] ?? '')));
+$teacherCode = trim((string) (($profileUser['role_profile']['teacher_code'] ?? '') ?: ($profileUser['teacher_code'] ?? '')));
+$studentParentName = trim((string) (($profileUser['role_profile']['student_parent_name'] ?? '') ?: ($profileUser['student_parent_name'] ?? '')));
+$studentParentPhone = trim((string) (($profileUser['role_profile']['student_parent_phone'] ?? '') ?: ($profileUser['student_parent_phone'] ?? '')));
+$studentSchoolName = trim((string) (($profileUser['role_profile']['student_school_name'] ?? '') ?: ($profileUser['student_school_name'] ?? '')));
+$studentCurrentGrade = trim((string) (($profileUser['role_profile']['student_current_grade'] ?? '') ?: ($profileUser['student_current_grade'] ?? '')));
+$teacherCertificates = is_array($profileUser['role_profile']['teacher_certificates'] ?? null) ? $profileUser['role_profile']['teacher_certificates'] : [];
+$teacherCertificatesCount = count($teacherCertificates);
+$profileCode = $role === 'student' ? $studentCode : ($role === 'teacher' ? $teacherCode : '');
+$profileCodeLabel = $role === 'student' ? 'Mã học viên' : ($role === 'teacher' ? 'Mã giáo viên' : '');
 $studentSubjectCount = (int) ($studentProgress['subject_count'] ?? 0);
 $studentAttendancePercent = (int) ($studentProgress['attendance_percent'] ?? 0);
 $studentProgressPercent = (int) ($studentProgress['progress_percent'] ?? 0);
@@ -135,6 +145,71 @@ $error = get_flash('error');
                                 <?= $role === 'teacher' ? '<i class="fa-solid fa-chalkboard-user"></i>' : '<i class="fa-solid fa-laptop-code"></i>' ?>
                                 <?= e($roleDisplay) ?>
                             </span>
+                        </div>
+                        <div class="mt-4 space-y-4 text-left">
+                            <div class="flex items-center gap-4 text-sm font-medium text-slate-600 group">
+                                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-slate-100/60 text-slate-500 group-hover:bg-emerald-50 group-hover:text-emerald-600 transition-all shadow-sm">
+                                    <i class="fa-solid fa-id-badge text-lg"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1"><?= e($profileCodeLabel !== '' ? $profileCodeLabel : 'Mã tài khoản') ?></p>
+                                    <span class="font-bold text-slate-700 truncate block text-sm"><?= e($profileCode !== '' ? $profileCode : ('#' . (string) ($profileUser['id'] ?? $authUser['id'] ?? '---'))) ?></span>
+                                </div>
+                            </div>
+
+                            <?php if ($role === 'student'): ?>
+                                <div class="flex items-center gap-4 text-sm font-medium text-slate-600 group">
+                                    <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-50/60 text-emerald-500 group-hover:bg-emerald-50 group-hover:text-emerald-600 transition-all shadow-sm">
+                                        <i class="fa-solid fa-people-roof text-lg"></i>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1">Tên phụ huynh</p>
+                                        <span class="font-bold text-slate-700 truncate block text-sm"><?= e($studentParentName !== '' ? $studentParentName : 'Chưa cập nhật') ?></span>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center gap-4 text-sm font-medium text-slate-600 group">
+                                    <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-blue-50/60 text-blue-600 group-hover:bg-blue-50 group-hover:text-blue-700 transition-all shadow-sm">
+                                        <i class="fa-solid fa-phone text-lg"></i>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1">SĐT phụ huynh</p>
+                                        <span class="font-bold text-slate-700 truncate block text-sm"><?= e($studentParentPhone !== '' ? $studentParentPhone : 'Chưa cập nhật') ?></span>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center gap-4 text-sm font-medium text-slate-600 group">
+                                    <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-50/60 text-amber-600 group-hover:bg-amber-50 group-hover:text-amber-700 transition-all shadow-sm">
+                                        <i class="fa-solid fa-school text-lg"></i>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1">Trường học</p>
+                                        <span class="font-bold text-slate-700 truncate block text-sm"><?= e($studentSchoolName !== '' ? $studentSchoolName : 'Chưa cập nhật') ?></span>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center gap-4 text-sm font-medium text-slate-600 group">
+                                    <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-rose-50/60 text-rose-600 group-hover:bg-rose-50 group-hover:text-rose-700 transition-all shadow-sm">
+                                        <i class="fa-solid fa-layer-group text-lg"></i>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1">Khối lớp</p>
+                                        <span class="font-bold text-slate-700 truncate block text-sm"><?= e($studentCurrentGrade !== '' ? $studentCurrentGrade : 'Chưa cập nhật') ?></span>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
+
+                            <?php if ($role === 'teacher'): ?>
+                                <div class="flex items-center gap-4 text-sm font-medium text-slate-600 group">
+                                    <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-50/60 text-emerald-500 group-hover:bg-emerald-50 group-hover:text-emerald-600 transition-all shadow-sm">
+                                        <i class="fa-solid fa-certificate text-lg"></i>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1">Chứng chỉ</p>
+                                        <span class="font-bold text-slate-700 truncate block text-sm"><?= e((string) $teacherCertificatesCount) ?> chứng chỉ</span>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
                         </div>
                     </div>
 

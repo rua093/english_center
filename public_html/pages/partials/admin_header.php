@@ -67,6 +67,10 @@
             color: #0f172a;
         }
 
+        .admin-font {
+            font-family: "Manrope", ui-sans-serif, system-ui, sans-serif;
+        }
+
         .admin-ui form label {
             display: block;
             font-size: 0.82rem;
@@ -980,7 +984,7 @@
         }
     </style>
 </head>
-<body class="min-h-screen bg-slate-100 font-sans leading-relaxed text-slate-900">
+<body class="min-h-screen bg-slate-100 admin-font leading-relaxed text-slate-900">
 <?php
 $adminUser = auth_user();
 $activeModule = (string) ($module ?? '');

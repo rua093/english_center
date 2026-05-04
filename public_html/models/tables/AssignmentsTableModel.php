@@ -111,7 +111,7 @@ final class AssignmentsTableModel extends BaseTableModel
     public function listForStudentDashboard(int $studentId, int $limit = 6): array
     {
         $limit = $this->clampLimit($limit, 6, 100);
-        $sql = "SELECT a.id, a.title, a.deadline, a.description,
+        $sql = "SELECT a.id, a.title, a.deadline, a.description, a.file_url,
                 sub.submitted_at, sub.score, sub.teacher_comment
             FROM assignments a
             INNER JOIN schedules s ON s.id = a.schedule_id
@@ -132,7 +132,7 @@ final class AssignmentsTableModel extends BaseTableModel
             return [];
         }
 
-        $sql = "SELECT a.id, a.title, a.deadline, a.description,
+        $sql = "SELECT a.id, a.title, a.deadline, a.description, a.file_url,
                 sub.submitted_at, sub.score, sub.teacher_comment,
                 CASE WHEN sub.submitted_at IS NOT NULL THEN 'Đã nộp' ELSE 'Chưa nộp' END AS submission_status
             FROM assignments a

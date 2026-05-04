@@ -9,7 +9,7 @@ $homeWidgets = [
 $academicModel = new AcademicModel();
 $courseTotal = $academicModel->countCourses();
 $courseRows = $courseTotal > 0
-	? $academicModel->listCoursesPage(1, $courseTotal)
+	? $academicModel->listCoursesPage(1, min(8, $courseTotal))
 	: [];
 
 $buildCourseSlug = static function (string $value): string {
@@ -17,6 +17,19 @@ $buildCourseSlug = static function (string $value): string {
 	$slug = preg_replace('/[^a-z0-9\s-]/u', '', $slug) ?? $slug;
 	$slug = preg_replace('/[\s-]+/', '-', $slug) ?? $slug;
 	return trim($slug, '-');
+};
+
+$resolveCourseImage = static function (?string $value): string {
+	$value = trim((string) $value);
+	if ($value === '') {
+		return '';
+	}
+
+	if (preg_match('#^(?:https?:)?//#i', $value) === 1) {
+		return $value;
+	}
+
+	return str_starts_with($value, '/') ? $value : '/' . ltrim($value, '/');
 };
 
 $homeCourses = [];
@@ -34,7 +47,7 @@ foreach ($courseRows as $row) {
 		'price' => number_format((float) ($row['base_price'] ?? 0), 0, ',', '.') . 'đ',
 		'total_sessions' => max(0, (int) ($row['total_sessions'] ?? 0)),
 		'level' => 'Đang cập nhật',
-		'image' => trim((string) ($row['image_url'] ?? '')),
+		'image' => $resolveCourseImage((string) ($row['image_thumbnail'] ?? '')),
 		'roadmap_count' => max(0, (int) ($row['roadmap_count'] ?? 0)),
 		'class_count' => max(0, (int) ($row['class_count'] ?? 0)),
 	];
@@ -112,7 +125,7 @@ if (is_logged_in()) {
 			0%, 100% { transform: translateY(0px); }
 			50% { transform: translateY(-10px); }
 		}
-		.float-soft { animation: floatSoft 6s ease-in-out infinite; }
+		.float-soft { animation: floatSoft 3.5s ease-in-out infinite; }
 	</style>
 
 	<?php
@@ -121,9 +134,16 @@ if (is_logged_in()) {
 
 	<script>
 	document.addEventListener('DOMContentLoaded', function() {
+	    if ('scrollRestoration' in window.history) {
+	        window.history.scrollRestoration = 'manual';
+	    }
+	    if (!window.location.hash) {
+	        window.scrollTo(0, 0);
+	    }
+
 	    // 1. Khởi tạo AOS với offset = 0 để hiện sớm hơn
 	    AOS.init({ 
-	        duration: 600,  
+	        duration: 350,  
 	        once: true,     
 	        offset: 0       // Kích hoạt ngay khi mép phần tử chạm đáy màn hình
 	    });
@@ -135,7 +155,7 @@ if (is_logged_in()) {
 		        spaceBetween: 24,
 		        centeredSlides: false,
 		        loop: true,
-		        autoplay: { delay: 4000, disableOnInteraction: false },
+		        autoplay: { delay: 2500, disableOnInteraction: false },
 		        pagination: {
 		            el: '.swiper-pagination-teacher',
 		            clickable: true,
@@ -153,7 +173,7 @@ if (is_logged_in()) {
 		        slidesPerView: 1,
 		        spaceBetween: 20,
 		        loop: true,
-		        autoplay: { delay: 4500, disableOnInteraction: false },
+		        autoplay: { delay: 3000, disableOnInteraction: false },
 		        pagination: {
 		            el: '.swiper-pagination-feedback',
 		            clickable: true,
@@ -200,45 +220,7 @@ if (is_logged_in()) {
     </script>
 
 	<style>
-    @keyframes bell-shake {
-        0%, 100% { transform: rotate(0deg) translateY(0); }
-        10% { transform: rotate(-8deg) translateY(-1px); }
-        20% { transform: rotate(8deg) translateY(-1px); }
-        30% { transform: rotate(-6deg) translateY(0); }
-        40% { transform: rotate(6deg) translateY(0); }
-        50% { transform: rotate(-4deg) translateY(-1px); }
-        60% { transform: rotate(4deg) translateY(0); }
-        70% { transform: rotate(-2deg) translateY(0); }
-        80% { transform: rotate(2deg) translateY(0); }
-        90% { transform: rotate(0deg) translateY(-1px); }
-    }
-
-    .contact-bell {
-        animation: bell-shake 2.8s ease-in-out infinite;
-        transform-origin: center bottom;
-    }
-
-    .contact-bell:nth-child(2) {
-        animation-delay: 0.15s;
-    }
-
-    .contact-bell:nth-child(3) {
-        animation-delay: 0.3s;
-    }
-
-    .contact-bell:nth-child(4) {
-        animation-delay: 0.45s;
-    }
-
-    .contact-bell:nth-child(5) {
-        animation-delay: 0.6s;
-    }
-
-    .contact-bell:hover {
-        animation-play-state: paused;
-    }
-
-    /* Hiệu ứng quay của vòng quỹ đạo */
+	/* Hiệu ứng quay của vòng quỹ đạo */
     @keyframes spin-orbit {
         from { transform: rotate(0deg); }
         to { transform: rotate(360deg); }
@@ -250,10 +232,10 @@ if (is_logged_in()) {
     }
     
     .orbit-spin {
-        animation: spin-orbit 20s linear infinite;
+		animation: spin-orbit 12s linear infinite;
     }
     .orbit-reverse-spin {
-        animation: spin-orbit-reverse 20s linear infinite;
+		animation: spin-orbit-reverse 12s linear infinite;
     }
     
     /* Tạm dừng toàn bộ vòng quay khi di chuột vào */

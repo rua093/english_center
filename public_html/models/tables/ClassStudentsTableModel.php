@@ -177,13 +177,25 @@ final class ClassStudentsTableModel
                 c.class_name,
                 COALESCE(r.room_name, 'Online') AS room_name,
                 u.full_name AS teacher_name,
-                tp.teacher_code
+                tp.teacher_code,
+                COALESCE(l.lesson_title, '') AS lesson_title,
+                COALESCE(l.lesson_content, '') AS lesson_content,
+                COALESCE(l.lesson_attachment_file_path, '') AS lesson_attachment_file_path
             FROM class_students cs
             INNER JOIN classes c ON c.id = cs.class_id
             INNER JOIN schedules s ON s.class_id = c.id
             INNER JOIN users u ON u.id = s.teacher_id
             LEFT JOIN teacher_profiles tp ON tp.user_id = u.id
             LEFT JOIN rooms r ON r.id = s.room_id AND r.deleted_at IS NULL
+            LEFT JOIN (
+                SELECT schedule_id,
+                       MIN(actual_title) AS lesson_title,
+                       MIN(actual_content) AS lesson_content,
+                       MIN(attachment_file_path) AS lesson_attachment_file_path
+                FROM lessons
+                WHERE schedule_id IS NOT NULL
+                GROUP BY schedule_id
+            ) l ON l.schedule_id = s.id
             WHERE cs.student_id = :student_id
             ORDER BY s.study_date ASC, s.start_time ASC, c.class_name ASC, s.id ASC";
 

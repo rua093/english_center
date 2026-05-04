@@ -46,10 +46,14 @@ if ($activityPage > $activityTotalPages) {
 $pageActivities = array_slice($activities, ($activityPage - 1) * $activityPerPage, $activityPerPage);
 ?>
 
+<link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css">
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
 <style>
     .activity-card:hover { transform: translateY(-10px); }
     .text-gradient-red-green { background: linear-gradient(to right, #e11d48, #10b981); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 </style>
+
 
 <section class="py-12 md:py-16">
     <div class="container mx-auto px-4 max-w-[1400px]">
@@ -62,7 +66,7 @@ $pageActivities = array_slice($activities, ($activityPage - 1) * $activityPerPag
             <p class="text-slate-500 max-w-xl mx-auto font-medium text-sm md:text-base">Khám phá thế giới, rèn luyện kỹ năng mềm và tự tin giao tiếp cùng bạn bè quốc tế.</p>
         </div>
 
-        <div class="mb-10 flex flex-wrap justify-center gap-3">
+        <div class="mb-10 flex flex-wrap justify-center gap-3" data-aos="fade-up" data-aos-delay="100">
             <?php foreach ($activityStatuses as $statusKey => $statusLabel): ?>
                 <a href="<?= e(page_url('activities-home', ['status' => $statusKey, 'activity_page' => 1, 'activity_per_page' => $activityPerPage])); ?>" class="px-6 py-2.5 rounded-2xl font-black text-[10px] uppercase shadow-lg transition-all <?= $activityStatusFilter === $statusKey ? 'bg-rose-600 text-white shadow-rose-600/20' : 'bg-slate-50 text-slate-600 hover:bg-emerald-50 hover:text-emerald-600'; ?>">
                     <?= e($statusLabel); ?>
@@ -71,12 +75,12 @@ $pageActivities = array_slice($activities, ($activityPage - 1) * $activityPerPag
         </div>
 
         <?php if ($pageActivities === []): ?>
-            <div class="rounded-[2rem] border border-dashed border-slate-200 bg-white p-10 text-center text-sm font-semibold text-slate-500 shadow-sm">
+            <div class="rounded-[2rem] border border-dashed border-slate-200 bg-white p-10 text-center text-sm font-semibold text-slate-500 shadow-sm" data-aos="fade-up" data-aos-delay="150">
                 Chưa có hoạt động ngoại khoá nào phù hợp với bộ lọc hiện tại.
             </div>
         <?php else: ?>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <?php foreach($pageActivities as $act): ?>
+            <?php foreach($pageActivities as $index => $act): ?>
                 <?php
                     $activityTitle = (string) ($act['activity_name'] ?? '');
                     $activityDate = !empty($act['start_date']) ? date('d/m/Y', strtotime((string) $act['start_date'])) : '---';
@@ -89,8 +93,9 @@ $pageActivities = array_slice($activities, ($activityPage - 1) * $activityPerPag
                     };
                     $activityImage = $resolveActivityImagePath((string) ($act['image_thumbnail'] ?? ''));
                     $activityFee = (float) ($act['fee'] ?? 0);
+                    $activityDelay = $index * 100;
                 ?>
-            <a href="<?= e(page_url('activities-home-detail', ['id' => (int) $act['id']])); ?>" class="activity-card group block h-full bg-white rounded-[2rem] overflow-hidden border border-slate-100 shadow-xl shadow-slate-200/40 transition-all duration-500 hover:shadow-2xl focus:outline-none focus-visible:ring-4 focus-visible:ring-rose-100">
+            <a href="<?= e(page_url('activities-home-detail', ['id' => (int) $act['id']])); ?>" class="activity-card group block h-full bg-white rounded-[2rem] overflow-hidden border border-slate-100 shadow-xl shadow-slate-200/40 transition-all duration-500 hover:shadow-2xl focus:outline-none focus-visible:ring-4 focus-visible:ring-rose-100" data-aos="fade-up" data-aos-delay="<?= $activityDelay; ?>" data-aos-duration="700">
                 <article>
                 <div class="relative h-52 overflow-hidden">
                     <img src="<?= e($activityImage); ?>" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
@@ -125,9 +130,9 @@ $pageActivities = array_slice($activities, ($activityPage - 1) * $activityPerPag
             <?php endforeach; ?>
         </div>
         <?php endif; ?>
-
+        
         <?php if ($activityTotalPages > 1): ?>
-            <div class="mt-14 flex flex-wrap items-center justify-center gap-2">
+            <div class="mt-14 flex flex-wrap items-center justify-center gap-2" data-aos="fade-up" data-aos-delay="100">
                 <?php if ($activityPage > 1): ?>
                     <a class="flex h-11 items-center justify-center rounded-2xl bg-white border border-slate-100 px-4 text-sm font-bold text-slate-500 hover:text-rose-600 transition-all" href="<?= e(page_url('activities-home', ['status' => $activityStatusFilter, 'activity_page' => $activityPage - 1, 'activity_per_page' => $activityPerPage])); ?>">Trước</a>
                 <?php endif; ?>
@@ -145,3 +150,27 @@ $pageActivities = array_slice($activities, ($activityPage - 1) * $activityPerPag
         <?php endif; ?>
     </div>
 </section>
+
+<?php include __DIR__ . '/../partials/social_contact.php'; ?>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    if (typeof AOS === 'undefined') {
+        return;
+    }
+
+    AOS.init({
+        duration: 700,
+        once: true,
+        offset: 80
+    });
+});
+
+window.addEventListener('load', function () {
+    if (typeof AOS === 'undefined') {
+        return;
+    }
+
+    AOS.refresh();
+});
+</script>

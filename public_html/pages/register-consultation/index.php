@@ -105,6 +105,11 @@
     }
 </style>
 
+<?php
+$success = get_flash('home_success');
+$error = get_flash('home_error');
+?>
+
 <main class="py-12 md:py-16 font-jakarta">
     <div class="container mx-auto px-4 max-w-5xl">
         
@@ -125,9 +130,10 @@
             </div>
         </div>
 
-        <form action="save_consultation.php" method="POST" class="space-y-8">
+        <form action="/api/index.php?resource=leads&method=submit-consultation" method="POST" class="space-y-8" id="consultationForm">
+            <?= csrf_input(); ?>
             
-            <section class="form-card p-6 md:p-8 shadow-md animate-card">
+            <!-- <section class="form-card p-6 md:p-8 shadow-md animate-card">
                 <div class="grid md:grid-cols-2 gap-6">
                     <div class="space-y-2">
                         <label class="text-xs font-black text-slate-500 uppercase ml-1">Ngày tư vấn *</label>
@@ -138,7 +144,7 @@
                         <input type="text" name="consultant_name" required placeholder="Nhập tên nhân viên..." class="w-full px-5 py-3.5 rounded-xl bg-slate-50 outline-none focus-lime font-bold text-slate-700">
                     </div>
                 </div>
-            </section>
+            </section> -->
 
             <section class="form-card p-6 md:p-8 shadow-md animate-card">
                 <div class="section-header">
@@ -154,7 +160,7 @@
                         <label class="text-xs font-black text-slate-500 uppercase ml-1">Giới tính</label>
                         <div class="flex gap-4">
                             <label class="custom-option animate-option flex-1 justify-center">
-                                <input type="radio" name="student_gender" value="Nam" class="w-4 h-4 accent-rose-600">
+                                <input type="radio" name="student_gender" value="Nam" class="w-4 h-4 accent-rose-600" required>
                                 <span class="text-sm font-medium text-slate-600">Nam</span>
                             </label>
                             <label class="custom-option animate-option flex-1 justify-center">
@@ -168,22 +174,22 @@
                 <div class="grid md:grid-cols-2 gap-6 mb-6">
                     <div class="space-y-2">
                         <label class="text-xs font-black text-slate-500 uppercase ml-1">Ngày sinh</label>
-                        <input type="date" name="student_dob" class="w-full px-5 py-3.5 rounded-xl bg-slate-50 outline-none focus-lime font-bold text-slate-700">
+                        <input type="date" name="student_dob" required class="w-full px-5 py-3.5 rounded-xl bg-slate-50 outline-none focus-lime font-bold text-slate-700">
                     </div>
                     <div class="space-y-2">
                         <label class="text-xs font-black text-slate-500 uppercase ml-1">Sở thích của bé</label>
-                        <input type="text" name="student_hobbies" placeholder="VD: Vẽ, đá bóng, xem hoạt hình..." class="w-full px-5 py-3.5 rounded-xl bg-slate-50 outline-none focus-lime font-bold text-slate-700">
+                        <input type="text" name="student_hobbies" required placeholder="VD: Vẽ, đá bóng, xem hoạt hình..." class="w-full px-5 py-3.5 rounded-xl bg-slate-50 outline-none focus-lime font-bold text-slate-700">
                     </div>
                 </div>
 
                 <div class="grid md:grid-cols-12 gap-6 mb-8">
                     <div class="md:col-span-8 space-y-2">
                         <label class="text-xs font-black text-slate-500 uppercase ml-1">Trường học hiện tại</label>
-                        <input type="text" name="student_school" placeholder="Tên trường tiểu học/THCS..." class="w-full px-5 py-3.5 rounded-xl bg-slate-50 outline-none focus-lime font-bold text-slate-700">
+                        <input type="text" name="student_school" required placeholder="Tên trường tiểu học/THCS..." class="w-full px-5 py-3.5 rounded-xl bg-slate-50 outline-none focus-lime font-bold text-slate-700">
                     </div>
                     <div class="md:col-span-4 space-y-2">
                         <label class="text-xs font-black text-slate-500 uppercase ml-1">Lớp</label>
-                        <input type="text" name="student_grade" placeholder="VD: 3A, Lớp 5..." class="w-full px-5 py-3.5 rounded-xl bg-slate-50 outline-none focus-lime font-bold text-slate-700">
+                        <input type="text" name="student_grade" required placeholder="VD: 3A, Lớp 5..." class="w-full px-5 py-3.5 rounded-xl bg-slate-50 outline-none focus-lime font-bold text-slate-700">
                     </div>
                 </div>
 
@@ -191,7 +197,7 @@
                     <label class="text-xs font-black text-slate-500 uppercase ml-1">Tính cách của bé</label>
                     <div class="grid sm:grid-cols-3 gap-4">
                         <label class="custom-option animate-option">
-                            <input type="radio" name="student_personality" value="Hướng nội" class="w-4 h-4 accent-rose-600">
+                            <input type="radio" name="student_personality" value="Hướng nội" class="w-4 h-4 accent-rose-600" required>
                             <span class="text-sm font-medium text-slate-600">Hướng nội (Nhút nhát, ít nói)</span>
                         </label>
                         <label class="custom-option animate-option">
@@ -265,7 +271,7 @@
                         <h3 class="text-sm font-black text-rose-600 uppercase mb-3">1. Trình độ tiếng Anh hiện tại</h3>
                         <div class="space-y-3">
                             <label class="custom-option animate-option">
-                                <input type="radio" name="current_level" value="Chưa tiếp xúc" class="w-4 h-4 accent-rose-600">
+                                <input type="radio" name="current_level" value="Chưa tiếp xúc" class="w-4 h-4 accent-rose-600" required>
                                 <span class="text-sm font-medium text-slate-600">Chưa tiếp xúc với tiếng Anh</span>
                             </label>
                             <label class="custom-option animate-option">
@@ -333,18 +339,121 @@
     </div>
 </main>
 
+<?php $showConfirmTestButtons = false; require __DIR__ . '/../notification/confirm_modal.php'; ?>
+<?php $notifyShowTestButtons = false; require __DIR__ . '/../notification/notification.php'; ?>
+
 <script>
     // Logic nhỏ: Nếu gõ text vào ô "Khác", tự động check vào checkbox "Khác"
     const sourceOtherInput = document.querySelector('input[name="source_other_detail"]');
     const sourceOtherCheck = document.getElementById('source_other_check');
+    const consultationForm = document.getElementById('consultationForm');
+    const fatherPhoneInput = document.querySelector('input[name="father_phone"]');
+    const motherPhoneInput = document.querySelector('input[name="mother_phone"]');
+
+    const syncParentPhoneValidity = () => {
+        if (!fatherPhoneInput || !motherPhoneInput) {
+            return;
+        }
+
+        const fatherFilled = fatherPhoneInput.value.trim().length > 0;
+        const motherFilled = motherPhoneInput.value.trim().length > 0;
+        const valid = fatherFilled || motherFilled;
+        const message = 'Vui lòng nhập ít nhất một số điện thoại liên hệ của phụ huynh.';
+
+        fatherPhoneInput.setCustomValidity(valid ? '' : message);
+        motherPhoneInput.setCustomValidity(valid ? '' : message);
+    };
+
+    if (fatherPhoneInput && motherPhoneInput) {
+        fatherPhoneInput.addEventListener('input', syncParentPhoneValidity);
+        motherPhoneInput.addEventListener('input', syncParentPhoneValidity);
+        syncParentPhoneValidity();
+    }
     
     if (sourceOtherInput && sourceOtherCheck) {
         sourceOtherInput.addEventListener('input', function() {
             if(this.value.trim().length > 0) {
                 sourceOtherCheck.checked = true;
+                this.required = true;
             } else {
                 sourceOtherCheck.checked = false;
+                this.required = false;
             }
         });
     }
+
+    if (sourceOtherCheck && sourceOtherInput) {
+        sourceOtherCheck.addEventListener('change', function() {
+            sourceOtherInput.required = this.checked;
+            if (!this.checked) {
+                sourceOtherInput.value = '';
+            }
+        });
+    }
+
+    if (consultationForm) {
+        consultationForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            syncParentPhoneValidity();
+
+            if (!this.checkValidity()) {
+                this.reportValidity();
+                return;
+            }
+
+            const requiredCheckboxGroups = [
+                'source_channels[]',
+                'available_shifts[]',
+                'available_days[]',
+                'parent_expectations[]'
+            ];
+
+            for (const groupName of requiredCheckboxGroups) {
+                const groupCheckboxes = Array.from(this.querySelectorAll(`input[type="checkbox"][name="${groupName}"]`));
+                if (groupCheckboxes.length > 0 && !groupCheckboxes.some((checkbox) => checkbox.checked)) {
+                    groupCheckboxes[0].focus();
+                    if (typeof showNotify === 'function') {
+                        showNotify('warning', 'Vui lòng chọn ít nhất một mục cho phần: ' + groupName.replace('[]', ''));
+                    } else {
+                        alert('Vui lòng chọn ít nhất một mục cho phần: ' + groupName.replace('[]', ''));
+                    }
+                    return;
+                }
+            }
+
+            if (sourceOtherCheck && sourceOtherCheck.checked && sourceOtherInput && sourceOtherInput.value.trim() === '') {
+                sourceOtherInput.focus();
+                if (typeof showNotify === 'function') {
+                    showNotify('warning', 'Vui lòng nhập nội dung cho mục Khác.');
+                } else {
+                    alert('Vui lòng nhập nội dung cho mục Khác.');
+                }
+                return;
+            }
+
+            if (typeof showConfirm === 'function') {
+                showConfirm(
+                    'success',
+                    'Xác nhận đăng ký?',
+                    'Bạn có chắc chắn muốn gửi hồ sơ tư vấn này không?',
+                    () => consultationForm.submit()
+                );
+            } else {
+                consultationForm.submit();
+            }
+        });
+    }
+
+    <?php if (!empty($success)): ?>
+    if (typeof showNotify === 'function') {
+        showNotify('success', <?= json_encode($success, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>);
+    }
+    <?php endif; ?>
+
+    <?php if (!empty($error)): ?>
+    if (typeof showNotify === 'function') {
+        showNotify('error', <?= json_encode($error, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>);
+    }
+    <?php endif; ?>
 </script>

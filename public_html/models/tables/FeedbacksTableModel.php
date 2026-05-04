@@ -24,6 +24,18 @@ final class FeedbacksTableModel
         );
     }
 
+    public function averageRating(): float
+    {
+        return (float) $this->fetchScalar(
+            'SELECT COALESCE(AVG(f.rating), 0) AS avg_rating
+             FROM feedbacks f
+             WHERE f.rating > 0',
+            [],
+            'avg_rating',
+            0
+        );
+    }
+
     public function listDetailed(): array
     {
         $sql = "SELECT f.id, f.sender_id AS student_id, f.rating, f.content AS comment, f.is_public_web, f.created_at,

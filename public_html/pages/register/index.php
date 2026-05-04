@@ -2,11 +2,11 @@
 $error = $error ?? get_flash('error');
 $success = $success ?? get_flash('success');
 ?>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
 <style>
-    .font-jakarta { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .font-jakarta { font-family: 'Be Vietnam Pro', sans-serif; }
     /* Animation cho background blob */
     @keyframes blob {
         0% { transform: translate(0px, 0px) scale(1); }
