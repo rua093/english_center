@@ -8,12 +8,15 @@ $courses = is_array($lookups['courses'] ?? null) ? $lookups['courses'] : [];
 
 $promotionPage = max(1, (int) ($_GET['promotion_page'] ?? 1));
 $promotionPerPage = ui_pagination_resolve_per_page('promotion_per_page', 10);
-$promotionTotal = $academicModel->countPromotions();
+$searchQuery = trim((string) ($_GET['search'] ?? ''));
+$promoTypeFilter = strtoupper(trim((string) ($_GET['promo_type'] ?? '')));
+$promotionFilters = ['promo_type' => $promoTypeFilter];
+$promotionTotal = $academicModel->countPromotions($searchQuery, $promotionFilters);
 $promotionTotalPages = max(1, (int) ceil($promotionTotal / $promotionPerPage));
 if ($promotionPage > $promotionTotalPages) {
     $promotionPage = $promotionTotalPages;
 }
-$promotions = $academicModel->listPromotionsPage($promotionPage, $promotionPerPage);
+$promotions = $academicModel->listPromotionsPage($promotionPage, $promotionPerPage, $searchQuery, $promotionFilters);
 $promotionPerPageOptions = ui_pagination_per_page_options();
 
 $editingPromotion = null;
@@ -132,10 +135,46 @@ $today = date('Y-m-d');
         </article>
     <?php endif; ?>
 
-    <article class="order-1 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <article
+        class="order-1 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+        data-ajax-table-root="1"
+        data-ajax-page-key="page"
+        data-ajax-page-value="promotions-manage"
+        data-ajax-page-param="promotion_page"
+        data-ajax-search-param="search"
+    >
         <h3>Danh sách ưu đãi</h3>
+        <div class="admin-table-toolbar mb-3 flex flex-wrap items-center gap-3">
+            <label class="relative w-full max-w-sm">
+                <span class="pointer-events-none absolute inset-y-0 left-3 inline-flex items-center text-slate-400">
+                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <circle cx="11" cy="11" r="7"></circle>
+                        <path d="m20 20-3.5-3.5"></path>
+                    </svg>
+                </span>
+                <input
+                    data-ajax-search="1"
+                    type="search"
+                    value="<?= e($searchQuery); ?>"
+                    placeholder="Tìm ưu đãi, khóa học, loại ưu đãi..."
+                    autocomplete="off"
+                    class="h-11 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+                >
+            </label>
+            <select
+                name="promo_type"
+                data-ajax-filter="1"
+                class="h-11 rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+            >
+                <option value="">Tất cả loại ưu đãi</option>
+                <?php foreach ($promoTypeOptions as $promoTypeValue => $promoTypeLabel): ?>
+                    <option value="<?= e($promoTypeValue); ?>" <?= $promoTypeFilter === $promoTypeValue ? 'selected' : ''; ?>><?= e($promoTypeLabel); ?></option>
+                <?php endforeach; ?>
+            </select>
+            <span data-ajax-row-info="1" class="text-sm font-medium text-slate-500">Hiển thị <?= (int) count($promotions); ?> / <?= (int) $promotionTotal; ?> dòng</span>
+        </div>
         <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
-            <table class="min-w-full border-collapse text-sm">
+            <table class="min-w-full border-collapse text-sm" data-disable-global-filter="1" data-disable-row-detail="1">
                 <thead>
                     <tr>
                         <th>Tên ưu đãi</th>
@@ -147,7 +186,7 @@ $today = date('Y-m-d');
                         <th>Hành động</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody data-ajax-tbody="1">
                     <?php if (empty($promotions)): ?>
                         <tr>
                             <td colspan="7">
@@ -202,12 +241,29 @@ $today = date('Y-m-d');
                                 <td>
                                     <span class="inline-flex flex-wrap items-center gap-2">
                                         <?php if ($canManagePromotion): ?>
-                                            <a href="<?= e(page_url('promotions-manage', ['edit' => $promotionId, 'promotion_page' => $promotionPage, 'promotion_per_page' => $promotionPerPage])); ?>">Sửa</a>
+                                            <a
+                                                href="<?= e(page_url('promotions-manage', ['edit' => $promotionId, 'promotion_page' => $promotionPage, 'promotion_per_page' => $promotionPerPage, 'search' => $searchQuery !== '' ? $searchQuery : null, 'promo_type' => $promoTypeFilter !== '' ? $promoTypeFilter : null])); ?>"
+                                                class="admin-action-icon-btn"
+                                                data-action-kind="edit"
+                                                data-skip-action-icon="1"
+                                                title="Sửa"
+                                                aria-label="Sửa"
+                                            >
+                                                <span class="admin-action-icon-label">Sửa</span>
+                                                <span class="admin-action-icon-glyph" aria-hidden="true">
+                                                    <svg viewBox="0 0 24 24"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
+                                                </span>
+                                            </a>
                                         <?php endif; ?>
                                         <?php if ($canDeletePromotion): ?>
-                                            <form class="inline-block" method="post" action="/api/promotions/delete?id=<?= $promotionId; ?>" onsubmit="return confirm('Có chắc không?')">
+                                            <form class="inline-block" method="post" action="/api/promotions/delete?id=<?= $promotionId; ?>&promotion_page=<?= (int) $promotionPage; ?>&promotion_per_page=<?= (int) $promotionPerPage; ?>&search=<?= urlencode($searchQuery); ?>&promo_type=<?= urlencode($promoTypeFilter); ?>" onsubmit="return confirm('Có chắc không?')">
                                                 <?= csrf_input(); ?>
-                                                <button class="<?= ui_btn_danger_classes('sm'); ?>" type="submit">Xóa</button>
+                                                <button class="<?= ui_btn_danger_classes('sm'); ?> admin-action-icon-btn" data-action-kind="delete" data-skip-action-icon="1" type="submit" title="Xóa" aria-label="Xóa">
+                                                    <span class="admin-action-icon-label">Xóa</span>
+                                                    <span class="admin-action-icon-glyph" aria-hidden="true">
+                                                        <svg viewBox="0 0 24 24"><path d="M3 6h18"></path><path d="M8 6V4h8v2"></path><path d="M19 6l-1 14H6L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>
+                                                    </span>
+                                                </button>
                                             </form>
                                         <?php endif; ?>
                                     </span>
@@ -218,27 +274,29 @@ $today = date('Y-m-d');
                 </tbody>
             </table>
             <?php if ($promotionTotal > 0): ?>
-                <div class="border-t border-slate-200 bg-slate-50/80 px-3 py-2">
-                    <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600">
-                        <span class="font-medium">Trang <?= (int) $promotionPage; ?>/<?= (int) $promotionTotalPages; ?> - Tổng <?= (int) $promotionTotal; ?> ưu đãi</span>
-                        <div class="inline-flex items-center gap-1.5">
+                <div data-ajax-pagination="1" class="border-t border-slate-200 bg-slate-50/80 px-3 py-2">
+                    <div class="flex flex-wrap items-center gap-2 text-xs text-slate-600">
+                        <span data-ajax-row-info="1" class="min-w-0 flex-1 font-medium">Trang <?= (int) $promotionPage; ?>/<?= (int) $promotionTotalPages; ?> - Tổng <?= (int) $promotionTotal; ?> ưu đãi</span>
+                        <div class="ml-auto inline-flex items-center gap-1.5">
                             <form class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2 py-1" method="get" action="<?= e(page_url('promotions-manage')); ?>">
                                 <input type="hidden" name="page" value="promotions-manage">
+                                <input type="hidden" name="search" value="<?= e($searchQuery); ?>">
+                                <input type="hidden" name="promo_type" value="<?= e($promoTypeFilter); ?>">
                                 <label class="text-[11px] font-semibold text-slate-500" for="promotion-per-page">Số dòng</label>
-                                <select id="promotion-per-page" name="promotion_per_page" class="h-7 rounded-md border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700" onchange="this.form.submit()">
+                                <select id="promotion-per-page" name="promotion_per_page" data-ajax-per-page="1" class="h-7 rounded-md border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700">
                                     <?php foreach ($promotionPerPageOptions as $option): ?>
                                         <option value="<?= (int) $option; ?>" <?= $promotionPerPage === (int) $option ? 'selected' : ''; ?>><?= (int) $option; ?></option>
                                     <?php endforeach; ?>
                                 </select>
                             </form>
                             <?php if ($promotionPage > 1): ?>
-                                <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('promotions-manage', ['promotion_page' => $promotionPage - 1, 'promotion_per_page' => $promotionPerPage])); ?>">Trước</a>
+                                <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('promotions-manage', ['promotion_page' => $promotionPage - 1, 'promotion_per_page' => $promotionPerPage, 'search' => $searchQuery !== '' ? $searchQuery : null, 'promo_type' => $promoTypeFilter !== '' ? $promoTypeFilter : null])); ?>">Trước</a>
                             <?php else: ?>
                                 <span class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 text-xs font-semibold text-slate-400">Trước</span>
                             <?php endif; ?>
 
                             <?php if ($promotionPage < $promotionTotalPages): ?>
-                                <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('promotions-manage', ['promotion_page' => $promotionPage + 1, 'promotion_per_page' => $promotionPerPage])); ?>">Sau</a>
+                                <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('promotions-manage', ['promotion_page' => $promotionPage + 1, 'promotion_per_page' => $promotionPerPage, 'search' => $searchQuery !== '' ? $searchQuery : null, 'promo_type' => $promoTypeFilter !== '' ? $promoTypeFilter : null])); ?>">Sau</a>
                             <?php else: ?>
                                 <span class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 text-xs font-semibold text-slate-400">Sau</span>
                             <?php endif; ?>

@@ -7,9 +7,22 @@ final class SchedulesTableModel
 {
     use TableModelUtils;
 
-    public function countDetailed(): int
+    public function countDetailed(int $teacherId = 0, string $searchQuery = ''): int
     {
-        return (int) $this->fetchScalar('SELECT COUNT(*) AS total FROM schedules', [], 'total', 0);
+        $params = [];
+        $whereSql = $this->buildSearchWhereClause($teacherId, $searchQuery, $params);
+        return (int) $this->fetchScalar(
+            "SELECT COUNT(*) AS total
+            FROM schedules s
+            INNER JOIN classes c ON c.id = s.class_id
+            LEFT JOIN rooms r ON r.id = s.room_id AND r.deleted_at IS NULL
+            INNER JOIN users u ON u.id = s.teacher_id
+            LEFT JOIN teacher_profiles tp ON tp.user_id = u.id
+            {$whereSql}",
+            $params,
+            'total',
+            0
+        );
     }
 
     public function listDetailed(): array
@@ -66,11 +79,13 @@ final class SchedulesTableModel
         return $this->fetchAll($sql, ['class_id' => $classId]);
     }
 
-    public function listDetailedPage(int $page, int $perPage): array
+    public function listDetailedPage(int $page, int $perPage, int $teacherId = 0, string $searchQuery = ''): array
     {
         $normalizedPage = max(1, $page);
         $limit = $this->clampLimit($perPage, 10, 200);
         $offset = ($normalizedPage - 1) * $limit;
+        $params = [];
+        $whereSql = $this->buildSearchWhereClause($teacherId, $searchQuery, $params);
 
         $sql = "SELECT s.id, s.class_id, s.room_id, s.teacher_id, s.study_date, s.start_time, s.end_time,
                 c.class_name, r.room_name, u.full_name AS teacher_name, tp.teacher_code
@@ -79,9 +94,46 @@ final class SchedulesTableModel
             LEFT JOIN rooms r ON r.id = s.room_id AND r.deleted_at IS NULL
             INNER JOIN users u ON u.id = s.teacher_id
             LEFT JOIN teacher_profiles tp ON tp.user_id = u.id
+            {$whereSql}
             ORDER BY s.study_date DESC, s.start_time DESC
             LIMIT {$limit} OFFSET {$offset}";
-        return $this->fetchAll($sql);
+        return $this->fetchAll($sql, $params);
+    }
+
+    private function buildSearchWhereClause(int $teacherId, string $searchQuery, array &$params): string
+    {
+        $conditions = [];
+
+        if ($teacherId > 0) {
+            $conditions[] = 's.teacher_id = :teacher_id';
+            $params['teacher_id'] = $teacherId;
+        }
+
+        $searchQuery = trim($searchQuery);
+        if ($searchQuery !== '') {
+            $likeValue = '%' . $searchQuery . '%';
+            $params['search_id'] = $likeValue;
+            $params['search_class'] = $likeValue;
+            $params['search_room'] = $likeValue;
+            $params['search_teacher'] = $likeValue;
+            $params['search_teacher_code'] = $likeValue;
+            $params['search_date'] = $likeValue;
+
+            $conditions[] = "(
+                CAST(s.id AS CHAR) LIKE :search_id
+                OR COALESCE(c.class_name, '') LIKE :search_class
+                OR COALESCE(r.room_name, '') LIKE :search_room
+                OR COALESCE(u.full_name, '') LIKE :search_teacher
+                OR COALESCE(tp.teacher_code, '') LIKE :search_teacher_code
+                OR CAST(s.study_date AS CHAR) LIKE :search_date
+            )";
+        }
+
+        if ($conditions === []) {
+            return '';
+        }
+
+        return ' WHERE ' . implode(' AND ', $conditions);
     }
 
     public function findById(int $id): ?array

@@ -33,14 +33,14 @@ final class AdminModel
         return $this->usersTable->listActiveWithRoles();
     }
 
-    public function countUsers(): int
+    public function countUsers(string $searchQuery = '', array $filters = []): int
     {
-        return $this->usersTable->countActiveWithRoles();
+        return $this->usersTable->countActiveWithRoles($searchQuery, $filters);
     }
 
-    public function listUsersPage(int $page, int $perPage): array
+    public function listUsersPage(int $page, int $perPage, string $searchQuery = '', array $filters = []): array
     {
-        return $this->usersTable->listActiveWithRolesPage($page, $perPage);
+        return $this->usersTable->listActiveWithRolesPage($page, $perPage, $searchQuery, $filters);
     }
 
     public function findUser(int $id): ?array
@@ -173,14 +173,14 @@ final class AdminModel
         $this->rolePermissionsTable->replaceForRole($roleId, $permissionIds);
     }
 
-    public function countStudentLeads(?string $statusFilter = null): int
+    public function countStudentLeads(array $filters = [], string $searchQuery = ''): int
     {
-        return $this->studentLeadsTable->countDetailed($statusFilter);
+        return $this->studentLeadsTable->countDetailed($filters, $searchQuery);
     }
 
-    public function listStudentLeadsPage(int $page, int $perPage, ?string $statusFilter = null): array
+    public function listStudentLeadsPage(int $page, int $perPage, array $filters = [], string $searchQuery = ''): array
     {
-        return $this->studentLeadsTable->listDetailedPage($page, $perPage, $statusFilter);
+        return $this->studentLeadsTable->listDetailedPage($page, $perPage, $filters, $searchQuery);
     }
 
     public function findStudentLead(int $id): ?array
@@ -276,14 +276,14 @@ final class AdminModel
         ];
     }
 
-    public function countJobApplications(?string $statusFilter = null): int
+    public function countJobApplications(array $filters = [], string $searchQuery = ''): int
     {
-        return $this->jobApplicationsTable->countDetailed($statusFilter);
+        return $this->jobApplicationsTable->countDetailed($filters, $searchQuery);
     }
 
-    public function listJobApplicationsPage(int $page, int $perPage, ?string $statusFilter = null): array
+    public function listJobApplicationsPage(int $page, int $perPage, array $filters = [], string $searchQuery = ''): array
     {
-        return $this->jobApplicationsTable->listDetailedPage($page, $perPage, $statusFilter);
+        return $this->jobApplicationsTable->listDetailedPage($page, $perPage, $filters, $searchQuery);
     }
 
     public function findJobApplication(int $id): ?array

@@ -10,9 +10,20 @@ final class AssignmentsTableModel extends BaseTableModel
         return $this->countAllFrom('assignments');
     }
 
-    public function countDetailed(): int
+    public function countDetailed(string $searchQuery = ''): int
     {
-        return $this->countAllFrom('assignments');
+        $params = [];
+        $whereSql = $this->buildSearchWhereClause($searchQuery, $params);
+        return (int) $this->fetchScalar(
+            "SELECT COUNT(*) AS total
+            FROM assignments a
+            INNER JOIN schedules s ON s.id = a.schedule_id
+            INNER JOIN classes c ON c.id = s.class_id
+            {$whereSql}",
+            $params,
+            'total',
+            0
+        );
     }
 
     public function listDetailed(): array
@@ -26,17 +37,41 @@ final class AssignmentsTableModel extends BaseTableModel
         return $this->fetchAll($sql);
     }
 
-    public function listDetailedPage(int $page, int $perPage): array
+    public function listDetailedPage(int $page, int $perPage, string $searchQuery = ''): array
     {
         $pagination = $this->pagination($page, $perPage, 10, 200);
+        $params = [];
+        $whereSql = $this->buildSearchWhereClause($searchQuery, $params);
         $sql = "SELECT a.id, a.schedule_id, a.title, a.description, a.deadline, a.file_url,
                 s.study_date AS lesson_date, c.class_name
             FROM assignments a
             INNER JOIN schedules s ON s.id = a.schedule_id
             INNER JOIN classes c ON c.id = s.class_id
+            {$whereSql}
             ORDER BY a.deadline DESC
             LIMIT {$pagination['limit']} OFFSET {$pagination['offset']}";
-        return $this->fetchAll($sql);
+        return $this->fetchAll($sql, $params);
+    }
+
+    private function buildSearchWhereClause(string $searchQuery, array &$params): string
+    {
+        $searchQuery = trim($searchQuery);
+        if ($searchQuery === '') {
+            return '';
+        }
+
+        $likeValue = '%' . $searchQuery . '%';
+        $params['search_id'] = $likeValue;
+        $params['search_title'] = $likeValue;
+        $params['search_description'] = $likeValue;
+        $params['search_class'] = $likeValue;
+
+        return " WHERE (
+            CAST(a.id AS CHAR) LIKE :search_id
+            OR COALESCE(a.title, '') LIKE :search_title
+            OR COALESCE(a.description, '') LIKE :search_description
+            OR COALESCE(c.class_name, '') LIKE :search_class
+        )";
     }
 
     public function findById(int $id): ?array

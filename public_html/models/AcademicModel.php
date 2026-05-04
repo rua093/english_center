@@ -222,14 +222,14 @@ final class AcademicModel
         return $this->materialsTable->listDetailed();
     }
 
-    public function countMaterials(): int
+    public function countMaterials(string $searchQuery = ''): int
     {
-        return $this->materialsTable->countDetailed();
+        return $this->materialsTable->countDetailed($searchQuery);
     }
 
-    public function listMaterialsPage(int $page, int $perPage): array
+    public function listMaterialsPage(int $page, int $perPage, string $searchQuery = ''): array
     {
-        return $this->materialsTable->listDetailedPage($page, $perPage);
+        return $this->materialsTable->listDetailedPage($page, $perPage, $searchQuery);
     }
 
     public function findMaterial(int $id): ?array
@@ -252,14 +252,14 @@ final class AcademicModel
         return $this->portfoliosTable->listDetailed();
     }
 
-    public function countPortfolios(): int
+    public function countPortfolios(string $searchQuery = '', array $filters = []): int
     {
-        return $this->portfoliosTable->countDetailed();
+        return $this->portfoliosTable->countDetailed($searchQuery, $filters);
     }
 
-    public function listPortfoliosPage(int $page, int $perPage): array
+    public function listPortfoliosPage(int $page, int $perPage, string $searchQuery = '', array $filters = []): array
     {
-        return $this->portfoliosTable->listDetailedPage($page, $perPage);
+        return $this->portfoliosTable->listDetailedPage($page, $perPage, $searchQuery, $filters);
     }
 
     public function findPortfolio(int $id): ?array
@@ -302,14 +302,14 @@ final class AcademicModel
         return $this->classesTable->listDetailedWithProgress();
     }
 
-    public function countClasses(int $teacherId = 0): int
+    public function countClasses(int $teacherId = 0, string $searchQuery = '', array $filters = []): int
     {
-        return $this->classesTable->countDetailed($teacherId);
+        return $this->classesTable->countDetailed($teacherId, $searchQuery, $filters);
     }
 
-    public function listClassesPage(int $page, int $perPage, int $teacherId = 0): array
+    public function listClassesPage(int $page, int $perPage, int $teacherId = 0, string $searchQuery = '', array $filters = []): array
     {
-        return $this->classesTable->listDetailedWithProgressPage($page, $perPage, $teacherId);
+        return $this->classesTable->listDetailedWithProgressPage($page, $perPage, $teacherId, $searchQuery, $filters);
     }
 
     public function listSchedules(): array
@@ -317,14 +317,14 @@ final class AcademicModel
         return $this->schedulesTable->listDetailed();
     }
 
-    public function countCourses(): int
+    public function countCourses(string $searchQuery = ''): int
     {
-        return $this->coursesTable->countDetailed();
+        return $this->coursesTable->countDetailed($searchQuery);
     }
 
-    public function listCoursesPage(int $page, int $perPage): array
+    public function listCoursesPage(int $page, int $perPage, string $searchQuery = ''): array
     {
-        return $this->coursesTable->listDetailedPage($page, $perPage);
+        return $this->coursesTable->listDetailedPage($page, $perPage, $searchQuery);
     }
 
     public function saveCourse(array $data): void
@@ -337,14 +337,14 @@ final class AcademicModel
         $this->coursesTable->deleteById($id);
     }
 
-    public function countSchedules(): int
+    public function countSchedules(int $teacherId = 0, string $searchQuery = ''): int
     {
-        return $this->schedulesTable->countDetailed();
+        return $this->schedulesTable->countDetailed($teacherId, $searchQuery);
     }
 
-    public function listSchedulesPage(int $page, int $perPage): array
+    public function listSchedulesPage(int $page, int $perPage, int $teacherId = 0, string $searchQuery = ''): array
     {
-        return $this->schedulesTable->listDetailedPage($page, $perPage);
+        return $this->schedulesTable->listDetailedPage($page, $perPage, $teacherId, $searchQuery);
     }
 
     public function listAssignments(): array
@@ -352,14 +352,14 @@ final class AcademicModel
         return $this->assignmentsTable->listDetailed();
     }
 
-    public function countAssignments(): int
+    public function countAssignments(string $searchQuery = ''): int
     {
-        return $this->assignmentsTable->countDetailed();
+        return $this->assignmentsTable->countDetailed($searchQuery);
     }
 
-    public function listAssignmentsPage(int $page, int $perPage): array
+    public function listAssignmentsPage(int $page, int $perPage, string $searchQuery = ''): array
     {
-        return $this->assignmentsTable->listDetailedPage($page, $perPage);
+        return $this->assignmentsTable->listDetailedPage($page, $perPage, $searchQuery);
     }
 
     public function listSubmissionsForGrading(): array
@@ -427,9 +427,9 @@ final class AcademicModel
         return $this->lessonsTable->listRoadmapsByClass($classId);
     }
 
-    public function countRoadmapsByCourse(int $courseId): int
+    public function countRoadmapsByCourse(int $courseId, string $searchQuery = ''): int
     {
-        return $this->courseRoadmapsTable->countByCourse($courseId);
+        return $this->courseRoadmapsTable->countByCourse($courseId, $searchQuery);
     }
 
     public function buildStudentPerformanceExport(int $classId, array $studentIds): array
@@ -550,9 +550,9 @@ final class AcademicModel
         ];
     }
 
-    public function listRoadmapsByCoursePage(int $courseId, int $page, int $perPage): array
+    public function listRoadmapsByCoursePage(int $courseId, int $page, int $perPage, string $searchQuery = ''): array
     {
-        return $this->courseRoadmapsTable->listByCoursePage($courseId, $page, $perPage);
+        return $this->courseRoadmapsTable->listByCoursePage($courseId, $page, $perPage, $searchQuery);
     }
 
     public function findRoadmap(int $id): ?array
@@ -640,14 +640,14 @@ final class AcademicModel
         return $this->coursePackagesTable->usesPromotionSchema();
     }
 
-    public function countPromotions(): int
+    public function countPromotions(string $searchQuery = '', array $filters = []): int
     {
-        return $this->coursePackagesTable->countDetailed();
+        return $this->coursePackagesTable->countDetailed($searchQuery, $filters);
     }
 
-    public function listPromotionsPage(int $page, int $perPage): array
+    public function listPromotionsPage(int $page, int $perPage, string $searchQuery = '', array $filters = []): array
     {
-        return $this->coursePackagesTable->listDetailedPage($page, $perPage);
+        return $this->coursePackagesTable->listDetailedPage($page, $perPage, $searchQuery, $filters);
     }
 
     public function findPromotion(int $id): ?array
@@ -825,14 +825,14 @@ final class AcademicModel
         return $this->notificationsTable->listRecent(100);
     }
 
-    public function countNotifications(): int
+    public function countNotifications(string $searchQuery = '', array $filters = []): int
     {
-        return $this->notificationsTable->countDetailed();
+        return $this->notificationsTable->countDetailed($searchQuery, $filters);
     }
 
-    public function listNotificationsPage(int $page, int $perPage): array
+    public function listNotificationsPage(int $page, int $perPage, string $searchQuery = '', array $filters = []): array
     {
-        return $this->notificationsTable->listDetailedPage($page, $perPage);
+        return $this->notificationsTable->listDetailedPage($page, $perPage, $searchQuery, $filters);
     }
 
     public function findNotification(int $id): ?array
@@ -860,14 +860,14 @@ final class AcademicModel
         return $this->feedbacksTable->listDetailed();
     }
 
-    public function countFeedbacks(): int
+    public function countFeedbacks(string $searchQuery = '', array $filters = []): int
     {
-        return $this->feedbacksTable->countDetailed();
+        return $this->feedbacksTable->countDetailed($searchQuery, $filters);
     }
 
-    public function listFeedbacksPage(int $page, int $perPage): array
+    public function listFeedbacksPage(int $page, int $perPage, string $searchQuery = '', array $filters = []): array
     {
-        return $this->feedbacksTable->listDetailedPage($page, $perPage);
+        return $this->feedbacksTable->listDetailedPage($page, $perPage, $searchQuery, $filters);
     }
 
     public function findFeedback(int $id): ?array
@@ -894,14 +894,14 @@ final class AcademicModel
         return $this->approvalsTable->listDetailed();
     }
 
-    public function countApprovals(): int
+    public function countApprovals(string $searchQuery = '', array $filters = []): int
     {
-        return $this->approvalsTable->countDetailed();
+        return $this->approvalsTable->countDetailed($searchQuery, $filters);
     }
 
-    public function listApprovalsPage(int $page, int $perPage): array
+    public function listApprovalsPage(int $page, int $perPage, string $searchQuery = '', array $filters = []): array
     {
-        return $this->approvalsTable->listDetailedPage($page, $perPage);
+        return $this->approvalsTable->listDetailedPage($page, $perPage, $searchQuery, $filters);
     }
 
     public function findApproval(int $id): ?array
@@ -1033,14 +1033,14 @@ final class AcademicModel
         return $this->activitiesTable->listWithRegistrationCount();
     }
 
-    public function countActivities(): int
+    public function countActivities(string $searchQuery = '', array $filters = []): int
     {
-        return $this->activitiesTable->countDetailed();
+        return $this->activitiesTable->countDetailed($searchQuery, $filters);
     }
 
-    public function listActivitiesPage(int $page, int $perPage): array
+    public function listActivitiesPage(int $page, int $perPage, string $searchQuery = '', array $filters = []): array
     {
-        return $this->activitiesTable->listWithRegistrationCountPage($page, $perPage);
+        return $this->activitiesTable->listWithRegistrationCountPage($page, $perPage, $searchQuery, $filters);
     }
 
     public function findActivity(int $id): ?array
@@ -1073,14 +1073,14 @@ final class AcademicModel
         return $this->activitiesTable->updateRegistrationPayment($activityId, $userId, $paymentStatus, $amountPaid, $paymentDate);
     }
 
-    public function countRooms(): int
+    public function countRooms(string $searchQuery = '', array $filters = []): int
     {
-        return $this->roomsTable->countDetailed();
+        return $this->roomsTable->countDetailed($searchQuery, $filters);
     }
 
-    public function listRoomsPage(int $page, int $perPage): array
+    public function listRoomsPage(int $page, int $perPage, string $searchQuery = '', array $filters = []): array
     {
-        return $this->roomsTable->listDetailedPage($page, $perPage);
+        return $this->roomsTable->listDetailedPage($page, $perPage, $searchQuery, $filters);
     }
 
     public function findRoom(int $id): ?array
@@ -1133,14 +1133,14 @@ final class AcademicModel
         return $this->tuitionFeesTable->listDetailed();
     }
 
-    public function countTuitionFees(string $searchQuery = ''): int
+    public function countTuitionFees(string $searchQuery = '', array $filters = []): int
     {
-        return $this->tuitionFeesTable->countDetailed($searchQuery);
+        return $this->tuitionFeesTable->countDetailed($searchQuery, $filters);
     }
 
-    public function listTuitionFeesPage(int $page, int $perPage, string $searchQuery = ''): array
+    public function listTuitionFeesPage(int $page, int $perPage, string $searchQuery = '', array $filters = []): array
     {
-        return $this->tuitionFeesTable->listDetailedPage($page, $perPage, $searchQuery);
+        return $this->tuitionFeesTable->listDetailedPage($page, $perPage, $searchQuery, $filters);
     }
 
     public function findTuitionFee(int $id): ?array
@@ -1259,14 +1259,14 @@ final class AcademicModel
         return $this->paymentTransactionsTable->listDetailed();
     }
 
-    public function countPaymentTransactions(): int
+    public function countPaymentTransactions(string $searchQuery = '', array $filters = []): int
     {
-        return $this->paymentTransactionsTable->countDetailed();
+        return $this->paymentTransactionsTable->countDetailed($searchQuery, $filters);
     }
 
-    public function listPaymentTransactionsPage(int $page, int $perPage): array
+    public function listPaymentTransactionsPage(int $page, int $perPage, string $searchQuery = '', array $filters = []): array
     {
-        return $this->paymentTransactionsTable->listDetailedPage($page, $perPage);
+        return $this->paymentTransactionsTable->listDetailedPage($page, $perPage, $searchQuery, $filters);
     }
 
     public function findPaymentTransaction(int $id): ?array

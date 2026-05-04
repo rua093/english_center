@@ -3,9 +3,20 @@
 </div>
 <script>
     (function () {
+        'use strict';
+
         const PAGINATION_SCROLL_KEY = 'admin-ui:pagination-scroll';
         const EDIT_MODAL_ID = 'admin-edit-modal';
         const ROW_DETAIL_TRIGGER_ATTR = 'data-admin-row-detail';
+        const AJAX_TABLE_ROOT_SELECTOR = '[data-ajax-table-root="1"]';
+        const AJAX_SEARCH_SELECTOR = 'input[data-ajax-search="1"]';
+        const AJAX_PER_PAGE_SELECTOR = 'select[data-ajax-per-page="1"]';
+        const AJAX_FILTER_SELECTOR = '[data-ajax-filter="1"]';
+        const AJAX_TBODY_SELECTOR = 'tbody[data-ajax-tbody="1"]';
+        const AJAX_PAGINATION_SELECTOR = '[data-ajax-pagination="1"]';
+        const AJAX_ROW_INFO_SELECTOR = '[data-ajax-row-info="1"]';
+        const ajaxTableControllers = new WeakMap();
+        const ajaxTableSearchTimers = new WeakMap();
 
         function hasPaginationParam(url) {
             const entries = Array.from(url.searchParams.keys());
@@ -1693,6 +1704,446 @@
             });
         }
 
+        async function refreshAdminUi(rootElement) {
+            const scope = rootElement instanceof HTMLElement ? rootElement : document;
+
+            scope.querySelectorAll('table').forEach(function (table) {
+                if (table instanceof HTMLTableElement) {
+                    delete table.dataset.globalRowDetailReady;
+                    delete table.dataset.globalFilterReady;
+
+                    const wrapper = table.closest('.overflow-x-auto');
+                    const toolbar = wrapper instanceof HTMLElement ? wrapper.previousElementSibling : null;
+                    if (toolbar instanceof HTMLElement && toolbar.classList.contains('table-filter-bar')) {
+                        toolbar.remove();
+                    }
+                }
+            });
+
+            try {
+                await initGlobalRowDetails();
+            } catch (error) {
+                // Keep refresh resilient even when detail bootstrap fails.
+            }
+
+            initActionIcons();
+            initTableFilters();
+            initGlobalTomSelect(scope);
+            initPhoneInputs(scope);
+        }
+
+        function getAjaxTableRoot(element) {
+            return element instanceof Element ? element.closest(AJAX_TABLE_ROOT_SELECTOR) : null;
+        }
+
+        function getAjaxTableConfig(root) {
+            if (!(root instanceof HTMLElement)) {
+                return null;
+            }
+
+            return {
+                pageKey: String(root.dataset.ajaxPageKey || 'page').trim() || 'page',
+                pageValue: String(root.dataset.ajaxPageValue || '').trim(),
+                pageParam: String(root.dataset.ajaxPageParam || '').trim(),
+                searchParam: String(root.dataset.ajaxSearchParam || 'search').trim() || 'search',
+            };
+        }
+
+        function getAjaxTableSearchInput(root) {
+            return root instanceof HTMLElement ? root.querySelector(AJAX_SEARCH_SELECTOR) : null;
+        }
+
+        function getAjaxTableFilters(root) {
+            if (!(root instanceof HTMLElement)) {
+                return [];
+            }
+
+            return Array.from(root.querySelectorAll(AJAX_FILTER_SELECTOR)).filter(function (element) {
+                return element instanceof HTMLInputElement || element instanceof HTMLSelectElement || element instanceof HTMLTextAreaElement;
+            });
+        }
+
+        function rootMatchesAjaxUrl(root, url) {
+            const config = getAjaxTableConfig(root);
+            if (!config || !(url instanceof URL) || url.origin !== window.location.origin) {
+                return false;
+            }
+
+            if (config.pageValue === '') {
+                return true;
+            }
+
+            return String(url.searchParams.get(config.pageKey) || '') === config.pageValue;
+        }
+
+        function buildAjaxTableUrlFromForm(root, form) {
+            const config = getAjaxTableConfig(root);
+            if (!config || !(form instanceof HTMLFormElement)) {
+                return null;
+            }
+
+            const url = new URL(form.getAttribute('action') || window.location.href, window.location.href);
+            const formData = new FormData(form);
+            url.search = '';
+
+            formData.forEach(function (value, key) {
+                url.searchParams.set(String(key), String(value));
+            });
+
+            if (config.pageValue !== '') {
+                url.searchParams.set(config.pageKey, config.pageValue);
+            }
+
+            const searchInput = getAjaxTableSearchInput(root);
+            const keyword = searchInput instanceof HTMLInputElement ? String(searchInput.value || '').trim() : '';
+            if (keyword === '') {
+                url.searchParams.delete(config.searchParam);
+            } else {
+                url.searchParams.set(config.searchParam, keyword);
+            }
+
+            getAjaxTableFilters(root).forEach(function (filterElement) {
+                const filterName = String(filterElement.name || '').trim();
+                if (filterName === '') {
+                    return;
+                }
+
+                const filterValue = String(filterElement.value || '').trim();
+                if (filterValue === '') {
+                    url.searchParams.delete(filterName);
+                } else {
+                    url.searchParams.set(filterName, filterValue);
+                }
+            });
+
+            if (config.pageParam !== '') {
+                url.searchParams.set(config.pageParam, '1');
+            }
+
+            return url;
+        }
+
+        function findMatchingAjaxRoot(doc, currentRoot) {
+            if (!(doc instanceof Document) || !(currentRoot instanceof HTMLElement)) {
+                return null;
+            }
+
+            const config = getAjaxTableConfig(currentRoot);
+            if (!config) {
+                return null;
+            }
+
+            const candidates = Array.from(doc.querySelectorAll(AJAX_TABLE_ROOT_SELECTOR));
+            for (const candidate of candidates) {
+                if (!(candidate instanceof HTMLElement)) {
+                    continue;
+                }
+
+                const candidateConfig = getAjaxTableConfig(candidate);
+                if (!candidateConfig) {
+                    continue;
+                }
+
+                if (candidateConfig.pageKey === config.pageKey && candidateConfig.pageValue === config.pageValue) {
+                    return candidate;
+                }
+            }
+
+            return candidates[0] instanceof HTMLElement ? candidates[0] : null;
+        }
+
+        function syncAjaxTableSearchInput(root, url) {
+            const config = getAjaxTableConfig(root);
+            const input = getAjaxTableSearchInput(root);
+            if (!config || !(input instanceof HTMLInputElement) || !(url instanceof URL)) {
+                return;
+            }
+
+            input.value = String(url.searchParams.get(config.searchParam) || '');
+        }
+
+        function syncAjaxTableFilters(root, url) {
+            if (!(root instanceof HTMLElement) || !(url instanceof URL)) {
+                return;
+            }
+
+            getAjaxTableFilters(root).forEach(function (filterElement) {
+                const filterName = String(filterElement.name || '').trim();
+                if (filterName === '') {
+                    return;
+                }
+
+                filterElement.value = String(url.searchParams.get(filterName) || '');
+            });
+        }
+
+        async function fetchAjaxTable(root, url, historyMode) {
+            const config = getAjaxTableConfig(root);
+            const currentTbody = root instanceof HTMLElement ? root.querySelector(AJAX_TBODY_SELECTOR) : null;
+            const currentPagination = root instanceof HTMLElement ? root.querySelector(AJAX_PAGINATION_SELECTOR) : null;
+            const currentRowInfo = root instanceof HTMLElement ? root.querySelector(AJAX_ROW_INFO_SELECTOR) : null;
+            if (
+                !config
+                || !(root instanceof HTMLElement)
+                || !(currentTbody instanceof HTMLTableSectionElement)
+                || !(currentPagination instanceof HTMLElement)
+                || !rootMatchesAjaxUrl(root, url)
+            ) {
+                window.location.href = url.toString();
+                return;
+            }
+
+            const previousController = ajaxTableControllers.get(root);
+            if (previousController instanceof AbortController) {
+                previousController.abort();
+            }
+
+            const controller = new AbortController();
+            ajaxTableControllers.set(root, controller);
+            currentTbody.classList.add('opacity-60');
+            currentPagination.classList.add('opacity-60', 'pointer-events-none');
+
+            try {
+                const response = await fetch(url.toString(), {
+                    method: 'GET',
+                    credentials: 'same-origin',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    signal: controller.signal
+                });
+
+                if (!response.ok) {
+                    throw new Error('Không thể tải dữ liệu bảng.');
+                }
+
+                const html = await response.text();
+                const nextDocument = new DOMParser().parseFromString(html, 'text/html');
+                const nextRoot = findMatchingAjaxRoot(nextDocument, root);
+                const nextTbody = nextRoot instanceof HTMLElement ? nextRoot.querySelector(AJAX_TBODY_SELECTOR) : null;
+                const nextPagination = nextRoot instanceof HTMLElement ? nextRoot.querySelector(AJAX_PAGINATION_SELECTOR) : null;
+                const nextRowInfo = nextRoot instanceof HTMLElement ? nextRoot.querySelector(AJAX_ROW_INFO_SELECTOR) : null;
+                const currentRowInfo = root.querySelector(AJAX_ROW_INFO_SELECTOR);
+
+                if (!(nextTbody instanceof HTMLTableSectionElement) || !(nextPagination instanceof HTMLElement)) {
+                    throw new Error('Không tìm thấy vùng dữ liệu mới.');
+                }
+
+                currentTbody.replaceWith(nextTbody);
+                currentPagination.replaceWith(nextPagination);
+
+                const rowInfoLivesInsidePagination = currentRowInfo instanceof HTMLElement && currentPagination.contains(currentRowInfo);
+                if (!rowInfoLivesInsidePagination && currentRowInfo instanceof HTMLElement && nextRowInfo instanceof HTMLElement) {
+                    currentRowInfo.replaceWith(nextRowInfo);
+                }
+
+                if (historyMode === 'push') {
+                    window.history.pushState({ ajaxTable: true }, '', url.toString());
+                } else if (historyMode === 'replace') {
+                    window.history.replaceState({ ajaxTable: true }, '', url.toString());
+                }
+
+                await refreshAdminUi(root);
+            } catch (error) {
+                if (error instanceof DOMException && error.name === 'AbortError') {
+                    return;
+                }
+
+                window.location.href = url.toString();
+            } finally {
+                if (ajaxTableControllers.get(root) === controller) {
+                    ajaxTableControllers.delete(root);
+                }
+
+                const activeTbody = root.querySelector(AJAX_TBODY_SELECTOR);
+                const activePagination = root.querySelector(AJAX_PAGINATION_SELECTOR);
+                if (activeTbody instanceof HTMLElement) {
+                    activeTbody.classList.remove('opacity-60');
+                }
+                if (activePagination instanceof HTMLElement) {
+                    activePagination.classList.remove('opacity-60', 'pointer-events-none');
+                }
+            }
+        }
+
+        function initGlobalAjaxTables() {
+            if (window.__globalAjaxTablesBound === '1') {
+                return;
+            }
+
+            window.__globalAjaxTablesBound = '1';
+
+            document.addEventListener('click', function (event) {
+                const link = event.target instanceof Element ? event.target.closest(AJAX_PAGINATION_SELECTOR + ' a[href]') : null;
+                if (!(link instanceof HTMLAnchorElement)) {
+                    return;
+                }
+
+                if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+                    return;
+                }
+
+                const root = getAjaxTableRoot(link);
+                const url = new URL(link.href, window.location.href);
+                if (!(root instanceof HTMLElement) || !rootMatchesAjaxUrl(root, url)) {
+                    return;
+                }
+
+                event.preventDefault();
+                fetchAjaxTable(root, url, 'push');
+            });
+
+            document.addEventListener('change', function (event) {
+                const select = event.target;
+                if (!(select instanceof HTMLSelectElement) || select.getAttribute('data-ajax-per-page') !== '1') {
+                    return;
+                }
+
+                const form = select.form;
+                const root = getAjaxTableRoot(select);
+                const url = buildAjaxTableUrlFromForm(root, form);
+                if (!(root instanceof HTMLElement) || !(url instanceof URL)) {
+                    return;
+                }
+
+                event.preventDefault();
+                fetchAjaxTable(root, url, 'push');
+            });
+
+            document.addEventListener('change', function (event) {
+                const field = event.target;
+                if (
+                    !(field instanceof HTMLInputElement)
+                    && !(field instanceof HTMLSelectElement)
+                    && !(field instanceof HTMLTextAreaElement)
+                ) {
+                    return;
+                }
+
+                if (field.getAttribute('data-ajax-filter') !== '1') {
+                    return;
+                }
+
+                const root = getAjaxTableRoot(field);
+                const config = getAjaxTableConfig(root);
+                if (!(root instanceof HTMLElement) || !config) {
+                    return;
+                }
+
+                const url = new URL(window.location.href);
+                if (config.pageValue !== '') {
+                    url.searchParams.set(config.pageKey, config.pageValue);
+                }
+
+                const searchInput = getAjaxTableSearchInput(root);
+                const keyword = searchInput instanceof HTMLInputElement ? String(searchInput.value || '').trim() : '';
+                if (keyword === '') {
+                    url.searchParams.delete(config.searchParam);
+                } else {
+                    url.searchParams.set(config.searchParam, keyword);
+                }
+
+                getAjaxTableFilters(root).forEach(function (filterElement) {
+                    const filterName = String(filterElement.name || '').trim();
+                    if (filterName === '') {
+                        return;
+                    }
+
+                    const filterValue = String(filterElement.value || '').trim();
+                    if (filterValue === '') {
+                        url.searchParams.delete(filterName);
+                    } else {
+                        url.searchParams.set(filterName, filterValue);
+                    }
+                });
+
+                if (config.pageParam !== '') {
+                    url.searchParams.set(config.pageParam, '1');
+                }
+
+                fetchAjaxTable(root, url, 'push');
+            });
+
+            document.addEventListener('keydown', function (event) {
+                const input = event.target;
+                if (!(input instanceof HTMLInputElement) || input.getAttribute('data-ajax-search') !== '1') {
+                    return;
+                }
+
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                }
+            });
+
+            document.addEventListener('input', function (event) {
+                const input = event.target;
+                if (!(input instanceof HTMLInputElement) || input.getAttribute('data-ajax-search') !== '1') {
+                    return;
+                }
+
+                const root = getAjaxTableRoot(input);
+                const config = getAjaxTableConfig(root);
+                if (!(root instanceof HTMLElement) || !config) {
+                    return;
+                }
+
+                const existingTimer = ajaxTableSearchTimers.get(root);
+                if (existingTimer) {
+                    window.clearTimeout(existingTimer);
+                }
+
+                const timer = window.setTimeout(function () {
+                    const url = new URL(window.location.href);
+                    if (config.pageValue !== '') {
+                        url.searchParams.set(config.pageKey, config.pageValue);
+                    }
+
+                    getAjaxTableFilters(root).forEach(function (filterElement) {
+                        const filterName = String(filterElement.name || '').trim();
+                        if (filterName === '') {
+                            return;
+                        }
+
+                        const filterValue = String(filterElement.value || '').trim();
+                        if (filterValue === '') {
+                            url.searchParams.delete(filterName);
+                        } else {
+                            url.searchParams.set(filterName, filterValue);
+                        }
+                    });
+
+                    if (config.pageParam !== '') {
+                        url.searchParams.set(config.pageParam, '1');
+                    }
+
+                    const keyword = String(input.value || '').trim();
+                    if (keyword === '') {
+                        url.searchParams.delete(config.searchParam);
+                    } else {
+                        url.searchParams.set(config.searchParam, keyword);
+                    }
+
+                    fetchAjaxTable(root, url, 'push');
+                }, 500);
+
+                ajaxTableSearchTimers.set(root, timer);
+            });
+
+            window.addEventListener('popstate', function () {
+                const url = new URL(window.location.href);
+                const roots = document.querySelectorAll(AJAX_TABLE_ROOT_SELECTOR);
+                roots.forEach(function (root) {
+                    if (!(root instanceof HTMLElement) || !rootMatchesAjaxUrl(root, url)) {
+                        return;
+                    }
+
+                    syncAjaxTableSearchInput(root, url);
+                    syncAjaxTableFilters(root, url);
+                    fetchAjaxTable(root, url, null);
+                });
+            });
+        }
+
         async function bootstrapAdminUi() {
             clearCreateSaveForms();
             try {
@@ -1708,6 +2159,8 @@
             bindGlobalEditModal();
             initGlobalTomSelect(document);
             initPhoneInputs(document);
+            initGlobalAjaxTables();
+            window.__refreshAdminUi = refreshAdminUi;
 
             // Observe for dynamically added selects (e.g. inside modals)
             const observer = new MutationObserver(function(mutations) {

@@ -7,19 +7,38 @@ final class RoomsTableModel
 {
     use TableModelUtils;
 
-    public function countDetailed(): int
+    public function countDetailed(string $searchQuery = '', array $filters = []): int
     {
-        return (int) $this->fetchScalar('SELECT COUNT(*) AS total FROM rooms WHERE deleted_at IS NULL', [], 'total', 0);
+        $params = [];
+        $whereSql = $this->buildSearchWhereClause($searchQuery, $filters, $params);
+        return (int) $this->fetchScalar("SELECT COUNT(*) AS total FROM rooms {$whereSql}", $params, 'total', 0);
     }
 
-    public function listDetailedPage(int $page, int $perPage): array
+    public function listDetailedPage(int $page, int $perPage, string $searchQuery = '', array $filters = []): array
     {
         $normalizedPage = max(1, $page);
         $limit = $this->clampLimit($perPage, 10, 200);
         $offset = ($normalizedPage - 1) * $limit;
+        $params = [];
+        $whereSql = $this->buildSearchWhereClause($searchQuery, $filters, $params);
 
-        $sql = 'SELECT id, room_name FROM rooms WHERE deleted_at IS NULL ORDER BY room_name ASC LIMIT ' . $limit . ' OFFSET ' . $offset;
-        return $this->fetchAll($sql);
+        $sql = 'SELECT id, room_name FROM rooms ' . $whereSql . ' ORDER BY room_name ASC LIMIT ' . $limit . ' OFFSET ' . $offset;
+        return $this->fetchAll($sql, $params);
+    }
+
+    private function buildSearchWhereClause(string $searchQuery, array $filters, array &$params): string
+    {
+        $conditions = ['deleted_at IS NULL'];
+        $searchQuery = trim($searchQuery);
+
+        if ($searchQuery !== '') {
+            $likeValue = '%' . $searchQuery . '%';
+            $params['search_id'] = $likeValue;
+            $params['search_name'] = $likeValue;
+            $conditions[] = '(CAST(id AS CHAR) LIKE :search_id OR COALESCE(room_name, \'\') LIKE :search_name)';
+        }
+
+        return ' WHERE ' . implode(' AND ', $conditions);
     }
 
     public function findById(int $id): ?array

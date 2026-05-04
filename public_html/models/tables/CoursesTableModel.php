@@ -5,16 +5,20 @@ require_once __DIR__ . '/BaseTableModel.php';
 
 final class CoursesTableModel extends BaseTableModel
 {
-    public function countDetailed(): int
+    public function countDetailed(string $searchQuery = ''): int
     {
-        return $this->countActiveFrom('courses');
+        $params = [];
+        $whereSql = $this->buildSearchWhereClause($searchQuery, $params);
+        return (int) $this->fetchScalar("SELECT COUNT(*) AS total FROM courses c {$whereSql}", $params, 'total', 0);
     }
 
-    public function listDetailedPage(int $page, int $perPage): array
+    public function listDetailedPage(int $page, int $perPage, string $searchQuery = ''): array
     {
         $pagination = $this->pagination($page, $perPage, 10, 200);
         $limit = (int) $pagination['limit'];
         $offset = (int) $pagination['offset'];
+        $params = [];
+        $whereSql = $this->buildSearchWhereClause($searchQuery, $params);
 
         $sql = "SELECT c.id, c.course_name, c.description, c.base_price, c.total_sessions, c.image_thumbnail,
                 COALESCE(cs.class_count, 0) AS class_count,
@@ -30,11 +34,32 @@ final class CoursesTableModel extends BaseTableModel
                 FROM course_roadmaps roadmap_source
                 GROUP BY roadmap_source.course_id
             ) rs ON rs.course_id = c.id
-            WHERE c.deleted_at IS NULL
+            {$whereSql}
             ORDER BY c.id DESC
             LIMIT {$limit} OFFSET {$offset}";
 
-        return $this->fetchAll($sql);
+        return $this->fetchAll($sql, $params);
+    }
+
+    private function buildSearchWhereClause(string $searchQuery, array &$params): string
+    {
+        $conditions = ['c.deleted_at IS NULL'];
+        $searchQuery = trim($searchQuery);
+        if ($searchQuery !== '') {
+            $likeValue = '%' . $searchQuery . '%';
+            $params['search_id'] = $likeValue;
+            $params['search_name'] = $likeValue;
+            $params['search_description'] = $likeValue;
+            $params['search_price'] = $likeValue;
+            $conditions[] = "(
+                CAST(c.id AS CHAR) LIKE :search_id
+                OR COALESCE(c.course_name, '') LIKE :search_name
+                OR COALESCE(c.description, '') LIKE :search_description
+                OR CAST(c.base_price AS CHAR) LIKE :search_price
+            )";
+        }
+
+        return ' WHERE ' . implode(' AND ', $conditions);
     }
 
     public function listSimple(): array

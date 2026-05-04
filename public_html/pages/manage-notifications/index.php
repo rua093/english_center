@@ -2,6 +2,12 @@
 require_any_permission(['notifications.view']);
 
 $academicModel = new AcademicModel();
+$searchQuery = trim((string) ($_GET['search'] ?? ''));
+$isReadFilter = trim((string) ($_GET['is_read'] ?? ''));
+if ($isReadFilter !== '0' && $isReadFilter !== '1') {
+    $isReadFilter = '';
+}
+$notificationFilters = ['is_read' => $isReadFilter];
 $editingNotification = null;
 if (!empty($_GET['edit'])) {
     $editingNotification = $academicModel->findNotification((int) $_GET['edit']);
@@ -9,12 +15,12 @@ if (!empty($_GET['edit'])) {
 
 $notificationPage = max(1, (int) ($_GET['notification_page'] ?? 1));
 $notificationPerPage = ui_pagination_resolve_per_page('notification_per_page', 10);
-$notificationTotal = $academicModel->countNotifications();
+$notificationTotal = $academicModel->countNotifications($searchQuery, $notificationFilters);
 $notificationTotalPages = max(1, (int) ceil($notificationTotal / $notificationPerPage));
 if ($notificationPage > $notificationTotalPages) {
     $notificationPage = $notificationTotalPages;
 }
-$notifications = $academicModel->listNotificationsPage($notificationPage, $notificationPerPage);
+$notifications = $academicModel->listNotificationsPage($notificationPage, $notificationPerPage, $searchQuery, $notificationFilters);
 $notificationPerPageOptions = ui_pagination_per_page_options();
 $recipientUsers = $academicModel->notificationRecipientLookups();
 
@@ -79,17 +85,48 @@ $canManageNotifications = has_any_permission(['notifications.create', 'notificat
                 <div class="md:col-span-2 flex flex-wrap items-center gap-2">
                     <button class="<?= ui_btn_primary_classes(); ?>" type="submit">Lưu thông báo</button>
                     <?php if ($editingNotification): ?>
-                        <a class="<?= ui_btn_secondary_classes(); ?>" href="<?= e(page_url('notifications-manage')); ?>">Tạo mới</a>
+                        <a class="<?= ui_btn_secondary_classes(); ?>" href="<?= e(page_url('notifications-manage', ['notification_page' => $notificationPage, 'notification_per_page' => $notificationPerPage, 'search' => $searchQuery, 'is_read' => $isReadFilter])); ?>">Tạo mới</a>
                     <?php endif; ?>
                 </div>
             </form>
         </article>
     <?php endif; ?>
 
-    <article class="order-1 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <article
+        class="order-1 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+        data-ajax-table-root="1"
+        data-ajax-page-key="page"
+        data-ajax-page-value="notifications-manage"
+        data-ajax-page-param="notification_page"
+        data-ajax-search-param="search"
+    >
         <h3>Danh sách thông báo</h3>
+        <div class="mb-3 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div class="flex flex-1 flex-col gap-3 md:flex-row md:items-center">
+                <label class="relative block w-full md:max-w-sm">
+                    <span class="pointer-events-none absolute inset-y-0 left-3 inline-flex items-center text-slate-400">
+                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="7"></circle>
+                            <path d="m20 20-3.5-3.5"></path>
+                        </svg>
+                    </span>
+                    <input
+                        type="search"
+                        value="<?= e($searchQuery); ?>"
+                        data-ajax-search="1"
+                        placeholder="Tìm người nhận, tiêu đề, nội dung..."
+                        class="h-10 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-3 text-sm text-slate-700 shadow-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                    >
+                </label>
+                <select name="is_read" data-ajax-filter="1" class="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 shadow-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="0" <?= $isReadFilter === '0' ? 'selected' : ''; ?>>Chưa đọc</option>
+                    <option value="1" <?= $isReadFilter === '1' ? 'selected' : ''; ?>>Đã đọc</option>
+                </select>
+            </div>
+        </div>
         <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
-            <table class="min-w-full border-collapse text-sm" data-enable-row-detail="1">
+            <table class="min-w-full border-collapse text-sm" data-enable-row-detail="1" data-disable-global-filter="1">
                 <thead>
                     <tr>
                         <th>Người nhận</th>
@@ -100,7 +137,7 @@ $canManageNotifications = has_any_permission(['notifications.create', 'notificat
                         <th width="220">Hành động</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody data-ajax-tbody="1">
                     <?php if (empty($notifications)): ?>
                         <tr>
                             <td colspan="6">
@@ -138,7 +175,7 @@ $canManageNotifications = has_any_permission(['notifications.create', 'notificat
                                             class="admin-row-detail-button admin-action-icon-btn"
                                             data-action-kind="detail"
                                             data-admin-row-detail="1"
-                                            data-detail-url="<?= e(page_url('notifications-manage', ['edit' => $notificationId, 'notification_page' => $notificationPage, 'notification_per_page' => $notificationPerPage])); ?>"
+                                            data-detail-url="<?= e(page_url('notifications-manage', ['edit' => $notificationId, 'notification_page' => $notificationPage, 'notification_per_page' => $notificationPerPage, 'search' => $searchQuery, 'is_read' => $isReadFilter])); ?>"
                                             data-skip-action-icon="1"
                                             title="Xem chi tiết"
                                             aria-label="Xem chi tiết"
@@ -149,7 +186,7 @@ $canManageNotifications = has_any_permission(['notifications.create', 'notificat
                                             </span>
                                         </button>
                                         <a
-                                            href="<?= e(page_url('notifications-manage', ['edit' => $notificationId, 'notification_page' => $notificationPage, 'notification_per_page' => $notificationPerPage])); ?>"
+                                            href="<?= e(page_url('notifications-manage', ['edit' => $notificationId, 'notification_page' => $notificationPage, 'notification_per_page' => $notificationPerPage, 'search' => $searchQuery, 'is_read' => $isReadFilter])); ?>"
                                             class="admin-action-icon-btn"
                                             data-action-kind="edit"
                                             data-skip-action-icon="1"
@@ -186,14 +223,16 @@ $canManageNotifications = has_any_permission(['notifications.create', 'notificat
             </table>
 
             <?php if ($notificationTotal > 0): ?>
-                <div class="border-t border-slate-200 bg-slate-50/80 px-3 py-2">
+                <div class="border-t border-slate-200 bg-slate-50/80 px-3 py-2" data-ajax-pagination="1">
                     <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600">
-                        <span class="font-medium">Trang <?= (int) $notificationPage; ?>/<?= (int) $notificationTotalPages; ?> - Tổng <?= (int) $notificationTotal; ?> thông báo</span>
-                        <div class="inline-flex items-center gap-1.5">
+                        <span class="min-w-0 flex-1 font-medium" data-ajax-row-info="1">Trang <?= (int) $notificationPage; ?>/<?= (int) $notificationTotalPages; ?> - Tổng <?= (int) $notificationTotal; ?> thông báo</span>
+                        <div class="ml-auto inline-flex items-center gap-1.5">
                             <form class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2 py-1" method="get" action="<?= e(page_url('notifications-manage')); ?>">
                                 <input type="hidden" name="page" value="notifications-manage">
+                                <input type="hidden" name="search" value="<?= e($searchQuery); ?>">
+                                <input type="hidden" name="is_read" value="<?= e($isReadFilter); ?>">
                                 <label class="text-[11px] font-semibold text-slate-500" for="notification-per-page">Số dòng</label>
-                                <select id="notification-per-page" name="notification_per_page" class="h-7 rounded-md border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700" onchange="this.form.submit()">
+                                <select id="notification-per-page" name="notification_per_page" data-ajax-per-page="1" class="h-7 rounded-md border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700">
                                     <?php foreach ($notificationPerPageOptions as $option): ?>
                                         <option value="<?= (int) $option; ?>" <?= $notificationPerPage === (int) $option ? 'selected' : ''; ?>><?= (int) $option; ?></option>
                                     <?php endforeach; ?>
@@ -201,13 +240,13 @@ $canManageNotifications = has_any_permission(['notifications.create', 'notificat
                             </form>
 
                             <?php if ($notificationPage > 1): ?>
-                                <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('notifications-manage', ['notification_page' => $notificationPage - 1, 'notification_per_page' => $notificationPerPage])); ?>">Trước</a>
+                                <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('notifications-manage', ['notification_page' => $notificationPage - 1, 'notification_per_page' => $notificationPerPage, 'search' => $searchQuery, 'is_read' => $isReadFilter])); ?>">Trước</a>
                             <?php else: ?>
                                 <span class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 text-xs font-semibold text-slate-400">Trước</span>
                             <?php endif; ?>
 
                             <?php if ($notificationPage < $notificationTotalPages): ?>
-                                <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('notifications-manage', ['notification_page' => $notificationPage + 1, 'notification_per_page' => $notificationPerPage])); ?>">Sau</a>
+                                <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('notifications-manage', ['notification_page' => $notificationPage + 1, 'notification_per_page' => $notificationPerPage, 'search' => $searchQuery, 'is_read' => $isReadFilter])); ?>">Sau</a>
                             <?php else: ?>
                                 <span class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 text-xs font-semibold text-slate-400">Sau</span>
                             <?php endif; ?>

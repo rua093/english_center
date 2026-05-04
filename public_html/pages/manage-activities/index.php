@@ -4,6 +4,12 @@ require_any_permission(['activity.view']);
 require_once __DIR__ . '/../../core/file_storage.php';
 
 $academicModel = new AcademicModel();
+$searchQuery = trim((string) ($_GET['search'] ?? ''));
+$activityStatusFilter = strtolower(trim((string) ($_GET['status'] ?? '')));
+if (!in_array($activityStatusFilter, ['upcoming', 'ongoing', 'finished'], true)) {
+    $activityStatusFilter = '';
+}
+$activityFilters = ['status' => $activityStatusFilter];
 $editingActivity = null;
 if (!empty($_GET['edit'])) {
     $editingActivity = $academicModel->findActivity((int) $_GET['edit']);
@@ -11,12 +17,12 @@ if (!empty($_GET['edit'])) {
 
 $activityPage = max(1, (int) ($_GET['activity_page'] ?? 1));
 $activityPerPage = ui_pagination_resolve_per_page('activity_per_page', 10);
-$activityTotal = $academicModel->countActivities();
+$activityTotal = $academicModel->countActivities($searchQuery, $activityFilters);
 $activityTotalPages = max(1, (int) ceil($activityTotal / $activityPerPage));
 if ($activityPage > $activityTotalPages) {
     $activityPage = $activityTotalPages;
 }
-$activities = $academicModel->listActivitiesPage($activityPage, $activityPerPage);
+$activities = $academicModel->listActivitiesPage($activityPage, $activityPerPage, $searchQuery, $activityFilters);
 $activityPerPageOptions = ui_pagination_per_page_options();
 $selectedRegistrationActivityId = max(0, (int) ($_GET['registrations_activity'] ?? 0));
 $selectedRegistrationStudentId = max(0, (int) ($_GET['registration_student'] ?? 0));
@@ -119,10 +125,42 @@ $editingThumbnailUrl = normalize_public_file_url((string) ($editingActivity['ima
         </article>
     <?php endif; ?>
 
-    <article class="order-1 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <article
+        class="order-1 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+        data-ajax-table-root="1"
+        data-ajax-page-key="page"
+        data-ajax-page-value="activities-manage"
+        data-ajax-page-param="activity_page"
+        data-ajax-search-param="search"
+    >
         <h3>Danh sách hoạt động</h3>
+        <div class="mb-3 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div class="flex flex-1 flex-col gap-3 md:flex-row md:items-center">
+                <label class="relative block w-full md:max-w-sm">
+                    <span class="pointer-events-none absolute inset-y-0 left-3 inline-flex items-center text-slate-400">
+                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="7"></circle>
+                            <path d="m20 20-3.5-3.5"></path>
+                        </svg>
+                    </span>
+                    <input
+                        type="search"
+                        value="<?= e($searchQuery); ?>"
+                        data-ajax-search="1"
+                        placeholder="Tìm tên hoạt động, địa điểm..."
+                        class="h-10 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-3 text-sm text-slate-700 shadow-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                    >
+                </label>
+                <select name="status" data-ajax-filter="1" class="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 shadow-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="upcoming" <?= $activityStatusFilter === 'upcoming' ? 'selected' : ''; ?>>Sắp diễn ra</option>
+                    <option value="ongoing" <?= $activityStatusFilter === 'ongoing' ? 'selected' : ''; ?>>Đang diễn ra</option>
+                    <option value="finished" <?= $activityStatusFilter === 'finished' ? 'selected' : ''; ?>>Đã kết thúc</option>
+                </select>
+            </div>
+        </div>
         <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
-            <table class="min-w-full border-collapse text-sm">
+            <table class="min-w-full border-collapse text-sm" data-disable-global-filter="1">
                 <thead>
                     <tr>
                         <th>Tên hoạt động</th>
@@ -134,7 +172,7 @@ $editingThumbnailUrl = normalize_public_file_url((string) ($editingActivity['ima
                         <th>Hành động</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody data-ajax-tbody="1">
                     <?php if (empty($activities)): ?>
                         <tr>
                             <td colspan="7">
@@ -166,7 +204,7 @@ $editingThumbnailUrl = normalize_public_file_url((string) ($editingActivity['ima
                                             class="admin-row-detail-button admin-action-icon-btn"
                                             data-action-kind="detail"
                                             data-admin-row-detail="1"
-                                            data-detail-url="<?= e(page_url('activities-manage', ['edit' => (int) $act['id'], 'activity_page' => $activityPage, 'activity_per_page' => $activityPerPage])); ?>"
+                                            data-detail-url="<?= e(page_url('activities-manage', ['edit' => (int) $act['id'], 'activity_page' => $activityPage, 'activity_per_page' => $activityPerPage, 'search' => $searchQuery, 'status' => $activityStatusFilter])); ?>"
                                             data-skip-action-icon="1"
                                             title="Xem chi tiết"
                                             aria-label="Xem chi tiết"
@@ -178,7 +216,7 @@ $editingThumbnailUrl = normalize_public_file_url((string) ($editingActivity['ima
                                         </button>
                                         <?php if ($canUpdateActivity): ?>
                                             <a
-                                                href="<?= e(page_url('activities-manage', ['edit' => (int) $act['id'], 'activity_page' => $activityPage, 'activity_per_page' => $activityPerPage])); ?>"
+                                                href="<?= e(page_url('activities-manage', ['edit' => (int) $act['id'], 'activity_page' => $activityPage, 'activity_per_page' => $activityPerPage, 'search' => $searchQuery, 'status' => $activityStatusFilter])); ?>"
                                                 class="admin-action-icon-btn"
                                                 data-action-kind="edit"
                                                 data-skip-action-icon="1"
@@ -191,7 +229,7 @@ $editingThumbnailUrl = normalize_public_file_url((string) ($editingActivity['ima
                                                 </span>
                                             </a>
                                             <a
-                                                href="<?= e(page_url('activities-manage', ['registrations_activity' => (int) $act['id'], 'activity_page' => $activityPage, 'activity_per_page' => $activityPerPage])); ?>"
+                                                href="<?= e(page_url('activities-manage', ['registrations_activity' => (int) $act['id'], 'activity_page' => $activityPage, 'activity_per_page' => $activityPerPage, 'search' => $searchQuery, 'status' => $activityStatusFilter])); ?>"
                                                 class="admin-action-icon-btn"
                                                 data-action-kind="detail"
                                                 data-skip-action-icon="1"
@@ -230,27 +268,29 @@ $editingThumbnailUrl = normalize_public_file_url((string) ($editingActivity['ima
                 </tbody>
             </table>
             <?php if ($activityTotal > 0): ?>
-                <div class="border-t border-slate-200 bg-slate-50/80 px-3 py-2">
+                <div class="border-t border-slate-200 bg-slate-50/80 px-3 py-2" data-ajax-pagination="1">
                     <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600">
-                        <span class="font-medium">Trang <?= (int) $activityPage; ?>/<?= (int) $activityTotalPages; ?> - Tổng <?= (int) $activityTotal; ?> hoạt động</span>
-                        <div class="inline-flex items-center gap-1.5">
+                        <span class="min-w-0 flex-1 font-medium" data-ajax-row-info="1">Trang <?= (int) $activityPage; ?>/<?= (int) $activityTotalPages; ?> - Tổng <?= (int) $activityTotal; ?> hoạt động</span>
+                        <div class="ml-auto inline-flex items-center gap-1.5">
                             <form class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2 py-1" method="get" action="<?= e(page_url('activities-manage')); ?>">
                                 <input type="hidden" name="page" value="activities-manage">
+                                <input type="hidden" name="search" value="<?= e($searchQuery); ?>">
+                                <input type="hidden" name="status" value="<?= e($activityStatusFilter); ?>">
                                 <label class="text-[11px] font-semibold text-slate-500" for="activity-per-page">Số dòng</label>
-                                <select id="activity-per-page" name="activity_per_page" class="h-7 rounded-md border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700" onchange="this.form.submit()">
+                                <select id="activity-per-page" name="activity_per_page" data-ajax-per-page="1" class="h-7 rounded-md border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700">
                                     <?php foreach ($activityPerPageOptions as $option): ?>
                                         <option value="<?= (int) $option; ?>" <?= $activityPerPage === (int) $option ? 'selected' : ''; ?>><?= (int) $option; ?></option>
                                     <?php endforeach; ?>
                                 </select>
                             </form>
                             <?php if ($activityPage > 1): ?>
-                                <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('activities-manage', ['activity_page' => $activityPage - 1, 'activity_per_page' => $activityPerPage])); ?>">Trước</a>
+                                <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('activities-manage', ['activity_page' => $activityPage - 1, 'activity_per_page' => $activityPerPage, 'search' => $searchQuery, 'status' => $activityStatusFilter])); ?>">Trước</a>
                             <?php else: ?>
                                 <span class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 text-xs font-semibold text-slate-400">Trước</span>
                             <?php endif; ?>
 
                             <?php if ($activityPage < $activityTotalPages): ?>
-                                <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('activities-manage', ['activity_page' => $activityPage + 1, 'activity_per_page' => $activityPerPage])); ?>">Sau</a>
+                                <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('activities-manage', ['activity_page' => $activityPage + 1, 'activity_per_page' => $activityPerPage, 'search' => $searchQuery, 'status' => $activityStatusFilter])); ?>">Sau</a>
                             <?php else: ?>
                                 <span class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 text-xs font-semibold text-slate-400">Sau</span>
                             <?php endif; ?>
@@ -265,7 +305,7 @@ $editingThumbnailUrl = normalize_public_file_url((string) ($editingActivity['ima
         <article class="order-2 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
                 <h3>Danh sách học viên đăng ký: <?= e((string) ($selectedRegistrationActivity['activity_name'] ?? '')); ?></h3>
-                <a class="<?= ui_btn_secondary_classes('sm'); ?>" href="<?= e(page_url('activities-manage', ['activity_page' => $activityPage, 'activity_per_page' => $activityPerPage])); ?>">Đóng</a>
+                <a class="<?= ui_btn_secondary_classes('sm'); ?>" href="<?= e(page_url('activities-manage', ['activity_page' => $activityPage, 'activity_per_page' => $activityPerPage, 'search' => $searchQuery, 'status' => $activityStatusFilter])); ?>">Đóng</a>
             </div>
 
             <?php if ($canUpdateActivity && is_array($editingRegistration)): ?>
@@ -307,7 +347,7 @@ $editingThumbnailUrl = normalize_public_file_url((string) ($editingActivity['ima
                         </div>
                         <div class="md:col-span-2 xl:col-span-4 flex flex-wrap items-center gap-2">
                             <button class="<?= ui_btn_primary_classes(); ?>" type="submit">Lưu thanh toán</button>
-                            <a class="<?= ui_btn_secondary_classes(); ?>" href="<?= e(page_url('activities-manage', ['registrations_activity' => $selectedRegistrationActivityId, 'activity_page' => $activityPage, 'activity_per_page' => $activityPerPage])); ?>" data-admin-edit-close="1">Hủy</a>
+                            <a class="<?= ui_btn_secondary_classes(); ?>" href="<?= e(page_url('activities-manage', ['registrations_activity' => $selectedRegistrationActivityId, 'activity_page' => $activityPage, 'activity_per_page' => $activityPerPage, 'search' => $searchQuery, 'status' => $activityStatusFilter])); ?>" data-admin-edit-close="1">Hủy</a>
                         </div>
                     </form>
                 </div>

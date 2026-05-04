@@ -6,6 +6,7 @@ $courseOptions = $academicModel->classLookups()['courses'] ?? [];
 $selectedCourseId = max(0, (int) ($_GET['course_id'] ?? 0));
 $roadmapPage = max(1, (int) ($_GET['roadmap_page'] ?? 1));
 $roadmapPerPage = ui_pagination_resolve_per_page('roadmap_per_page', 10);
+$searchQuery = trim((string) ($_GET['search'] ?? ''));
 $roadmapPerPageOptions = ui_pagination_per_page_options();
 
 $editingRoadmap = null;
@@ -29,12 +30,12 @@ if (is_array($editingRoadmap) && $selectedCourseId > 0 && (int) ($editingRoadmap
 }
 
 $selectedCourse = $selectedCourseId > 0 ? ($courseMap[$selectedCourseId] ?? null) : null;
-$roadmapTotal = $selectedCourseId > 0 ? $academicModel->countRoadmapsByCourse($selectedCourseId) : 0;
+$roadmapTotal = $selectedCourseId > 0 ? $academicModel->countRoadmapsByCourse($selectedCourseId, $searchQuery) : 0;
 $roadmapTotalPages = max(1, (int) ceil($roadmapTotal / $roadmapPerPage));
 if ($roadmapPage > $roadmapTotalPages) {
     $roadmapPage = $roadmapTotalPages;
 }
-$roadmaps = $selectedCourseId > 0 ? $academicModel->listRoadmapsByCoursePage($selectedCourseId, $roadmapPage, $roadmapPerPage) : [];
+$roadmaps = $selectedCourseId > 0 ? $academicModel->listRoadmapsByCoursePage($selectedCourseId, $roadmapPage, $roadmapPerPage, $searchQuery) : [];
 
 $module = 'roadmaps';
 $adminTitle = 'Học vụ - Lộ trình khóa học';
@@ -128,10 +129,29 @@ $selectedOutlineContent = trim((string) ($editingRoadmap['outline_content'] ?? '
             </article>
         <?php endif; ?>
 
-        <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <article
+            class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+            data-ajax-table-root="1"
+            data-ajax-page-key="page"
+            data-ajax-page-value="roadmaps-academic"
+            data-ajax-page-param="roadmap_page"
+            data-ajax-search-param="search"
+        >
             <h3>Danh sách lộ trình</h3>
+            <div class="admin-table-toolbar mb-3 flex flex-wrap items-center gap-3">
+                <label class="relative w-full max-w-sm">
+                    <span class="pointer-events-none absolute inset-y-0 left-3 inline-flex items-center text-slate-400">
+                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <circle cx="11" cy="11" r="7"></circle>
+                            <path d="m20 20-3.5-3.5"></path>
+                        </svg>
+                    </span>
+                    <input data-ajax-search="1" type="search" value="<?= e($searchQuery); ?>" placeholder="Tìm chủ đề, nội dung khung..." autocomplete="off" class="h-11 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100">
+                </label>
+                <span data-ajax-row-info="1" class="text-sm font-medium text-slate-500">Hiển thị <?= (int) count($roadmaps); ?> / <?= (int) $roadmapTotal; ?> dòng</span>
+            </div>
             <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
-                <table class="min-w-full border-collapse text-sm">
+                <table class="min-w-full border-collapse text-sm" data-disable-global-filter="1" data-disable-row-detail="1">
                     <thead>
                         <tr>
                             <th>Thứ tự</th>
@@ -141,7 +161,7 @@ $selectedOutlineContent = trim((string) ($editingRoadmap['outline_content'] ?? '
                             <th>Hành động</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody data-ajax-tbody="1">
                         <?php if (empty($roadmaps)): ?>
                             <tr>
                                 <td colspan="5">
@@ -174,7 +194,7 @@ $selectedOutlineContent = trim((string) ($editingRoadmap['outline_content'] ?? '
                                         <span class="inline-flex flex-wrap items-center gap-2">
                                             <?php if ($canUpdateRoadmap): ?>
                                                 <a
-                                                    href="<?= e(page_url('roadmaps-academic', ['course_id' => $selectedCourseId, 'edit' => $roadmapId, 'roadmap_page' => $roadmapPage, 'roadmap_per_page' => $roadmapPerPage])); ?>"
+                                                    href="<?= e(page_url('roadmaps-academic', ['course_id' => $selectedCourseId, 'edit' => $roadmapId, 'roadmap_page' => $roadmapPage, 'roadmap_per_page' => $roadmapPerPage, 'search' => $searchQuery !== '' ? $searchQuery : null])); ?>"
                                                     class="admin-action-icon-btn"
                                                     data-action-kind="edit"
                                                     data-skip-action-icon="1"
@@ -189,7 +209,7 @@ $selectedOutlineContent = trim((string) ($editingRoadmap['outline_content'] ?? '
                                             <?php endif; ?>
 
                                             <?php if ($canDeleteRoadmap): ?>
-                                                <form class="inline-block" method="post" action="/api/roadmaps/delete?id=<?= $roadmapId; ?>&course_id=<?= (int) $selectedCourseId; ?>&roadmap_page=<?= (int) $roadmapPage; ?>&roadmap_per_page=<?= (int) $roadmapPerPage; ?>" onsubmit="return confirm('Bạn có chắc muốn xóa chủ đề lộ trình này không?');">
+                                                <form class="inline-block" method="post" action="/api/roadmaps/delete?id=<?= $roadmapId; ?>&course_id=<?= (int) $selectedCourseId; ?>&roadmap_page=<?= (int) $roadmapPage; ?>&roadmap_per_page=<?= (int) $roadmapPerPage; ?>&search=<?= urlencode($searchQuery); ?>" onsubmit="return confirm('Bạn có chắc muốn xóa chủ đề lộ trình này không?');">
                                                     <?= csrf_input(); ?>
                                                     <button
                                                         class="<?= ui_btn_danger_classes('sm'); ?> admin-action-icon-btn"
@@ -215,15 +235,16 @@ $selectedOutlineContent = trim((string) ($editingRoadmap['outline_content'] ?? '
                 </table>
 
                 <?php if ($roadmapTotal > 0): ?>
-                    <div class="border-t border-slate-200 bg-slate-50/80 px-3 py-2">
-                        <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600">
-                            <span class="font-medium">Trang <?= (int) $roadmapPage; ?>/<?= (int) $roadmapTotalPages; ?> - Tổng <?= (int) $roadmapTotal; ?> chủ đề</span>
-                            <div class="inline-flex items-center gap-1.5">
+                    <div data-ajax-pagination="1" class="border-t border-slate-200 bg-slate-50/80 px-3 py-2">
+                        <div class="flex flex-wrap items-center gap-2 text-xs text-slate-600">
+                            <span data-ajax-row-info="1" class="min-w-0 flex-1 font-medium">Trang <?= (int) $roadmapPage; ?>/<?= (int) $roadmapTotalPages; ?> - Tổng <?= (int) $roadmapTotal; ?> chủ đề</span>
+                            <div class="ml-auto inline-flex items-center gap-1.5">
                                 <form class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2 py-1" method="get" action="<?= e(page_url('roadmaps-academic')); ?>">
                                     <input type="hidden" name="page" value="roadmaps-academic">
                                     <input type="hidden" name="course_id" value="<?= (int) $selectedCourseId; ?>">
+                                    <input type="hidden" name="search" value="<?= e($searchQuery); ?>">
                                     <label class="text-[11px] font-semibold text-slate-500" for="roadmap-per-page">Số dòng</label>
-                                    <select id="roadmap-per-page" name="roadmap_per_page" class="h-7 rounded-md border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700" onchange="this.form.submit()">
+                                    <select id="roadmap-per-page" name="roadmap_per_page" data-ajax-per-page="1" class="h-7 rounded-md border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700">
                                         <?php foreach ($roadmapPerPageOptions as $option): ?>
                                             <option value="<?= (int) $option; ?>" <?= $roadmapPerPage === (int) $option ? 'selected' : ''; ?>><?= (int) $option; ?></option>
                                         <?php endforeach; ?>
@@ -231,13 +252,13 @@ $selectedOutlineContent = trim((string) ($editingRoadmap['outline_content'] ?? '
                                 </form>
 
                                 <?php if ($roadmapPage > 1): ?>
-                                    <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('roadmaps-academic', ['course_id' => $selectedCourseId, 'roadmap_page' => $roadmapPage - 1, 'roadmap_per_page' => $roadmapPerPage])); ?>">Trước</a>
+                                    <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('roadmaps-academic', ['course_id' => $selectedCourseId, 'roadmap_page' => $roadmapPage - 1, 'roadmap_per_page' => $roadmapPerPage, 'search' => $searchQuery !== '' ? $searchQuery : null])); ?>">Trước</a>
                                 <?php else: ?>
                                     <span class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 text-xs font-semibold text-slate-400">Trước</span>
                                 <?php endif; ?>
 
                                 <?php if ($roadmapPage < $roadmapTotalPages): ?>
-                                    <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('roadmaps-academic', ['course_id' => $selectedCourseId, 'roadmap_page' => $roadmapPage + 1, 'roadmap_per_page' => $roadmapPerPage])); ?>">Sau</a>
+                                    <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('roadmaps-academic', ['course_id' => $selectedCourseId, 'roadmap_page' => $roadmapPage + 1, 'roadmap_per_page' => $roadmapPerPage, 'search' => $searchQuery !== '' ? $searchQuery : null])); ?>">Sau</a>
                                 <?php else: ?>
                                     <span class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 text-xs font-semibold text-slate-400">Sau</span>
                                 <?php endif; ?>

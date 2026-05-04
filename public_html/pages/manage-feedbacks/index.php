@@ -3,15 +3,28 @@ require_admin_or_staff();
 require_any_permission(['feedback.view']);
 
 $academicModel = new AcademicModel();
+$searchQuery = trim((string) ($_GET['search'] ?? ''));
+$publicWebFilter = trim((string) ($_GET['is_public_web'] ?? ''));
+if ($publicWebFilter !== '0' && $publicWebFilter !== '1') {
+    $publicWebFilter = '';
+}
+$ratingFilter = trim((string) ($_GET['rating'] ?? ''));
+if (!in_array($ratingFilter, ['1', '2', '3', '4', '5'], true)) {
+    $ratingFilter = '';
+}
+$feedbackFilters = [
+    'is_public_web' => $publicWebFilter,
+    'rating' => $ratingFilter,
+];
 
 $feedbackPage = max(1, (int) ($_GET['feedback_page'] ?? 1));
 $feedbackPerPage = ui_pagination_resolve_per_page('feedback_per_page', 10);
-$feedbackTotal = $academicModel->countFeedbacks();
+$feedbackTotal = $academicModel->countFeedbacks($searchQuery, $feedbackFilters);
 $feedbackTotalPages = max(1, (int) ceil($feedbackTotal / $feedbackPerPage));
 if ($feedbackPage > $feedbackTotalPages) {
     $feedbackPage = $feedbackTotalPages;
 }
-$feedbacks = $academicModel->listFeedbacksPage($feedbackPage, $feedbackPerPage);
+$feedbacks = $academicModel->listFeedbacksPage($feedbackPage, $feedbackPerPage, $searchQuery, $feedbackFilters);
 $feedbackPerPageOptions = ui_pagination_per_page_options();
 
 $module = 'feedbacks';
@@ -66,16 +79,53 @@ $error = get_flash('error');
 
                 <div class="md:col-span-2 inline-flex flex-wrap items-center gap-2">
                     <button class="<?= ui_btn_primary_classes(); ?>" type="submit">Cập nhật đánh giá</button>
-                    <a class="<?= ui_btn_secondary_classes(); ?>" href="<?= e(page_url('feedbacks-manage')); ?>">Hủy</a>
+                    <a class="<?= ui_btn_secondary_classes(); ?>" href="<?= e(page_url('feedbacks-manage', ['feedback_page' => $feedbackPage, 'feedback_per_page' => $feedbackPerPage, 'search' => $searchQuery, 'is_public_web' => $publicWebFilter, 'rating' => $ratingFilter])); ?>">Hủy</a>
                 </div>
             </form>
         </article>
     <?php endif; ?>
 
-    <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <article
+        class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+        data-ajax-table-root="1"
+        data-ajax-page-key="page"
+        data-ajax-page-value="feedbacks-manage"
+        data-ajax-page-param="feedback_page"
+        data-ajax-search-param="search"
+    >
         <h3>Danh sách đánh giá</h3>
+        <div class="mb-3 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div class="flex flex-1 flex-col gap-3 md:flex-row md:items-center">
+                <label class="relative block w-full md:max-w-sm">
+                    <span class="pointer-events-none absolute inset-y-0 left-3 inline-flex items-center text-slate-400">
+                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="7"></circle>
+                            <path d="m20 20-3.5-3.5"></path>
+                        </svg>
+                    </span>
+                    <input
+                        type="search"
+                        value="<?= e($searchQuery); ?>"
+                        data-ajax-search="1"
+                        placeholder="Tìm học viên, mã HV, nhận xét..."
+                        class="h-10 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-3 text-sm text-slate-700 shadow-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                    >
+                </label>
+                <select name="is_public_web" data-ajax-filter="1" class="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 shadow-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100">
+                    <option value="">Hiển thị web: Tất cả</option>
+                    <option value="1" <?= $publicWebFilter === '1' ? 'selected' : ''; ?>>Có</option>
+                    <option value="0" <?= $publicWebFilter === '0' ? 'selected' : ''; ?>>Không</option>
+                </select>
+                <select name="rating" data-ajax-filter="1" class="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 shadow-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100">
+                    <option value="">Tất cả số sao</option>
+                    <?php for ($ratingOption = 1; $ratingOption <= 5; $ratingOption++): ?>
+                        <option value="<?= $ratingOption; ?>" <?= $ratingFilter === (string) $ratingOption ? 'selected' : ''; ?>><?= $ratingOption; ?> sao</option>
+                    <?php endfor; ?>
+                </select>
+            </div>
+        </div>
         <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
-            <table class="min-w-full border-collapse text-sm" data-enable-row-detail="1">
+            <table class="min-w-full border-collapse text-sm" data-enable-row-detail="1" data-disable-global-filter="1">
                 <thead>
                     <tr>
                         <th>Mã HV</th>
@@ -86,7 +136,7 @@ $error = get_flash('error');
                         <th>Hành động</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody data-ajax-tbody="1">
                     <?php if (empty($feedbacks)): ?>
                         <tr>
                             <td colspan="6">
@@ -107,8 +157,25 @@ $error = get_flash('error');
                                 <td>
                                     <div class="inline-flex flex-wrap items-center gap-2">
                                         <?php if ($canUpdateFeedback): ?>
+                                            <button
+                                                type="button"
+                                                class="admin-row-detail-button admin-action-icon-btn"
+                                                data-action-kind="detail"
+                                                data-admin-row-detail="1"
+                                                data-detail-url="<?= e(page_url('feedbacks-manage', ['edit' => (int) $fb['id'], 'feedback_page' => $feedbackPage, 'feedback_per_page' => $feedbackPerPage, 'search' => $searchQuery, 'is_public_web' => $publicWebFilter, 'rating' => $ratingFilter])); ?>"
+                                                data-skip-action-icon="1"
+                                                title="Xem chi tiết"
+                                                aria-label="Xem chi tiết"
+                                            >
+                                                <span class="admin-action-icon-label">Xem chi tiết</span>
+                                                <span class="admin-action-icon-glyph" aria-hidden="true">
+                                                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12z"></path></svg>
+                                                </span>
+                                            </button>
+                                        <?php endif; ?>
+                                        <?php if ($canUpdateFeedback): ?>
                                             <a
-                                                href="<?= e(page_url('feedbacks-manage', ['edit' => (int) $fb['id'], 'feedback_page' => $feedbackPage, 'feedback_per_page' => $feedbackPerPage])); ?>"
+                                                href="<?= e(page_url('feedbacks-manage', ['edit' => (int) $fb['id'], 'feedback_page' => $feedbackPage, 'feedback_per_page' => $feedbackPerPage, 'search' => $searchQuery, 'is_public_web' => $publicWebFilter, 'rating' => $ratingFilter])); ?>"
                                                 class="admin-action-icon-btn"
                                                 data-action-kind="edit"
                                                 data-skip-action-icon="1"
@@ -152,27 +219,30 @@ $error = get_flash('error');
                 </tbody>
             </table>
             <?php if ($feedbackTotal > 0): ?>
-                <div class="border-t border-slate-200 bg-slate-50/80 px-3 py-2">
+                <div class="border-t border-slate-200 bg-slate-50/80 px-3 py-2" data-ajax-pagination="1">
                     <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600">
-                        <span class="font-medium">Trang <?= (int) $feedbackPage; ?>/<?= (int) $feedbackTotalPages; ?> - Tổng <?= (int) $feedbackTotal; ?> đánh giá</span>
-                        <div class="inline-flex items-center gap-1.5">
+                        <span class="min-w-0 flex-1 font-medium" data-ajax-row-info="1">Trang <?= (int) $feedbackPage; ?>/<?= (int) $feedbackTotalPages; ?> - Tổng <?= (int) $feedbackTotal; ?> đánh giá</span>
+                        <div class="ml-auto inline-flex items-center gap-1.5">
                             <form class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2 py-1" method="get" action="<?= e(page_url('feedbacks-manage')); ?>">
                                 <input type="hidden" name="page" value="feedbacks-manage">
+                                <input type="hidden" name="search" value="<?= e($searchQuery); ?>">
+                                <input type="hidden" name="is_public_web" value="<?= e($publicWebFilter); ?>">
+                                <input type="hidden" name="rating" value="<?= e($ratingFilter); ?>">
                                 <label class="text-[11px] font-semibold text-slate-500" for="feedback-per-page">Số dòng</label>
-                                <select id="feedback-per-page" name="feedback_per_page" class="h-7 rounded-md border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700" onchange="this.form.submit()">
+                                <select id="feedback-per-page" name="feedback_per_page" data-ajax-per-page="1" class="h-7 rounded-md border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700">
                                     <?php foreach ($feedbackPerPageOptions as $option): ?>
                                         <option value="<?= (int) $option; ?>" <?= $feedbackPerPage === (int) $option ? 'selected' : ''; ?>><?= (int) $option; ?></option>
                                     <?php endforeach; ?>
                                 </select>
                             </form>
                             <?php if ($feedbackPage > 1): ?>
-                                <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('feedbacks-manage', ['feedback_page' => $feedbackPage - 1, 'feedback_per_page' => $feedbackPerPage])); ?>">Trước</a>
+                                <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('feedbacks-manage', ['feedback_page' => $feedbackPage - 1, 'feedback_per_page' => $feedbackPerPage, 'search' => $searchQuery, 'is_public_web' => $publicWebFilter, 'rating' => $ratingFilter])); ?>">Trước</a>
                             <?php else: ?>
                                 <span class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 text-xs font-semibold text-slate-400">Trước</span>
                             <?php endif; ?>
 
                             <?php if ($feedbackPage < $feedbackTotalPages): ?>
-                                <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('feedbacks-manage', ['feedback_page' => $feedbackPage + 1, 'feedback_per_page' => $feedbackPerPage])); ?>">Sau</a>
+                                <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('feedbacks-manage', ['feedback_page' => $feedbackPage + 1, 'feedback_per_page' => $feedbackPerPage, 'search' => $searchQuery, 'is_public_web' => $publicWebFilter, 'rating' => $ratingFilter])); ?>">Sau</a>
                             <?php else: ?>
                                 <span class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 text-xs font-semibold text-slate-400">Sau</span>
                             <?php endif; ?>

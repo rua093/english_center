@@ -15,10 +15,10 @@ final class StudentLeadsTableModel
         'cancelled',
     ];
 
-    public function countDetailed(?string $statusFilter = null): int
+    public function countDetailed(array $filters = [], string $searchQuery = ''): int
     {
         $params = [];
-        $where = $this->buildStatusWhereClause($statusFilter, $params);
+        $where = $this->buildSearchWhereClause($filters, $searchQuery, $params);
 
         return (int) $this->fetchScalar(
             'SELECT COUNT(*) AS total FROM student_leads sl' . $where,
@@ -28,14 +28,14 @@ final class StudentLeadsTableModel
         );
     }
 
-    public function listDetailedPage(int $page, int $perPage, ?string $statusFilter = null): array
+    public function listDetailedPage(int $page, int $perPage, array $filters = [], string $searchQuery = ''): array
     {
         $normalizedPage = max(1, $page);
         $limit = $this->clampLimit($perPage, 10, 200);
         $offset = ($normalizedPage - 1) * $limit;
 
         $params = [];
-        $where = $this->buildStatusWhereClause($statusFilter, $params);
+        $where = $this->buildSearchWhereClause($filters, $searchQuery, $params);
 
         $sql = 'SELECT sl.id, sl.student_name, sl.gender, sl.dob, sl.interests, sl.school_name, sl.current_grade,
                     sl.personality, sl.parent_name, sl.parent_phone, sl.referral_source, sl.current_level,
@@ -188,15 +188,57 @@ final class StudentLeadsTableModel
         return $normalized;
     }
 
-    private function buildStatusWhereClause(?string $statusFilter, array &$params): string
+    private function buildSearchWhereClause(array $filters, string $searchQuery, array &$params): string
     {
-        $status = strtolower(trim((string) $statusFilter));
-        if ($status === '' || !in_array($status, self::ALLOWED_STATUSES, true)) {
+        $conditions = [];
+
+        foreach ($filters as $column => $value) {
+            $normalizedColumn = strtolower(trim((string) $column));
+            $normalizedValue = trim((string) $value);
+            if ($normalizedValue === '') {
+                continue;
+            }
+
+            if ($normalizedColumn === 'status') {
+                $status = strtolower($normalizedValue);
+                if (!in_array($status, self::ALLOWED_STATUSES, true)) {
+                    continue;
+                }
+
+                $params['filter_status'] = $status;
+                $conditions[] = 'sl.status = :filter_status';
+            }
+        }
+
+        $searchQuery = trim($searchQuery);
+        if ($searchQuery !== '') {
+            $likeValue = '%' . $searchQuery . '%';
+            $params['search_id'] = $likeValue;
+            $params['search_student_name'] = $likeValue;
+            $params['search_parent_name'] = $likeValue;
+            $params['search_parent_phone'] = $likeValue;
+            $params['search_source'] = $likeValue;
+            $params['search_level'] = $likeValue;
+            $params['search_status_text'] = $likeValue;
+            $params['search_note'] = $likeValue;
+
+            $conditions[] = "(
+                CAST(sl.id AS CHAR) LIKE :search_id
+                OR COALESCE(sl.student_name, '') LIKE :search_student_name
+                OR COALESCE(sl.parent_name, '') LIKE :search_parent_name
+                OR COALESCE(sl.parent_phone, '') LIKE :search_parent_phone
+                OR COALESCE(sl.referral_source, '') LIKE :search_source
+                OR COALESCE(sl.current_level, '') LIKE :search_level
+                OR COALESCE(sl.status, '') LIKE :search_status_text
+                OR COALESCE(sl.admin_note, '') LIKE :search_note
+            )";
+        }
+
+        if (empty($conditions)) {
             return '';
         }
 
-        $params['status'] = $status;
-        return ' WHERE sl.status = :status';
+        return ' WHERE ' . implode(' AND ', $conditions);
     }
 
     private function normalizeReferralSource(string $source): string

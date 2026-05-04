@@ -7,9 +7,21 @@ final class FeedbacksTableModel
 {
     use TableModelUtils;
 
-    public function countDetailed(): int
+    public function countDetailed(string $searchQuery = '', array $filters = []): int
     {
-        return (int) $this->fetchScalar('SELECT COUNT(*) AS total FROM feedbacks', [], 'total', 0);
+        $params = [];
+        $whereSql = $this->buildSearchWhereClause($searchQuery, $filters, $params);
+
+        return (int) $this->fetchScalar(
+            "SELECT COUNT(*) AS total
+            FROM feedbacks f
+            INNER JOIN users u ON u.id = f.sender_id
+            LEFT JOIN student_profiles sp ON sp.user_id = u.id
+            {$whereSql}",
+            $params,
+            'total',
+            0
+        );
     }
 
     public function listDetailed(): array
@@ -23,20 +35,67 @@ final class FeedbacksTableModel
         return $this->fetchAll($sql);
     }
 
-    public function listDetailedPage(int $page, int $perPage): array
+    public function listDetailedPage(int $page, int $perPage, string $searchQuery = '', array $filters = []): array
     {
         $normalizedPage = max(1, $page);
         $limit = $this->clampLimit($perPage, 10, 200);
         $offset = ($normalizedPage - 1) * $limit;
+        $params = [];
+        $whereSql = $this->buildSearchWhereClause($searchQuery, $filters, $params);
 
         $sql = "SELECT f.id, f.sender_id AS student_id, f.rating, f.content AS comment, f.is_public_web, f.created_at,
                 u.full_name AS full_name, sp.student_code
             FROM feedbacks f
             INNER JOIN users u ON u.id = f.sender_id
             LEFT JOIN student_profiles sp ON sp.user_id = u.id
+            {$whereSql}
             ORDER BY f.created_at DESC
             LIMIT {$limit} OFFSET {$offset}";
-        return $this->fetchAll($sql);
+        return $this->fetchAll($sql, $params);
+    }
+
+    private function buildSearchWhereClause(string $searchQuery, array $filters, array &$params): string
+    {
+        $conditions = [];
+
+        $publicWeb = trim((string) ($filters['is_public_web'] ?? ''));
+        if ($publicWeb !== '' && ($publicWeb === '0' || $publicWeb === '1')) {
+            $conditions[] = 'f.is_public_web = :filter_is_public_web';
+            $params['filter_is_public_web'] = (int) $publicWeb;
+        }
+
+        $rating = trim((string) ($filters['rating'] ?? ''));
+        if ($rating !== '' && ctype_digit($rating)) {
+            $ratingInt = (int) $rating;
+            if ($ratingInt >= 1 && $ratingInt <= 5) {
+                $conditions[] = 'f.rating = :filter_rating';
+                $params['filter_rating'] = $ratingInt;
+            }
+        }
+
+        $searchQuery = trim($searchQuery);
+        if ($searchQuery !== '') {
+            $likeValue = '%' . $searchQuery . '%';
+            $params['search_id'] = $likeValue;
+            $params['search_code'] = $likeValue;
+            $params['search_name'] = $likeValue;
+            $params['search_comment'] = $likeValue;
+            $params['search_rating'] = $likeValue;
+
+            $conditions[] = "(
+                CAST(f.id AS CHAR) LIKE :search_id
+                OR COALESCE(sp.student_code, '') LIKE :search_code
+                OR COALESCE(u.full_name, '') LIKE :search_name
+                OR COALESCE(f.content, '') LIKE :search_comment
+                OR CAST(f.rating AS CHAR) LIKE :search_rating
+            )";
+        }
+
+        if ($conditions === []) {
+            return '';
+        }
+
+        return ' WHERE ' . implode(' AND ', $conditions);
     }
 
     public function findById(int $id): ?array

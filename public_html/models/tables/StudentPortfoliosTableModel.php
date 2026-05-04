@@ -7,9 +7,20 @@ final class StudentPortfoliosTableModel
 {
     use TableModelUtils;
 
-    public function countDetailed(): int
+    public function countDetailed(string $searchQuery = '', array $filters = []): int
     {
-        return (int) $this->fetchScalar('SELECT COUNT(*) AS total FROM student_portfolios', [], 'total', 0);
+        $params = [];
+        $whereSql = $this->buildSearchWhereClause($searchQuery, $filters, $params);
+        return (int) $this->fetchScalar(
+            "SELECT COUNT(*) AS total
+            FROM student_portfolios p
+            INNER JOIN users u ON u.id = p.student_id
+            LEFT JOIN student_profiles sp ON sp.user_id = u.id
+            {$whereSql}",
+            $params,
+            'total',
+            0
+        );
     }
 
     public function listDetailed(): array
@@ -23,20 +34,61 @@ final class StudentPortfoliosTableModel
         return $this->fetchAll($sql);
     }
 
-    public function listDetailedPage(int $page, int $perPage): array
+    public function listDetailedPage(int $page, int $perPage, string $searchQuery = '', array $filters = []): array
     {
         $normalizedPage = max(1, $page);
         $limit = $this->clampLimit($perPage, 10, 200);
         $offset = ($normalizedPage - 1) * $limit;
+        $params = [];
+        $whereSql = $this->buildSearchWhereClause($searchQuery, $filters, $params);
 
         $sql = "SELECT p.id, p.student_id, p.type, p.media_url, p.description, p.is_public_web, p.created_at,
                 u.full_name AS full_name, sp.student_code
             FROM student_portfolios p
             INNER JOIN users u ON u.id = p.student_id
             LEFT JOIN student_profiles sp ON sp.user_id = u.id
+            {$whereSql}
             ORDER BY p.id DESC
             LIMIT {$limit} OFFSET {$offset}";
-        return $this->fetchAll($sql);
+        return $this->fetchAll($sql, $params);
+    }
+
+    private function buildSearchWhereClause(string $searchQuery, array $filters, array &$params): string
+    {
+        $conditions = [];
+
+        $type = trim((string) ($filters['type'] ?? ''));
+        if ($type !== '') {
+            $conditions[] = 'p.type = :filter_type';
+            $params['filter_type'] = $type;
+        }
+
+        $publicWeb = trim((string) ($filters['is_public_web'] ?? ''));
+        if ($publicWeb !== '' && ($publicWeb === '0' || $publicWeb === '1')) {
+            $conditions[] = 'p.is_public_web = :filter_is_public_web';
+            $params['filter_is_public_web'] = (int) $publicWeb;
+        }
+
+        $searchQuery = trim($searchQuery);
+        if ($searchQuery !== '') {
+            $likeValue = '%' . $searchQuery . '%';
+            $params['search_id'] = $likeValue;
+            $params['search_code'] = $likeValue;
+            $params['search_name'] = $likeValue;
+            $params['search_description'] = $likeValue;
+            $conditions[] = "(
+                CAST(p.id AS CHAR) LIKE :search_id
+                OR COALESCE(sp.student_code, '') LIKE :search_code
+                OR COALESCE(u.full_name, '') LIKE :search_name
+                OR COALESCE(p.description, '') LIKE :search_description
+            )";
+        }
+
+        if ($conditions === []) {
+            return '';
+        }
+
+        return ' WHERE ' . implode(' AND ', $conditions);
     }
 
     public function findById(int $id): ?array

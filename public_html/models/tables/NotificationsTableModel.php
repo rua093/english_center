@@ -7,16 +7,31 @@ final class NotificationsTableModel
 {
     use TableModelUtils;
 
-    public function countDetailed(): int
+    public function countDetailed(string $searchQuery = '', array $filters = []): int
     {
-        return (int) $this->fetchScalar('SELECT COUNT(*) AS total FROM notifications', [], 'total', 0);
+        $params = [];
+        $whereSql = $this->buildSearchWhereClause($searchQuery, $filters, $params);
+
+        return (int) $this->fetchScalar(
+            "SELECT COUNT(*) AS total
+            FROM notifications n
+            INNER JOIN users u ON u.id = n.user_id
+            LEFT JOIN teacher_profiles tp ON tp.user_id = u.id
+            LEFT JOIN student_profiles sp ON sp.user_id = u.id
+            {$whereSql}",
+            $params,
+            'total',
+            0
+        );
     }
 
-    public function listDetailedPage(int $page, int $perPage): array
+    public function listDetailedPage(int $page, int $perPage, string $searchQuery = '', array $filters = []): array
     {
         $normalizedPage = max(1, $page);
         $limit = $this->clampLimit($perPage, 10, 200);
         $offset = ($normalizedPage - 1) * $limit;
+        $params = [];
+        $whereSql = $this->buildSearchWhereClause($searchQuery, $filters, $params);
 
         $sql = "SELECT n.id, n.user_id, n.title, n.message, n.is_read, n.created_at,
                 u.username, u.full_name, tp.teacher_code, sp.student_code
@@ -24,10 +39,50 @@ final class NotificationsTableModel
             INNER JOIN users u ON u.id = n.user_id
             LEFT JOIN teacher_profiles tp ON tp.user_id = u.id
             LEFT JOIN student_profiles sp ON sp.user_id = u.id
+            {$whereSql}
             ORDER BY n.created_at DESC, n.id DESC
             LIMIT {$limit} OFFSET {$offset}";
 
-        return $this->fetchAll($sql);
+        return $this->fetchAll($sql, $params);
+    }
+
+    private function buildSearchWhereClause(string $searchQuery, array $filters, array &$params): string
+    {
+        $conditions = [];
+
+        $isRead = trim((string) ($filters['is_read'] ?? ''));
+        if ($isRead !== '' && ($isRead === '0' || $isRead === '1')) {
+            $conditions[] = 'n.is_read = :filter_is_read';
+            $params['filter_is_read'] = (int) $isRead;
+        }
+
+        $searchQuery = trim($searchQuery);
+        if ($searchQuery !== '') {
+            $likeValue = '%' . $searchQuery . '%';
+            $params['search_id'] = $likeValue;
+            $params['search_title'] = $likeValue;
+            $params['search_message'] = $likeValue;
+            $params['search_username'] = $likeValue;
+            $params['search_name'] = $likeValue;
+            $params['search_teacher_code'] = $likeValue;
+            $params['search_student_code'] = $likeValue;
+
+            $conditions[] = "(
+                CAST(n.id AS CHAR) LIKE :search_id
+                OR COALESCE(n.title, '') LIKE :search_title
+                OR COALESCE(n.message, '') LIKE :search_message
+                OR COALESCE(u.username, '') LIKE :search_username
+                OR COALESCE(u.full_name, '') LIKE :search_name
+                OR COALESCE(tp.teacher_code, '') LIKE :search_teacher_code
+                OR COALESCE(sp.student_code, '') LIKE :search_student_code
+            )";
+        }
+
+        if ($conditions === []) {
+            return '';
+        }
+
+        return ' WHERE ' . implode(' AND ', $conditions);
     }
 
     public function findById(int $id): ?array

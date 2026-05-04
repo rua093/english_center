@@ -10,13 +10,21 @@ final class ClassesTableModel extends BaseTableModel
         return $this->countAllFrom('classes');
     }
 
-    public function countDetailed(int $teacherId = 0): int
+    public function countDetailed(int $teacherId = 0, string $searchQuery = '', array $filters = []): int
     {
-        if ($teacherId > 0) {
-            $sql = 'SELECT COUNT(*) AS count FROM classes WHERE teacher_id = :teacher_id';
-            return (int) $this->fetchScalar($sql, ['teacher_id' => $teacherId], 'count', 0);
-        }
-        return $this->countAllFrom('classes');
+        $params = [];
+        $whereSql = $this->buildDetailedWhereClause($teacherId, $searchQuery, $filters, $params);
+        return (int) $this->fetchScalar(
+            "SELECT COUNT(*) AS count
+            FROM classes c
+            INNER JOIN courses co ON co.id = c.course_id AND co.deleted_at IS NULL
+            INNER JOIN users u ON u.id = c.teacher_id
+            LEFT JOIN teacher_profiles tp ON tp.user_id = u.id
+            {$whereSql}",
+            $params,
+            'count',
+            0
+        );
     }
 
     public function listDetailedWithProgress(): array
@@ -45,10 +53,11 @@ final class ClassesTableModel extends BaseTableModel
         return $this->fetchAll($sql);
     }
 
-    public function listDetailedWithProgressPage(int $page, int $perPage, int $teacherId = 0): array
+    public function listDetailedWithProgressPage(int $page, int $perPage, int $teacherId = 0, string $searchQuery = '', array $filters = []): array
     {
         $pagination = $this->pagination($page, $perPage, 10, 200);
-        $whereClause = $teacherId > 0 ? 'WHERE c.teacher_id = ' . (int) $teacherId : '';
+        $params = [];
+        $whereClause = $this->buildDetailedWhereClause($teacherId, $searchQuery, $filters, $params);
         $sql = "SELECT c.id, c.class_name, c.start_date, c.end_date, c.status,
                 co.course_name, u.full_name AS teacher_name, tp.teacher_code, c.course_id, c.teacher_id,
                 COALESCE(lp.total_lessons, 0) AS total_lessons,
@@ -72,7 +81,46 @@ final class ClassesTableModel extends BaseTableModel
             $whereClause
             ORDER BY c.id DESC
             LIMIT {$pagination['limit']} OFFSET {$pagination['offset']}";
-        return $this->fetchAll($sql);
+        return $this->fetchAll($sql, $params);
+    }
+
+    private function buildDetailedWhereClause(int $teacherId, string $searchQuery, array $filters, array &$params): string
+    {
+        $conditions = [];
+
+        if ($teacherId > 0) {
+            $conditions[] = 'c.teacher_id = :teacher_id';
+            $params['teacher_id'] = $teacherId;
+        }
+
+        $status = trim((string) ($filters['status'] ?? ''));
+        if ($status !== '' && in_array($status, ['upcoming', 'active', 'graduated', 'cancelled'], true)) {
+            $conditions[] = 'c.status = :filter_status';
+            $params['filter_status'] = $status;
+        }
+
+        $searchQuery = trim($searchQuery);
+        if ($searchQuery !== '') {
+            $likeValue = '%' . $searchQuery . '%';
+            $params['search_id'] = $likeValue;
+            $params['search_class'] = $likeValue;
+            $params['search_course'] = $likeValue;
+            $params['search_teacher'] = $likeValue;
+            $params['search_teacher_code'] = $likeValue;
+            $conditions[] = "(
+                CAST(c.id AS CHAR) LIKE :search_id
+                OR COALESCE(c.class_name, '') LIKE :search_class
+                OR COALESCE(co.course_name, '') LIKE :search_course
+                OR COALESCE(u.full_name, '') LIKE :search_teacher
+                OR COALESCE(tp.teacher_code, '') LIKE :search_teacher_code
+            )";
+        }
+
+        if ($conditions === []) {
+            return '';
+        }
+
+        return ' WHERE ' . implode(' AND ', $conditions);
     }
 
     public function findById(int $id): ?array

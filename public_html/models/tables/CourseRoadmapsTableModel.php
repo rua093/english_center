@@ -5,21 +5,24 @@ require_once __DIR__ . '/BaseTableModel.php';
 
 final class CourseRoadmapsTableModel extends BaseTableModel
 {
-    public function countByCourse(int $courseId): int
+    public function countByCourse(int $courseId, string $searchQuery = ''): int
     {
         if ($courseId <= 0) {
             return 0;
         }
 
+        $params = ['course_id' => $courseId];
+        $whereSearch = $this->buildSearchWhereClause($searchQuery, $params);
+
         return (int) $this->fetchScalar(
-            'SELECT COUNT(*) AS total FROM course_roadmaps WHERE course_id = :course_id',
-            ['course_id' => $courseId],
+            'SELECT COUNT(*) AS total FROM course_roadmaps cr WHERE cr.course_id = :course_id' . $whereSearch,
+            $params,
             'total',
             0
         );
     }
 
-    public function listByCoursePage(int $courseId, int $page, int $perPage): array
+    public function listByCoursePage(int $courseId, int $page, int $perPage, string $searchQuery = ''): array
     {
         if ($courseId <= 0) {
             return [];
@@ -28,6 +31,8 @@ final class CourseRoadmapsTableModel extends BaseTableModel
         $pagination = $this->pagination($page, $perPage, 10, 200);
         $limit = (int) $pagination['limit'];
         $offset = (int) $pagination['offset'];
+        $params = ['course_id' => $courseId];
+        $whereSearch = $this->buildSearchWhereClause($searchQuery, $params);
 
         $sql = "SELECT cr.id, cr.course_id, cr.`order`, cr.topic_title, cr.outline_content,
                 COALESCE(ls.lesson_count, 0) AS lesson_count
@@ -37,11 +42,30 @@ final class CourseRoadmapsTableModel extends BaseTableModel
                 FROM lessons l
                 GROUP BY l.roadmap_id
             ) ls ON ls.roadmap_id = cr.id
-            WHERE cr.course_id = :course_id
+            WHERE cr.course_id = :course_id{$whereSearch}
             ORDER BY cr.`order` ASC, cr.id ASC
             LIMIT {$limit} OFFSET {$offset}";
 
-        return $this->fetchAll($sql, ['course_id' => $courseId]);
+        return $this->fetchAll($sql, $params);
+    }
+
+    private function buildSearchWhereClause(string $searchQuery, array &$params): string
+    {
+        $searchQuery = trim($searchQuery);
+        if ($searchQuery === '') {
+            return '';
+        }
+
+        $likeValue = '%' . $searchQuery . '%';
+        $params['search_id'] = $likeValue;
+        $params['search_topic'] = $likeValue;
+        $params['search_outline'] = $likeValue;
+
+        return " AND (
+            CAST(cr.id AS CHAR) LIKE :search_id
+            OR COALESCE(cr.topic_title, '') LIKE :search_topic
+            OR COALESCE(cr.outline_content, '') LIKE :search_outline
+        )";
     }
 
     public function findById(int $id): ?array

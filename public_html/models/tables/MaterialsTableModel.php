@@ -13,9 +13,11 @@ final class MaterialsTableModel extends BaseTableModel
         return $this->countAllFrom('materials');
     }
 
-    public function countDetailed(): int
+    public function countDetailed(string $searchQuery = ''): int
     {
-        return $this->countAllFrom('materials');
+        $params = [];
+        $whereSql = $this->buildSearchWhereClause($searchQuery, $params);
+        return (int) $this->fetchScalar("SELECT COUNT(*) AS total FROM materials m {$whereSql}", $params, 'total', 0);
     }
 
     public function listDetailed(): array
@@ -27,15 +29,42 @@ final class MaterialsTableModel extends BaseTableModel
         return $this->fetchAll($sql);
     }
 
-    public function listDetailedPage(int $page, int $perPage): array
+    public function listDetailedPage(int $page, int $perPage, string $searchQuery = ''): array
     {
         $pagination = $this->pagination($page, $perPage, 10, 200);
         $descriptionSql = $this->descriptionSelectSql('m');
+        $params = [];
+        $whereSql = $this->buildSearchWhereClause($searchQuery, $params);
         $sql = "SELECT m.id, m.title, {$descriptionSql} AS description, m.file_path
             FROM materials m
+            {$whereSql}
             ORDER BY m.id DESC
             LIMIT {$pagination['limit']} OFFSET {$pagination['offset']}";
-        return $this->fetchAll($sql);
+        return $this->fetchAll($sql, $params);
+    }
+
+    private function buildSearchWhereClause(string $searchQuery, array &$params): string
+    {
+        $searchQuery = trim($searchQuery);
+        if ($searchQuery === '') {
+            return '';
+        }
+
+        $likeValue = '%' . $searchQuery . '%';
+        $params['search_id'] = $likeValue;
+        $params['search_title'] = $likeValue;
+
+        $conditions = [
+            'CAST(m.id AS CHAR) LIKE :search_id',
+            'COALESCE(m.title, \'\') LIKE :search_title',
+        ];
+
+        if ($this->hasDescriptionColumn()) {
+            $params['search_description'] = $likeValue;
+            $conditions[] = 'COALESCE(m.description, \'\') LIKE :search_description';
+        }
+
+        return ' WHERE (' . implode(' OR ', $conditions) . ')';
     }
 
     public function findById(int $id): ?array

@@ -7,13 +7,17 @@ $academicModel = new AcademicModel();
 
 $portfolioPage = max(1, (int) ($_GET['portfolio_page'] ?? 1));
 $portfolioPerPage = ui_pagination_resolve_per_page('portfolio_per_page', 10);
-$portfolioTotal = $academicModel->countPortfolios();
+$searchQuery = trim((string) ($_GET['search'] ?? ''));
+$typeFilter = trim((string) ($_GET['type'] ?? ''));
+$publicFilter = trim((string) ($_GET['is_public_web'] ?? ''));
+$portfolioFilters = ['type' => $typeFilter, 'is_public_web' => $publicFilter];
+$portfolioTotal = $academicModel->countPortfolios($searchQuery, $portfolioFilters);
 $portfolioTotalPages = max(1, (int) ceil($portfolioTotal / $portfolioPerPage));
 if ($portfolioPage > $portfolioTotalPages) {
     $portfolioPage = $portfolioTotalPages;
 }
 
-$portfolios = $academicModel->listPortfoliosPage($portfolioPage, $portfolioPerPage);
+$portfolios = $academicModel->listPortfoliosPage($portfolioPage, $portfolioPerPage, $searchQuery, $portfolioFilters);
 $portfolioPerPageOptions = ui_pagination_per_page_options();
 $students = $academicModel->studentLookups();
 
@@ -116,10 +120,40 @@ $editingPortfolioMediaPath = normalize_public_file_url((string) ($editingPortfol
         </form>
     </article>
 
-    <article class="order-1 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <article
+        class="order-1 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+        data-ajax-table-root="1"
+        data-ajax-page-key="page"
+        data-ajax-page-value="portfolios-academic"
+        data-ajax-page-param="portfolio_page"
+        data-ajax-search-param="search"
+    >
         <h3>Danh sách hồ sơ tiến bộ</h3>
+        <div class="admin-table-toolbar mb-3 flex flex-wrap items-center gap-3">
+            <label class="relative w-full max-w-sm">
+                <span class="pointer-events-none absolute inset-y-0 left-3 inline-flex items-center text-slate-400">
+                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <circle cx="11" cy="11" r="7"></circle>
+                        <path d="m20 20-3.5-3.5"></path>
+                    </svg>
+                </span>
+                <input data-ajax-search="1" type="search" value="<?= e($searchQuery); ?>" placeholder="Tìm học viên, mã HV, mô tả..." autocomplete="off" class="h-11 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100">
+            </label>
+            <select name="type" data-ajax-filter="1" class="h-11 rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100">
+                <option value="">Tất cả loại nội dung</option>
+                <?php foreach ($portfolioTypeLabels as $typeValue => $typeLabel): ?>
+                    <option value="<?= e($typeValue); ?>" <?= $typeFilter === $typeValue ? 'selected' : ''; ?>><?= e($typeLabel); ?></option>
+                <?php endforeach; ?>
+            </select>
+            <select name="is_public_web" data-ajax-filter="1" class="h-11 rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100">
+                <option value="">Tất cả hiển thị</option>
+                <option value="1" <?= $publicFilter === '1' ? 'selected' : ''; ?>>Công khai</option>
+                <option value="0" <?= $publicFilter === '0' ? 'selected' : ''; ?>>Nội bộ</option>
+            </select>
+            <span data-ajax-row-info="1" class="text-sm font-medium text-slate-500">Hiển thị <?= (int) count($portfolios); ?> / <?= (int) $portfolioTotal; ?> dòng</span>
+        </div>
         <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
-            <table class="min-w-full border-collapse text-sm">
+            <table class="min-w-full border-collapse text-sm" data-disable-global-filter="1" data-disable-row-detail="1">
                 <thead>
                     <tr>
                         <th>Mã HV</th>
@@ -132,7 +166,7 @@ $editingPortfolioMediaPath = normalize_public_file_url((string) ($editingPortfol
                         <th>Hành động</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody data-ajax-tbody="1">
                     <?php if (empty($portfolios)): ?>
                         <tr>
                             <td colspan="8">
@@ -191,7 +225,7 @@ $editingPortfolioMediaPath = normalize_public_file_url((string) ($editingPortfol
                                     <?php if ($canManagePortfolio): ?>
                                         <span class="inline-flex flex-wrap items-center gap-2">
                                             <a
-                                                href="<?= e(page_url('portfolios-academic', ['edit' => $portfolioId, 'portfolio_page' => $portfolioPage, 'portfolio_per_page' => $portfolioPerPage])); ?>"
+                                                href="<?= e(page_url('portfolios-academic', ['edit' => $portfolioId, 'portfolio_page' => $portfolioPage, 'portfolio_per_page' => $portfolioPerPage, 'search' => $searchQuery !== '' ? $searchQuery : null, 'type' => $typeFilter !== '' ? $typeFilter : null, 'is_public_web' => $publicFilter !== '' ? $publicFilter : null])); ?>"
                                                 class="admin-action-icon-btn"
                                                 data-action-kind="edit"
                                                 data-skip-action-icon="1"
@@ -231,14 +265,17 @@ $editingPortfolioMediaPath = normalize_public_file_url((string) ($editingPortfol
             </table>
 
             <?php if ($portfolioTotal > 0): ?>
-                <div class="border-t border-slate-200 bg-slate-50/80 px-3 py-2">
-                    <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600">
-                        <span class="font-medium">Trang <?= (int) $portfolioPage; ?>/<?= (int) $portfolioTotalPages; ?> - Tổng <?= (int) $portfolioTotal; ?> hồ sơ tiến bộ</span>
-                        <div class="inline-flex items-center gap-1.5">
+                <div data-ajax-pagination="1" class="border-t border-slate-200 bg-slate-50/80 px-3 py-2">
+                    <div class="flex flex-wrap items-center gap-2 text-xs text-slate-600">
+                        <span data-ajax-row-info="1" class="min-w-0 flex-1 font-medium">Trang <?= (int) $portfolioPage; ?>/<?= (int) $portfolioTotalPages; ?> - Tổng <?= (int) $portfolioTotal; ?> hồ sơ tiến bộ</span>
+                        <div class="ml-auto inline-flex items-center gap-1.5">
                             <form class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2 py-1" method="get" action="<?= e(page_url('portfolios-academic')); ?>">
                                 <input type="hidden" name="page" value="portfolios-academic">
+                                <input type="hidden" name="search" value="<?= e($searchQuery); ?>">
+                                <input type="hidden" name="type" value="<?= e($typeFilter); ?>">
+                                <input type="hidden" name="is_public_web" value="<?= e($publicFilter); ?>">
                                 <label class="text-[11px] font-semibold text-slate-500" for="portfolio-per-page">Số dòng</label>
-                                <select id="portfolio-per-page" name="portfolio_per_page" class="h-7 rounded-md border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700" onchange="this.form.submit()">
+                                <select id="portfolio-per-page" name="portfolio_per_page" data-ajax-per-page="1" class="h-7 rounded-md border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700">
                                     <?php foreach ($portfolioPerPageOptions as $option): ?>
                                         <option value="<?= (int) $option; ?>" <?= $portfolioPerPage === (int) $option ? 'selected' : ''; ?>><?= (int) $option; ?></option>
                                     <?php endforeach; ?>
@@ -246,13 +283,13 @@ $editingPortfolioMediaPath = normalize_public_file_url((string) ($editingPortfol
                             </form>
 
                             <?php if ($portfolioPage > 1): ?>
-                                <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('portfolios-academic', ['portfolio_page' => $portfolioPage - 1, 'portfolio_per_page' => $portfolioPerPage])); ?>">Trước</a>
+                                <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('portfolios-academic', ['portfolio_page' => $portfolioPage - 1, 'portfolio_per_page' => $portfolioPerPage, 'search' => $searchQuery !== '' ? $searchQuery : null, 'type' => $typeFilter !== '' ? $typeFilter : null, 'is_public_web' => $publicFilter !== '' ? $publicFilter : null])); ?>">Trước</a>
                             <?php else: ?>
                                 <span class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 text-xs font-semibold text-slate-400">Trước</span>
                             <?php endif; ?>
 
                             <?php if ($portfolioPage < $portfolioTotalPages): ?>
-                                <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('portfolios-academic', ['portfolio_page' => $portfolioPage + 1, 'portfolio_per_page' => $portfolioPerPage])); ?>">Sau</a>
+                                <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('portfolios-academic', ['portfolio_page' => $portfolioPage + 1, 'portfolio_per_page' => $portfolioPerPage, 'search' => $searchQuery !== '' ? $searchQuery : null, 'type' => $typeFilter !== '' ? $typeFilter : null, 'is_public_web' => $publicFilter !== '' ? $publicFilter : null])); ?>">Sau</a>
                             <?php else: ?>
                                 <span class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 text-xs font-semibold text-slate-400">Sau</span>
                             <?php endif; ?>

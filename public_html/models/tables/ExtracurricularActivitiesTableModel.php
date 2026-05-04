@@ -7,9 +7,19 @@ final class ExtracurricularActivitiesTableModel
 {
     use TableModelUtils;
 
-    public function countDetailed(): int
+    public function countDetailed(string $searchQuery = '', array $filters = []): int
     {
-        return (int) $this->fetchScalar('SELECT COUNT(*) AS total FROM extracurricular_activities WHERE deleted_at IS NULL', [], 'total', 0);
+        $params = [];
+        $whereSql = $this->buildSearchWhereClause($searchQuery, $filters, $params);
+
+        return (int) $this->fetchScalar(
+            "SELECT COUNT(*) AS total
+            FROM extracurricular_activities a
+            {$whereSql}",
+            $params,
+            'total',
+            0
+        );
     }
 
     public function listWithRegistrationCount(): array
@@ -24,21 +34,54 @@ final class ExtracurricularActivitiesTableModel
         return $this->fetchAll($sql);
     }
 
-    public function listWithRegistrationCountPage(int $page, int $perPage): array
+    public function listWithRegistrationCountPage(int $page, int $perPage, string $searchQuery = '', array $filters = []): array
     {
         $normalizedPage = max(1, $page);
         $limit = $this->clampLimit($perPage, 10, 200);
         $offset = ($normalizedPage - 1) * $limit;
+        $params = [];
+        $whereSql = $this->buildSearchWhereClause($searchQuery, $filters, $params);
 
         $sql = "SELECT a.id, a.title AS activity_name, a.description, a.image_thumbnail, a.start_date, a.start_date AS end_date,
                 COALESCE(a.location, '') AS location, a.status, a.fee, COUNT(r.id) AS registered
             FROM extracurricular_activities a
             LEFT JOIN activity_registrations r ON r.activity_id = a.id
-            WHERE a.deleted_at IS NULL
+            {$whereSql}
             GROUP BY a.id, a.title, a.description, a.image_thumbnail, a.start_date, a.location, a.status, a.fee
             ORDER BY a.start_date DESC
             LIMIT {$limit} OFFSET {$offset}";
-        return $this->fetchAll($sql);
+        return $this->fetchAll($sql, $params);
+    }
+
+    private function buildSearchWhereClause(string $searchQuery, array $filters, array &$params): string
+    {
+        $conditions = ['a.deleted_at IS NULL'];
+
+        $status = strtolower(trim((string) ($filters['status'] ?? '')));
+        if ($status !== '' && in_array($status, ['upcoming', 'ongoing', 'finished'], true)) {
+            $conditions[] = 'a.status = :filter_status';
+            $params['filter_status'] = $status;
+        }
+
+        $searchQuery = trim($searchQuery);
+        if ($searchQuery !== '') {
+            $likeValue = '%' . $searchQuery . '%';
+            $params['search_id'] = $likeValue;
+            $params['search_name'] = $likeValue;
+            $params['search_description'] = $likeValue;
+            $params['search_location'] = $likeValue;
+            $params['search_status'] = $likeValue;
+
+            $conditions[] = "(
+                CAST(a.id AS CHAR) LIKE :search_id
+                OR COALESCE(a.title, '') LIKE :search_name
+                OR COALESCE(a.description, '') LIKE :search_description
+                OR COALESCE(a.location, '') LIKE :search_location
+                OR COALESCE(a.status, '') LIKE :search_status
+            )";
+        }
+
+        return ' WHERE ' . implode(' AND ', $conditions);
     }
 
     public function findById(int $id): ?array

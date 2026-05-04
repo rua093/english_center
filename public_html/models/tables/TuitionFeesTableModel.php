@@ -14,11 +14,25 @@ final class TuitionFeesTableModel extends BaseTableModel
             INNER JOIN courses co ON co.id = c.course_id AND co.deleted_at IS NULL";
     }
 
-    private function searchWhereClause(string $searchQuery, array &$params): string
+    private function searchWhereClause(string $searchQuery, array $filters, array &$params): string
     {
+        $conditions = [];
+
+        $statusFilter = strtolower(trim((string) ($filters['status'] ?? '')));
+        if (in_array($statusFilter, ['paid', 'debt'], true)) {
+            $params['filter_status'] = $statusFilter;
+            $conditions[] = 't.status = :filter_status';
+        }
+
+        $paymentPlanFilter = strtolower(trim((string) ($filters['payment_plan'] ?? '')));
+        if (in_array($paymentPlanFilter, ['full', 'monthly'], true)) {
+            $params['filter_payment_plan'] = $paymentPlanFilter;
+            $conditions[] = 't.payment_plan = :filter_payment_plan';
+        }
+
         $searchQuery = trim($searchQuery);
         if ($searchQuery === '') {
-            return '';
+            return empty($conditions) ? '' : ' WHERE ' . implode(' AND ', $conditions);
         }
 
         $likeVal = '%' . $searchQuery . '%';
@@ -32,7 +46,7 @@ final class TuitionFeesTableModel extends BaseTableModel
         $params['search_plan'] = $likeVal;
         $params['search_status'] = $likeVal;
 
-        return " WHERE (
+        $conditions[] = "(
             CAST(t.id AS CHAR) LIKE :search_id
             OR COALESCE(sp.student_code, '') LIKE :search_code
             OR COALESCE(u.full_name, '') LIKE :search_name
@@ -41,6 +55,8 @@ final class TuitionFeesTableModel extends BaseTableModel
             OR COALESCE(t.payment_plan, '') LIKE :search_plan
             OR COALESCE(t.status, '') LIKE :search_status
         )";
+
+        return ' WHERE ' . implode(' AND ', $conditions);
     }
 
     private function resolveStatus(float $totalAmount, float $amountPaid): string
@@ -48,10 +64,10 @@ final class TuitionFeesTableModel extends BaseTableModel
         return $amountPaid >= $totalAmount ? 'paid' : 'debt';
     }
 
-    public function countDetailed(string $searchQuery = ''): int
+    public function countDetailed(string $searchQuery = '', array $filters = []): int
     {
         $params = [];
-        $sql = 'SELECT COUNT(*) AS total' . $this->detailedFromSql() . $this->searchWhereClause($searchQuery, $params);
+        $sql = 'SELECT COUNT(*) AS total' . $this->detailedFromSql() . $this->searchWhereClause($searchQuery, $filters, $params);
         return (int) $this->fetchScalar($sql, $params, 'total', 0);
     }
 
@@ -78,14 +94,14 @@ final class TuitionFeesTableModel extends BaseTableModel
         return $this->fetchAll($sql);
     }
 
-    public function listDetailedPage(int $page, int $perPage, string $searchQuery = ''): array
+    public function listDetailedPage(int $page, int $perPage, string $searchQuery = '', array $filters = []): array
     {
         $pagination = $this->pagination($page, $perPage, 10, 200);
         $params = [];
         $sql = "SELECT t.id, t.student_id, t.class_id, t.package_id, t.discount_amount, t.total_amount, t.amount_paid, t.payment_plan, t.status,
                 NULL AS due_date, u.full_name AS full_name, sp.student_code, c.class_name AS class_name, co.course_name" .
             $this->detailedFromSql() .
-            $this->searchWhereClause($searchQuery, $params) .
+            $this->searchWhereClause($searchQuery, $filters, $params) .
             " ORDER BY t.id DESC
               LIMIT {$pagination['limit']} OFFSET {$pagination['offset']}";
         return $this->fetchAll($sql, $params);

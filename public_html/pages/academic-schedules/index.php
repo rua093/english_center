@@ -4,12 +4,7 @@ require_permission('academic.schedules.view');
 $academicModel = new AcademicModel();
 $schedulePage = max(1, (int) ($_GET['schedule_page'] ?? 1));
 $schedulePerPage = ui_pagination_resolve_per_page('schedule_per_page', 10);
-$scheduleTotal = $academicModel->countSchedules();
-$scheduleTotalPages = max(1, (int) ceil($scheduleTotal / $schedulePerPage));
-if ($schedulePage > $scheduleTotalPages) {
-    $schedulePage = $scheduleTotalPages;
-}
-$schedules = $academicModel->listSchedulesPage($schedulePage, $schedulePerPage);
+$searchQuery = trim((string) ($_GET['search'] ?? ''));
 $allSchedules = $academicModel->listSchedules();
 $schedulePerPageOptions = ui_pagination_per_page_options();
 $lookups = $academicModel->scheduleLookups();
@@ -23,15 +18,6 @@ if ($currentUserRole === 'teacher' && $currentUserId > 0) {
         return (int) ($schedule['teacher_id'] ?? 0) === $currentUserId;
     }));
 
-    $scheduleTotal = count($allSchedules);
-    $scheduleTotalPages = max(1, (int) ceil($scheduleTotal / $schedulePerPage));
-    if ($schedulePage > $scheduleTotalPages) {
-        $schedulePage = $scheduleTotalPages;
-    }
-
-    $scheduleOffset = ($schedulePage - 1) * $schedulePerPage;
-    $schedules = array_slice($allSchedules, $scheduleOffset, $schedulePerPage);
-
     $lookupClasses = is_array($lookups['classes'] ?? null) ? $lookups['classes'] : [];
     $lookups['classes'] = array_values(array_filter($lookupClasses, static function (array $classRow) use ($currentUserId): bool {
         return (int) ($classRow['teacher_id'] ?? 0) === $currentUserId;
@@ -42,6 +28,13 @@ if ($currentUserRole === 'teacher' && $currentUserId > 0) {
         return (int) ($teacherRow['id'] ?? 0) === $currentUserId;
     }));
 }
+
+$scheduleTotal = $academicModel->countSchedules($currentUserRole === 'teacher' ? $currentUserId : 0, $searchQuery);
+$scheduleTotalPages = max(1, (int) ceil($scheduleTotal / $schedulePerPage));
+if ($schedulePage > $scheduleTotalPages) {
+    $schedulePage = $scheduleTotalPages;
+}
+$schedules = $academicModel->listSchedulesPage($schedulePage, $schedulePerPage, $currentUserRole === 'teacher' ? $currentUserId : 0, $searchQuery);
 
 $editingSchedule = null;
 if (!empty($_GET['edit'])) {
@@ -306,14 +299,33 @@ $scheduleConflictDataset = array_map(static function (array $schedule): array {
             <?php endif; ?>
         </article>
 
-        <article class="order-2 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <article
+            class="order-2 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+            data-ajax-table-root="1"
+            data-ajax-page-key="page"
+            data-ajax-page-value="schedules-academic"
+            data-ajax-page-param="schedule_page"
+            data-ajax-search-param="search"
+        >
             <h3>Danh sách lịch dạy</h3>
+            <div class="admin-table-toolbar mb-3 flex flex-wrap items-center gap-3">
+                <label class="relative w-full max-w-sm">
+                    <span class="pointer-events-none absolute inset-y-0 left-3 inline-flex items-center text-slate-400">
+                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <circle cx="11" cy="11" r="7"></circle>
+                            <path d="m20 20-3.5-3.5"></path>
+                        </svg>
+                    </span>
+                    <input data-ajax-search="1" type="search" value="<?= e($searchQuery); ?>" placeholder="Tìm lớp, phòng, giáo viên, ngày học..." autocomplete="off" class="h-11 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100">
+                </label>
+                <span data-ajax-row-info="1" class="text-sm font-medium text-slate-500">Hiển thị <?= (int) count($schedules); ?> / <?= (int) $scheduleTotal; ?> dòng</span>
+            </div>
             <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
-                <table class="min-w-full border-collapse text-sm">
+                <table class="min-w-full border-collapse text-sm" data-disable-global-filter="1" data-disable-row-detail="1">
                 <thead>
                     <tr><th>Lớp học</th><th>Phòng</th><th>Mã GV</th><th>Giáo viên</th><th>Ngày học</th><th>Giờ</th><th>Hành động</th></tr>
                 </thead>
-                <tbody>
+                <tbody data-ajax-tbody="1">
                     <?php if (empty($schedules)): ?>
                         <tr><td colspan="7"><div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">Chưa có lịch dạy nào.</div></td></tr>
                     <?php else: ?>
@@ -329,7 +341,7 @@ $scheduleConflictDataset = array_map(static function (array $schedule): array {
                                 <span class="inline-flex flex-wrap items-center gap-2">
                                     <?php if ($canUpdateSchedule): ?>
                                         <a
-                                            href="<?= e(page_url('schedules-academic-edit', ['id' => (int) $schedule['id'], 'schedule_page' => $schedulePage, 'schedule_per_page' => $schedulePerPage, 'week_start' => $weekStartValue])); ?>"
+                                            href="<?= e(page_url('schedules-academic-edit', ['id' => (int) $schedule['id'], 'schedule_page' => $schedulePage, 'schedule_per_page' => $schedulePerPage, 'week_start' => $weekStartValue, 'search' => $searchQuery !== '' ? $searchQuery : null])); ?>"
                                             class="admin-action-icon-btn"
                                             data-action-kind="edit"
                                             data-skip-action-icon="1"
@@ -368,28 +380,29 @@ $scheduleConflictDataset = array_map(static function (array $schedule): array {
                 </tbody>
                 </table>
                 <?php if ($scheduleTotal > 0): ?>
-                    <div class="border-t border-slate-200 bg-slate-50/80 px-3 py-2">
-                        <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600">
-                            <span class="font-medium">Trang <?= (int) $schedulePage; ?>/<?= (int) $scheduleTotalPages; ?> - Tổng <?= (int) $scheduleTotal; ?> lịch dạy</span>
-                            <div class="inline-flex items-center gap-1.5">
+                    <div data-ajax-pagination="1" class="border-t border-slate-200 bg-slate-50/80 px-3 py-2">
+                        <div class="flex flex-wrap items-center gap-2 text-xs text-slate-600">
+                            <span data-ajax-row-info="1" class="min-w-0 flex-1 font-medium">Trang <?= (int) $schedulePage; ?>/<?= (int) $scheduleTotalPages; ?> - Tổng <?= (int) $scheduleTotal; ?> lịch dạy</span>
+                            <div class="ml-auto inline-flex items-center gap-1.5">
                                 <form class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2 py-1" method="get" action="<?= e(page_url('schedules-academic')); ?>">
                                     <input type="hidden" name="page" value="schedules-academic">
                                     <input type="hidden" name="week_start" value="<?= e($weekStartValue); ?>">
+                                    <input type="hidden" name="search" value="<?= e($searchQuery); ?>">
                                     <label class="text-[11px] font-semibold text-slate-500" for="schedule-per-page">Số dòng</label>
-                                    <select id="schedule-per-page" name="schedule_per_page" class="h-7 rounded-md border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700" onchange="this.form.submit()">
+                                    <select id="schedule-per-page" name="schedule_per_page" data-ajax-per-page="1" class="h-7 rounded-md border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700">
                                         <?php foreach ($schedulePerPageOptions as $option): ?>
                                             <option value="<?= (int) $option; ?>" <?= $schedulePerPage === (int) $option ? 'selected' : ''; ?>><?= (int) $option; ?></option>
                                         <?php endforeach; ?>
                                     </select>
                                 </form>
                                 <?php if ($schedulePage > 1): ?>
-                                    <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('schedules-academic', ['schedule_page' => $schedulePage - 1, 'schedule_per_page' => $schedulePerPage, 'week_start' => $weekStartValue])); ?>">Trước</a>
+                                    <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('schedules-academic', ['schedule_page' => $schedulePage - 1, 'schedule_per_page' => $schedulePerPage, 'week_start' => $weekStartValue, 'search' => $searchQuery !== '' ? $searchQuery : null])); ?>">Trước</a>
                                 <?php else: ?>
                                     <span class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 text-xs font-semibold text-slate-400">Trước</span>
                                 <?php endif; ?>
 
                                 <?php if ($schedulePage < $scheduleTotalPages): ?>
-                                    <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('schedules-academic', ['schedule_page' => $schedulePage + 1, 'schedule_per_page' => $schedulePerPage, 'week_start' => $weekStartValue])); ?>">Sau</a>
+                                    <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('schedules-academic', ['schedule_page' => $schedulePage + 1, 'schedule_per_page' => $schedulePerPage, 'week_start' => $weekStartValue, 'search' => $searchQuery !== '' ? $searchQuery : null])); ?>">Sau</a>
                                 <?php else: ?>
                                     <span class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 text-xs font-semibold text-slate-400">Sau</span>
                                 <?php endif; ?>

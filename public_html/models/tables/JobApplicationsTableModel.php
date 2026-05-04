@@ -14,10 +14,10 @@ final class JobApplicationsTableModel
         'REJECTED',
     ];
 
-    public function countDetailed(?string $statusFilter = null): int
+    public function countDetailed(array $filters = [], string $searchQuery = ''): int
     {
         $params = [];
-        $where = $this->buildStatusWhereClause($statusFilter, $params);
+        $where = $this->buildSearchWhereClause($filters, $searchQuery, $params);
 
         return (int) $this->fetchScalar(
             'SELECT COUNT(*) AS total FROM job_applications ja' . $where,
@@ -27,14 +27,14 @@ final class JobApplicationsTableModel
         );
     }
 
-    public function listDetailedPage(int $page, int $perPage, ?string $statusFilter = null): array
+    public function listDetailedPage(int $page, int $perPage, array $filters = [], string $searchQuery = ''): array
     {
         $normalizedPage = max(1, $page);
         $limit = $this->clampLimit($perPage, 10, 200);
         $offset = ($normalizedPage - 1) * $limit;
 
         $params = [];
-        $where = $this->buildStatusWhereClause($statusFilter, $params);
+        $where = $this->buildSearchWhereClause($filters, $searchQuery, $params);
 
         $sql = 'SELECT ja.id, ja.full_name, ja.email, ja.phone, ja.address, ja.position_applied,
                     ja.work_mode, ja.highest_degree, ja.experience_years, ja.education_detail, ja.work_history, ja.skills_set, ja.bio_summary,
@@ -184,15 +184,57 @@ final class JobApplicationsTableModel
         return $normalized;
     }
 
-    private function buildStatusWhereClause(?string $statusFilter, array &$params): string
+    private function buildSearchWhereClause(array $filters, string $searchQuery, array &$params): string
     {
-        $status = strtoupper(trim((string) $statusFilter));
-        if ($status === '' || !in_array($status, self::ALLOWED_STATUSES, true)) {
+        $conditions = [];
+
+        foreach ($filters as $column => $value) {
+            $normalizedColumn = strtolower(trim((string) $column));
+            $normalizedValue = trim((string) $value);
+            if ($normalizedValue === '') {
+                continue;
+            }
+
+            if ($normalizedColumn === 'status') {
+                $status = strtoupper($normalizedValue);
+                if (!in_array($status, self::ALLOWED_STATUSES, true)) {
+                    continue;
+                }
+
+                $params['filter_status'] = $status;
+                $conditions[] = 'ja.status = :filter_status';
+            }
+        }
+
+        $searchQuery = trim($searchQuery);
+        if ($searchQuery !== '') {
+            $likeValue = '%' . $searchQuery . '%';
+            $params['search_id'] = $likeValue;
+            $params['search_name'] = $likeValue;
+            $params['search_email'] = $likeValue;
+            $params['search_phone'] = $likeValue;
+            $params['search_position'] = $likeValue;
+            $params['search_mode'] = $likeValue;
+            $params['search_status_text'] = $likeValue;
+            $params['search_note'] = $likeValue;
+
+            $conditions[] = "(
+                CAST(ja.id AS CHAR) LIKE :search_id
+                OR COALESCE(ja.full_name, '') LIKE :search_name
+                OR COALESCE(ja.email, '') LIKE :search_email
+                OR COALESCE(ja.phone, '') LIKE :search_phone
+                OR COALESCE(ja.position_applied, '') LIKE :search_position
+                OR COALESCE(ja.work_mode, '') LIKE :search_mode
+                OR COALESCE(ja.status, '') LIKE :search_status_text
+                OR COALESCE(ja.hr_note, '') LIKE :search_note
+            )";
+        }
+
+        if (empty($conditions)) {
             return '';
         }
 
-        $params['status'] = $status;
-        return ' WHERE ja.status = :status';
+        return ' WHERE ' . implode(' AND ', $conditions);
     }
 
     private function nullIfEmpty(mixed $value): ?string

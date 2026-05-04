@@ -82,21 +82,24 @@ final class CoursePackagesTableModel extends BaseTableModel
             && $this->hasColumn('end_date');
     }
 
-    public function countDetailed(): int
+    public function countDetailed(string $searchQuery = '', array $filters = []): int
     {
+        $params = [];
+        $whereSql = $this->buildDetailedWhereClause($searchQuery, $filters, $params);
         return (int) $this->fetchScalar(
-            'SELECT COUNT(*) AS total FROM ' . $this->tableName() . ' cp WHERE ' . $this->activeWhereSql('cp'),
-            [],
+            'SELECT COUNT(*) AS total FROM ' . $this->tableName() . ' cp LEFT JOIN courses c ON c.id = cp.course_id AND c.deleted_at IS NULL ' . $whereSql,
+            $params,
             'total',
             0
         );
     }
 
-    public function listDetailedPage(int $page, int $perPage): array
+    public function listDetailedPage(int $page, int $perPage, string $searchQuery = '', array $filters = []): array
     {
         $pagination = $this->pagination($page, $perPage, 10, 200);
         $limit = (int) $pagination['limit'];
         $offset = (int) $pagination['offset'];
+        $params = [];
 
         $table = $this->tableName();
         $projection = $this->projectionSql('cp');
@@ -106,18 +109,48 @@ final class CoursePackagesTableModel extends BaseTableModel
         $joinCourses = $this->hasColumn('course_id')
             ? 'LEFT JOIN courses c ON c.id = cp.course_id AND c.deleted_at IS NULL'
             : '';
-        $courseVisibilityWhere = $this->hasColumn('course_id')
-            ? ' AND (cp.course_id IS NULL OR cp.course_id = 0 OR c.id IS NOT NULL)'
-            : '';
+        $whereSql = $this->buildDetailedWhereClause($searchQuery, $filters, $params);
 
         $sql = "SELECT {$projection}, {$courseNameSelect}
             FROM {$table} cp
             {$joinCourses}
-            WHERE {$this->activeWhereSql('cp')}{$courseVisibilityWhere}
+            {$whereSql}
             ORDER BY (course_id = 0) DESC, course_id ASC, discount_value DESC, name ASC
             LIMIT {$limit} OFFSET {$offset}";
 
-        return $this->fetchAll($sql);
+        return $this->fetchAll($sql, $params);
+    }
+
+    private function buildDetailedWhereClause(string $searchQuery, array $filters, array &$params): string
+    {
+        $conditions = [$this->activeWhereSql('cp')];
+
+        if ($this->hasColumn('course_id')) {
+            $conditions[] = '(cp.course_id IS NULL OR cp.course_id = 0 OR c.id IS NOT NULL)';
+        }
+
+        $promoType = strtoupper(trim((string) ($filters['promo_type'] ?? '')));
+        if ($promoType !== '' && in_array($promoType, ['DURATION', 'SOCIAL', 'EVENT', 'GROUP'], true) && $this->hasColumn('promo_type')) {
+            $conditions[] = 'cp.promo_type = :filter_promo_type';
+            $params['filter_promo_type'] = $promoType;
+        }
+
+        $searchQuery = trim($searchQuery);
+        if ($searchQuery !== '') {
+            $likeValue = '%' . $searchQuery . '%';
+            $params['search_id'] = $likeValue;
+            $params['search_name'] = $likeValue;
+            $params['search_course'] = $likeValue;
+            $params['search_type'] = $likeValue;
+            $conditions[] = "(
+                CAST(cp.id AS CHAR) LIKE :search_id
+                OR COALESCE(cp.name, '') LIKE :search_name
+                OR COALESCE(c.course_name, '') LIKE :search_course
+                OR COALESCE(cp.promo_type, '') LIKE :search_type
+            )";
+        }
+
+        return ' WHERE ' . implode(' AND ', $conditions);
     }
 
     public function findDetailedById(int $id): ?array

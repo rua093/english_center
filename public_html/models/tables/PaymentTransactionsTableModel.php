@@ -7,9 +7,24 @@ final class PaymentTransactionsTableModel
 {
     use TableModelUtils;
 
-    public function countDetailed(): int
+    public function countDetailed(string $searchQuery = '', array $filters = []): int
     {
-        return (int) $this->fetchScalar('SELECT COUNT(*) AS total FROM payment_transactions', [], 'total', 0);
+        $params = [];
+        $whereSql = $this->buildSearchWhereClause($searchQuery, $filters, $params);
+
+        return (int) $this->fetchScalar(
+            "SELECT COUNT(*) AS total
+            FROM payment_transactions pt
+            INNER JOIN tuition_fees t ON t.id = pt.tuition_fee_id
+            INNER JOIN users u ON u.id = t.student_id
+            LEFT JOIN student_profiles sp ON sp.user_id = u.id
+            INNER JOIN classes c ON c.id = t.class_id
+            LEFT JOIN courses co ON co.id = c.course_id
+            {$whereSql}",
+            $params,
+            'total',
+            0
+        );
     }
 
     public function monthlyCreatedCounts(int $limit = 6): array
@@ -37,22 +52,73 @@ final class PaymentTransactionsTableModel
         return $this->fetchAll($sql);
     }
 
-    public function listDetailedPage(int $page, int $perPage): array
+    public function listDetailedPage(int $page, int $perPage, string $searchQuery = '', array $filters = []): array
     {
         $normalizedPage = max(1, $page);
         $limit = $this->clampLimit($perPage, 10, 200);
         $offset = ($normalizedPage - 1) * $limit;
+        $params = [];
+        $whereSql = $this->buildSearchWhereClause($searchQuery, $filters, $params);
 
         $sql = "SELECT pt.id, pt.tuition_fee_id, pt.amount, pt.payment_method AS method, pt.created_at AS transaction_date,
-            pt.transaction_status, t.student_id, u.full_name AS full_name, sp.student_code, c.class_name AS course_name
+            pt.transaction_status, t.student_id, u.full_name AS full_name, sp.student_code,
+            COALESCE(co.course_name, c.class_name) AS course_name,
+            c.class_name
             FROM payment_transactions pt
             INNER JOIN tuition_fees t ON t.id = pt.tuition_fee_id
             INNER JOIN users u ON u.id = t.student_id
             LEFT JOIN student_profiles sp ON sp.user_id = u.id
             INNER JOIN classes c ON c.id = t.class_id
+            LEFT JOIN courses co ON co.id = c.course_id
+            {$whereSql}
             ORDER BY pt.created_at DESC
             LIMIT {$limit} OFFSET {$offset}";
-        return $this->fetchAll($sql);
+        return $this->fetchAll($sql, $params);
+    }
+
+    private function buildSearchWhereClause(string $searchQuery, array $filters, array &$params): string
+    {
+        $conditions = [];
+
+        $status = strtolower(trim((string) ($filters['transaction_status'] ?? '')));
+        if ($status !== '' && in_array($status, ['pending', 'success', 'failed'], true)) {
+            $conditions[] = 'pt.transaction_status = :filter_transaction_status';
+            $params['filter_transaction_status'] = $status;
+        }
+
+        $method = strtolower(trim((string) ($filters['payment_method'] ?? '')));
+        if ($method !== '') {
+            $conditions[] = 'pt.payment_method = :filter_payment_method';
+            $params['filter_payment_method'] = $method;
+        }
+
+        $searchQuery = trim($searchQuery);
+        if ($searchQuery !== '') {
+            $likeValue = '%' . $searchQuery . '%';
+            $params['search_id'] = $likeValue;
+            $params['search_code'] = $likeValue;
+            $params['search_name'] = $likeValue;
+            $params['search_class'] = $likeValue;
+            $params['search_course'] = $likeValue;
+            $params['search_method'] = $likeValue;
+            $params['search_status'] = $likeValue;
+
+            $conditions[] = "(
+                CAST(pt.id AS CHAR) LIKE :search_id
+                OR COALESCE(sp.student_code, '') LIKE :search_code
+                OR COALESCE(u.full_name, '') LIKE :search_name
+                OR COALESCE(c.class_name, '') LIKE :search_class
+                OR COALESCE(co.course_name, '') LIKE :search_course
+                OR COALESCE(pt.payment_method, '') LIKE :search_method
+                OR COALESCE(pt.transaction_status, '') LIKE :search_status
+            )";
+        }
+
+        if ($conditions === []) {
+            return '';
+        }
+
+        return ' WHERE ' . implode(' AND ', $conditions);
     }
 
     public function findById(int $id): ?array

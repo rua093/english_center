@@ -5,11 +5,64 @@ require_once __DIR__ . '/BaseTableModel.php';
 
 final class UsersTableModel extends BaseTableModel
 {
-    public function countActiveWithRoles(): int
+    private function buildSearchWhereClause(string $searchQuery, array $filters, array &$params): string
     {
+        $conditions = ['u.deleted_at IS NULL'];
+
+        $statusFilter = trim((string) ($filters['status'] ?? ''));
+        if ($statusFilter !== '') {
+            $params['filter_status'] = $statusFilter;
+            $conditions[] = 'u.status = :filter_status';
+        }
+
+        $roleIdFilter = (int) ($filters['role_id'] ?? 0);
+        if ($roleIdFilter > 0) {
+            $params['filter_role_id'] = $roleIdFilter;
+            $conditions[] = 'u.role_id = :filter_role_id';
+        }
+
+        $searchQuery = trim($searchQuery);
+        if ($searchQuery === '') {
+            return ' WHERE ' . implode(' AND ', $conditions);
+        }
+
+        $likeValue = '%' . $searchQuery . '%';
+        $params['search_id'] = $likeValue;
+        $params['search_username'] = $likeValue;
+        $params['search_name'] = $likeValue;
+        $params['search_phone'] = $likeValue;
+        $params['search_email'] = $likeValue;
+        $params['search_role'] = $likeValue;
+        $params['search_status'] = $likeValue;
+        $params['search_teacher_code'] = $likeValue;
+        $params['search_student_code'] = $likeValue;
+
+        $conditions[] = "(
+            CAST(u.id AS CHAR) LIKE :search_id
+            OR COALESCE(u.username, '') LIKE :search_username
+            OR COALESCE(u.full_name, '') LIKE :search_name
+            OR COALESCE(u.phone, '') LIKE :search_phone
+            OR COALESCE(u.email, '') LIKE :search_email
+            OR COALESCE(r.role_name, '') LIKE :search_role
+            OR COALESCE(u.status, '') LIKE :search_status
+            OR COALESCE(tp.teacher_code, '') LIKE :search_teacher_code
+            OR COALESCE(sp.student_code, '') LIKE :search_student_code
+        )";
+
+        return ' WHERE ' . implode(' AND ', $conditions);
+    }
+
+    public function countActiveWithRoles(string $searchQuery = '', array $filters = []): int
+    {
+        $params = [];
         return (int) $this->fetchScalar(
-            'SELECT COUNT(*) AS total FROM users u WHERE u.deleted_at IS NULL',
-            [],
+            'SELECT COUNT(*) AS total
+             FROM users u
+             INNER JOIN roles r ON r.id = u.role_id
+             LEFT JOIN teacher_profiles tp ON tp.user_id = u.id
+             LEFT JOIN student_profiles sp ON sp.user_id = u.id'
+             . $this->buildSearchWhereClause($searchQuery, $filters, $params),
+            $params,
             'total',
             0
         );
@@ -28,19 +81,20 @@ final class UsersTableModel extends BaseTableModel
         return $this->fetchAll($sql);
     }
 
-    public function listActiveWithRolesPage(int $page, int $perPage): array
+    public function listActiveWithRolesPage(int $page, int $perPage, string $searchQuery = '', array $filters = []): array
     {
         $pagination = $this->pagination($page, $perPage, 10, 200);
+        $params = [];
         $sql = "SELECT u.id, u.username, u.full_name, u.phone, u.email, u.avatar, u.status, u.created_at, u.role_id,
                 r.role_name, tp.teacher_code, sp.student_code
             FROM users u
             INNER JOIN roles r ON r.id = u.role_id
             LEFT JOIN teacher_profiles tp ON tp.user_id = u.id
             LEFT JOIN student_profiles sp ON sp.user_id = u.id
-            WHERE u.deleted_at IS NULL
+            " . $this->buildSearchWhereClause($searchQuery, $filters, $params) . "
             ORDER BY u.id DESC
             LIMIT {$pagination['limit']} OFFSET {$pagination['offset']}";
-        return $this->fetchAll($sql);
+        return $this->fetchAll($sql, $params);
     }
 
     public function findActiveById(int $id): ?array
