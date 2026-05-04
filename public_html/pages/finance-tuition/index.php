@@ -81,6 +81,8 @@ if (!empty($_GET['edit'])) {
     $editingTuition = $academicModel->findTuitionFeeForEdit((int) $_GET['edit']);
 }
 
+$highlightTuitionId = (int) ($_GET['highlight_tuition_id'] ?? 0);
+
 $editingClassId = (int) ($editingTuition['class_id'] ?? 0);
 $editingStudentId = (int) ($editingTuition['student_id'] ?? 0);
 $editingPackageId = max(0, (int) ($editingTuition['package_id'] ?? 0));
@@ -127,6 +129,7 @@ $isStaff = (($viewer['role'] ?? '') === 'staff');
 $canCreateTuition = $isAdmin;
 $canUpdateTuition = $isAdmin;
 $canDeleteTuition = $isAdmin;
+$canCreatePayment = $isAdmin || has_permission('finance.payments.create');
 
 $success = get_flash('success');
 $error = get_flash('error');
@@ -205,6 +208,13 @@ $error = get_flash('error');
         background: #f8fafc !important;
         color: #475569 !important;
         border-color: #cbd5e1 !important;
+    }
+
+    .tuition-row-highlight {
+        outline: 2px solid #22c55e;
+        outline-offset: -2px;
+        background: #f0fdf4;
+        box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.12);
     }
 
 </style>
@@ -385,7 +395,7 @@ $error = get_flash('error');
                         </tr>
                     <?php else: ?>
                         <?php foreach ($tuitionFees as $fee): ?>
-                            <tr>
+                            <tr data-tuition-id="<?= (int) $fee['id']; ?>">
                                 <td><?= e((string) ($fee['student_code'] ?? '-')); ?></td>
                                 <td><?= e((string) ($fee['full_name'] ?? 'Học viên')); ?></td>
                                 <td><?= e((string) ($fee['course_name'] ?? '')); ?></td>
@@ -409,6 +419,31 @@ $error = get_flash('error');
                                                     <svg viewBox="0 0 24 24" aria-hidden="true">
                                                         <path d="M12 20h9"></path>
                                                         <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
+                                                    </svg>
+                                                </span>
+                                            </a>
+                                        <?php endif; ?>
+
+                                        <?php
+                                        $remainingAmount = (float) ($fee['total_amount'] ?? 0) - (float) ($fee['amount_paid'] ?? 0);
+                                        $remainingAmount = max(0, $remainingAmount);
+                                        ?>
+
+                                        <?php if ($canCreatePayment && $remainingAmount > 0): ?>
+                                            <a
+                                                href="<?= e(page_url('payments-finance', ['tuition_id' => (int) $fee['id']])); ?>"
+                                                class="admin-action-icon-btn"
+                                                data-action-kind="pay"
+                                                data-skip-action-icon="1"
+                                                title="Đóng học phí"
+                                                aria-label="Đóng học phí"
+                                            >
+                                                <span class="admin-action-icon-label">Đóng học phí</span>
+                                                <span class="admin-action-icon-glyph" aria-hidden="true">
+                                                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                                                        <path d="M3 7h18"></path>
+                                                        <path d="M5 12h14"></path>
+                                                        <path d="M7 17h10"></path>
                                                     </svg>
                                                 </span>
                                             </a>
@@ -549,6 +584,20 @@ $error = get_flash('error');
         window.updateTuitionEditPreview(document);
     })();
 </script>
+
+<?php if ($highlightTuitionId > 0): ?>
+<script>
+    (function () {
+        const targetRow = document.querySelector('[data-tuition-id="<?= (int) $highlightTuitionId; ?>"]');
+        if (!targetRow) {
+            return;
+        }
+
+        targetRow.classList.add('tuition-row-highlight');
+        targetRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    })();
+</script>
+<?php endif; ?>
 
 
 

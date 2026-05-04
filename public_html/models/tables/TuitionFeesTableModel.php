@@ -109,11 +109,12 @@ final class TuitionFeesTableModel extends BaseTableModel
 
     public function findDetailedById(int $id): ?array
     {
-        $sql = "SELECT t.id, t.total_amount, t.amount_paid, t.status, u.full_name AS full_name, sp.student_code, c.class_name AS class_name
+        $sql = "SELECT t.id, t.total_amount, t.amount_paid, t.status, u.full_name AS full_name, u.full_name AS student_name, sp.student_code, c.class_name AS class_name, co.course_name
             FROM tuition_fees t
             INNER JOIN users u ON u.id = t.student_id
             LEFT JOIN student_profiles sp ON sp.user_id = u.id
             INNER JOIN classes c ON c.id = t.class_id
+            INNER JOIN courses co ON co.id = c.course_id AND co.deleted_at IS NULL
             WHERE t.id = :id
             LIMIT 1";
         return $this->fetchOne($sql, ['id' => $id]);
@@ -122,7 +123,8 @@ final class TuitionFeesTableModel extends BaseTableModel
     public function findForEdit(int $id): ?array
     {
         return $this->fetchOne(
-            'SELECT id, student_id, class_id, package_id, base_amount, discount_type, discount_amount, total_amount, amount_paid, payment_plan, status
+            'SELECT id, student_id, class_id, package_id, base_amount, discount_type, discount_amount, total_amount, amount_paid, payment_plan, status,
+                    monthly_months, monthly_start_month, monthly_end_month, monthly_payment_day
              FROM tuition_fees WHERE id = :id LIMIT 1',
             ['id' => $id]
         );
@@ -277,6 +279,10 @@ final class TuitionFeesTableModel extends BaseTableModel
         $discountType = trim((string) ($data['discount_type'] ?? 'none'));
         $discountPercent = max(0, min(100, (float) ($data['discount_amount'] ?? 0)));
         $paymentPlan = (string) ($data['payment_plan'] ?? 'full');
+        $monthlyMonths = (int) ($data['monthly_months'] ?? 0);
+        $monthlyStartMonth = $data['monthly_start_month'] ?? null;
+        $monthlyEndMonth = $data['monthly_end_month'] ?? null;
+        $monthlyPaymentDay = (int) ($data['monthly_payment_day'] ?? 0);
 
         if (!in_array($paymentPlan, ['full', 'monthly'], true)) {
             $paymentPlan = 'full';
@@ -293,13 +299,20 @@ final class TuitionFeesTableModel extends BaseTableModel
         $appliedDiscount = round(($baseAmount * $storedDiscountAmount) / 100, 2);
         $totalAmount = max(0, round($baseAmount - $appliedDiscount, 2));
 
+        $monthlyMonthsValue = $paymentPlan === 'monthly' ? max(1, $monthlyMonths) : null;
+        $monthlyStartValue = $paymentPlan === 'monthly' ? $monthlyStartMonth : null;
+        $monthlyEndValue = $paymentPlan === 'monthly' ? $monthlyEndMonth : null;
+        $monthlyPaymentDayValue = $paymentPlan === 'monthly' ? max(1, $monthlyPaymentDay) : null;
+
         $this->executeStatement(
             'INSERT INTO tuition_fees (
                 student_id, class_id, package_id, base_amount, discount_type, discount_amount,
-                total_amount, amount_paid, payment_plan, status
+                total_amount, amount_paid, payment_plan, status,
+                monthly_months, monthly_start_month, monthly_end_month, monthly_payment_day
             ) VALUES (
                 :student_id, :class_id, :package_id, :base_amount, :discount_type, :discount_amount,
-                :total_amount, :amount_paid, :payment_plan, :status
+                :total_amount, :amount_paid, :payment_plan, :status,
+                :monthly_months, :monthly_start_month, :monthly_end_month, :monthly_payment_day
             )',
             [
                 'student_id' => $studentId,
@@ -312,6 +325,10 @@ final class TuitionFeesTableModel extends BaseTableModel
                 'amount_paid' => 0,
                 'payment_plan' => $paymentPlan,
                 'status' => 'debt',
+                'monthly_months' => $monthlyMonthsValue,
+                'monthly_start_month' => $monthlyStartValue,
+                'monthly_end_month' => $monthlyEndValue,
+                'monthly_payment_day' => $monthlyPaymentDayValue,
             ]
         );
 

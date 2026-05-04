@@ -16,6 +16,7 @@ $registrationRows = $academicModel->listRegistrationEnrollmentRows(400);
 
 $success = get_flash('success');
 $error = get_flash('error');
+$successTuitionId = (int) (get_flash('registration_success_tuition_id') ?? 0);
 
 $formState = [
     'student_id' => 0,
@@ -23,6 +24,10 @@ $formState = [
     'class_id' => 0,
     'package_id' => 0,
     'payment_plan' => 'full',
+    'monthly_months' => '',
+    'monthly_start_month' => '',
+    'monthly_end_month' => '',
+    'monthly_payment_day' => '',
 ];
 
 $oldFormPayloadRaw = get_flash('registration_form_old');
@@ -38,6 +43,11 @@ if (is_string($oldFormPayloadRaw) && $oldFormPayloadRaw !== '') {
         $formState['payment_plan'] = in_array($paymentPlan, ['full', 'monthly'], true)
             ? $paymentPlan
             : 'full';
+
+        $formState['monthly_months'] = (string) ($decoded['monthly_months'] ?? '');
+        $formState['monthly_start_month'] = (string) ($decoded['monthly_start_month'] ?? '');
+        $formState['monthly_end_month'] = (string) ($decoded['monthly_end_month'] ?? '');
+        $formState['monthly_payment_day'] = (string) ($decoded['monthly_payment_day'] ?? '');
     }
 }
 
@@ -78,7 +88,14 @@ $adminTitle = 'Đăng ký khóa học';
 ?>
 <div class="grid gap-4">
     <?php if ($success): ?>
-        <div class="rounded-xl border-l-4 border-emerald-500 bg-emerald-50 p-3 text-sm text-emerald-700"><?= e($success); ?></div>
+        <div class="rounded-xl border-l-4 border-emerald-500 bg-emerald-50 p-3 text-sm text-emerald-700">
+            <div><?= e($success); ?></div>
+            <?php if ($successTuitionId > 0): ?>
+                <div class="mt-2">
+                    <a class="font-semibold text-emerald-700 underline" href="<?= e(page_url('tuition-finance', ['search' => (string) $successTuitionId, 'highlight_tuition_id' => $successTuitionId])); ?>">Xem học phí vừa tạo</a>
+                </div>
+            <?php endif; ?>
+        </div>
     <?php endif; ?>
 
     <?php if ($error): ?>
@@ -146,6 +163,58 @@ $adminTitle = 'Đăng ký khóa học';
                     </select>
                 </label>
 
+                <div
+                    id="registration-monthly-fields"
+                    class="grid gap-3 lg:col-span-2 lg:grid-cols-4"
+                    style="<?= $formState['payment_plan'] === 'monthly' ? '' : 'display:none;'; ?>"
+                >
+                    <label>
+                        Số tháng đóng
+                        <input
+                            type="number"
+                            min="1"
+                            step="1"
+                            name="monthly_months"
+                            id="registration-monthly-months"
+                            value="<?= e((string) $formState['monthly_months']); ?>"
+                            placeholder="VD: 6"
+                        >
+                    </label>
+                    <label>
+                        Từ tháng
+                        <input
+                            type="month"
+                            name="monthly_start_month"
+                            id="registration-monthly-start"
+                            value="<?= e((string) $formState['monthly_start_month']); ?>"
+                        >
+                    </label>
+                    <label>
+                        Đến tháng
+                        <input
+                            type="month"
+                            name="monthly_end_month"
+                            id="registration-monthly-end"
+                            value="<?= e((string) $formState['monthly_end_month']); ?>"
+                            readonly
+                        >
+                    </label>
+                    <label>
+                        Ngày đóng hàng tháng
+                        <input
+                            type="number"
+                            min="1"
+                            max="31"
+                            step="1"
+                            name="monthly_payment_day"
+                            id="registration-monthly-day"
+                            value="<?= e((string) $formState['monthly_payment_day']); ?>"
+                            placeholder="VD: 15"
+                        >
+                    </label>
+                    <p class="lg:col-span-4 text-xs text-slate-500">Trường hợp tháng không đủ ngày, hệ thống sẽ ghi nhận vào ngày cuối tháng.</p>
+                </div>
+
                 <label>
                     Ưu đãi giảm giá
                     <select id="registration-package" name="package_id">
@@ -158,14 +227,9 @@ $adminTitle = 'Đăng ký khóa học';
                             }
 
                             $promoCourseId = (int) ($promo['course_id'] ?? 0);
-                            $promoType = strtoupper(trim((string) ($promo['promo_type'] ?? '')));
-                            $promoTypeLabel = (string) ($promoTypeLabels[$promoType] ?? $promoType);
                             $discountPercent = max(0, min(100, (float) ($promo['discount_value'] ?? 0)));
                             $discountPercentText = rtrim(rtrim(number_format($discountPercent, 2, '.', ''), '0'), '.');
                             $promoName = trim((string) ($promo['name'] ?? ('Ưu đãi #' . $promoId)));
-                            $scopeLabel = $promoCourseId > 0
-                                ? ('Khóa: ' . (string) ($courseNameById[$promoCourseId] ?? ('#' . $promoCourseId)))
-                                : 'Toàn trung tâm';
                             ?>
                             <option
                                 value="<?= $promoId; ?>"
@@ -173,7 +237,7 @@ $adminTitle = 'Đăng ký khóa học';
                                 data-discount-value="<?= e((string) $discountPercent); ?>"
                                 <?= $formState['package_id'] === $promoId ? 'selected' : ''; ?>
                             >
-                                <?= e($promoName . ' - ' . $discountPercentText . '% | ' . $promoTypeLabel . ' | ' . $scopeLabel); ?>
+                                <?= e($promoName . ' - ' . $discountPercentText . '%'); ?>
                             </option>
                         <?php endforeach; ?>
                     </select>
@@ -231,13 +295,82 @@ $adminTitle = 'Đăng ký khóa học';
         const previewDiscountAmount = document.getElementById('preview-discount-amount');
         const previewTotalAmount = document.getElementById('preview-total-amount');
         const previewInvoiceStatus = document.getElementById('preview-invoice-status');
+        const paymentPlanSelect = document.getElementById('registration-payment-plan');
+        const monthlyFields = document.getElementById('registration-monthly-fields');
+        const monthlyMonthsInput = document.getElementById('registration-monthly-months');
+        const monthlyStartInput = document.getElementById('registration-monthly-start');
+        const monthlyEndInput = document.getElementById('registration-monthly-end');
+        const monthlyDayInput = document.getElementById('registration-monthly-day');
         const courseMap = <?= json_encode($courseMapForJs, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
 
         const allClassOptions = classSelect ? Array.from(classSelect.options).map(function(o) { return o.cloneNode(true); }) : [];
         const allPackageOptions = packageSelect ? Array.from(packageSelect.options).map(function(o) { return o.cloneNode(true); }) : [];
 
-        if (!courseSelect || !classSelect || !packageSelect) {
+        if (!courseSelect || !classSelect || !packageSelect || !paymentPlanSelect) {
             return;
+        }
+
+        function parseMonth(value) {
+            if (!value || !/^[0-9]{4}-[0-9]{2}$/.test(value)) {
+                return null;
+            }
+            const parts = value.split('-').map(Number);
+            if (parts.length !== 2) {
+                return null;
+            }
+            const year = parts[0];
+            const month = parts[1];
+            if (!Number.isFinite(year) || !Number.isFinite(month) || month < 1 || month > 12) {
+                return null;
+            }
+            return { year, month };
+        }
+
+        function formatMonth(year, month) {
+            return `${year}-${String(month).padStart(2, '0')}`;
+        }
+
+        function addMonths(year, month, delta) {
+            const total = year * 12 + (month - 1) + delta;
+            const nextYear = Math.floor(total / 12);
+            const nextMonth = (total % 12) + 1;
+            return { year: nextYear, month: nextMonth };
+        }
+
+        function updateMonthlyEndMonth() {
+            if (!monthlyEndInput || !monthlyStartInput || !monthlyMonthsInput) {
+                return;
+            }
+
+            const start = parseMonth(monthlyStartInput.value);
+            const monthsCount = Number(monthlyMonthsInput.value || 0);
+            if (!start || monthsCount <= 0) {
+                monthlyEndInput.value = '';
+                return;
+            }
+
+            const end = addMonths(start.year, start.month, monthsCount - 1);
+            monthlyEndInput.value = formatMonth(end.year, end.month);
+        }
+
+        function syncMonthlyFields() {
+            if (!monthlyFields || !monthlyMonthsInput || !monthlyStartInput || !monthlyEndInput || !monthlyDayInput) {
+                return;
+            }
+
+            const isMonthly = paymentPlanSelect.value === 'monthly';
+            monthlyFields.style.display = isMonthly ? '' : 'none';
+            monthlyMonthsInput.required = isMonthly;
+            monthlyStartInput.required = isMonthly;
+            monthlyEndInput.required = isMonthly;
+            monthlyDayInput.required = isMonthly;
+
+            if (!isMonthly) {
+                monthlyMonthsInput.value = '';
+                monthlyStartInput.value = '';
+                monthlyEndInput.value = '';
+                monthlyDayInput.value = '';
+            }
         }
 
         function toMoney(value) {
@@ -425,9 +558,22 @@ $adminTitle = 'Đăng ký khóa học';
             updatePreview();
         });
 
+        if (monthlyMonthsInput) {
+            monthlyMonthsInput.addEventListener('input', updateMonthlyEndMonth);
+        }
+        if (monthlyStartInput) {
+            monthlyStartInput.addEventListener('input', updateMonthlyEndMonth);
+        }
+        paymentPlanSelect.addEventListener('change', function () {
+            syncMonthlyFields();
+            updateMonthlyEndMonth();
+        });
+
         syncClassOptions();
         syncPackageOptions();
         updatePreview();
+        syncMonthlyFields();
+        updateMonthlyEndMonth();
     })();
 </script>
 <?php endif; ?>

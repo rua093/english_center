@@ -22,11 +22,59 @@ if ($paymentsPage > $paymentsTotalPages) {
 }
 $transactions = $academicModel->listPaymentTransactionsPage($paymentsPage, $paymentsPerPage, $searchQuery, $paymentFilters);
 $paymentsPerPageOptions = ui_pagination_per_page_options();
-$tuitionOptions = $academicModel->listTuitionFeesPage(1, 200);
-
 $editingPayment = null;
 if (!empty($_GET['edit'])) {
     $editingPayment = $academicModel->findPaymentTransaction((int) $_GET['edit']);
+}
+
+$tuitionOptions = $academicModel->listTuitionFeesPage(1, 200);
+$selectedTuitionFee = null;
+$selectedTuitionId = (int) ($_GET['tuition_id'] ?? 0);
+
+$prefillTuitionId = $editingPayment ? (int) ($editingPayment['tuition_fee_id'] ?? 0) : $selectedTuitionId;
+if ($prefillTuitionId > 0) {
+    foreach ($tuitionOptions as $fee) {
+        if ((int) ($fee['id'] ?? 0) === $prefillTuitionId) {
+            $selectedTuitionFee = $fee;
+            break;
+        }
+    }
+
+    if (!$selectedTuitionFee) {
+        $selectedTuitionFee = $academicModel->findTuitionFee($prefillTuitionId);
+    }
+
+    if ($selectedTuitionFee) {
+        $filteredTuitionOptions = [];
+        foreach ($tuitionOptions as $fee) {
+            if ((int) ($fee['id'] ?? 0) !== $prefillTuitionId) {
+                $filteredTuitionOptions[] = $fee;
+            }
+        }
+
+        array_unshift($filteredTuitionOptions, $selectedTuitionFee);
+        $tuitionOptions = $filteredTuitionOptions;
+    }
+}
+
+$tuitionMeta = [];
+foreach ($tuitionOptions as $fee) {
+    $feeId = (int) ($fee['id'] ?? 0);
+    if ($feeId <= 0) {
+        continue;
+    }
+
+    $totalAmount = (float) ($fee['total_amount'] ?? 0);
+    $amountPaid = (float) ($fee['amount_paid'] ?? 0);
+    $tuitionMeta[$feeId] = [
+        'total_amount' => $totalAmount,
+        'amount_paid' => $amountPaid,
+        'remaining' => max(0, $totalAmount - $amountPaid),
+    ];
+}
+$prefillAmount = 0.0;
+if (!$editingPayment && $prefillTuitionId > 0 && isset($tuitionMeta[$prefillTuitionId])) {
+    $prefillAmount = (float) ($tuitionMeta[$prefillTuitionId]['remaining'] ?? 0);
 }
 
 $paymentMethodOptions = [
@@ -61,7 +109,7 @@ $error = get_flash('error');
     <?php endif; ?>
 
     <?php if ($canCreatePayment || ($canUpdatePayment && $editingPayment)): ?>
-        <article class="order-2 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <article id="payment-create-section" class="order-2 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <h3><?= $editingPayment ? 'Sửa giao dịch thanh toán' : 'Tạo giao dịch thanh toán'; ?></h3>
             <form class="grid gap-3 md:grid-cols-2" method="post" action="/api/payments/save">
                 <?= csrf_input(); ?>
@@ -71,12 +119,40 @@ $error = get_flash('error');
                     <select id="payment-tuition-select" name="tuition_fee_id" required>
                         <option value="">-- Chọn hóa đơn --</option>
                         <?php foreach ($tuitionOptions as $fee): ?>
-                            <option value="<?= (int) $fee['id']; ?>" <?= (int) ($editingPayment['tuition_fee_id'] ?? 0) === (int) $fee['id'] ? 'selected' : ''; ?>>
+                            <?php
+                            $feeId = (int) ($fee['id'] ?? 0);
+                            $selected = $prefillTuitionId > 0 && $prefillTuitionId === $feeId;
+                            $meta = $tuitionMeta[$feeId] ?? ['total_amount' => 0, 'amount_paid' => 0, 'remaining' => 0];
+                            ?>
+                            <option
+                                value="<?= $feeId; ?>"
+                                data-total-amount="<?= e(number_format((float) ($meta['total_amount'] ?? 0), 2, '.', '')); ?>"
+                                data-amount-paid="<?= e(number_format((float) ($meta['amount_paid'] ?? 0), 2, '.', '')); ?>"
+                                data-remaining-amount="<?= e(number_format((float) ($meta['remaining'] ?? 0), 2, '.', '')); ?>"
+                                <?= $selected ? 'selected' : ''; ?>
+                            >
                                 #<?= (int) $fee['id']; ?> - <?= e(student_dropdown_label($fee)); ?> - <?= e((string) $fee['course_name']); ?>
                             </option>
                         <?php endforeach; ?>
                     </select>
                 </label>
+                <div class="md:col-span-2 rounded-xl border border-slate-200 bg-slate-50 p-4" id="payment-invoice-preview">
+                    <h4 class="text-xs font-extrabold uppercase tracking-wide text-slate-600">Thông tin học phí</h4>
+                    <div class="mt-3 grid gap-2 sm:grid-cols-3">
+                        <div class="rounded-lg border border-slate-200 bg-white p-3">
+                            <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Tổng cần thu</p>
+                            <p id="payment-total-amount" class="mt-1 text-base font-extrabold text-slate-800">0 đ</p>
+                        </div>
+                        <div class="rounded-lg border border-slate-200 bg-white p-3">
+                            <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Đã thu</p>
+                            <p id="payment-amount-paid" class="mt-1 text-base font-extrabold text-emerald-700">0 đ</p>
+                        </div>
+                        <div class="rounded-lg border border-slate-200 bg-white p-3">
+                            <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Còn nợ</p>
+                            <p id="payment-amount-remaining" class="mt-1 text-base font-extrabold text-rose-700">0 đ</p>
+                        </div>
+                    </div>
+                </div>
                 <label>
                     Phương thức
                     <select name="payment_method" required>
@@ -87,7 +163,16 @@ $error = get_flash('error');
                 </label>
                 <label>
                     Số tiền
-                    <input type="number" step="1000" min="0" name="amount" required value="<?= e((string) ($editingPayment['amount'] ?? '')); ?>">
+                    <input
+                        type="number"
+                        step="1000"
+                        min="0"
+                        name="amount"
+                        id="payment-amount-input"
+                        data-autofill="<?= $editingPayment ? '0' : '1'; ?>"
+                        required
+                        value="<?= e((string) ($editingPayment['amount'] ?? ($prefillAmount > 0 ? (string) $prefillAmount : ''))); ?>"
+                    >
                 </label>
                 <label>
                     Trạng thái
@@ -282,5 +367,105 @@ $error = get_flash('error');
         </div>
     </article>
 </div>
+
+<script>
+    (function () {
+        function initPaymentAutoFill() {
+            const tuitionSelect = document.getElementById('payment-tuition-select');
+            const totalAmountEl = document.getElementById('payment-total-amount');
+            const amountPaidEl = document.getElementById('payment-amount-paid');
+            const remainingEl = document.getElementById('payment-amount-remaining');
+            const amountInput = document.getElementById('payment-amount-input');
+            const section = document.getElementById('payment-create-section');
+
+            if (!tuitionSelect || !totalAmountEl) return;
+
+            function formatMoney(value) {
+                const amount = Number.isFinite(value) ? value : 0;
+                return new Intl.NumberFormat('vi-VN').format(Math.max(0, Math.round(amount))) + ' đ';
+            }
+
+            function updateInvoicePreview() {
+                const selectedValue = tuitionSelect.value;
+                let selectedOption = null;
+                if (selectedValue !== '') {
+                    for (const option of tuitionSelect.options) {
+                        if (option.value === selectedValue) {
+                            selectedOption = option;
+                            break;
+                        }
+                    }
+                }
+                if (!selectedOption || !selectedOption.value) {
+                    totalAmountEl.textContent = '0 đ';
+                    amountPaidEl.textContent = '0 đ';
+                    remainingEl.textContent = '0 đ';
+                    return;
+                }
+
+                const totalAmount = Number(selectedOption.dataset.totalAmount || 0);
+                const amountPaid = Number(selectedOption.dataset.amountPaid || 0);
+                const remainingAmount = Number(selectedOption.dataset.remainingAmount || 0);
+
+                totalAmountEl.textContent = formatMoney(totalAmount);
+                amountPaidEl.textContent = formatMoney(amountPaid);
+                remainingEl.textContent = formatMoney(remainingAmount);
+
+                if (amountInput && amountInput.dataset.autofill === '1') {
+                    amountInput.value = remainingAmount > 0 ? Math.round(remainingAmount).toString() : '';
+                }
+            }
+
+            tuitionSelect.addEventListener('change', function () {
+                if (amountInput) amountInput.dataset.autofill = '1';
+                updateInvoicePreview();
+            });
+
+            const initialValue = tuitionSelect.value;
+if (initialValue) {
+    let checkCount = 0;
+    const checkTomSelect = setInterval(function() {
+        // Chống lỗi: Nếu framework AJAX đập HTML cũ đi xây lại, ngưng vòng lặp hiện tại
+        if (!document.body.contains(tuitionSelect)) {
+            clearInterval(checkTomSelect);
+            return;
+        }
+
+        checkCount++;
+        if (tuitionSelect.tomselect) {
+            clearInterval(checkTomSelect);
+            tuitionSelect.tomselect.setValue(initialValue, true);
+            tuitionSelect.value = initialValue; 
+            updateInvoicePreview();
+            
+            // Đợi DOM và các request AJAX ban đầu ổn định rồi mới cuộn mượt
+            setTimeout(() => {
+                const currentSection = document.getElementById('payment-create-section');
+                if (currentSection) currentSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 150);
+        } 
+        else if (checkCount > 20) {
+            clearInterval(checkTomSelect);
+            tuitionSelect.value = initialValue;
+            updateInvoicePreview();
+            
+            setTimeout(() => {
+                const currentSection = document.getElementById('payment-create-section');
+                if (currentSection) currentSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 150);
+        }
+    }, 100);
+}
+        }
+
+        // Logic thay thế DOMContentLoaded:
+        // Nếu trang đang tải thì đợi, nếu tải xong rồi thì chạy luôn.
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initPaymentAutoFill);
+        } else {
+            setTimeout(initPaymentAutoFill, 50); // Cho HTML thời gian render nếu gọi qua AJAX
+        }
+    })();
+</script>
 
 

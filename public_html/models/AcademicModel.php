@@ -721,6 +721,10 @@ final class AcademicModel
         $discountType = (string) ($data['discount_type'] ?? 'none');
         $discountAmount = max(0, (float) ($data['discount_amount'] ?? 0));
         $paymentPlan = (string) ($data['payment_plan'] ?? 'full');
+        $monthlyMonths = (int) ($data['monthly_months'] ?? 0);
+        $monthlyStartMonth = $data['monthly_start_month'] ?? null;
+        $monthlyEndMonth = $data['monthly_end_month'] ?? null;
+        $monthlyPaymentDay = (int) ($data['monthly_payment_day'] ?? 0);
         $enrollmentDate = trim((string) ($data['enrollment_date'] ?? ''));
 
         if ($studentId <= 0 || $classId <= 0) {
@@ -742,6 +746,10 @@ final class AcademicModel
             $discountType,
             $discountAmount,
             $paymentPlan,
+            $monthlyMonths,
+            $monthlyStartMonth,
+            $monthlyEndMonth,
+            $monthlyPaymentDay,
             $enrollmentDate,
             &$alreadyEnrolled,
             &$tuitionId
@@ -760,6 +768,13 @@ final class AcademicModel
                 throw new RuntimeException('Không thể thêm học viên vào lớp đã chọn. Vui lòng thử lại.');
             }
 
+            if ($packageId > 0) {
+                $reserved = $this->coursePackagesTable->reserveUsage($packageId);
+                if (!$reserved) {
+                    throw new RuntimeException('Ưu đãi đã hết lượt hoặc không còn khả dụng.');
+                }
+            }
+
             $tuitionId = $this->tuitionFeesTable->createDebtForRegistration([
                 'student_id' => $studentId,
                 'class_id' => $classId,
@@ -768,6 +783,10 @@ final class AcademicModel
                 'discount_type' => $discountType,
                 'discount_amount' => $discountAmount,
                 'payment_plan' => $paymentPlan,
+                'monthly_months' => $monthlyMonths,
+                'monthly_start_month' => $monthlyStartMonth,
+                'monthly_end_month' => $monthlyEndMonth,
+                'monthly_payment_day' => $monthlyPaymentDay,
             ]);
         });
 

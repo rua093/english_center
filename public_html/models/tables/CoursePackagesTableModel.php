@@ -24,6 +24,7 @@ final class CoursePackagesTableModel extends BaseTableModel
         $courseVisibilityWhere = $this->hasColumn('course_id')
             ? ' AND (cp.course_id IS NULL OR cp.course_id = 0 OR c.id IS NOT NULL)'
             : '';
+        $quantityWhere = $this->buildQuantityWhereSql('cp');
 
         if ($this->usesPromotionSchema()) {
             return $this->fetchAll(
@@ -32,6 +33,7 @@ final class CoursePackagesTableModel extends BaseTableModel
                  {$joinCourses}
                  WHERE {$this->activeWhereSql('cp')}
                    {$courseVisibilityWhere}
+                                     {$quantityWhere}
                    AND (cp.start_date IS NULL OR cp.start_date <= :effective_start)
                    AND (cp.end_date IS NULL OR cp.end_date >= :effective_end)
                  ORDER BY (course_id = 0) DESC, course_id ASC, promo_type ASC, discount_value DESC, name ASC",
@@ -48,6 +50,7 @@ final class CoursePackagesTableModel extends BaseTableModel
              {$joinCourses}
              WHERE {$this->activeWhereSql('cp')}
                {$courseVisibilityWhere}
+                             {$quantityWhere}
              ORDER BY (course_id = 0) DESC, course_id ASC, discount_value DESC, name ASC"
         );
     }
@@ -195,6 +198,16 @@ final class CoursePackagesTableModel extends BaseTableModel
         $discountValue = max(0, min(100, (float) ($data['discount_value'] ?? 0)));
         $startDate = $this->normalizeDateOrNull((string) ($data['start_date'] ?? ''));
         $endDate = $this->normalizeDateOrNull((string) ($data['end_date'] ?? ''));
+        $quantityLimit = $data['quantity_limit'] ?? null;
+        $quantityRemaining = $data['quantity_remaining'] ?? null;
+
+        if ($quantityLimit !== null) {
+            $quantityLimit = max(0, (int) $quantityLimit);
+        }
+
+        if ($quantityRemaining !== null) {
+            $quantityRemaining = max(0, (int) $quantityRemaining);
+        }
 
         $values = [];
 
@@ -224,6 +237,14 @@ final class CoursePackagesTableModel extends BaseTableModel
 
         if ($this->hasColumn('end_date')) {
             $values['end_date'] = $endDate;
+        }
+
+        if ($this->hasColumn('quantity_limit')) {
+            $values['quantity_limit'] = $quantityLimit;
+        }
+
+        if ($this->hasColumn('quantity_remaining')) {
+            $values['quantity_remaining'] = $quantityRemaining;
         }
 
         if ($this->hasColumn('number_of_weeks')) {
@@ -278,13 +299,71 @@ final class CoursePackagesTableModel extends BaseTableModel
             ? "{$alias}.end_date"
             : 'NULL';
 
+        $quantityLimitExpr = $this->hasColumn('quantity_limit')
+            ? "{$alias}.quantity_limit"
+            : 'NULL';
+
+        $quantityRemainingExpr = $this->hasColumn('quantity_remaining')
+            ? "{$alias}.quantity_remaining"
+            : 'NULL';
+
         return "{$alias}.id AS id,
                 {$courseIdExpr} AS course_id,
                 {$nameExpr} AS name,
                 {$promoTypeExpr} AS promo_type,
                 {$discountExpr} AS discount_value,
                 {$startDateExpr} AS start_date,
-                {$endDateExpr} AS end_date";
+                {$endDateExpr} AS end_date,
+                {$quantityLimitExpr} AS quantity_limit,
+                {$quantityRemainingExpr} AS quantity_remaining";
+    }
+
+    public function reserveUsage(int $promotionId): bool
+    {
+        if ($promotionId <= 0) {
+            return false;
+        }
+
+        if (!$this->hasColumn('quantity_limit') || !$this->hasColumn('quantity_remaining')) {
+            return true;
+        }
+
+        $table = $this->tableName();
+        $row = $this->fetchOne(
+            'SELECT quantity_limit, quantity_remaining FROM ' . $table . ' cp WHERE cp.id = :id AND ' . $this->activeWhereSql('cp') . ' LIMIT 1',
+            ['id' => $promotionId]
+        );
+
+        if (!$row) {
+            return false;
+        }
+
+        if ($row['quantity_limit'] === null) {
+            return true;
+        }
+
+        $remaining = (int) ($row['quantity_remaining'] ?? 0);
+        if ($remaining <= 0) {
+            return false;
+        }
+
+        $affected = $this->executeStatement(
+            'UPDATE ' . $table . ' cp
+             SET quantity_remaining = quantity_remaining - 1
+             WHERE cp.id = :id AND cp.quantity_remaining > 0 AND ' . $this->activeWhereSql('cp'),
+            ['id' => $promotionId]
+        );
+
+        return $affected > 0;
+    }
+
+    private function buildQuantityWhereSql(string $alias): string
+    {
+        if (!$this->hasColumn('quantity_limit') || !$this->hasColumn('quantity_remaining')) {
+            return '';
+        }
+
+        return " AND ({$alias}.quantity_limit IS NULL OR {$alias}.quantity_remaining > 0)";
     }
 
     private function normalizeDateOrNull(string $raw): ?string

@@ -147,12 +147,20 @@ function api_tuitions_register_course_action(): void
 	$classId = input_int($_POST, 'class_id');
 	$packageId = input_int($_POST, 'package_id');
 	$paymentPlan = input_string($_POST, 'payment_plan', 'full');
+	$monthlyMonths = input_int($_POST, 'monthly_months');
+	$monthlyStartMonth = input_string($_POST, 'monthly_start_month');
+	$monthlyEndMonth = input_string($_POST, 'monthly_end_month');
+	$monthlyPaymentDay = input_int($_POST, 'monthly_payment_day');
 	$registrationFormPayload = [
 		'student_id' => $studentId,
 		'course_id' => $courseId,
 		'class_id' => $classId,
 		'package_id' => $packageId,
 		'payment_plan' => $paymentPlan,
+		'monthly_months' => $monthlyMonths,
+		'monthly_start_month' => $monthlyStartMonth,
+		'monthly_end_month' => $monthlyEndMonth,
+		'monthly_payment_day' => $monthlyPaymentDay,
 	];
 
 	$redirectWithError = static function (string $message, array $payload): void {
@@ -169,6 +177,52 @@ function api_tuitions_register_course_action(): void
 
 	if (!in_array($paymentPlan, ['full', 'monthly'], true)) {
 		$paymentPlan = 'full';
+	}
+
+	$normalizedMonthlyStart = null;
+	$normalizedMonthlyEnd = null;
+	$normalizedMonthlyMonths = null;
+	$normalizedMonthlyPaymentDay = null;
+
+	if ($paymentPlan === 'monthly') {
+		if ($monthlyMonths <= 0) {
+			$redirectWithError('Vui lòng nhập số tháng đóng học phí hợp lệ.', $registrationFormPayload);
+		}
+
+		if (!preg_match('/^\d{4}-\d{2}$/', $monthlyStartMonth)) {
+			$redirectWithError('Vui lòng chọn tháng bắt đầu hợp lệ (YYYY-MM).', $registrationFormPayload);
+		}
+
+		[$startYear, $startMonth] = array_map('intval', explode('-', $monthlyStartMonth));
+		if ($startMonth < 1 || $startMonth > 12) {
+			$redirectWithError('Tháng bắt đầu không hợp lệ.', $registrationFormPayload);
+		}
+
+		$startDate = DateTime::createFromFormat('Y-m-d', sprintf('%04d-%02d-01', $startYear, $startMonth));
+		if (!$startDate) {
+			$redirectWithError('Tháng bắt đầu không hợp lệ.', $registrationFormPayload);
+		}
+
+		$endDate = (clone $startDate)->modify('+' . ($monthlyMonths - 1) . ' months');
+		$normalizedMonthlyStart = $startDate->format('Y-m-01');
+		$normalizedMonthlyEnd = $endDate->format('Y-m-01');
+		$normalizedMonthlyMonths = $monthlyMonths;
+
+		if ($monthlyEndMonth !== '' && preg_match('/^\d{4}-\d{2}$/', $monthlyEndMonth)) {
+			$expectedEnd = $endDate->format('Y-m');
+			if ($monthlyEndMonth !== $expectedEnd) {
+				$redirectWithError('Tháng kết thúc không khớp với số tháng đăng ký.', $registrationFormPayload);
+			}
+		}
+
+		if ($monthlyPaymentDay < 1 || $monthlyPaymentDay > 31) {
+			$redirectWithError('Vui lòng nhập ngày đóng hàng tháng trong khoảng 1-31.', $registrationFormPayload);
+		}
+		$normalizedMonthlyPaymentDay = $monthlyPaymentDay;
+		$registrationFormPayload['monthly_months'] = $normalizedMonthlyMonths;
+		$registrationFormPayload['monthly_start_month'] = $startDate->format('Y-m');
+		$registrationFormPayload['monthly_end_month'] = $endDate->format('Y-m');
+		$registrationFormPayload['monthly_payment_day'] = $normalizedMonthlyPaymentDay;
 	}
 
 	$student = $academicModel->findActiveUser($studentId);
@@ -207,6 +261,13 @@ function api_tuitions_register_course_action(): void
 		$selectedPackage = $academicModel->findCoursePackage($packageId);
 		if (!$selectedPackage) {
 			$redirectWithError('Ưu đãi đã chọn không tồn tại hoặc đã bị xóa.', $registrationFormPayload);
+		}
+
+		if (array_key_exists('quantity_limit', $selectedPackage) && $selectedPackage['quantity_limit'] !== null) {
+			$remaining = (int) ($selectedPackage['quantity_remaining'] ?? 0);
+			if ($remaining <= 0) {
+				$redirectWithError('Ưu đãi đã hết lượt sử dụng. Vui lòng chọn ưu đãi khác.', $registrationFormPayload);
+			}
 		}
 
 		$packageCourseId = (int) ($selectedPackage['course_id'] ?? 0);
@@ -249,6 +310,10 @@ function api_tuitions_register_course_action(): void
 			'discount_type' => $discountType,
 			'discount_amount' => $discountPercent,
 			'payment_plan' => $paymentPlan,
+			'monthly_months' => $normalizedMonthlyMonths,
+			'monthly_start_month' => $normalizedMonthlyStart,
+			'monthly_end_month' => $normalizedMonthlyEnd,
+			'monthly_payment_day' => $normalizedMonthlyPaymentDay,
 			'enrollment_date' => date('Y-m-d'),
 		]);
 	} catch (RuntimeException $exception) {
@@ -263,6 +328,7 @@ function api_tuitions_register_course_action(): void
 
 	if ($tuitionId > 0) {
 		$successMessage .= ' Mã học phí #' . $tuitionId . ' | Tổng cần thu: ' . format_money($totalAmount) . '.';
+		set_flash('registration_success_tuition_id', (string) $tuitionId);
 	}
 
 	if ($packageId > 0) {

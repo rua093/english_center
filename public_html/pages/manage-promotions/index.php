@@ -51,6 +51,8 @@ if (!isset($promoTypeOptions[$selectedPromoType])) {
 $selectedDiscountValue = (float) ($editingPromotion['discount_value'] ?? 0);
 $selectedStartDate = trim((string) ($editingPromotion['start_date'] ?? ''));
 $selectedEndDate = trim((string) ($editingPromotion['end_date'] ?? ''));
+$selectedQuantityLimit = $editingPromotion['quantity_limit'] ?? null;
+$selectedQuantityRemaining = $editingPromotion['quantity_remaining'] ?? null;
 
 $today = date('Y-m-d');
 ?>
@@ -125,6 +127,26 @@ $today = date('Y-m-d');
                     <input type="date" name="end_date" value="<?= e($selectedEndDate); ?>">
                 </label>
 
+                <label>
+                    Số lượng áp dụng
+                    <input
+                        type="number"
+                        min="1"
+                        step="1"
+                        name="quantity_limit"
+                        value="<?= $selectedQuantityLimit !== null ? e((string) (int) $selectedQuantityLimit) : ''; ?>"
+                        placeholder="Để trống nếu không giới hạn"
+                    >
+                    <small class="mt-1 block text-xs text-slate-500">Nếu không nhập, ưu đãi sẽ không giới hạn số lượt.</small>
+                </label>
+
+                <?php if ($editingPromotion && $selectedQuantityLimit !== null): ?>
+                    <label>
+                        Còn lại
+                        <input type="text" value="<?= e((string) max(0, (int) $selectedQuantityRemaining)); ?>" readonly>
+                    </label>
+                <?php endif; ?>
+
                 <div class="md:col-span-2 inline-flex flex-wrap items-center gap-2">
                     <button class="<?= ui_btn_primary_classes(); ?>" type="submit"><?= $editingPromotion ? 'Cập nhật ưu đãi' : 'Tạo ưu đãi'; ?></button>
                     <?php if ($editingPromotion): ?>
@@ -182,6 +204,7 @@ $today = date('Y-m-d');
                         <th>Loại</th>
                         <th>Giảm (%)</th>
                         <th>Hiệu lực</th>
+                        <th>Số lượng</th>
                         <th>Trạng thái</th>
                         <th>Hành động</th>
                     </tr>
@@ -189,7 +212,7 @@ $today = date('Y-m-d');
                 <tbody data-ajax-tbody="1">
                     <?php if (empty($promotions)): ?>
                         <tr>
-                            <td colspan="7">
+                            <td colspan="8">
                                 <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">Chưa có ưu đãi nào.</div>
                             </td>
                         </tr>
@@ -211,6 +234,8 @@ $today = date('Y-m-d');
 
                             $startDate = trim((string) ($promotion['start_date'] ?? ''));
                             $endDate = trim((string) ($promotion['end_date'] ?? ''));
+                            $quantityLimit = $promotion['quantity_limit'] ?? null;
+                            $quantityRemaining = $promotion['quantity_remaining'] ?? null;
 
                             if ($startDate !== '' && $endDate !== '') {
                                 $effectiveText = $startDate . ' - ' . $endDate;
@@ -231,6 +256,15 @@ $today = date('Y-m-d');
                                 <td><?= e($promoTypeLabel); ?></td>
                                 <td><?= e($discountText); ?>%</td>
                                 <td><?= e($effectiveText); ?></td>
+                                <td>
+                                    <?php if ($quantityLimit === null): ?>
+                                        <span class="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-bold text-slate-600">Không giới hạn</span>
+                                    <?php else: ?>
+                                        <span class="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-700">
+                                            Còn <?= e((string) max(0, (int) $quantityRemaining)); ?>/<?= e((string) (int) $quantityLimit); ?>
+                                        </span>
+                                    <?php endif; ?>
+                                </td>
                                 <td>
                                     <?php if ($isActive): ?>
                                         <span class="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700">Đang hiệu lực</span>

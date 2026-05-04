@@ -59,6 +59,7 @@ function api_promotions_save_action(): void
     $discountValue = input_float($_POST, 'discount_value');
     $startDate = input_string($_POST, 'start_date');
     $endDate = input_string($_POST, 'end_date');
+    $quantityLimitRaw = trim((string) ($_POST['quantity_limit'] ?? ''));
     $academicModel = new AcademicModel();
 
     if ($name === '') {
@@ -97,6 +98,32 @@ function api_promotions_save_action(): void
         redirect(page_url('promotions-manage', $query));
     }
 
+    $quantityLimit = null;
+    if ($quantityLimitRaw !== '') {
+        $quantityLimit = max(0, (int) $quantityLimitRaw);
+        if ($quantityLimit <= 0) {
+            $quantityLimit = null;
+        }
+    }
+
+    $quantityRemaining = null;
+    if ($promotionId > 0) {
+        $existingPromotion = $academicModel->findPromotion($promotionId) ?? [];
+        $existingLimit = $existingPromotion['quantity_limit'] ?? null;
+        $existingRemaining = $existingPromotion['quantity_remaining'] ?? null;
+
+        if ($quantityLimit !== null) {
+            if ($existingLimit === null) {
+                $quantityRemaining = $quantityLimit;
+            } else {
+                $usedCount = max(0, (int) $existingLimit - (int) $existingRemaining);
+                $quantityRemaining = max(0, $quantityLimit - $usedCount);
+            }
+        }
+    } elseif ($quantityLimit !== null) {
+        $quantityRemaining = $quantityLimit;
+    }
+
     if (!$academicModel->usesPromotionSchema() && $courseId <= 0) {
         set_flash('error', 'Schema hiện tại chỉ hỗ trợ ưu đãi theo khóa học. Vui lòng chọn khóa học cụ thể.');
         $query = $promotionId > 0 ? ['edit' => $promotionId] : [];
@@ -112,6 +139,8 @@ function api_promotions_save_action(): void
             'discount_value' => $discountValue,
             'start_date' => $startDate,
             'end_date' => $endDate,
+            'quantity_limit' => $quantityLimit,
+            'quantity_remaining' => $quantityRemaining,
         ]);
     } catch (Throwable) {
         set_flash('error', 'Không thể lưu ưu đãi với schema dữ liệu hiện tại. Vui lòng kiểm tra phạm vi khóa học và thử lại.');
