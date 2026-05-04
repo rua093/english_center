@@ -3,14 +3,15 @@ require_admin_or_staff();
 require_any_permission(['finance.tuition.view']);
 
 $academicModel = new AcademicModel();
+$searchQuery = trim((string) ($_GET['search'] ?? ''));
 $tuitionPage = max(1, (int) ($_GET['tuition_page'] ?? 1));
 $tuitionPerPage = ui_pagination_resolve_per_page('tuition_per_page', 10);
-$tuitionTotal = $academicModel->countTuitionFees();
+$tuitionTotal = $academicModel->countTuitionFees($searchQuery);
 $tuitionTotalPages = max(1, (int) ceil($tuitionTotal / $tuitionPerPage));
 if ($tuitionPage > $tuitionTotalPages) {
     $tuitionPage = $tuitionTotalPages;
 }
-$tuitionFees = $academicModel->listTuitionFeesPage($tuitionPage, $tuitionPerPage);
+$tuitionFees = $academicModel->listTuitionFeesPage($tuitionPage, $tuitionPerPage, $searchQuery);
 $tuitionPerPageOptions = ui_pagination_per_page_options();
 $tuitionOptions = $academicModel->listTuitionFeesPage(1, 200);
 $registrationLookups = $academicModel->registrationLookups();
@@ -123,6 +124,73 @@ $error = get_flash('error');
         position: relative;
     }
 
+    .tuition-list-shell .admin-table-toolbar,
+    .tuition-list-shell .table-filter-bar {
+        display: none !important;
+    }
+
+    .tuition-search-toolbar {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+    }
+
+    .tuition-search-shell {
+        position: relative;
+        width: min(100%, 22rem);
+    }
+
+    .tuition-search-icon {
+        position: absolute;
+        top: 50%;
+        left: 0.95rem;
+        width: 1rem;
+        height: 1rem;
+        color: #94a3b8;
+        transform: translateY(-50%);
+        pointer-events: none;
+    }
+
+    #tuition-search-bespoke {
+        width: 100%;
+        height: 2.75rem;
+        padding: 0 1rem 0 2.75rem;
+        border: 1px solid #cbd5e1;
+        border-radius: 0.9rem;
+        background: #ffffff;
+        color: #0f172a;
+        font-size: 0.875rem;
+        font-weight: 500;
+        line-height: 1.25rem;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+        outline: none;
+        transition: border-color 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    #tuition-search-bespoke::placeholder {
+        color: #94a3b8;
+        font-weight: 500;
+    }
+
+    #tuition-search-bespoke:focus {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+    }
+
+    @media (max-width: 767px) {
+        .tuition-search-toolbar {
+            justify-content: stretch;
+            align-items: stretch;
+            flex-direction: column;
+        }
+
+        .tuition-search-shell {
+            width: 100%;
+        }
+    }
+
     .tuition-readonly-field > input[readonly],
     .tuition-readonly-field > select[disabled],
     .tuition-readonly-field > textarea[readonly] {
@@ -233,8 +301,32 @@ $error = get_flash('error');
 
     <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <h3>Danh sách học phí</h3>
+        <div class="admin-table-toolbar tuition-search-toolbar">
+            <label class="tuition-search-shell" for="tuition-search-bespoke" aria-label="Tìm kiếm học phí">
+                <span class="tuition-search-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="11" cy="11" r="7"></circle>
+                        <path d="m20 20-3.5-3.5"></path>
+                    </svg>
+                </span>
+                <input
+                    id="tuition-search-bespoke"
+                    type="search"
+                    value="<?= e($searchQuery); ?>"
+                    placeholder="Tìm học viên, mã HV, mã hóa đơn..."
+                    autocomplete="off"
+                >
+            </label>
+            <span
+                id="tuition-row-info"
+                data-visible="<?= (int) count($tuitionFees); ?>"
+                data-total="<?= (int) $tuitionTotal; ?>"
+                style="color: #64748b; font-size: 0.875rem; font-weight: 500; white-space: nowrap;"
+            >Hiển thị <?= (int) count($tuitionFees); ?> / <?= (int) $tuitionTotal; ?> dòng</span>
+        </div>
+        <div class="tuition-list-shell">
         <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
-            <table class="min-w-full border-collapse text-sm">
+            <table id="tuition-fees-table" class="min-w-full border-collapse text-sm">
                 <thead>
                     <tr>
                         <th>Mã HV</th>
@@ -249,7 +341,7 @@ $error = get_flash('error');
                         <th>Hành động</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="tuition-fees-tbody">
                     <?php if (empty($tuitionFees)): ?>
                         <tr>
                             <td colspan="10">
@@ -271,14 +363,43 @@ $error = get_flash('error');
                                 <td>
                                     <div class="inline-flex flex-wrap items-center gap-2">
                                         <?php if ($canUpdateTuition): ?>
-                                            <a class="text-sm font-semibold text-blue-700 hover:underline" href="<?= e(page_url('tuition-finance', ['edit' => (int) $fee['id'], 'tuition_page' => $tuitionPage, 'tuition_per_page' => $tuitionPerPage])); ?>">Sửa</a>
+                                            <a href="<?= e(page_url('tuition-finance', ['edit' => (int) $fee['id'], 'tuition_page' => $tuitionPage, 'tuition_per_page' => $tuitionPerPage, 'search' => $searchQuery])); ?>"
+                                               class="admin-action-icon-btn"
+                                               data-action-kind="edit"
+                                               data-skip-action-icon="1"
+                                               title="Sửa"
+                                               aria-label="Sửa">
+                                                <span class="admin-action-icon-label">Sửa</span>
+                                                <span class="admin-action-icon-glyph" aria-hidden="true">
+                                                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                                                        <path d="M12 20h9"></path>
+                                                        <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
+                                                    </svg>
+                                                </span>
+                                            </a>
                                         <?php endif; ?>
 
                                         <?php if ($canDeleteTuition): ?>
                                             <form method="post" action="/api/tuitions/delete" onsubmit="return confirm('Bạn chắc chắn muốn xóa hóa đơn học phí này?');">
                                                 <?= csrf_input(); ?>
                                                 <input type="hidden" name="tuition_id" value="<?= (int) $fee['id']; ?>">
-                                                <button class="<?= ui_btn_danger_classes('sm'); ?>" type="submit">Xóa</button>
+                                                <button type="submit"
+                                                        class="admin-action-icon-btn"
+                                                        data-action-kind="delete"
+                                                        data-skip-action-icon="1"
+                                                        title="Xóa"
+                                                        aria-label="Xóa">
+                                                    <span class="admin-action-icon-label">Xóa</span>
+                                                    <span class="admin-action-icon-glyph" aria-hidden="true">
+                                                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                                                            <path d="M3 6h18"></path>
+                                                            <path d="M8 6V4h8v2"></path>
+                                                            <path d="M19 6l-1 14H6L5 6"></path>
+                                                            <path d="M10 11v6"></path>
+                                                            <path d="M14 11v6"></path>
+                                                        </svg>
+                                                    </span>
+                                                </button>
                                             </form>
                                         <?php elseif ($isStaff): ?>
                                             <form method="post" action="/api/tuitions/request-delete">
@@ -295,28 +416,30 @@ $error = get_flash('error');
                     <?php endif; ?>
                 </tbody>
             </table>
+            <div id="tuition-pagination-region">
             <?php if ($tuitionTotal > 0): ?>
-                <div class="border-t border-slate-200 bg-slate-50/80 px-3 py-2">
+                <div id="tuition-pagination-bar" class="border-t border-slate-200 bg-slate-50/80 px-3 py-2">
                     <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600">
                         <span class="font-medium">Trang <?= (int) $tuitionPage; ?>/<?= (int) $tuitionTotalPages; ?> - Tổng <?= (int) $tuitionTotal; ?> hóa đơn</span>
                         <div class="inline-flex items-center gap-1.5">
-                            <form class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2 py-1" method="get" action="<?= e(page_url('tuition-finance')); ?>">
+                            <form id="tuition-per-page-form" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2 py-1" method="get" action="<?= e(page_url('tuition-finance')); ?>">
                                 <input type="hidden" name="page" value="tuition-finance">
+                                <input type="hidden" name="search" value="<?= e($searchQuery); ?>">
                                 <label class="text-[11px] font-semibold text-slate-500" for="tuition-per-page">Số dòng</label>
-                                <select id="tuition-per-page" name="tuition_per_page" class="h-7 rounded-md border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700" onchange="this.form.submit()">
+                                <select id="tuition-per-page" name="tuition_per_page" class="h-7 rounded-md border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700">
                                     <?php foreach ($tuitionPerPageOptions as $option): ?>
                                         <option value="<?= (int) $option; ?>" <?= $tuitionPerPage === (int) $option ? 'selected' : ''; ?>><?= (int) $option; ?></option>
                                     <?php endforeach; ?>
                                 </select>
                             </form>
                             <?php if ($tuitionPage > 1): ?>
-                                <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('tuition-finance', ['tuition_page' => $tuitionPage - 1, 'tuition_per_page' => $tuitionPerPage])); ?>">Trước</a>
+                                <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('tuition-finance', ['tuition_page' => $tuitionPage - 1, 'tuition_per_page' => $tuitionPerPage, 'search' => $searchQuery])); ?>">Trước</a>
                             <?php else: ?>
                                 <span class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 text-xs font-semibold text-slate-400">Trước</span>
                             <?php endif; ?>
 
                             <?php if ($tuitionPage < $tuitionTotalPages): ?>
-                                <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('tuition-finance', ['tuition_page' => $tuitionPage + 1, 'tuition_per_page' => $tuitionPerPage])); ?>">Sau</a>
+                                <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('tuition-finance', ['tuition_page' => $tuitionPage + 1, 'tuition_per_page' => $tuitionPerPage, 'search' => $searchQuery])); ?>">Sau</a>
                             <?php else: ?>
                                 <span class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 text-xs font-semibold text-slate-400">Sau</span>
                             <?php endif; ?>
@@ -324,6 +447,8 @@ $error = get_flash('error');
                     </div>
                 </div>
             <?php endif; ?>
+            </div>
+        </div>
         </div>
     </article>
 
@@ -385,6 +510,210 @@ $error = get_flash('error');
         };
 
         window.updateTuitionEditPreview(document);
+
+        const tbodySelector = '#tuition-fees-tbody';
+        const paginationSelector = '#tuition-pagination-region';
+        const pageSlug = 'tuition-finance';
+        let tuitionListController = null;
+        let tuitionSearchDebounceTimer = null;
+
+        function getTuitionTbody() {
+            return document.querySelector(tbodySelector);
+        }
+
+        function getTuitionPaginationBar() {
+            return document.querySelector(paginationSelector);
+        }
+
+        function getTuitionRowInfo() {
+            return document.getElementById('tuition-row-info');
+        }
+
+        function getTuitionSearchInput() {
+            return document.getElementById('tuition-search-bespoke');
+        }
+
+        function isTuitionListUrl(url) {
+            return url instanceof URL
+                && url.origin === window.location.origin
+                && String(url.searchParams.get('page') || '') === pageSlug;
+        }
+
+        function buildUrlFromPerPageForm(form) {
+            const url = new URL(form.getAttribute('action') || window.location.href, window.location.href);
+            const formData = new FormData(form);
+            url.search = '';
+            formData.forEach(function (value, key) {
+                url.searchParams.set(String(key), String(value));
+            });
+            const searchInput = getTuitionSearchInput();
+            const keyword = searchInput instanceof HTMLInputElement ? String(searchInput.value || '').trim() : '';
+            url.searchParams.set('page', pageSlug);
+            if (keyword === '') {
+                url.searchParams.delete('search');
+            } else {
+                url.searchParams.set('search', keyword);
+            }
+            url.searchParams.set('tuition_page', '1');
+            return url;
+        }
+
+        async function fetchTuitionList(url, historyMode) {
+            const currentTbody = getTuitionTbody();
+            const currentPagination = getTuitionPaginationBar();
+            if (!(currentTbody instanceof HTMLTableSectionElement) || !(currentPagination instanceof HTMLElement) || !isTuitionListUrl(url)) {
+                window.location.href = url.toString();
+                return;
+            }
+
+            if (tuitionListController) {
+                tuitionListController.abort();
+            }
+
+            tuitionListController = new AbortController();
+            currentTbody.classList.add('opacity-60');
+            currentPagination.classList.add('opacity-60', 'pointer-events-none');
+
+            try {
+                const response = await fetch(url.toString(), {
+                    method: 'GET',
+                    credentials: 'same-origin',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    signal: tuitionListController.signal
+                });
+
+                if (!response.ok) {
+                    throw new Error('Không thể tải danh sách học phí.');
+                }
+
+                const html = await response.text();
+                const parser = new DOMParser();
+                const nextDocument = parser.parseFromString(html, 'text/html');
+                const nextTbody = nextDocument.querySelector(tbodySelector);
+                const nextPagination = nextDocument.querySelector(paginationSelector);
+                const nextRowInfo = nextDocument.getElementById('tuition-row-info');
+
+                if (!(nextTbody instanceof HTMLTableSectionElement) || !(nextPagination instanceof HTMLElement)) {
+                    throw new Error('Không tìm thấy vùng dữ liệu mới.');
+                }
+
+                currentTbody.replaceWith(nextTbody);
+                currentPagination.replaceWith(nextPagination);
+
+                const currentRowInfo = getTuitionRowInfo();
+                if (currentRowInfo instanceof HTMLElement && nextRowInfo instanceof HTMLElement) {
+                    currentRowInfo.textContent = nextRowInfo.textContent;
+                    currentRowInfo.dataset.visible = String(nextRowInfo.dataset.visible || '');
+                    currentRowInfo.dataset.total = String(nextRowInfo.dataset.total || '');
+                }
+
+                if (historyMode === 'push') {
+                    window.history.pushState({ tuitionList: true }, '', url.toString());
+                } else if (historyMode === 'replace') {
+                    window.history.replaceState({ tuitionList: true }, '', url.toString());
+                }
+
+                if (typeof window.__refreshAdminUi === 'function') {
+                    window.__refreshAdminUi(document);
+                }
+            } catch (error) {
+                if (error instanceof DOMException && error.name === 'AbortError') {
+                    return;
+                }
+
+                window.location.href = url.toString();
+            } finally {
+                tuitionListController = null;
+                const activeTbody = getTuitionTbody();
+                const activePagination = getTuitionPaginationBar();
+                if (activeTbody instanceof HTMLElement) {
+                    activeTbody.classList.remove('opacity-60');
+                }
+                if (activePagination instanceof HTMLElement) {
+                    activePagination.classList.remove('opacity-60', 'pointer-events-none');
+                }
+            }
+        }
+
+        if (!window.__tuitionPaginationAjaxBound) {
+            window.__tuitionPaginationAjaxBound = true;
+
+            document.addEventListener('click', function (event) {
+                const link = event.target instanceof Element ? event.target.closest(paginationSelector + ' a[href]') : null;
+                if (!(link instanceof HTMLAnchorElement)) {
+                    return;
+                }
+
+                if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+                    return;
+                }
+
+                const url = new URL(link.href, window.location.href);
+                if (!isTuitionListUrl(url)) {
+                    return;
+                }
+
+                event.preventDefault();
+                fetchTuitionList(url, 'push');
+            });
+
+            document.addEventListener('change', function (event) {
+                const select = event.target;
+                if (!(select instanceof HTMLSelectElement) || select.id !== 'tuition-per-page') {
+                    return;
+                }
+
+                const form = select.form;
+                if (!(form instanceof HTMLFormElement)) {
+                    return;
+                }
+
+                event.preventDefault();
+                fetchTuitionList(buildUrlFromPerPageForm(form), 'push');
+            });
+
+            const bespokeSearchInput = getTuitionSearchInput();
+            if (bespokeSearchInput instanceof HTMLInputElement && !bespokeSearchInput.dataset.ajaxBound) {
+                bespokeSearchInput.dataset.ajaxBound = '1';
+
+                bespokeSearchInput.addEventListener('keydown', function (event) {
+                    if (event.key === 'Enter') {
+                        event.preventDefault();
+                    }
+                });
+
+                bespokeSearchInput.addEventListener('input', function () {
+                    if (tuitionSearchDebounceTimer) {
+                        window.clearTimeout(tuitionSearchDebounceTimer);
+                    }
+
+                    tuitionSearchDebounceTimer = window.setTimeout(function () {
+                        const url = new URL(window.location.href);
+                        url.searchParams.set('tuition_page', '1');
+
+                        const keyword = String(bespokeSearchInput.value || '').trim();
+                        if (keyword === '') {
+                            url.searchParams.delete('search');
+                        } else {
+                            url.searchParams.set('search', keyword);
+                        }
+
+                        fetchTuitionList(url, 'push');
+                    }, 500);
+                });
+            }
+
+            window.addEventListener('popstate', function () {
+                const url = new URL(window.location.href);
+                if (!isTuitionListUrl(url)) {
+                    return;
+                }
+
+                fetchTuitionList(url, null);
+            });
+        }
     })();
 </script>
 
