@@ -7,12 +7,14 @@ require_once __DIR__ . '/../../../models/tables/ClassStudentsTableModel.php';
 require_once __DIR__ . '/../../../models/tables/AttendanceTableModel.php';
 require_once __DIR__ . '/../../../models/tables/TuitionFeesTableModel.php';
 require_once __DIR__ . '/../../../models/tables/AssignmentsTableModel.php';
+require_once __DIR__ . '/../../../models/tables/ExtracurricularActivitiesTableModel.php';
 require_once __DIR__ . '/../../../models/tables/ExamsTableModel.php';
 
 $classStudentsTable = new ClassStudentsTableModel();
 $attendanceTable = new AttendanceTableModel();
 $tuitionFeesTable = new TuitionFeesTableModel();
 $assignmentsTable = new AssignmentsTableModel();
+$activitiesTable = new ExtracurricularActivitiesTableModel();
 $examsTable = new ExamsTableModel();
 
 $user = auth_user() ?? [];
@@ -86,7 +88,33 @@ $attendancePercent = $attendanceTotal > 0 ? (int) round((($attendancePresent + $
 $tuitionRow = $tuitionFeesTable->findByStudentAndClass($studentId, $selectedClassId) ?? [];
 $tuitionTotal = (float) ($tuitionRow['total_amount'] ?? 0);
 $tuitionPaid = (float) ($tuitionRow['amount_paid'] ?? 0);
+$tuitionRemaining = max(0, $tuitionTotal - $tuitionPaid);
+$tuitionPaidPercent = $tuitionTotal > 0 ? (int) round(($tuitionPaid / $tuitionTotal) * 100) : 0;
 $tuitionStatus = $tuitionRow === [] ? 'Chưa có học phí' : (((string) ($tuitionRow['status'] ?? 'debt')) === 'paid' ? 'Đã hoàn thành' : 'Đang nợ');
+
+$activityRows = $studentId > 0 ? $activitiesTable->listForStudentActivities($studentId) : [];
+$activityFeeTotal = 0.0;
+$activityFeePaid = 0.0;
+$activityRegisteredCount = 0;
+foreach ($activityRows as $activityRow) {
+    if ((int) ($activityRow['is_registered'] ?? 0) !== 1) {
+        continue;
+    }
+
+    $activityRegisteredCount++;
+    $activityFeeTotal += (float) ($activityRow['fee'] ?? 0);
+
+    $registrationRow = $activitiesTable->findStudentRegistration((int) ($activityRow['id'] ?? 0), $studentId);
+    if (is_array($registrationRow)) {
+        $paidAmount = (float) ($registrationRow['amount_paid'] ?? 0);
+        if ($paidAmount <= 0 && (string) ($registrationRow['payment_status'] ?? '') === 'paid') {
+            $paidAmount = (float) ($activityRow['fee'] ?? 0);
+        }
+        $activityFeePaid += $paidAmount;
+    }
+}
+$activityFeeRemaining = max(0, $activityFeeTotal - $activityFeePaid);
+$activityFeePercent = $activityFeeTotal > 0 ? (int) round(($activityFeePaid / $activityFeeTotal) * 100) : 0;
 
 $assignmentRows = $assignmentsTable->listForStudentByClass($studentId, $selectedClassId);
 $assignments = [];
@@ -98,11 +126,12 @@ foreach ($assignmentRows as $assignmentRow) {
     $deadlineRaw = (string) ($assignmentRow['deadline'] ?? '');
     $deadlineTs = $deadlineRaw !== '' ? strtotime($deadlineRaw) : false;
     $isExpired = $deadlineTs !== false && $deadlineTs < $nowTs;
+    $isGraded = $score !== null;
     $status = 'Chưa nộp';
     $color = 'slate';
 
     if ($submittedAt !== '') {
-        if ($score !== null) {
+        if ($isGraded) {
             $status = 'Đã chấm';
             $color = 'emerald';
             $assignmentScores[] = $score;
@@ -124,9 +153,11 @@ foreach ($assignmentRows as $assignmentRow) {
         'teacher_comment' => (string) ($assignmentRow['teacher_comment'] ?? ''),
         'color' => $color,
         'submitted_at' => $submittedAt !== '' ? date('d/m/Y H:i', strtotime($submittedAt)) : '',
-        'can_resubmit' => $submittedAt !== '' && !$isExpired,
-        'can_submit' => $submittedAt === '' && !$isExpired,
+        'can_resubmit' => $submittedAt !== '' && !$isExpired && !$isGraded,
+        'can_submit' => $submittedAt === '' && !$isExpired && !$isGraded,
         'is_expired' => $isExpired,
+        'is_graded' => $isGraded,
+        'disabled_reason' => $isGraded ? 'Bài đã được chấm không thể nộp lại.' : ($isExpired ? 'Đã quá hạn nộp bài.' : ''),
     ];
 }
 
@@ -173,39 +204,42 @@ foreach ($examRows as $examRow) {
 ?>
 
 <style>
-    .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.6); }
-    .table-modern th { background-color: #f8fafc; color: #64748b; font-weight: 900; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.05em; padding: 1rem 1.25rem; border-bottom: 2px solid #f1f5f9; }
-    .table-modern td { padding: 1.25rem; border-bottom: 1px solid #f1f5f9; font-size: 0.875rem; color: #334155; font-weight: 600; vertical-align: middle; }
+    .glass-card { background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(18px); border: 1px solid rgba(203, 213, 225, 0.95); box-shadow: 0 30px 70px rgba(71, 85, 105, 0.16); }
+    .soft-card { background: rgba(255, 255, 255, 0.98); border: 1px solid rgba(203, 213, 225, 0.95); box-shadow: 0 22px 55px rgba(71, 85, 105, 0.14); }
+    .table-modern th { background-color: #eef2f7; color: #334155; font-weight: 900; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.05em; padding: 1rem 1.25rem; border-bottom: 2px solid #cbd5e1; }
+    .table-modern td { padding: 1.25rem; border-bottom: 1px solid #dbe4ee; font-size: 0.875rem; color: #1e293b; font-weight: 600; vertical-align: middle; }
     .table-modern tbody tr { transition: all 0.2s; }
-    .table-modern tbody tr:hover { background-color: #f8fafc; transform: scale(1.001); }
+    .table-modern tbody tr:hover { background-color: #f1f5f9; transform: scale(1.001); }
 </style>
 
-<section class="min-h-screen bg-[#f8fafc] pb-20 font-jakarta relative overflow-hidden">
+<section class="min-h-screen bg-[radial-gradient(circle_at_top,_#ffffff_0%,_#f2f6fb_32%,_#e3ebf4_100%)] pb-20 font-jakarta relative overflow-hidden">
     
-    <div class="absolute top-0 left-0 w-full h-[280px] overflow-hidden -z-0">
-        <div class="absolute inset-0 bg-gradient-to-br from-slate-900 via-emerald-900 to-rose-900"></div>
-        <div class="absolute -top-20 -right-20 w-[400px] h-[400px] bg-emerald-500/20 rounded-full blur-[80px] animate-pulse"></div>
-        <div class="absolute top-10 -left-20 w-[350px] h-[350px] bg-rose-500/20 rounded-full blur-[80px] animate-pulse" style="animation-delay: 2s;"></div>
-        <div class="absolute inset-0 opacity-[0.1]" style="background-image: radial-gradient(#ffffff 1.5px, transparent 1.5px); background-size: 24px 24px;"></div>
+    <div class="absolute top-0 left-0 w-full h-[300px] overflow-hidden -z-0">
+        <div class="absolute inset-0 bg-gradient-to-br from-slate-200 via-white to-sky-100"></div>
+        <div class="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[#f8fafc] to-transparent"></div>
+        <div class="absolute -top-20 -right-20 w-[420px] h-[420px] bg-emerald-400/08 rounded-full blur-[90px]"></div>
+        <div class="absolute top-10 -left-20 w-[360px] h-[360px] bg-rose-400/08 rounded-full blur-[90px]"></div>
+        <div class="absolute left-1/2 top-8 h-[300px] w-[300px] -translate-x-1/2 rounded-full bg-amber-300/08 blur-[90px]"></div>
+        <div class="absolute inset-0 opacity-[0.08]" style="background-image: radial-gradient(#475569 1.5px, transparent 1.5px); background-size: 24px 24px;"></div>
     </div>
 
     <div class="relative z-10 pt-6 px-4 sm:px-8 max-w-7xl mx-auto flex justify-between items-center">
-        <a class="group inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 px-5 py-2.5 text-xs font-bold text-white shadow-sm transition-all hover:bg-white hover:text-emerald-700" href="<?= e(page_url('classes-my')); ?>">
+        <a class="group inline-flex items-center gap-2 rounded-full bg-white backdrop-blur-md border border-slate-300 px-5 py-2.5 text-xs font-bold text-slate-800 shadow-lg shadow-slate-300/60 transition-all hover:-translate-y-0.5 hover:bg-white hover:text-emerald-700" href="<?= e(page_url('classes-my')); ?>">
             <i class="fa-solid fa-arrow-left transition-transform group-hover:-translate-x-1"></i> Quay lại danh sách lớp
         </a>
     </div>
 
     <div class="mx-auto max-w-7xl px-4 sm:px-6 relative z-10 mt-6 space-y-6">
         
-        <div class="glass-card rounded-[2rem] p-6 md:p-8 shadow-2xl shadow-slate-200/30 flex flex-col md:flex-row justify-between items-start md:items-center gap-6" data-aos="fade-up">
+        <div class="glass-card rounded-[2rem] p-6 md:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border border-slate-200" data-aos="fade-up">
             <div class="flex items-center gap-5">
-                <div class="w-16 h-16 rounded-[1.25rem] bg-gradient-to-br from-emerald-400 to-emerald-600 text-white flex items-center justify-center text-3xl shadow-lg shadow-emerald-500/30 shrink-0">
+                <div class="w-16 h-16 rounded-[1.25rem] bg-gradient-to-br from-emerald-400 to-cyan-500 text-white flex items-center justify-center text-3xl shadow-xl shadow-emerald-200/60 shrink-0 ring-1 ring-white/70">
                     <i class="fa-solid fa-chalkboard-user"></i>
                 </div>
                 <div>
                     <div class="flex items-center gap-3 mb-1">
                         <h1 class="text-2xl md:text-3xl font-black text-slate-800 tracking-tight"><?= e($classDetail['name']) ?></h1>
-                        <span class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-emerald-200 shadow-sm flex items-center gap-1">
+                        <span class="bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-emerald-300 shadow-sm flex items-center gap-1">
                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> <?= e($classDetail['status']) ?>
                         </span>
                     </div>
@@ -217,7 +251,7 @@ foreach ($examRows as $examRow) {
                     <?php if (!empty($scheduleItems)): ?>
                         <div class="mt-3 flex flex-wrap gap-2">
                             <?php foreach (array_slice($scheduleItems, 0, 3) as $scheduleItem): ?>
-                                <span class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-[11px] font-semibold text-slate-600">
+                                <span class="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-3 py-1.5 text-[11px] font-semibold text-slate-700 shadow-sm">
                                     <i class="fa-regular fa-calendar"></i>
                                     <?= e($scheduleItem['date'] . ' · ' . $scheduleItem['time'] . ' · ' . $scheduleItem['room']) ?>
                                 </span>
@@ -227,63 +261,118 @@ foreach ($examRows as $examRow) {
                 </div>
             </div>
             
-            <a href="#" class="bg-rose-600 hover:bg-rose-700 text-white font-black px-6 py-3.5 rounded-xl shadow-lg shadow-rose-600/20 transition-all hover:-translate-y-1 text-xs uppercase tracking-widest flex items-center gap-2 whitespace-nowrap">
-                <i class="fa-solid fa-video"></i> Vào lớp Online
+            <a href="#class-assignments" class="group inline-flex items-center gap-3 rounded-[1.25rem] border border-rose-300 bg-white px-5 py-4 text-left text-slate-900 shadow-2xl shadow-rose-200/50 transition-all hover:-translate-y-1 hover:shadow-2xl focus:outline-none focus:ring-2 focus:ring-rose-300 focus:ring-offset-2 focus:ring-offset-white">
+                <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 to-orange-500 text-white shadow-lg shadow-rose-200/70 ring-1 ring-white/90 transition group-hover:scale-105">
+                    <i class="fa-solid fa-clipboard-list text-base"></i>
+                </span>
+                <span class="min-w-0 leading-tight">
+                    <span class="block text-[10px] font-black uppercase tracking-[0.35em] text-rose-500">Bài tập của lớp</span>
+                    <span class="mt-1 block text-sm font-black tracking-tight text-slate-900">Xem bài tập ngay</span>
+                </span>
+                <span class="ml-1 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-rose-100 text-rose-600 transition group-hover:bg-rose-200">
+                    <i class="fa-solid fa-arrow-right text-xs transition-transform group-hover:translate-x-0.5"></i>
+                </span>
             </a>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6" data-aos="fade-up" data-aos-delay="100">
-            <div class="bg-white rounded-[2rem] p-6 shadow-sm border border-slate-100 hover:shadow-md transition-all">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch" data-aos="fade-up" data-aos-delay="100">
+            <div class="relative h-full overflow-hidden rounded-[2rem] border border-emerald-200 bg-white p-6 shadow-2xl shadow-emerald-200/60 transition-all hover:-translate-y-0.5 hover:shadow-[0_28px_70px_rgba(34,197,94,0.24)]">
+                <div class="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-emerald-400 to-cyan-400"></div>
+                <div class="relative z-10 flex h-full min-h-[220px] flex-col">
                 <div class="flex justify-between items-start mb-4">
                     <div>
                         <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Tỷ lệ chuyên cần</p>
                         <h3 class="text-3xl font-black text-slate-800"><?= (int) $attendancePercent ?>%</h3>
                     </div>
-                    <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-500 flex items-center justify-center text-lg"><i class="fa-solid fa-user-check"></i></div>
+                    <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-lg shadow-md shadow-emerald-300"><i class="fa-solid fa-user-check"></i></div>
                 </div>
-                <div class="flex gap-3">
-                    <div class="flex-1 bg-emerald-50 border border-emerald-100 rounded-xl p-3 text-center">
+                <div class="flex gap-3 flex-1">
+                    <div class="flex-1 bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-center shadow-sm">
                         <p class="text-xl font-black text-emerald-600"><?= (int) $attendancePresent ?></p>
                         <p class="text-[9px] font-bold text-emerald-700 uppercase">Có mặt</p>
                     </div>
-                    <div class="flex-1 bg-rose-50 border border-rose-100 rounded-xl p-3 text-center">
+                    <div class="flex-1 bg-rose-50 border border-rose-200 rounded-xl p-3 text-center shadow-sm">
                         <p class="text-xl font-black text-rose-600"><?= (int) $attendanceAbsent ?></p>
                         <p class="text-[9px] font-bold text-rose-700 uppercase">Vắng</p>
                     </div>
                 </div>
                 <p class="mt-3 text-[11px] font-semibold text-slate-500">Tổng buổi có dữ liệu: <?= (int) $attendanceTotal ?> buổi</p>
+                </div>
             </div>
 
-            <div class="bg-white rounded-[2rem] p-6 shadow-sm border border-slate-100 hover:shadow-md transition-all">
+            <div class="relative h-full overflow-hidden rounded-[2rem] border border-amber-200 bg-white p-6 shadow-2xl shadow-amber-200/60 transition-all hover:-translate-y-0.5 hover:shadow-[0_28px_70px_rgba(245,158,11,0.24)]">
+                <div class="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500"></div>
+                <div class="relative z-10 flex h-full min-h-[220px] flex-col">
                 <div class="flex justify-between items-start mb-4">
                     <div>
-                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Học phí môn này</p>
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Học phí khóa học</p>
                         <h3 class="text-2xl font-black text-slate-800"><?= number_format($tuitionPaid) ?> <span class="text-sm text-slate-400">/ <?= number_format($tuitionTotal) ?> đ</span></h3>
+                        <p class="mt-1 text-[11px] font-semibold text-slate-500">Còn lại <?= number_format($tuitionRemaining) ?> đ, tương đương <?= 100 - $tuitionPaidPercent ?>% chưa thanh toán.</p>
                     </div>
-                    <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center text-lg"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+                    <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center text-lg shadow-md shadow-amber-300"><i class="fa-solid fa-file-invoice-dollar"></i></div>
                 </div>
-                
-                <div class="mt-6 flex items-center justify-between">
-                    <?php if ($tuitionStatus === 'Đang nợ'): ?>
-                        <span class="bg-rose-100 text-rose-700 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider border border-rose-200">Đang nợ phí</span>
-                        <a href="#" class="text-xs font-bold text-rose-600 hover:underline">Thanh toán ngay <i class="fa-solid fa-arrow-right text-[10px]"></i></a>
-                    <?php elseif ($tuitionStatus === 'Đã hoàn thành'): ?>
-                        <span class="bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider border border-emerald-200">Đã hoàn thành</span>
-                    <?php else: ?>
-                        <span class="bg-slate-100 text-slate-700 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider border border-slate-200"><?= e($tuitionStatus); ?></span>
-                    <?php endif; ?>
+
+                <div class="space-y-4 flex-1">
+                    <div>
+                        <div class="mb-2 flex items-center justify-between gap-3 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                            <span>Tiến độ thanh toán</span>
+                            <span><?= $tuitionPaidPercent ?>%</span>
+                        </div>
+                        <div class="h-3 overflow-hidden rounded-full bg-slate-100">
+                            <div class="h-3 rounded-full bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500" style="width: <?= $tuitionPaidPercent; ?>%"></div>
+                        </div>
+                        <div class="mt-2 flex items-center justify-between text-[11px] font-semibold text-slate-500">
+                            <span>Đã thanh toán: <?= number_format($tuitionPaid) ?> đ</span>
+                            <span>Còn lại: <?= number_format($tuitionRemaining) ?> đ</span>
+                        </div>
+                    </div>
+
+                    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4 shadow-sm">
+                        <div class="flex items-start justify-between gap-4">
+                            <div>
+                                <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">Hoạt động ngoại khoá</p>
+                                <p class="mt-1 text-sm font-bold text-slate-700"><?= (int) $activityRegisteredCount ?> hoạt động đã đăng ký</p>
+                                <p class="mt-1 text-[11px] text-slate-500">Tổng tiền đã thanh toán cho ngoại khoá.</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-lg font-black text-slate-800"><?= number_format($activityFeePaid) ?> <span class="text-xs text-slate-400">/ <?= number_format($activityFeeTotal) ?> đ</span></p>
+                                <p class="text-[11px] font-semibold text-slate-500">Còn lại <?= number_format($activityFeeRemaining) ?> đ</p>
+                            </div>
+                        </div>
+                        <div class="mt-3 h-2 overflow-hidden rounded-full bg-slate-200">
+                            <div class="h-2 rounded-full bg-gradient-to-r from-emerald-500 to-cyan-500" style="width: <?= $activityFeePercent; ?>%"></div>
+                        </div>
+                        <div class="mt-2 flex items-center justify-between text-[11px] font-semibold text-slate-500">
+                            <span>Đã thanh toán: <?= $activityFeePercent ?>%</span>
+                            <span>Chưa thanh toán: <?= 100 - $activityFeePercent ?>%</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between">
+                        <?php if ($tuitionStatus === 'Đang nợ'): ?>
+                            <span class="bg-rose-100 text-rose-700 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider border border-rose-200">Đang nợ phí</span>
+                            <a href="#" class="text-xs font-bold text-rose-600 hover:underline">Thanh toán ngay <i class="fa-solid fa-arrow-right text-[10px]"></i></a>
+                        <?php elseif ($tuitionStatus === 'Đã hoàn thành'): ?>
+                            <span class="bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider border border-emerald-200">Đã hoàn thành</span>
+                        <?php else: ?>
+                            <span class="bg-slate-100 text-slate-700 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider border border-slate-200"><?= e($tuitionStatus); ?></span>
+                        <?php endif; ?>
+                    </div>
+                </div>
                 </div>
             </div>
 
-            <div class="bg-white rounded-[2rem] p-6 shadow-sm border border-slate-100 hover:shadow-md transition-all flex flex-col justify-between">
+            <div class="relative h-full overflow-hidden rounded-[2rem] border border-blue-200 bg-white p-6 shadow-2xl shadow-blue-200/60 transition-all hover:-translate-y-0.5 hover:shadow-[0_28px_70px_rgba(59,130,246,0.24)] flex flex-col justify-between">
+                <div class="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-blue-400 to-indigo-500"></div>
+                <div class="relative z-10 flex h-full min-h-[220px] flex-col justify-between">
                 <div class="flex justify-between items-start mb-4">
                     <div>
                         <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Điểm TB Bài tập</p>
                         <h3 class="text-3xl font-black text-slate-800"><?= e($averageAssignmentScore); ?></h3>
                     </div>
-                    <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-500 flex items-center justify-center text-lg"><i class="fa-solid fa-ranking-star"></i></div>
+                    <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center text-lg shadow-md shadow-blue-300"><i class="fa-solid fa-ranking-star"></i></div>
                 </div>
-                <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 mt-auto">
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 mt-auto shadow-sm">
                     <?php if ($averageAssignmentScore !== '--'): ?>
                         <p class="text-xs font-medium text-slate-600">Đánh giá: <span class="font-black text-emerald-600">Dựa trên bài đã chấm</span></p>
                         <p class="text-[10px] text-slate-400 mt-1">Điểm trung bình được tính từ các bài đã nộp và được chấm.</p>
@@ -292,31 +381,39 @@ foreach ($examRows as $examRow) {
                         <p class="text-[10px] text-slate-400 mt-1">Hãy nộp bài để hệ thống hiển thị điểm trung bình.</p>
                     <?php endif; ?>
                 </div>
+                </div>
             </div>
         </div>
 
-        <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden" data-aos="fade-up" data-aos-delay="200">
+        <div id="class-assignments" class="scroll-mt-8 rounded-[2rem] border border-slate-200 bg-white shadow-2xl shadow-slate-300/60 overflow-visible">
             <div class="p-6 md:p-8 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <h2 class="text-lg font-black text-slate-800 flex items-center gap-3">
                     <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-sm"><i class="fa-solid fa-laptop-file"></i></div>
                     Danh sách Bài tập
                 </h2>
                 <?php $defaultHomeworkCanOpen = !empty($defaultHomework) && (!empty($defaultHomework['can_submit']) || !empty($defaultHomework['can_resubmit'])); ?>
-                <button type="button" class="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 via-sky-600 to-cyan-600 px-5 py-2.5 text-xs font-black uppercase tracking-widest text-white shadow-lg shadow-blue-500/25 transition-all hover:-translate-y-0.5 hover:shadow-blue-500/40 disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none" data-homework-open="1" data-homework-class="<?= e($classDetail['name']); ?>" data-homework-assignment-id="<?= (int) ($defaultHomework['id'] ?? 0); ?>" data-homework-assignment="<?= e((string) ($defaultHomework['title'] ?? '')); ?>" data-homework-deadline="<?= e((string) ($defaultHomework['deadline_raw'] ?? '')); ?>" data-homework-note="<?= e((string) ($defaultHomework['note'] ?? '')); ?>" data-homework-status="<?= e((string) ($defaultHomework['status'] ?? '')); ?>" data-homework-empty="<?= empty($assignments) ? '1' : '0'; ?>" <?= $defaultHomeworkCanOpen ? '' : 'disabled'; ?>>
-                    <i class="fa-solid fa-plus"></i> <?= !empty($defaultHomework['can_resubmit']) ? 'Nộp lại' : 'Nộp bài mới'; ?>
-                </button>
+                <span class="inline-flex group relative" <?= !empty($defaultHomework['disabled_reason']) ? 'title="' . e((string) $defaultHomework['disabled_reason']) . '"' : ''; ?>>
+                    <button type="button" class="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 via-sky-600 to-cyan-600 px-5 py-2.5 text-xs font-black uppercase tracking-widest text-white shadow-lg shadow-blue-500/25 transition-all hover:-translate-y-0.5 hover:shadow-blue-500/40 disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none" data-homework-open="1" data-homework-class="<?= e($classDetail['name']); ?>" data-homework-assignment-id="<?= (int) ($defaultHomework['id'] ?? 0); ?>" data-homework-assignment="<?= e((string) ($defaultHomework['title'] ?? '')); ?>" data-homework-deadline="<?= e((string) ($defaultHomework['deadline_raw'] ?? '')); ?>" data-homework-note="<?= e((string) ($defaultHomework['note'] ?? '')); ?>" data-homework-status="<?= e((string) ($defaultHomework['status'] ?? '')); ?>" data-homework-empty="<?= empty($assignments) ? '1' : '0'; ?>" <?= $defaultHomeworkCanOpen ? '' : 'disabled'; ?>>
+                        <i class="fa-solid fa-plus"></i> <?= !empty($defaultHomework['can_resubmit']) ? 'Nộp lại' : 'Nộp bài mới'; ?>
+                    </button>
+                    <?php if (!$defaultHomeworkCanOpen && !empty($defaultHomework['disabled_reason'])): ?>
+                        <span class="pointer-events-none absolute left-1/2 top-full z-[9999] mt-2 w-max max-w-[260px] -translate-x-1/2 rounded-xl bg-slate-900 px-3 py-2 text-[11px] font-semibold leading-tight text-white opacity-0 shadow-2xl transition group-hover:opacity-100">
+                            <?= e((string) $defaultHomework['disabled_reason']); ?>
+                        </span>
+                    <?php endif; ?>
+                </span>
             </div>
             
-            <div class="overflow-x-auto">
-                <table class="w-full table-modern text-left">
+            <div class="overflow-visible">
+                <table class="w-full table-modern table-fixed text-left">
                     <thead>
                         <tr>
-                            <th>Tên bài tập</th>
-                            <th>Hạn nộp (Deadline)</th>
-                            <th>Nộp lúc</th>
-                            <th>Trạng thái</th>
-                            <th>Điểm số</th>
-                            <th class="text-right">Thao tác</th>
+                            <th class="w-[31%]">Tên bài tập</th>
+                            <th class="w-[17%]">Hạn nộp (Deadline)</th>
+                            <th class="w-[15%]">Nộp lúc</th>
+                            <th class="w-[14%]">Trạng thái</th>
+                            <th class="w-[10%]">Điểm số</th>
+                            <th class="w-[13%] text-right">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -327,8 +424,8 @@ foreach ($examRows as $examRow) {
                         <?php else: ?>
                         <?php foreach($assignments as $hw): ?>
                         <tr>
-                            <td>
-                                <div class="font-black text-slate-800 text-sm"><?= e($hw['title']) ?></div>
+                            <td class="align-top">
+                                <div class="whitespace-normal break-words text-sm font-black leading-snug text-slate-800"><?= e($hw['title']) ?></div>
                                 <?php if (!empty($hw['file_url'])): ?>
                                     <a
                                         href="<?= e(normalize_public_file_url((string) $hw['file_url'])); ?>"
@@ -340,12 +437,12 @@ foreach ($examRows as $examRow) {
                                     </a>
                                 <?php endif; ?>
                             </td>
-                            <td>
+                            <td class="align-top">
                                 <span class="text-slate-500 font-bold bg-slate-50 px-2 py-1 rounded-md border border-slate-200 text-[11px]">
                                     <i class="fa-regular fa-clock"></i> <?= $hw['deadline'] ?>
                                 </span>
                             </td>
-                            <td>
+                            <td class="align-top">
                                 <?php if (!empty($hw['submitted_at'])): ?>
                                     <span class="text-slate-600 font-bold bg-emerald-50 px-2 py-1 rounded-md border border-emerald-200 text-[11px]">
                                         <i class="fa-regular fa-paper-plane"></i> <?= e($hw['submitted_at']) ?>
@@ -354,7 +451,7 @@ foreach ($examRows as $examRow) {
                                     <span class="text-slate-300 font-bold bg-slate-50 px-2 py-1 rounded-md border border-slate-200 text-[11px]">Chưa nộp</span>
                                 <?php endif; ?>
                             </td>
-                            <td>
+                            <td class="align-top">
                                 <?php
                                     $badgeClass = match($hw['color']) {
                                         'emerald' => 'bg-emerald-50 text-emerald-600 border-emerald-200',
@@ -367,12 +464,12 @@ foreach ($examRows as $examRow) {
                                     <?= $hw['status'] ?>
                                 </span>
                             </td>
-                            <td>
+                            <td class="align-top">
                                 <?php if($hw['score'] !== '--'): ?>
                                     <div class="space-y-1">
                                         <span class="font-black text-lg <?= (float) $hw['score'] >= 5.0 ? 'text-emerald-600' : 'text-rose-600' ?>"><?= e($hw['score']) ?></span>
                                         <?php if (!empty($hw['teacher_comment'])): ?>
-                                            <p class="max-w-[260px] text-[11px] leading-relaxed text-slate-500">
+                                            <p class="whitespace-normal break-words text-[11px] leading-relaxed text-slate-500">
                                                 <?= e($hw['teacher_comment']) ?>
                                             </p>
                                         <?php endif; ?>
@@ -381,7 +478,7 @@ foreach ($examRows as $examRow) {
                                     <span class="text-slate-300 font-black">--</span>
                                 <?php endif; ?>
                             </td>
-                            <td class="text-right">
+                            <td class="align-top text-right">
                                 <?php if (!empty($hw['can_submit']) || !empty($hw['can_resubmit'])): ?>
                                     <?php
                                         $actionClass = !empty($hw['can_resubmit'])
@@ -403,8 +500,11 @@ foreach ($examRows as $examRow) {
                                         <?= !empty($hw['can_resubmit']) ? 'Nộp lại' : 'Nộp bài'; ?>
                                     </button>
                                 <?php else: ?>
-                                    <span class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-slate-100 px-3 py-2 text-[11px] font-black uppercase tracking-widest text-slate-400" title="Đã quá hạn nộp bài">
+                                    <span class="group relative inline-flex max-w-[110px] items-center justify-center rounded-xl border border-slate-200 bg-slate-100 px-3 py-2 text-[11px] font-black uppercase tracking-widest text-slate-400 whitespace-normal text-center leading-tight cursor-not-allowed" <?= !empty($hw['disabled_reason']) ? 'title="' . e((string) $hw['disabled_reason']) . '"' : 'title="Đã quá hạn nộp bài"'; ?>>
                                         Hết hạn
+                                        <span class="pointer-events-none absolute left-1/2 top-full z-[9999] mt-2 w-max max-w-[240px] -translate-x-1/2 rounded-xl bg-slate-900 px-3 py-2 text-[11px] font-semibold leading-tight text-white opacity-0 shadow-2xl transition group-hover:opacity-100">
+                                            <?= e((string) ($hw['disabled_reason'] ?: 'Đã quá hạn nộp bài')); ?>
+                                        </span>
                                     </span>
                                 <?php endif; ?>
                             </td>
@@ -416,23 +516,23 @@ foreach ($examRows as $examRow) {
             </div>
         </div>
 
-        <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden" data-aos="fade-up" data-aos-delay="300">
+        <div class="rounded-[2rem] border border-slate-200 bg-white shadow-2xl shadow-slate-300/60 overflow-hidden">
             <div class="p-6 md:p-8 border-b border-slate-100 flex items-center gap-3">
                 <div class="w-8 h-8 rounded-lg bg-rose-100 text-rose-600 flex items-center justify-center text-sm"><i class="fa-solid fa-file-contract"></i></div>
                 <h2 class="text-lg font-black text-slate-800">Kết quả Kiểm tra Định kỳ</h2>
             </div>
             
-            <div class="overflow-x-auto">
-                <table class="w-full table-modern text-left">
+            <div class="overflow-visible">
+                <table class="w-full table-modern table-fixed text-left">
                     <thead>
                         <tr>
-                            <th>Kỳ thi</th>
-                            <th>Ngày thi</th>
-                            <th class="text-center" title="Listening">Nghe</th>
-                            <th class="text-center" title="Reading">Đọc</th>
-                            <th class="text-center" title="Writing">Viết</th>
-                            <th class="text-center" title="Speaking">Nói</th>
-                            <th class="text-center border-l border-slate-200">Overall</th>
+                            <th class="w-[28%]">Kỳ thi</th>
+                            <th class="w-[14%]">Ngày thi</th>
+                            <th class="w-[9%] text-center" title="Listening">Nghe</th>
+                            <th class="w-[9%] text-center" title="Reading">Đọc</th>
+                            <th class="w-[9%] text-center" title="Writing">Viết</th>
+                            <th class="w-[9%] text-center" title="Speaking">Nói</th>
+                            <th class="w-[12%] text-center border-l border-slate-200">Overall</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -443,18 +543,18 @@ foreach ($examRows as $examRow) {
                         <?php else: ?>
                         <?php foreach($exams as $ex): ?>
                         <tr>
-                            <td>
-                                <div class="font-black text-slate-800 text-sm"><?= e($ex['name']) ?></div>
+                            <td class="align-top">
+                                <div class="whitespace-normal break-words font-black text-slate-800 text-sm"><?= e($ex['name']) ?></div>
                                 <p class="mt-1 text-[10px] font-bold uppercase tracking-widest text-slate-400"><?= e($ex['type'] === 'entry' ? 'Đầu vào' : ($ex['type'] === 'periodic' ? 'Định kỳ' : ($ex['type'] === 'final' ? 'Cuối kỳ' : $ex['type']))); ?></p>
                             </td>
-                            <td>
+                            <td class="align-top">
                                 <span class="text-slate-500 font-bold"><?= $ex['date'] ?></span>
                             </td>
-                            <td class="text-center font-bold text-slate-600"><?= $ex['listening'] ?></td>
-                            <td class="text-center font-bold text-slate-600"><?= $ex['reading'] ?></td>
-                            <td class="text-center font-bold text-slate-600"><?= $ex['writing'] ?></td>
-                            <td class="text-center font-bold text-slate-600"><?= $ex['speaking'] ?></td>
-                            <td class="text-center border-l border-slate-100">
+                            <td class="align-top text-center font-bold text-slate-600"><?= $ex['listening'] ?></td>
+                            <td class="align-top text-center font-bold text-slate-600"><?= $ex['reading'] ?></td>
+                            <td class="align-top text-center font-bold text-slate-600"><?= $ex['writing'] ?></td>
+                            <td class="align-top text-center font-bold text-slate-600"><?= $ex['speaking'] ?></td>
+                            <td class="align-top text-center border-l border-slate-100">
                                 <?php if($ex['overall'] !== '--'): ?>
                                     <div class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-600 font-black text-base shadow-sm">
                                         <?= e($ex['overall']) ?>
@@ -520,7 +620,10 @@ foreach ($examRows as $examRow) {
                         </div>
                     </div>
 
-                    <div class="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">
+                    <div class="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-between">
+                        <a href="<?= e(page_url('classes-my', ['class_id' => (int) $selectedClassId])); ?>" class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50">
+                            <i class="fa-solid fa-arrow-right mr-2 text-[11px]"></i> Xem lớp học này
+                        </a>
                         <button type="button" class="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-600 transition hover:bg-slate-50" data-homework-close="1">Đóng</button>
                         <button type="submit" class="rounded-2xl bg-blue-600 px-6 py-3 text-sm font-black text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700">Nộp bài</button>
                     </div>

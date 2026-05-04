@@ -23,12 +23,12 @@ $upcomingAssignments = [];
 $totalTuitionAmount = 0.0;
 $totalTuitionPaid = 0.0;
 $nowTimestamp = time();
-$assignmentWindowEnd = $nowTimestamp + (7 * 24 * 3600);
+$assignmentWindowEnd = $nowTimestamp + (30 * 24 * 3600);
 $calendarFocusDate = null;
 
 if ($studentId > 0) {
     $palette = static function (string $seed): string {
-        $colors = ['blue', 'emerald', 'rose', 'amber'];
+        $colors = ['blue', 'emerald', 'rose', 'cyan'];
         return $colors[abs(crc32($seed)) % count($colors)];
     };
 
@@ -96,19 +96,21 @@ if ($studentId > 0) {
             $submissionStatus = (string) ($assignmentRow['submission_status'] ?? 'Chưa nộp');
             $scoreValue = $assignmentRow['score'] ?? null;
             $deadlineTimestamp = $deadline !== '' ? strtotime($deadline) : false;
-            if ($deadlineTimestamp === false || $deadlineTimestamp < $nowTimestamp || $deadlineTimestamp > $assignmentWindowEnd) {
+            if ($submissionStatus !== 'Chưa nộp' || $deadlineTimestamp === false || $deadlineTimestamp < $nowTimestamp || $deadlineTimestamp > $assignmentWindowEnd) {
                 continue;
             }
 
             $upcomingAssignments[] = [
                 'title' => (string) ($assignmentRow['title'] ?? ''),
                 'class' => $className,
+                'class_id' => $classId,
                 'deadline' => $deadline !== '' ? date('d/m/Y', strtotime($deadline)) : '---',
                 'deadline_sort' => $deadlineTimestamp,
                 'left' => $submissionStatus,
                 'progress' => $scoreValue !== null && $scoreValue !== '' ? (int) min(100, round((float) $scoreValue * 10)) : 0,
                 'tone' => $palette((string) ($assignmentRow['title'] ?? '') . '|' . $classId),
                 'icon' => $submissionStatus === 'Đã nộp' ? 'fa-circle-check' : 'fa-triangle-exclamation',
+                'details_url' => page_url('classes-my-details', ['class_id' => $classId]),
             ];
         }
 
@@ -137,6 +139,7 @@ $eventCount = count($dbEvents);
 $classCount = count($myClasses);
 $assignmentCount = count($upcomingAssignments);
 $totalTuitionPercent = $totalTuitionAmount > 0 ? (int) round(($totalTuitionPaid / $totalTuitionAmount) * 100) : 0;
+$totalTuitionRemaining = max(0, $totalTuitionAmount - $totalTuitionPaid);
 $tuitionStatusLabel = $totalTuitionAmount > 0
     ? ($totalTuitionPaid >= $totalTuitionAmount ? 'Đã hoàn tất ' . $totalTuitionPercent . '%' : $totalTuitionPercent . '% đã thanh toán')
     : 'Chưa có dữ liệu học phí';
@@ -149,11 +152,12 @@ $upcomingClassCount = count($recentClassNames);
 $calendarFocusDate = $calendarFocusDate ?: date('Y-m-d');
 ?>
 
-<section class="relative min-h-screen overflow-hidden bg-[#f8fafc] py-8 px-2 sm:px-4 lg:px-6 xl:px-8">
-    <div class="absolute inset-0 z-0 opacity-[0.08] pointer-events-none" style="background-image: radial-gradient(#1e3a8a 2px, transparent 2px); background-size: 30px 30px;"></div>
-    <div class="absolute inset-x-0 top-0 z-0 h-80 bg-gradient-to-b from-blue-100/50 via-cyan-50/20 to-transparent pointer-events-none"></div>
-    <div class="absolute -right-24 top-32 z-0 h-72 w-72 rounded-full bg-blue-200/30 blur-3xl pointer-events-none"></div>
-    <div class="absolute -left-28 bottom-20 z-0 h-80 w-80 rounded-full bg-cyan-200/30 blur-3xl pointer-events-none"></div>
+<section class="relative min-h-screen overflow-hidden bg-slate-200 py-8 px-2 sm:px-4 lg:px-6 xl:px-8">
+    <div class="absolute inset-0 z-0 opacity-[0.10] pointer-events-none" style="background-image: radial-gradient(#475569 1.5px, transparent 1.5px); background-size: 24px 24px;"></div>
+    <div class="absolute inset-x-0 top-0 z-0 h-80 bg-gradient-to-b from-rose-200/75 via-slate-100/45 to-transparent pointer-events-none"></div>
+    <div class="absolute -right-24 top-24 z-0 h-72 w-72 rounded-full bg-rose-200/30 blur-3xl pointer-events-none"></div>
+    <div class="absolute -left-24 top-52 z-0 h-72 w-72 rounded-full bg-emerald-200/25 blur-3xl pointer-events-none"></div>
+    <div class="absolute left-1/2 bottom-10 z-0 h-80 w-80 -translate-x-1/2 rounded-full bg-cyan-200/20 blur-3xl pointer-events-none"></div>
 
     <div class="mx-auto w-full max-w-[1800px]">
         <div class="grid grid-cols-1 gap-8 md:grid-cols-[16rem_minmax(0,1fr)] xl:grid-cols-[17rem_minmax(0,1fr)] md:items-start">
@@ -162,9 +166,9 @@ $calendarFocusDate = $calendarFocusDate ?: date('Y-m-d');
             </aside>
             <div class="min-w-0">
                 <div class="grid grid-cols-1 gap-8 md:grid-cols-[minmax(0,1.45fr)_minmax(360px,0.9fr)] 2xl:grid-cols-[minmax(0,1.55fr)_minmax(380px,0.92fr)] md:items-start">
-                    <article class="relative overflow-hidden rounded-[2rem] border border-blue-100 bg-gradient-to-br from-white via-blue-50 to-cyan-50 p-5 shadow-2xl transition-all md:p-6">
-                    <div class="pointer-events-none absolute -top-24 -right-24 h-64 w-64 rounded-full bg-blue-200/40 blur-3xl"></div>
-                    <div class="pointer-events-none absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-cyan-200/35 blur-3xl"></div>
+                    <article class="relative overflow-hidden rounded-[2rem] border border-slate-200/90 bg-gradient-to-br from-white via-slate-50 to-rose-50/70 p-5 shadow-2xl shadow-slate-200/60 transition-all md:p-6">
+                    <div class="pointer-events-none absolute -top-24 -right-24 h-64 w-64 rounded-full bg-rose-200/30 blur-3xl"></div>
+                    <div class="pointer-events-none absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-cyan-200/25 blur-3xl"></div>
 
                     <div class="relative z-10 flex w-full flex-col gap-6">
                     <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
@@ -173,24 +177,24 @@ $calendarFocusDate = $calendarFocusDate ?: date('Y-m-d');
                                 <p class="text-[10px] font-black uppercase tracking-[0.35em] text-blue-400">Lịch học</p>
                                 <h3 id="calendar-title" class="mt-1 text-2xl md:text-3xl font-black text-slate-800 tracking-tight"></h3>
                             </div>
-                            <div class="flex gap-1 rounded-2xl border border-white/70 bg-white p-1.5 shadow-sm">
+                            <div class="flex gap-1 rounded-2xl border border-slate-200 bg-white/90 p-1.5 shadow-sm">
                                 <button onclick="changeDate(-1)" class="rounded-xl bg-white px-3 py-2 text-slate-600 transition hover:bg-blue-50 hover:text-blue-700">&larr;</button>
-                                <button onclick="resetToToday()" class="rounded-xl bg-white px-4 py-2 text-[11px] font-black uppercase tracking-widest text-slate-700 transition hover:bg-blue-50 hover:text-blue-700">Hôm nay</button>
-                                <button onclick="changeDate(1)" class="rounded-xl bg-white px-3 py-2 text-slate-600 transition hover:bg-blue-50 hover:text-blue-700">&rarr;</button>
+                                <button onclick="resetToToday()" class="rounded-xl bg-white px-4 py-2 text-[11px] font-black uppercase tracking-widest text-slate-700 transition hover:bg-emerald-50 hover:text-emerald-700">Hôm nay</button>
+                                <button onclick="changeDate(1)" class="rounded-xl bg-white px-3 py-2 text-slate-600 transition hover:bg-rose-50 hover:text-rose-700">&rarr;</button>
                             </div>
                         </div>
-                        <div class="flex rounded-2xl border border-white/70 bg-white p-1.5 shadow-sm">
+                        <div class="flex rounded-2xl border border-slate-200 bg-white/90 p-1.5 shadow-sm">
                             <button id="btn-view-month" onclick="setView('month')" class="px-5 py-2 text-xs font-black uppercase rounded-xl transition-all duration-300">Tháng</button>
                             <button id="btn-view-week" onclick="setView('week')" class="px-5 py-2 text-xs font-black uppercase rounded-xl transition-all duration-300">Tuần</button>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-7 gap-px rounded-[1.75rem] border border-blue-100 bg-white/90 overflow-hidden shadow-[0_10px_30px_rgba(37,99,235,0.08)]">
+                    <div class="grid grid-cols-7 gap-px rounded-[1.75rem] border border-slate-200 bg-white/90 overflow-hidden shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
                         <?php 
                         $weekdays = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
                         foreach ($weekdays as $day): ?>
-                            <div class="bg-gradient-to-b from-blue-100 via-white to-cyan-100 py-5 text-center text-xs md:text-sm font-black text-blue-700 uppercase tracking-[0.28em] border-b border-blue-200/80 shadow-[inset_0_-1px_0_rgba(255,255,255,0.95)]">
-                                <span class="inline-flex items-center justify-center rounded-full bg-white/90 px-3 py-1.5 shadow-sm ring-1 ring-blue-200/90 ring-offset-1 ring-offset-blue-50"><?= $day ?></span>
+                            <div class="bg-gradient-to-b from-amber-100 via-white to-rose-100 py-5 text-center text-xs md:text-sm font-black text-slate-700 uppercase tracking-[0.28em] border-b border-slate-200/80 shadow-[inset_0_-1px_0_rgba(255,255,255,0.95)]">
+                                <span class="inline-flex items-center justify-center rounded-full bg-white/95 px-3 py-1.5 shadow-sm ring-1 ring-slate-200/90 ring-offset-1 ring-offset-amber-50"><?= $day ?></span>
                             </div>
                         <?php endforeach; ?>
                         <div id="calendar-grid" class="contents"></div>
@@ -199,10 +203,10 @@ $calendarFocusDate = $calendarFocusDate ?: date('Y-m-d');
                     </article>
 
                     <aside class="space-y-6 self-start md:sticky md:top-24">
-                        <article class="bg-white rounded-3xl p-6 border border-slate-200 shadow-xl">
+                        <article class="bg-white rounded-3xl p-6 border border-slate-200 shadow-xl ring-1 ring-amber-100/70">
                     <div class="flex items-center justify-between mb-6">
                         <h3 class="text-sm font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
-                            <span class="w-2 h-2 bg-rose-500 rounded-full animate-pulse"></span>
+                            <span class="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></span>
                             Sắp diễn ra (48h)
                         </h3>
                         <span class="text-[10px] font-bold bg-slate-100 text-slate-500 px-2 py-1 rounded-full uppercase"><?= date('d/m') ?></span>
@@ -212,7 +216,7 @@ $calendarFocusDate = $calendarFocusDate ?: date('Y-m-d');
                         </div>
                 </article>
 
-                        <article class="relative overflow-hidden rounded-3xl border border-rose-100 bg-gradient-to-br from-rose-50 via-white to-amber-50 p-6 shadow-2xl shadow-rose-100/50">
+                        <article class="relative overflow-hidden rounded-3xl border border-rose-100 bg-gradient-to-br from-rose-50 via-white to-amber-50 p-6 shadow-2xl shadow-rose-100/50 ring-1 ring-rose-100/80">
                     <div class="pointer-events-none absolute -top-16 right-0 h-40 w-40 rounded-full bg-rose-200/40 blur-3xl"></div>
                     <div class="pointer-events-none absolute -bottom-12 left-10 h-32 w-32 rounded-full bg-amber-200/40 blur-3xl"></div>
 
@@ -222,13 +226,13 @@ $calendarFocusDate = $calendarFocusDate ?: date('Y-m-d');
                             <h3 class="mt-2 text-xl font-black text-slate-900">Bài tập sắp đến hạn nộp</h3>
                             <p class="mt-1 text-sm text-slate-500">Đừng để quá hạn, các bài dưới đây cần xử lý sớm.</p>
                         </div>
-                        <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-600 text-white shadow-lg shadow-rose-200 animate-pulse">
+                        <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 to-amber-500 text-white shadow-lg shadow-rose-200 animate-pulse">
                             <i class="fa-solid fa-clock text-lg"></i>
                         </div>
                     </div>
 
                     <div class="relative z-10 space-y-4">
-                        <div class="rounded-2xl bg-slate-950 px-4 py-4 text-white shadow-lg shadow-slate-900/10">
+                        <div class="rounded-2xl bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-4 py-4 text-white shadow-lg shadow-slate-900/10">
                             <div class="flex items-center justify-between gap-3">
                                 <div>
                                     <p class="text-[10px] font-black uppercase tracking-[0.3em] text-rose-300">Còn lại</p>
@@ -237,39 +241,41 @@ $calendarFocusDate = $calendarFocusDate ?: date('Y-m-d');
                                 <span class="rounded-full bg-white/10 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-rose-200"><?= $assignmentCount > 0 ? 'Sắp đến hạn' : 'Không có bài mới'; ?></span>
                             </div>
                             <div class="mt-4 h-2 overflow-hidden rounded-full bg-white/10">
-                                <div class="h-2 rounded-full bg-gradient-to-r from-rose-400 via-amber-300 to-cyan-300 animate-pulse" style="width: <?= $assignmentCount > 0 ? 100 : 18; ?>%"></div>
+                                                <div class="h-2 rounded-full bg-gradient-to-r from-blue-400 via-cyan-300 to-emerald-300 animate-pulse" style="width: <?= $assignmentCount > 0 ? 100 : 18; ?>%"></div>
                             </div>
                         </div>
 
                         <div class="space-y-3">
                             <?php foreach ($upcomingAssignments as $index => $assignment): ?>
-                                <div class="group relative overflow-hidden rounded-2xl border border-white/70 bg-white/90 p-4 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
-                                    <div class="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100" style="background: linear-gradient(135deg, rgba(255,255,255,0.65), rgba(255,255,255,0));"></div>
-                                    <div class="relative z-10 flex items-start gap-4">
-                                        <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-<?= $assignment['tone'] === 'rose' ? 'rose' : ($assignment['tone'] === 'amber' ? 'amber' : 'blue') ?>-100 text-<?= $assignment['tone'] === 'rose' ? 'rose' : ($assignment['tone'] === 'amber' ? 'amber' : 'blue') ?>-600 shadow-inner">
+                                <a href="<?= e((string) ($assignment['details_url'] ?? page_url('classes-my-details', ['class_id' => (int) ($assignment['class_id'] ?? 0)]))); ?>" class="group relative block overflow-hidden rounded-3xl border border-slate-200/70 bg-white/90 p-4 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl sm:p-5 focus:outline-none focus:ring-2 focus:ring-rose-300 focus:ring-offset-2 focus:ring-offset-rose-50">
+                                    <div class="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100" style="background: linear-gradient(135deg, rgba(255,255,255,0.7), rgba(255,255,255,0));"></div>
+                                    <div class="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-4">
+                                        <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-<?= $assignment['tone'] === 'rose' ? 'rose' : ($assignment['tone'] === 'amber' ? 'amber' : ($assignment['tone'] === 'emerald' ? 'emerald' : 'blue')) ?>-100 text-<?= $assignment['tone'] === 'rose' ? 'rose' : ($assignment['tone'] === 'amber' ? 'amber' : ($assignment['tone'] === 'emerald' ? 'emerald' : 'blue')) ?>-600 shadow-inner">
                                             <i class="fa-solid <?= e($assignment['icon']); ?>"></i>
                                         </div>
                                         <div class="min-w-0 flex-1">
-                                            <div class="flex items-start justify-between gap-3">
-                                                <div>
-                                                    <h4 class="truncate text-sm font-black text-slate-800"><?= e($assignment['title']); ?></h4>
-                                                    <p class="mt-1 text-xs font-medium text-slate-500"><?= e($assignment['class']); ?></p>
+                                            <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                                                <div class="min-w-0 flex-1">
+                                                    <h4 class="text-sm font-black leading-snug text-slate-800 break-words whitespace-normal"><?= e($assignment['title']); ?></h4>
+                                                    <p class="mt-1 text-xs font-medium text-slate-500 break-words whitespace-normal"><?= e($assignment['class']); ?></p>
                                                 </div>
-                                                <span class="shrink-0 rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-widest <?= $assignment['tone'] === 'rose' ? 'bg-rose-100 text-rose-700' : ($assignment['tone'] === 'amber' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700') ?>"><?= e($assignment['left']); ?></span>
+                                                <span class="inline-flex w-fit shrink-0 rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-widest <?= $assignment['tone'] === 'rose' ? 'bg-rose-100 text-rose-700' : ($assignment['tone'] === 'amber' ? 'bg-amber-100 text-amber-700' : ($assignment['tone'] === 'emerald' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700')) ?>"><?= e($assignment['left']); ?></span>
                                             </div>
 
-                                            <div class="mt-3">
+                                            <div class="mt-4 rounded-2xl bg-slate-50/80 p-3">
                                                 <div class="mb-1 flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-slate-400">
                                                     <span>Hoàn thành</span>
                                                     <span><?= (int) $assignment['progress']; ?>%</span>
                                                 </div>
-                                                <div class="h-2 rounded-full bg-slate-100">
-                                                    <div class="h-2 rounded-full bg-gradient-to-r from-<?= e($assignment['tone']); ?>-500 to-amber-400 shadow-[0_0_20px_rgba(251,146,60,0.25)]" style="width: <?= (int) $assignment['progress']; ?>%"></div>
+                                                <div class="h-2.5 rounded-full bg-slate-100">
+                                                    <div class="h-2.5 rounded-full bg-gradient-to-r from-<?= e($assignment['tone'] === 'blue' ? 'indigo' : $assignment['tone']); ?>-500 to-amber-400 shadow-[0_0_20px_rgba(251,146,60,0.25)]" style="width: <?= (int) $assignment['progress']; ?>%"></div>
                                                 </div>
                                             </div>
 
-                                            <div class="mt-3 flex items-center justify-between gap-3 text-[11px] font-semibold text-slate-500">
-                                                <span>Deadline: <strong class="text-slate-700"><?= e($assignment['deadline']); ?></strong></span>
+                                            <div class="mt-3 flex flex-wrap items-center gap-2 text-[11px] font-semibold text-slate-500">
+                                                <span class="inline-flex items-center rounded-full bg-slate-50 px-2.5 py-1">
+                                                    Deadline: <strong class="ml-1 text-slate-700"><?= e($assignment['deadline']); ?></strong>
+                                                </span>
                                                 <span class="inline-flex items-center gap-1 rounded-full bg-slate-50 px-2.5 py-1 text-slate-500">
                                                     <span class="h-2 w-2 rounded-full bg-<?= $assignment['tone'] === 'rose' ? 'rose' : ($assignment['tone'] === 'amber' ? 'amber' : 'blue') ?>-500 animate-pulse"></span>
                                                     <?= $index === 0 ? 'Ưu tiên cao' : 'Đang theo dõi'; ?>
@@ -277,20 +283,31 @@ $calendarFocusDate = $calendarFocusDate ?: date('Y-m-d');
                                             </div>
                                         </div>
                                     </div>
-                                </div>
+                                </a>
                             <?php endforeach; ?>
                         </div>
                     </div>
                         </article>
 
-                        <div class="bg-blue-600 rounded-3xl p-6 text-white shadow-lg shadow-blue-200 overflow-hidden relative group">
+                        <div class="bg-gradient-to-br from-slate-900 via-indigo-900 to-emerald-900 rounded-3xl p-6 text-white shadow-lg shadow-slate-300 overflow-hidden relative group ring-1 ring-slate-200/40">
                     <div class="relative z-10">
-                        <p class="text-blue-100 text-xs font-bold uppercase tracking-widest mb-1">Trạng thái học phí</p>
-                        <h4 class="text-xl font-black mb-4"><?= e($tuitionStatusLabel); ?></h4>
-                        <div class="w-full bg-blue-500 rounded-full h-1.5 mb-2"><div class="bg-white h-1.5 rounded-full" style="width: <?= $totalTuitionAmount > 0 ? $totalTuitionPercent : 0; ?>%"></div></div>
-                        <p class="text-[10px] text-blue-100 font-medium italic"><?= e($tuitionStatusNote); ?></p>
+                        <p class="text-indigo-100 text-xs font-bold uppercase tracking-widest mb-1">Học phí khóa học</p>
+                        <h4 class="text-xl font-black mb-2"><?= number_format($totalTuitionPaid); ?> <span class="text-sm font-semibold text-blue-100">/ <?= number_format($totalTuitionAmount); ?> đ</span></h4>
+                        <p class="text-[11px] text-indigo-100 font-medium mb-4">Còn lại <?= number_format($totalTuitionRemaining); ?> đ, tương đương <?= 100 - $totalTuitionPercent; ?>% chưa thanh toán.</p>
+                        <div class="mb-2 flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-indigo-100/90">
+                            <span>Tiến độ thanh toán</span>
+                            <span><?= $totalTuitionPercent; ?>%</span>
+                        </div>
+                        <div class="h-3 overflow-hidden rounded-full bg-white/20 shadow-inner">
+                            <div class="h-3 rounded-full bg-gradient-to-r from-amber-300 via-rose-300 to-cyan-200 transition-all" style="width: <?= $totalTuitionAmount > 0 ? $totalTuitionPercent : 0; ?>%"></div>
+                        </div>
+                        <div class="mt-3 flex items-center justify-between text-[11px] font-semibold text-indigo-100">
+                            <span>Đã đóng: <?= number_format($totalTuitionPaid); ?> đ</span>
+                            <span>Còn lại: <?= number_format($totalTuitionRemaining); ?> đ</span>
+                        </div>
+                        <p class="mt-3 text-[10px] text-indigo-100 font-medium italic"><?= e($tuitionStatusNote); ?></p>
                     </div>
-                    <svg class="absolute -bottom-4 -right-4 w-24 h-24 text-blue-500 opacity-50 transform rotate-12 group-hover:scale-110 transition" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                    <svg class="absolute -bottom-4 -right-4 w-24 h-24 text-amber-300 opacity-40 transform rotate-12 group-hover:scale-110 transition" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
                         </div>
                     </aside>
                 </div>
@@ -316,11 +333,11 @@ $calendarFocusDate = $calendarFocusDate ?: date('Y-m-d');
                 <p id="tooltip-room" class="text-xs font-bold text-slate-700"></p>
             </div>
         </div>
-        <div class="mt-3 rounded-2xl border border-blue-100 bg-blue-50/60 p-3">
-            <p class="text-[10px] uppercase font-bold text-blue-400 tracking-wider">Buổi học</p>
+        <div class="mt-3 rounded-2xl border border-amber-100 bg-amber-50/70 p-3">
+            <p class="text-[10px] uppercase font-bold text-amber-500 tracking-wider">Buổi học</p>
             <p id="tooltip-lesson-title" class="mt-1 text-xs font-black text-slate-800"></p>
             <p id="tooltip-lesson-content" class="mt-1 text-[11px] leading-relaxed text-slate-600"></p>
-            <p id="tooltip-material" class="mt-2 text-[11px] font-semibold text-blue-700"></p>
+            <p id="tooltip-material" class="mt-2 text-[11px] font-semibold text-emerald-700"></p>
         </div>
     </div>
 </section>
