@@ -58,6 +58,10 @@ function api_tuitions_save_action(): void
 	$id = input_int($_POST, 'id');
 	$paymentPlan = input_string($_POST, 'payment_plan', 'full');
 	$packageId = max(0, input_int($_POST, 'package_id'));
+	$monthlyMonths = input_int($_POST, 'monthly_months');
+	$monthlyStartMonth = input_string($_POST, 'monthly_start_month');
+	$monthlyEndMonth = input_string($_POST, 'monthly_end_month');
+	$monthlyPaymentDay = input_int($_POST, 'monthly_payment_day');
 	$academicModel = new AcademicModel();
 
 	if ($id <= 0) {
@@ -125,6 +129,10 @@ function api_tuitions_save_action(): void
 		'base_amount' => $baseAmount,
 		'discount_type' => $discountType,
 		'discount_amount' => $discountPercent,
+		'monthly_months' => $monthlyMonths,
+		'monthly_start_month' => $monthlyStartMonth,
+		'monthly_end_month' => $monthlyEndMonth,
+		'monthly_payment_day' => $monthlyPaymentDay,
 	]);
 
 	set_flash('success', 'Đã cập nhật học phí thành công.');
@@ -204,8 +212,8 @@ function api_tuitions_register_course_action(): void
 		}
 
 		$endDate = (clone $startDate)->modify('+' . ($monthlyMonths - 1) . ' months');
-		$normalizedMonthlyStart = $startDate->format('Y-m-01');
-		$normalizedMonthlyEnd = $endDate->format('Y-m-01');
+		$normalizedMonthlyStart = $startDate->format('Y-m');
+		$normalizedMonthlyEnd = $endDate->format('Y-m');
 		$normalizedMonthlyMonths = $monthlyMonths;
 
 		if ($monthlyEndMonth !== '' && preg_match('/^\d{4}-\d{2}$/', $monthlyEndMonth)) {
@@ -220,8 +228,8 @@ function api_tuitions_register_course_action(): void
 		}
 		$normalizedMonthlyPaymentDay = $monthlyPaymentDay;
 		$registrationFormPayload['monthly_months'] = $normalizedMonthlyMonths;
-		$registrationFormPayload['monthly_start_month'] = $startDate->format('Y-m');
-		$registrationFormPayload['monthly_end_month'] = $endDate->format('Y-m');
+		$registrationFormPayload['monthly_start_month'] = $normalizedMonthlyStart;
+		$registrationFormPayload['monthly_end_month'] = $normalizedMonthlyEnd;
 		$registrationFormPayload['monthly_payment_day'] = $normalizedMonthlyPaymentDay;
 	}
 

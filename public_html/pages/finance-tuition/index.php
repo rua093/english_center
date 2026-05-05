@@ -83,6 +83,73 @@ if (!empty($_GET['edit'])) {
 
 $highlightTuitionId = (int) ($_GET['highlight_tuition_id'] ?? 0);
 
+$today = new DateTimeImmutable('today');
+$currentMonth = $today->format('Y-m');
+$currentDay = (int) $today->format('j');
+$daysInMonth = (int) $today->format('t');
+
+$normalizeMonthValue = static function (?string $value): string {
+    $value = trim((string) $value);
+    if ($value === '') {
+        return '';
+    }
+
+    if (preg_match('/^(\d{4}-\d{2})/', $value, $matches)) {
+        return $matches[1];
+    }
+
+    return $value;
+};
+
+$monthlyStatusLabel = function (array $fee) use ($currentMonth, $currentDay, $daysInMonth, $normalizeMonthValue): string {
+    $plan = (string) ($fee['payment_plan'] ?? '');
+    if ($plan !== 'monthly') {
+        return '-';
+    }
+
+    $totalAmount = (float) ($fee['total_amount'] ?? 0);
+    $amountPaid = (float) ($fee['amount_paid'] ?? 0);
+    if ($totalAmount > 0 && $amountPaid >= $totalAmount) {
+        return 'Đã đủ';
+    }
+
+    $startMonth = $normalizeMonthValue((string) ($fee['monthly_start_month'] ?? ''));
+    $endMonth = $normalizeMonthValue((string) ($fee['monthly_end_month'] ?? ''));
+    $paymentDay = (int) ($fee['monthly_payment_day'] ?? 0);
+
+    if ($startMonth !== '' && $currentMonth < $startMonth) {
+        return 'Chưa tới kỳ';
+    }
+
+    if ($endMonth !== '' && $currentMonth > $endMonth) {
+        return 'Trễ hạn';
+    }
+
+    if ($paymentDay <= 0) {
+        return 'Chưa đặt ngày';
+    }
+
+    $effectiveDay = min($paymentDay, $daysInMonth);
+    if ($currentDay > $effectiveDay) {
+        return 'Trễ hạn';
+    }
+
+    if ($currentDay === $effectiveDay) {
+        return 'Đến hạn';
+    }
+
+    return 'Chưa tới kỳ';
+};
+
+$monthlyStatusClass = function (string $label): string {
+    return match ($label) {
+        'Trễ hạn' => 'text-rose-700',
+        'Đến hạn' => 'text-amber-700',
+        'Đã đủ' => 'text-emerald-700',
+        default => 'text-slate-500',
+    };
+};
+
 $editingClassId = (int) ($editingTuition['class_id'] ?? 0);
 $editingStudentId = (int) ($editingTuition['student_id'] ?? 0);
 $editingPackageId = max(0, (int) ($editingTuition['package_id'] ?? 0));
@@ -93,6 +160,12 @@ $editingClassName = (string) ($editingClass['class_name'] ?? '');
 $editingCourseName = (string) ($editingClass['course_name'] ?? '');
 $editingStudentName = $editingStudentId > 0 ? ($studentNameMap[$editingStudentId] ?? ('Học viên #' . $editingStudentId)) : '';
 $studentOptionsForSelectedClass = $editingClassId > 0 ? ($classStudentMap[$editingClassId] ?? []) : [];
+$editingMonthlyStart = $normalizeMonthValue((string) ($editingTuition['monthly_start_month'] ?? ''));
+$editingMonthlyEnd = $normalizeMonthValue((string) ($editingTuition['monthly_end_month'] ?? ''));
+$editingMonthlyDay = (int) ($editingTuition['monthly_payment_day'] ?? 0);
+$editingMonthlyMonths = (int) ($editingTuition['monthly_months'] ?? 0);
+$editingMonthlyStatus = $editingTuition ? $monthlyStatusLabel($editingTuition) : '-';
+$editingIsMonthly = (($editingTuition['payment_plan'] ?? 'full') === 'monthly');
 
 if ($editingClassId > 0 && $editingStudentId > 0) {
     $hasEditingStudent = false;
@@ -228,7 +301,7 @@ $error = get_flash('error');
     <?php endif; ?>
 
     <?php if ($canUpdateTuition && $editingTuition): ?>
-        <div class="hidden" aria-hidden="true">
+        <div>
             <form class="grid gap-3 md:grid-cols-2" method="post" action="/api/tuitions/save">
                 <?= csrf_input(); ?>
                 <input type="hidden" name="id" value="<?= (int) ($editingTuition['id'] ?? 0); ?>">
@@ -261,11 +334,37 @@ $error = get_flash('error');
                 </label>
                 <label>
                     Chế độ đóng
-                    <select name="payment_plan">
+                    <select
+                        name="payment_plan"
+                        id="tuition-payment-plan-select"
+                        data-tuition-payment-plan="1"
+                        onchange="window.toggleTuitionMonthlyFields && window.toggleTuitionMonthlyFields(this.form); window.updateTuitionEditPreview && window.updateTuitionEditPreview(this.form);"
+                    >
                         <option value="full" <?= (($editingTuition['payment_plan'] ?? 'full') === 'full') ? 'selected' : ''; ?>>Đóng một lần (full)</option>
                         <option value="monthly" <?= (($editingTuition['payment_plan'] ?? '') === 'monthly') ? 'selected' : ''; ?>>Đóng theo tháng (monthly)</option>
                     </select>
                 </label>
+                <div id="tuition-monthly-fields" data-tuition-monthly="1" class="md:col-span-2 <?= $editingIsMonthly ? '' : 'hidden'; ?> rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-4">
+                    <div class="grid gap-3 md:grid-cols-2">
+                        <label>
+                            Số tháng đóng
+                            <input type="number" min="1" step="1" name="monthly_months" value="<?= e((string) $editingMonthlyMonths); ?>" <?= $editingIsMonthly ? '' : 'disabled'; ?>>
+                        </label>
+                        <label>
+                            Từ tháng
+                            <input type="month" name="monthly_start_month" value="<?= e($editingMonthlyStart); ?>" <?= $editingIsMonthly ? '' : 'disabled'; ?>>
+                        </label>
+                        <label>
+                            Đến tháng
+                            <input type="month" name="monthly_end_month" value="<?= e($editingMonthlyEnd); ?>" <?= $editingIsMonthly ? '' : 'disabled'; ?>>
+                        </label>
+                        <label>
+                            Ngày đóng hàng tháng
+                            <input type="number" min="1" max="31" step="1" name="monthly_payment_day" value="<?= e($editingMonthlyDay > 0 ? (string) $editingMonthlyDay : ''); ?>" <?= $editingIsMonthly ? '' : 'disabled'; ?>>
+                        </label>
+                        <p class="md:col-span-2 text-xs text-slate-500">Chỉ dùng khi chọn chế độ <strong>monthly</strong>. Nếu chuyển sang <strong>full</strong>, các field này sẽ được ẩn và không gửi lên server.</p>
+                    </div>
+                </div>
                 <label>
                     Ưu đãi áp dụng
                     <select
@@ -371,7 +470,7 @@ $error = get_flash('error');
             >Hiển thị <?= (int) count($tuitionFees); ?> / <?= (int) $tuitionTotal; ?> dòng</span>
         </div>
         <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
-            <table class="min-w-full border-collapse text-sm" data-disable-global-filter="1">
+            <table class="min-w-full border-collapse text-sm" data-disable-global-filter="1" data-disable-row-detail="1">
                 <thead>
                     <tr>
                         <th>Mã HV</th>
@@ -383,18 +482,20 @@ $error = get_flash('error');
                         <th>Còn lại</th>
                         <th>Trạng thái</th>
                         <th>Chế độ đóng</th>
+                        <th>Trễ hạn</th>
                         <th>Hành động</th>
                     </tr>
                 </thead>
                 <tbody data-ajax-tbody="1">
                     <?php if (empty($tuitionFees)): ?>
                         <tr>
-                            <td colspan="10">
+                            <td colspan="11">
                                 <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">Chưa có dữ liệu học phí.</div>
                             </td>
                         </tr>
                     <?php else: ?>
                         <?php foreach ($tuitionFees as $fee): ?>
+                            <?php $monthlyStatus = $monthlyStatusLabel($fee); ?>
                             <tr data-tuition-id="<?= (int) $fee['id']; ?>">
                                 <td><?= e((string) ($fee['student_code'] ?? '-')); ?></td>
                                 <td><?= e((string) ($fee['full_name'] ?? 'Học viên')); ?></td>
@@ -405,6 +506,13 @@ $error = get_flash('error');
                                 <td><?= format_money((float) ($fee['total_amount'] - $fee['amount_paid'])); ?></td>
                                 <td><span class="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-bold capitalize is-<?= e((string) $fee['status']); ?>"><?= e((string) $fee['status']); ?></span></td>
                                 <td><?= e((string) ($fee['payment_plan'] ?? 'full')); ?></td>
+                                <td>
+                                    <?php if ($monthlyStatus === '-'): ?>
+                                        <span class="text-slate-400">-</span>
+                                    <?php else: ?>
+                                        <span class="text-xs font-semibold <?= e($monthlyStatusClass($monthlyStatus)); ?>"><?= e($monthlyStatus); ?></span>
+                                    <?php endif; ?>
+                                </td>
                                 <td>
                                     <div class="inline-flex flex-wrap items-center gap-2">
                                         <?php if ($canUpdateTuition): ?>
@@ -558,6 +666,26 @@ $error = get_flash('error');
 
 <script>
     (function () {
+        window.toggleTuitionMonthlyFields = function (scope) {
+            const root = scope instanceof HTMLFormElement || scope instanceof HTMLElement ? scope : document;
+            const paymentPlanSelect = root.querySelector('#tuition-payment-plan-select')
+                || root.querySelector('select[name="payment_plan"]');
+            const monthlyFields = root.querySelector('#tuition-monthly-fields')
+                || root.querySelector('[data-tuition-monthly="1"]');
+
+            if (!(paymentPlanSelect instanceof HTMLSelectElement) || !(monthlyFields instanceof HTMLElement)) {
+                return;
+            }
+
+            const isMonthly = paymentPlanSelect.value === 'monthly';
+            monthlyFields.classList.toggle('hidden', !isMonthly);
+            monthlyFields.querySelectorAll('input, select, textarea').forEach((field) => {
+                if (field instanceof HTMLInputElement || field instanceof HTMLSelectElement || field instanceof HTMLTextAreaElement) {
+                    field.disabled = !isMonthly;
+                }
+            });
+        };
+
         window.updateTuitionEditPreview = function (scope) {
             const root = scope instanceof HTMLFormElement || scope instanceof HTMLElement ? scope : document;
             const packageSelect = root.querySelector('#tuition-package-select');
@@ -568,6 +696,8 @@ $error = get_flash('error');
             if (!(packageSelect instanceof HTMLSelectElement) || !(totalAmountInput instanceof HTMLInputElement) || !(statusInput instanceof HTMLInputElement)) {
                 return;
             }
+
+            window.toggleTuitionMonthlyFields(root);
 
             const baseAmount = Number(packageSelect.dataset.baseAmount || 0);
             const amountPaid = amountPaidInput instanceof HTMLInputElement ? Number(amountPaidInput.value || 0) : 0;
@@ -581,7 +711,33 @@ $error = get_flash('error');
             statusInput.value = status;
         };
 
-        window.updateTuitionEditPreview(document);
+        document.addEventListener('change', function (event) {
+            const target = event.target;
+            if (!(target instanceof HTMLElement)) {
+                return;
+            }
+
+            if (target.matches('#tuition-payment-plan-select')) {
+                const scope = target.closest('form') || document;
+                window.toggleTuitionMonthlyFields(scope);
+                window.updateTuitionEditPreview(scope);
+                return;
+            }
+
+            if (target.matches('#tuition-package-select, #tuition-amount-paid')) {
+                const scope = target.closest('form') || document;
+                window.updateTuitionEditPreview(scope);
+            }
+        });
+
+        document.querySelectorAll('#tuition-payment-plan-select, select[name="payment_plan"]').forEach(function (select) {
+            if (!(select instanceof HTMLSelectElement)) {
+                return;
+            }
+            const scope = select.closest('form') || document;
+            window.toggleTuitionMonthlyFields(scope);
+            window.updateTuitionEditPreview(scope);
+        });
     })();
 </script>
 

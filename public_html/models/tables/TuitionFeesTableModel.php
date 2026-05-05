@@ -5,6 +5,24 @@ require_once __DIR__ . '/BaseTableModel.php';
 
 final class TuitionFeesTableModel extends BaseTableModel
 {
+    private function normalizeMonthValue(mixed $value): ?string
+    {
+        $value = trim((string) $value);
+        if ($value === '') {
+            return null;
+        }
+
+        if (preg_match('/^(\d{4}-\d{2})$/', $value, $matches)) {
+            return $matches[1] . '-01';
+        }
+
+        if (preg_match('/^(\d{4}-\d{2}-\d{2})$/', $value, $matches)) {
+            return $matches[1];
+        }
+
+        return $value;
+    }
+
     private function detailedFromSql(): string
     {
         return " FROM tuition_fees t
@@ -84,6 +102,7 @@ final class TuitionFeesTableModel extends BaseTableModel
     public function listDetailed(): array
     {
         $sql = "SELECT t.id, t.student_id, t.class_id, t.package_id, t.discount_amount, t.total_amount, t.amount_paid, t.payment_plan, t.status,
+            t.monthly_start_month, t.monthly_end_month, t.monthly_payment_day,
                 NULL AS due_date, u.full_name AS full_name, sp.student_code, c.class_name AS class_name, co.course_name
             FROM tuition_fees t
             INNER JOIN users u ON u.id = t.student_id
@@ -99,6 +118,7 @@ final class TuitionFeesTableModel extends BaseTableModel
         $pagination = $this->pagination($page, $perPage, 10, 200);
         $params = [];
         $sql = "SELECT t.id, t.student_id, t.class_id, t.package_id, t.discount_amount, t.total_amount, t.amount_paid, t.payment_plan, t.status,
+            t.monthly_start_month, t.monthly_end_month, t.monthly_payment_day,
                 NULL AS due_date, u.full_name AS full_name, sp.student_code, c.class_name AS class_name, co.course_name" .
             $this->detailedFromSql() .
             $this->searchWhereClause($searchQuery, $filters, $params) .
@@ -138,6 +158,11 @@ final class TuitionFeesTableModel extends BaseTableModel
             $paymentPlan = 'full';
         }
 
+        $monthlyMonths = $paymentPlan === 'monthly' ? max(1, (int) ($data['monthly_months'] ?? 0)) : null;
+        $monthlyStartMonth = $paymentPlan === 'monthly' ? $this->normalizeMonthValue($data['monthly_start_month'] ?? null) : null;
+        $monthlyEndMonth = $paymentPlan === 'monthly' ? $this->normalizeMonthValue($data['monthly_end_month'] ?? null) : null;
+        $monthlyPaymentDay = $paymentPlan === 'monthly' ? max(1, (int) ($data['monthly_payment_day'] ?? 0)) : null;
+
         if ($id > 0) {
             $current = $this->findForEdit($id);
             if (!$current) {
@@ -173,6 +198,10 @@ final class TuitionFeesTableModel extends BaseTableModel
                      discount_amount = :discount_amount,
                      total_amount = :total_amount,
                      payment_plan = :payment_plan,
+                     monthly_months = :monthly_months,
+                     monthly_start_month = :monthly_start_month,
+                     monthly_end_month = :monthly_end_month,
+                     monthly_payment_day = :monthly_payment_day,
                      status = :status
                  WHERE id = :id',
                 [
@@ -183,6 +212,10 @@ final class TuitionFeesTableModel extends BaseTableModel
                     'discount_amount' => round($storedDiscountAmount, 2),
                     'total_amount' => $totalAmount,
                     'payment_plan' => $paymentPlan,
+                    'monthly_months' => $monthlyMonths,
+                    'monthly_start_month' => $monthlyStartMonth !== '' ? $monthlyStartMonth : null,
+                    'monthly_end_month' => $monthlyEndMonth !== '' ? $monthlyEndMonth : null,
+                    'monthly_payment_day' => $monthlyPaymentDay,
                     'status' => $status,
                 ]
             );
@@ -198,10 +231,12 @@ final class TuitionFeesTableModel extends BaseTableModel
         $this->executeStatement(
             'INSERT INTO tuition_fees (
                 student_id, class_id, package_id, base_amount, discount_type, discount_amount,
-                total_amount, amount_paid, payment_plan, status
+                total_amount, amount_paid, payment_plan, status,
+                monthly_months, monthly_start_month, monthly_end_month, monthly_payment_day
              ) VALUES (
                 :student_id, :class_id, :package_id, :base_amount, :discount_type, :discount_amount,
-                :total_amount, :amount_paid, :payment_plan, :status
+                :total_amount, :amount_paid, :payment_plan, :status,
+                :monthly_months, :monthly_start_month, :monthly_end_month, :monthly_payment_day
              )',
             [
                 'student_id' => $studentId,
@@ -214,6 +249,10 @@ final class TuitionFeesTableModel extends BaseTableModel
                 'amount_paid' => $amountPaid,
                 'payment_plan' => $paymentPlan,
                 'status' => $status,
+                'monthly_months' => $monthlyMonths,
+                'monthly_start_month' => $monthlyStartMonth !== '' ? $monthlyStartMonth : null,
+                'monthly_end_month' => $monthlyEndMonth !== '' ? $monthlyEndMonth : null,
+                'monthly_payment_day' => $monthlyPaymentDay,
             ]
         );
     }
@@ -300,8 +339,8 @@ final class TuitionFeesTableModel extends BaseTableModel
         $totalAmount = max(0, round($baseAmount - $appliedDiscount, 2));
 
         $monthlyMonthsValue = $paymentPlan === 'monthly' ? max(1, $monthlyMonths) : null;
-        $monthlyStartValue = $paymentPlan === 'monthly' ? $monthlyStartMonth : null;
-        $monthlyEndValue = $paymentPlan === 'monthly' ? $monthlyEndMonth : null;
+        $monthlyStartValue = $paymentPlan === 'monthly' ? $this->normalizeMonthValue($monthlyStartMonth) : null;
+        $monthlyEndValue = $paymentPlan === 'monthly' ? $this->normalizeMonthValue($monthlyEndMonth) : null;
         $monthlyPaymentDayValue = $paymentPlan === 'monthly' ? max(1, $monthlyPaymentDay) : null;
 
         $this->executeStatement(
