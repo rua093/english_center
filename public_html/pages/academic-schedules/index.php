@@ -29,6 +29,15 @@ if ($currentUserRole === 'teacher' && $currentUserId > 0) {
     }));
 }
 
+$classTeacherMap = [];
+foreach ((array) ($lookups['classes'] ?? []) as $classRow) {
+    $classId = (int) ($classRow['id'] ?? 0);
+    $teacherId = (int) ($classRow['teacher_id'] ?? 0);
+    if ($classId > 0 && $teacherId > 0) {
+        $classTeacherMap[$classId] = $teacherId;
+    }
+}
+
 $scheduleTotal = $academicModel->countSchedules($currentUserRole === 'teacher' ? $currentUserId : 0, $searchQuery);
 $scheduleTotalPages = max(1, (int) ceil($scheduleTotal / $schedulePerPage));
 if ($schedulePage > $scheduleTotalPages) {
@@ -97,6 +106,8 @@ $nextWeekStart = $weekStartDate->modify('+7 days')->format('Y-m-d');
 $weekRefValue = $weekStartDate->format('o-\WW');
 $prevWeekRef = $weekStartDate->modify('-7 days')->format('o-\WW');
 $nextWeekRef = $weekStartDate->modify('+7 days')->format('o-\WW');
+$todayDateValue = (new DateTimeImmutable('today'))->format('Y-m-d');
+$currentTimeValue = (new DateTimeImmutable('now'))->format('H:i:s');
 
 $weekDayLabels = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'Chủ nhật'];
 $weekDays = [];
@@ -179,7 +190,7 @@ $scheduleConflictDataset = array_map(static function (array $schedule): array {
                 <input type="hidden" name="id" value="<?= (int) ($editingSchedule['id'] ?? 0); ?>">
                 <label>
                     Lớp học
-                    <select name="class_id" required>
+                    <select name="class_id" required data-class-select="1">
                         <?php foreach ($lookups['classes'] as $class): ?>
                             <option value="<?= (int) $class['id']; ?>" <?= (int) ($editingSchedule['class_id'] ?? 0) === (int) $class['id'] ? 'selected' : ''; ?>><?= e((string) $class['class_name']); ?></option>
                         <?php endforeach; ?>
@@ -195,7 +206,7 @@ $scheduleConflictDataset = array_map(static function (array $schedule): array {
                 </label>
                 <label>
                     Giáo viên
-                    <select name="teacher_id" required>
+                    <select name="teacher_id" required data-teacher-select="1">
                         <?php foreach ($lookups['teachers'] as $teacher): ?>
                             <option value="<?= (int) $teacher['id']; ?>" <?= (int) ($editingSchedule['teacher_id'] ?? 0) === (int) $teacher['id'] ? 'selected' : ''; ?>><?= e(teacher_dropdown_label($teacher)); ?></option>
                         <?php endforeach; ?>
@@ -218,23 +229,23 @@ $scheduleConflictDataset = array_map(static function (array $schedule): array {
         </article>
         <?php endif; ?>
 
-        <article class="order-1 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm" data-weekly-card="1">
+        <article class="order-1 rounded-3xl border border-slate-200 bg-gradient-to-b from-white via-slate-50/70 to-white p-5 shadow-sm" data-weekly-card="1">
             <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
                 <div>
-                    <h3>Thời khóa biểu tuần</h3>
-                    <p class="text-xs text-slate-500">Từ <?= e($weekStartDate->format('d/m/Y')); ?> đến <?= e($weekEndDate->format('d/m/Y')); ?></p>
+                    <h3 class="text-slate-900">Thời khóa biểu tuần</h3>
+                    <p class="text-xs font-medium text-slate-500">Từ <?= e($weekStartDate->format('d/m/Y')); ?> đến <?= e($weekEndDate->format('d/m/Y')); ?></p>
                 </div>
                 <div class="flex flex-wrap items-center gap-1.5">
-                    <a class="inline-flex h-8 items-center rounded-md border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700" data-week-nav-link="1" href="<?= e(page_url('schedules-academic', ['week_start' => $prevWeekStart, 'week_ref' => $prevWeekRef, 'schedule_page' => $schedulePage, 'schedule_per_page' => $schedulePerPage])); ?>">Tuần trước</a>
-                    <span class="inline-flex h-8 items-center rounded-md border border-slate-200 bg-slate-50 px-3 text-xs font-semibold text-slate-700"><?= e($weekStartDate->format('d/m')); ?> - <?= e($weekEndDate->format('d/m')); ?></span>
-                    <a class="inline-flex h-8 items-center rounded-md border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700" data-week-nav-link="1" href="<?= e(page_url('schedules-academic', ['week_start' => $nextWeekStart, 'week_ref' => $nextWeekRef, 'schedule_page' => $schedulePage, 'schedule_per_page' => $schedulePerPage])); ?>">Tuần sau</a>
-                    <form class="inline-flex items-center gap-1.5 rounded-md border border-slate-300 bg-white px-2 py-1" method="get" action="<?= e(page_url('schedules-academic')); ?>" data-week-picker-form="1">
+                    <a class="inline-flex h-9 items-center rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-sky-400 hover:bg-sky-50 hover:text-sky-700" data-week-nav-link="1" href="<?= e(page_url('schedules-academic', ['week_start' => $prevWeekStart, 'week_ref' => $prevWeekRef, 'schedule_page' => $schedulePage, 'schedule_per_page' => $schedulePerPage])); ?>">Tuần trước</a>
+                    <span class="inline-flex h-9 items-center rounded-xl border border-slate-300 bg-slate-100 px-3 text-xs font-semibold text-slate-700 shadow-sm"><?= e($weekStartDate->format('d/m')); ?> - <?= e($weekEndDate->format('d/m')); ?></span>
+                    <a class="inline-flex h-9 items-center rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-sky-400 hover:bg-sky-50 hover:text-sky-700" data-week-nav-link="1" href="<?= e(page_url('schedules-academic', ['week_start' => $nextWeekStart, 'week_ref' => $nextWeekRef, 'schedule_page' => $schedulePage, 'schedule_per_page' => $schedulePerPage])); ?>">Tuần sau</a>
+                    <form class="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-2 py-1 shadow-sm" method="get" action="<?= e(page_url('schedules-academic')); ?>" data-week-picker-form="1">
                         <input type="hidden" name="page" value="schedules-academic">
                         <input type="hidden" name="schedule_page" value="<?= (int) $schedulePage; ?>">
                         <input type="hidden" name="schedule_per_page" value="<?= (int) $schedulePerPage; ?>">
                         <label class="text-[11px] font-semibold text-slate-600" for="schedule-week-picker">Chọn tuần</label>
-                        <input id="schedule-week-picker" type="week" name="week_ref" value="<?= e($weekRefValue); ?>" class="h-7 rounded-md border border-slate-300 bg-white px-2 text-xs font-semibold text-slate-700">
-                        <button type="submit" class="inline-flex h-7 items-center rounded-md border border-slate-300 bg-slate-50 px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700">Xem</button>
+                        <input id="schedule-week-picker" type="week" name="week_ref" value="<?= e($weekRefValue); ?>" class="h-8 rounded-lg border border-slate-300 bg-white px-2 text-xs font-semibold text-slate-700">
+                        <button type="submit" class="inline-flex h-8 items-center rounded-lg border border-slate-300 bg-slate-50 px-2.5 text-xs font-semibold text-slate-700 transition hover:border-sky-400 hover:bg-sky-50 hover:text-sky-700">Xem</button>
                     </form>
                 </div>
             </div>
@@ -242,16 +253,23 @@ $scheduleConflictDataset = array_map(static function (array $schedule): array {
             <?php if (empty($weekTimeSlots)): ?>
                 <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">Không có lịch dạy trong tuần này.</div>
             <?php else: ?>
-                <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+                <div class="overflow-x-auto rounded-3xl border border-slate-400 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.05)]">
                     <div class="min-w-[960px]">
-                    <table class="w-full border-collapse border border-slate-300 text-sm">
+                    <table class="w-full border-collapse text-sm">
                         <thead>
                             <tr>
-                                <th class="whitespace-nowrap border border-slate-300 bg-slate-100 px-2 py-2 text-left text-xs font-semibold uppercase tracking-wide text-slate-700">Khung giờ</th>
+                                <th class="whitespace-nowrap border-b border-r border-slate-400 bg-slate-100 px-3 py-3 text-left text-xs font-semibold uppercase tracking-[0.16em] text-slate-700">Khung giờ</th>
                                 <?php foreach ($weekDays as $weekDay): ?>
-                                    <th class="border border-slate-300 bg-slate-100 px-2 py-2 text-center">
-                                        <div class="font-semibold"><?= e((string) $weekDay['label']); ?></div>
-                                        <div class="text-[11px] font-medium text-slate-500"><?= e((string) $weekDay['display']); ?></div>
+                                    <?php
+                                    $isTodayColumn = (string) ($weekDay['value'] ?? '') === $todayDateValue;
+                                    $weekDayHeaderClasses = $isTodayColumn
+                                        ? 'border-b border-r border-sky-400 bg-[linear-gradient(180deg,rgba(248,252,255,1)_0%,rgba(238,248,255,1)_100%)] text-sky-950 shadow-[inset_0_-1px_0_rgba(56,189,248,0.28)]'
+                                        : 'border-b border-r border-slate-400 bg-slate-50 text-slate-700';
+                                    $weekDaySubLabelClasses = $isTodayColumn ? 'text-sky-700' : 'text-slate-500';
+                                    ?>
+                                    <th class="px-2 py-3 text-center <?= e($weekDayHeaderClasses); ?>">
+                                        <div class="text-[15px] font-bold"><?= e((string) $weekDay['label']); ?></div>
+                                        <div class="mt-0.5 text-[11px] font-semibold <?= e($weekDaySubLabelClasses); ?>"><?= e((string) $weekDay['display']); ?></div>
                                     </th>
                                 <?php endforeach; ?>
                             </tr>
@@ -259,12 +277,18 @@ $scheduleConflictDataset = array_map(static function (array $schedule): array {
                         <tbody>
                             <?php foreach ($weekTimeSlots as $slot): ?>
                                 <tr>
-                                    <td class="whitespace-nowrap border border-slate-300 bg-slate-50 px-2 py-2 text-xs font-semibold text-slate-700"><?= e((string) $slot['label']); ?></td>
+                                    <td class="whitespace-nowrap border-b border-r border-slate-400 bg-slate-50 px-3 py-3 text-xs font-semibold text-slate-700"><?= e((string) $slot['label']); ?></td>
                                     <?php foreach ($weekDays as $weekDay): ?>
                                         <?php $slotSchedules = $weekScheduleGrid[(string) $weekDay['value']][(string) $slot['key']] ?? []; ?>
-                                        <td class="min-w-[150px] border border-slate-300 align-top px-1.5 py-1.5">
+                                        <?php
+                                        $isTodayColumn = (string) ($weekDay['value'] ?? '') === $todayDateValue;
+                                        $weekDayCellClasses = $isTodayColumn
+                                            ? 'border-b border-r border-sky-300 bg-[linear-gradient(180deg,rgba(251,253,255,1)_0%,rgba(243,249,255,1)_100%)]'
+                                            : 'border-b border-r border-slate-400 bg-white';
+                                        ?>
+                                        <td class="min-w-[150px] align-top px-2 py-2 <?= e($weekDayCellClasses); ?>">
                                             <?php if (empty($slotSchedules)): ?>
-                                                <span class="text-xs text-slate-300">-</span>
+                                                <span class="text-xs font-medium <?= e($isTodayColumn ? 'text-sky-300' : 'text-slate-300'); ?>">-</span>
                                             <?php else: ?>
                                                 <?php foreach ($slotSchedules as $slotSchedule): ?>
                                                     <?php
@@ -273,9 +297,15 @@ $scheduleConflictDataset = array_map(static function (array $schedule): array {
                                                     $slotClassName = trim((string) ($slotSchedule['class_name'] ?? ''));
                                                     $slotStart = substr((string) ($slotSchedule['start_time'] ?? ''), 0, 5);
                                                     $slotEnd = substr((string) ($slotSchedule['end_time'] ?? ''), 0, 5);
+                                                    $slotStudyDate = trim((string) ($slotSchedule['study_date'] ?? ''));
+                                                    $isPastSchedule = $slotStudyDate < $todayDateValue
+                                                        || ($slotStudyDate === $todayDateValue && trim((string) ($slotSchedule['end_time'] ?? '')) !== '' && trim((string) ($slotSchedule['end_time'] ?? '')) < $currentTimeValue);
+                                                    $chipClasses = $isPastSchedule
+                                                        ? 'border-slate-400 bg-slate-100 text-slate-400 opacity-75'
+                                                        : 'border-sky-500 bg-[linear-gradient(180deg,rgba(239,246,255,1)_0%,rgba(224,242,254,0.9)_100%)] text-sky-800 shadow-[0_8px_18px_rgba(14,165,233,0.08)] hover:-translate-y-0.5 hover:border-sky-600 hover:shadow-[0_12px_24px_rgba(14,165,233,0.12)]';
                                                     ?>
                                                     <div
-                                                        class="schedule-week-chip mb-1 last:mb-0 rounded-lg border border-blue-300 bg-blue-50 px-2 py-1 text-[11px] font-semibold text-blue-700"
+                                                        class="schedule-week-chip mb-1 last:mb-0 rounded-2xl border px-3 py-2 text-[11px] font-semibold transition duration-200 <?= e($chipClasses); ?>"
                                                         data-weekly-chip="1"
                                                         data-class-name="<?= e($slotClassName !== '' ? $slotClassName : '-'); ?>"
                                                         data-teacher-name="<?= e($slotTeacherName !== '' ? $slotTeacherName : '-'); ?>"
@@ -283,7 +313,7 @@ $scheduleConflictDataset = array_map(static function (array $schedule): array {
                                                         data-time-label="<?= e($slotStart . ' - ' . $slotEnd); ?>"
                                                         title="<?= e($slotClassName . ' | ' . $slotTeacherName . ' | ' . ($slotRoomName !== '' ? $slotRoomName : 'Trực tuyến') . ' | ' . $slotStart . '-' . $slotEnd); ?>"
                                                     >
-                                                        <?= e($slotClassName !== '' ? $slotClassName : 'Buổi học'); ?>
+                                                        <div class="truncate text-[12px] font-bold"><?= e($slotClassName !== '' ? $slotClassName : 'Buổi học'); ?></div>
                                                     </div>
                                                 <?php endforeach; ?>
                                             <?php endif; ?>
@@ -330,7 +360,13 @@ $scheduleConflictDataset = array_map(static function (array $schedule): array {
                         <tr><td colspan="7"><div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">Chưa có lịch dạy nào.</div></td></tr>
                     <?php else: ?>
                     <?php foreach ($schedules as $schedule): ?>
-                        <tr>
+                        <?php
+                        $scheduleStudyDate = trim((string) ($schedule['study_date'] ?? ''));
+                        $scheduleEndTime = trim((string) ($schedule['end_time'] ?? ''));
+                        $isPastScheduleRow = $scheduleStudyDate < $todayDateValue
+                            || ($scheduleStudyDate === $todayDateValue && $scheduleEndTime !== '' && $scheduleEndTime < $currentTimeValue);
+                        ?>
+                        <tr class="<?= $isPastScheduleRow ? 'bg-slate-50/70 text-slate-500' : ''; ?>">
                             <td><?= e((string) $schedule['class_name']); ?></td>
                             <td><?= e((string) ($schedule['room_name'] ?? '')); ?></td>
                             <td><?= e((string) ($schedule['teacher_code'] ?? '-')); ?></td>
@@ -417,6 +453,7 @@ $scheduleConflictDataset = array_map(static function (array $schedule): array {
 <script>
 (function () {
     const conflictSource = <?= json_encode($scheduleConflictDataset, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
+    const classTeacherMap = <?= json_encode($classTeacherMap, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
 
     function parseIntSafe(value) {
         const parsed = Number.parseInt(String(value ?? '').trim(), 10);
@@ -460,8 +497,56 @@ $scheduleConflictDataset = array_map(static function (array $schedule): array {
         return parseIntSafe(item.id) === scheduleId;
     }
 
+    function syncTeacherByClass(form, forceUpdate) {
+        if (!(form instanceof HTMLFormElement)) {
+            return;
+        }
+
+        const classSelect = form.querySelector('[data-class-select="1"]');
+        const teacherSelect = form.querySelector('[data-teacher-select="1"]');
+        if (!(classSelect instanceof HTMLSelectElement) || !(teacherSelect instanceof HTMLSelectElement)) {
+            return;
+        }
+
+        const classId = parseIntSafe(classSelect.value);
+        const teacherId = parseIntSafe(classTeacherMap[String(classId)] ?? 0);
+        if (teacherId <= 0) {
+            return;
+        }
+
+        const currentTeacherId = teacherSelect.tomselect
+            ? parseIntSafe(teacherSelect.tomselect.getValue())
+            : parseIntSafe(teacherSelect.value);
+        if (!forceUpdate && currentTeacherId > 0) {
+            return;
+        }
+
+        const targetOption = Array.from(teacherSelect.options).find(function (option) {
+            return parseIntSafe(option.value) === teacherId;
+        });
+        if (!targetOption) {
+            return;
+        }
+
+        if (teacherSelect.tomselect) {
+            teacherSelect.tomselect.setValue(String(teacherId), true);
+        } else {
+            teacherSelect.value = String(teacherId);
+            teacherSelect.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+    }
+
     const forms = Array.from(document.querySelectorAll('form[data-schedule-form="1"]'));
     forms.forEach(function (form) {
+        syncTeacherByClass(form, false);
+
+        const classSelect = form.querySelector('[data-class-select="1"]');
+        if (classSelect instanceof HTMLSelectElement) {
+            classSelect.addEventListener('change', function () {
+                syncTeacherByClass(form, true);
+            });
+        }
+
         form.addEventListener('submit', function (event) {
             const scheduleId = parseIntSafe((form.querySelector('input[name="id"]') || {}).value ?? '0');
             const classId = parseIntSafe((form.querySelector('[name="class_id"]') || {}).value ?? '0');

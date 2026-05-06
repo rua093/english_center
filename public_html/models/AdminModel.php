@@ -205,6 +205,14 @@ final class AdminModel
             throw new RuntimeException('Khong tim thay lead hoc vien.');
         }
 
+        if ((int) ($lead['converted_user_id'] ?? 0) > 0) {
+            $normalizedStatus = strtolower(trim($status));
+            if ($normalizedStatus !== 'official') {
+                throw new RuntimeException('Lead da duoc chuyen thanh user nen khong the quay lai cac trang thai truoc.');
+            }
+            $status = 'official';
+        }
+
         $this->studentLeadsTable->updateReview($id, $status, $adminNote);
     }
 
@@ -306,6 +314,14 @@ final class AdminModel
         $application = $this->jobApplicationsTable->findById($id);
         if (!$application) {
             throw new RuntimeException('Khong tim thay ho so ung tuyen.');
+        }
+
+        if ((int) ($application['converted_user_id'] ?? 0) > 0) {
+            $normalizedStatus = strtoupper(trim($status));
+            if ($normalizedStatus !== 'PASSED') {
+                throw new RuntimeException('Ho so da duoc chuyen thanh user nen khong the quay lai cac trang thai truoc.');
+            }
+            $status = 'PASSED';
         }
 
         $this->jobApplicationsTable->updateReview($id, $status, $adminNote);

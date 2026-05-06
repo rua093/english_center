@@ -149,6 +149,13 @@ if (!function_exists('student_lead_format_date')) {
     }
 }
 
+if (!function_exists('student_lead_can_convert_status')) {
+    function student_lead_can_convert_status(string $status): bool
+    {
+        return in_array(strtolower(trim($status)), ['trial_completed', 'official'], true);
+    }
+}
+
 $adminModel = new AdminModel();
 $statusOptions = [
     'new' => 'Mới nhận',
@@ -229,14 +236,24 @@ $canDeleteLead = has_permission('student_lead.delete');
         <?php
             $editingStatus = (string) ($editingLead['status'] ?? 'new');
             $editingStatusLabel = (string) ($statusOptions[$editingStatus] ?? $editingStatus);
+            $editingLeadConverted = (int) ($editingLead['converted_user_id'] ?? 0) > 0;
+            $editingLeadCanConvertNow = student_lead_can_convert_status($editingStatus);
+            $editingLeadUrl = page_url('student-leads-manage', [
+                'edit' => (int) ($editingLead['id'] ?? 0),
+                'lead_page' => $leadPage,
+                'lead_per_page' => $leadPerPage,
+                'status' => $statusFilter !== '' ? $statusFilter : null,
+                'search' => $searchQuery !== '' ? $searchQuery : null,
+            ]);
         ?>
-        <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <a id="student-lead-edit-auto-open" href="<?= e($editingLeadUrl); ?>" class="hidden" aria-hidden="true" tabindex="-1">Mở popup xử lý lead</a>
+        <article class="hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm" aria-hidden="true" data-edit-form-source="1" data-edit-modal-mode="process" data-edit-modal-title="Xử lý lead học viên">
             <div class="mb-4 flex flex-wrap items-start justify-between gap-3">
                 <div>
                     <h3 class="mb-1">Xử lý lead #<?= (int) ($editingLead['id'] ?? 0); ?> - <?= e((string) ($editingLead['student_name'] ?? '')); ?></h3>
                     <p class="text-sm text-slate-600">Nguồn: <strong><?= e(student_lead_value_or_dash($editingLead['referral_source'] ?? 'website')); ?></strong> • Tạo lúc: <strong><?= e(student_lead_format_datetime((string) ($editingLead['created_at'] ?? ''))); ?></strong></p>
                 </div>
-                <span class="inline-flex items-center rounded-full border px-3 py-1 text-xs font-extrabold <?= e(student_lead_status_badge_class($editingStatus)); ?>">
+                <span data-process-status-badge="1" class="inline-flex items-center rounded-full border px-3 py-1 text-xs font-extrabold <?= e(student_lead_status_badge_class($editingStatus)); ?>">
                     <?= e($editingStatusLabel); ?>
                 </span>
             </div>
@@ -263,26 +280,40 @@ $canDeleteLead = has_permission('student_lead.delete');
                     </dl>
                 </div>
 
-                <div class="rounded-xl border border-slate-200 bg-white p-3">
+                <div
+                    class="rounded-xl border border-slate-200 bg-white p-3"
+                    <?= $editingLeadConverted ? 'data-process-locked-section="1" title="Lead đã được chuyển đổi thành user nên không thể chỉnh lại quy trình."' : ''; ?>
+                >
                     <h4 class="mb-2 text-sm font-extrabold text-slate-800">Cập nhật quy trình</h4>
                     <form class="grid gap-2" method="post" action="/api/leads/update">
                         <?= csrf_input(); ?>
                         <input type="hidden" name="id" value="<?= (int) ($editingLead['id'] ?? 0); ?>">
-                        <label>
-                            Trạng thái
-                            <select name="status" required>
-                                <?php foreach ($statusOptions as $statusValue => $statusLabel): ?>
-                                    <option value="<?= e($statusValue); ?>" <?= $editingStatus === $statusValue ? 'selected' : ''; ?>><?= e($statusLabel); ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                        </label>
-                        <label>
-                            Ghi chú xử lý nội bộ
-                            <textarea name="admin_note" rows="4" placeholder="Ví dụ: Đã gọi phụ huynh, hẹn test..."><?= e((string) ($editingLead['admin_note'] ?? '')); ?></textarea>
-                        </label>
-                        <div>
-                            <button class="<?= ui_btn_primary_classes('sm'); ?>" type="submit">Lưu cập nhật</button>
-                        </div>
+                        <fieldset class="grid gap-2" <?= $editingLeadConverted ? 'disabled aria-disabled="true"' : ''; ?>>
+                            <label>
+                                Trạng thái
+                                <select
+                                    name="status"
+                                    required
+                                    data-process-status-select="1"
+                                    data-is-converted="<?= $editingLeadConverted ? '1' : '0'; ?>"
+                                    data-locked-status="official"
+                                    <?= $editingLeadConverted ? 'title="Lead đã được chuyển đổi nên không thể đổi lại trạng thái cũ."' : ''; ?>
+                                >
+                                    <?php foreach ($statusOptions as $statusValue => $statusLabel): ?>
+                                        <?php $isLockedOutStatus = $editingLeadConverted && $statusValue !== 'official'; ?>
+                                        <?php $isSelectedStatus = $editingLeadConverted ? $statusValue === 'official' : $editingStatus === $statusValue; ?>
+                                        <option value="<?= e($statusValue); ?>" <?= $isSelectedStatus ? 'selected' : ''; ?> <?= $isLockedOutStatus ? 'disabled' : ''; ?>><?= e($statusLabel); ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </label>
+                            <label>
+                                Ghi chú xử lý nội bộ
+                                <textarea name="admin_note" rows="4" placeholder="Ví dụ: Đã gọi phụ huynh, hẹn test..."><?= e((string) ($editingLead['admin_note'] ?? '')); ?></textarea>
+                            </label>
+                            <div>
+                                <button class="<?= ui_btn_primary_classes('sm'); ?>" type="submit">Lưu cập nhật</button>
+                            </div>
+                        </fieldset>
                     </form>
                 </div>
             </div>
@@ -293,7 +324,7 @@ $canDeleteLead = has_permission('student_lead.delete');
                     <p class="text-sm leading-relaxed text-slate-700"><?= nl2br(e(student_lead_value_or_dash($editingLead['parent_expectation'] ?? ''))); ?></p>
                 </div>
 
-                <?php if ((int) ($editingLead['converted_user_id'] ?? 0) > 0): ?>
+                <?php if ($editingLeadConverted): ?>
                     <div class="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">
                         <p class="font-semibold">Lead này đã được chuyển đổi thành học viên chính thức.</p>
                         <p class="mt-1">Mã tài khoản:
@@ -309,7 +340,15 @@ $canDeleteLead = has_permission('student_lead.delete');
                 <?php elseif ($canConvertLead): ?>
                     <div class="rounded-xl border border-blue-200 bg-blue-50 p-3">
                         <h4 class="mb-2 text-sm font-extrabold text-blue-900">Tạo tài khoản học viên chính thức</h4>
-                        <form class="grid gap-2 md:grid-cols-2" method="post" action="/api/leads/convert">
+                        <form
+                            class="grid gap-2 md:grid-cols-2"
+                            method="post"
+                            action="/api/leads/convert"
+                            data-process-convert-form="1"
+                            data-valid-statuses="trial_completed,official"
+                            data-locked-status="official"
+                            data-is-converted="0"
+                        >
                             <?= csrf_input(); ?>
                             <input type="hidden" name="id" value="<?= (int) ($editingLead['id'] ?? 0); ?>">
                             <label>
@@ -325,10 +364,14 @@ $canDeleteLead = has_permission('student_lead.delete');
                                 <textarea name="admin_note" rows="2"><?= e((string) ($editingLead['admin_note'] ?? '')); ?></textarea>
                             </label>
                             <div class="md:col-span-2">
-                                <button class="<?= ui_btn_primary_classes('sm'); ?>" type="submit">Tạo user học viên</button>
+                                <button
+                                    class="<?= ui_btn_primary_classes('sm'); ?>"
+                                    type="submit"
+                                    data-process-convert-button="1"
+                                    <?= $editingLeadCanConvertNow ? '' : 'disabled aria-disabled="true" title="Cần chuyển lead sang Đã học thử hoặc Đã chính thức trước khi tạo user."'; ?>
+                                >Tạo user học viên</button>
                             </div>
                         </form>
-                        <p class="mt-2 text-xs font-semibold text-blue-700">Lưu ý: chỉ chuyển đổi khi lead đã qua giai đoạn học thử.</p>
                     </div>
                 <?php endif; ?>
             </div>
@@ -521,3 +564,26 @@ $canDeleteLead = has_permission('student_lead.delete');
         </div>
     </article>
 </div>
+<?php if (is_array($editingLead)): ?>
+<script>
+window.addEventListener('load', function () {
+    const autoOpenLink = document.getElementById('student-lead-edit-auto-open');
+    if (!(autoOpenLink instanceof HTMLAnchorElement) || autoOpenLink.dataset.opened === '1') {
+        return;
+    }
+
+    window.setTimeout(function () {
+        if (autoOpenLink.dataset.opened === '1') {
+            return;
+        }
+
+        if (typeof window.__openAdminEditModal !== 'function') {
+            return;
+        }
+
+        autoOpenLink.dataset.opened = '1';
+        window.__openAdminEditModal(autoOpenLink.href);
+    }, 0);
+}, { once: true });
+</script>
+<?php endif; ?>

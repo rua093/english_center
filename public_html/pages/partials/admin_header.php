@@ -113,6 +113,40 @@
             background: #f8fbff;
         }
 
+        .admin-ui form label > input:not([type='checkbox']):not([type='hidden']):disabled,
+        .admin-ui form label > select:disabled,
+        .admin-ui form label > textarea:disabled,
+        .admin-ui form fieldset:disabled,
+        .admin-ui form fieldset:disabled *,
+        .admin-edit-modal-body button:disabled,
+        .admin-edit-modal-body input[type='submit']:disabled {
+            cursor: not-allowed;
+        }
+
+        .admin-ui form label > input:not([type='checkbox']):not([type='hidden']):disabled,
+        .admin-ui form label > select:disabled,
+        .admin-ui form label > textarea:disabled {
+            color: #475569;
+            background: #f8fafc;
+            border-color: #dbe4f0;
+            -webkit-text-fill-color: #475569;
+            opacity: 1;
+        }
+
+        .admin-edit-modal-body button:disabled,
+        .admin-edit-modal-body input[type='submit']:disabled {
+            opacity: 1;
+            border-color: #cbd5e1 !important;
+            background: #e2e8f0 !important;
+            color: #64748b !important;
+            box-shadow: none !important;
+        }
+
+        .admin-edit-modal-body [data-process-locked-section='1'],
+        .admin-edit-modal-body [data-process-locked-section='1'] * {
+            cursor: not-allowed !important;
+        }
+
         .admin-ui form input[type='checkbox'] {
             margin-right: 0.45rem;
             height: 1rem;
@@ -458,6 +492,10 @@
             flex-direction: column;
         }
 
+        .admin-edit-modal-dialog.is-process-modal {
+            width: min(1280px, calc(100vw - 1rem));
+        }
+
         .admin-edit-modal-header {
             display: flex;
             align-items: center;
@@ -497,11 +535,88 @@
             background: #ffffff;
         }
 
+        .admin-edit-modal-dialog.is-process-modal .admin-edit-modal-body {
+            padding: 0.85rem;
+        }
+
         .admin-edit-modal-body .admin-modal-helper {
             margin-bottom: 0.8rem;
             font-size: 0.74rem;
             font-weight: 700;
             color: #64748b;
+        }
+
+        .admin-edit-modal-body .admin-edit-modal-success {
+            border: 1px solid #a7f3d0;
+            border-radius: 0.8rem;
+            background: #ecfdf5;
+            color: #047857;
+            font-size: 0.82rem;
+            font-weight: 700;
+            padding: 0.9rem;
+            margin-bottom: 0.85rem;
+        }
+
+        .admin-edit-modal-body .admin-ui.is-process-modal > .admin-modal-helper {
+            display: none;
+        }
+
+        .admin-edit-modal-body [data-edit-modal-mode='process'] {
+            border: 0 !important;
+            border-radius: 0 !important;
+            background: transparent !important;
+            box-shadow: none !important;
+            padding: 0 !important;
+        }
+
+        .admin-edit-modal-body [data-edit-modal-mode='process'] > .mb-4 {
+            margin-bottom: 0.75rem;
+        }
+
+        .admin-edit-modal-body [data-edit-modal-mode='process'] > .grid.gap-3.xl\:grid-cols-3 {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(360px, 0.95fr);
+            gap: 0.75rem;
+        }
+
+        .admin-edit-modal-body [data-edit-modal-mode='process'] > .mt-3.grid.gap-3.md\:grid-cols-2 {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            gap: 0.75rem;
+            margin-top: 0.75rem;
+        }
+
+        .admin-edit-modal-body [data-edit-modal-mode='process'] .rounded-xl {
+            padding: 0.85rem;
+        }
+
+        .admin-edit-modal-body [data-edit-modal-mode='process'] form.grid.gap-2 {
+            gap: 0.6rem;
+        }
+
+        .admin-edit-modal-body [data-edit-modal-mode='process'] textarea {
+            min-height: 112px;
+        }
+
+        .admin-edit-modal-body [data-edit-modal-mode='process'] .text-sm.leading-relaxed {
+            line-height: 1.6;
+        }
+
+        @media (max-width: 1100px) {
+            .admin-edit-modal-dialog.is-process-modal {
+                width: min(1080px, calc(100vw - 1rem));
+            }
+
+            .admin-edit-modal-body [data-edit-modal-mode='process'] > .grid.gap-3.xl\:grid-cols-3 {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 860px) {
+            .admin-edit-modal-body [data-edit-modal-mode='process'] > .grid.gap-3.xl\:grid-cols-3,
+            .admin-edit-modal-body [data-edit-modal-mode='process'] > .mt-3.grid.gap-3.md\:grid-cols-2 {
+                grid-template-columns: minmax(0, 1fr);
+            }
         }
 
         .admin-edit-modal-body .admin-record-detail-grid {

@@ -202,6 +202,7 @@
         function isApiSavePath(actionPath) {
             return actionPath.startsWith('/api/') && (
                 actionPath.endsWith('/save') ||
+                actionPath.endsWith('/update') ||
                 actionPath.endsWith('/update-registration')
             );
         }
@@ -278,12 +279,23 @@
                 return;
             }
 
+            const shouldReload = modal.dataset.reloadOnClose === '1';
+
             modal.classList.add('hidden');
+            const dialog = modal.querySelector('.admin-edit-modal-dialog');
+            if (dialog instanceof HTMLElement) {
+                dialog.classList.remove('is-process-modal');
+            }
             const body = modal.querySelector('.admin-edit-modal-body');
             if (body) {
                 body.innerHTML = '';
             }
+            delete modal.dataset.reloadOnClose;
             document.body.classList.remove('admin-modal-open');
+
+            if (shouldReload) {
+                window.location.reload();
+            }
         }
 
         function extractEditSaveForm(doc) {
@@ -310,34 +322,251 @@
             return null;
         }
 
-        function buildModalForm(sourceForm) {
+        function extractEditModalSource(doc) {
+            const sourceContainer = doc.querySelector('[data-edit-form-source="1"]');
+            if (sourceContainer instanceof HTMLElement) {
+                return sourceContainer;
+            }
+
+            return extractEditSaveForm(doc);
+        }
+
+        function buildModalForm(sourceElement) {
             const wrapper = document.createElement('div');
             wrapper.className = 'admin-ui';
+
+            const modalMode = sourceElement instanceof HTMLElement ? String(sourceElement.getAttribute('data-edit-modal-mode') || '').trim() : '';
+            if (modalMode !== '') {
+                wrapper.classList.add('is-' + modalMode + '-modal');
+                wrapper.setAttribute('data-edit-modal-mode', modalMode);
+            }
 
             const hint = document.createElement('p');
             hint.className = 'admin-modal-helper';
             hint.textContent = 'Mọi thay đổi sẽ được lưu trực tiếp sau khi bấm nút Lưu.';
             wrapper.appendChild(hint);
 
-            const cloneForm = sourceForm.cloneNode(true);
-            if (!(cloneForm instanceof HTMLFormElement)) {
+            const cloneSource = sourceElement.cloneNode(true);
+            if (!(cloneSource instanceof HTMLElement)) {
                 return null;
             }
 
-            cloneForm.removeAttribute('id');
-            cloneForm.setAttribute('autocomplete', 'off');
-            cloneForm.querySelectorAll('[id]').forEach(function (element) {
+            cloneSource.classList.remove('hidden');
+            cloneSource.removeAttribute('id');
+            cloneSource.removeAttribute('aria-hidden');
+
+            if (cloneSource instanceof HTMLFormElement) {
+                cloneSource.setAttribute('autocomplete', 'off');
+            }
+
+            cloneSource.querySelectorAll('[id]').forEach(function (element) {
                 element.removeAttribute('id');
             });
-            cloneForm.querySelectorAll('label[for]').forEach(function (label) {
+            cloneSource.querySelectorAll('label[for]').forEach(function (label) {
                 label.removeAttribute('for');
             });
-            cloneForm.querySelectorAll('a[href]').forEach(function (anchor) {
+            cloneSource.querySelectorAll('a[href]').forEach(function (anchor) {
                 anchor.remove();
             });
+            cloneSource.querySelectorAll('form').forEach(function (form) {
+                if (form instanceof HTMLFormElement) {
+                    form.setAttribute('autocomplete', 'off');
+                }
+            });
 
-            wrapper.appendChild(cloneForm);
+            wrapper.appendChild(cloneSource);
             return wrapper;
+        }
+
+        function showModalFeedback(modalBody, type, message) {
+            if (!(modalBody instanceof HTMLElement)) {
+                return;
+            }
+
+            modalBody.querySelectorAll('.admin-edit-modal-error, .admin-edit-modal-success').forEach(function (node) {
+                node.remove();
+            });
+
+            const box = document.createElement('div');
+            box.className = type === 'success' ? 'admin-edit-modal-success' : 'admin-edit-modal-error';
+            box.textContent = String(message || '').trim();
+            modalBody.insertBefore(box, modalBody.firstChild);
+        }
+
+        function extractFlashMessageFromDoc(doc) {
+            if (!(doc instanceof Document)) {
+                return null;
+            }
+
+            const blocks = Array.from(doc.querySelectorAll('div'));
+            for (const block of blocks) {
+                if (!(block instanceof HTMLDivElement)) {
+                    continue;
+                }
+
+                const className = String(block.className || '');
+                const message = String(block.textContent || '').replace(/\s+/g, ' ').trim();
+                if (message === '') {
+                    continue;
+                }
+
+                if (className.includes('border-emerald-500')) {
+                    return { type: 'success', message: message };
+                }
+
+                if (className.includes('border-rose-500')) {
+                    return { type: 'error', message: message };
+                }
+            }
+
+            return null;
+        }
+
+        function storeReloadFlash(type, message) {
+            if (typeof window.sessionStorage === 'undefined') {
+                return;
+            }
+
+            const normalizedType = String(type || '').trim();
+            const normalizedMessage = String(message || '').trim();
+            if (normalizedType === '' || normalizedMessage === '') {
+                return;
+            }
+
+            window.sessionStorage.setItem('admin-ui:reload-flash', JSON.stringify({
+                type: normalizedType,
+                message: normalizedMessage,
+            }));
+        }
+
+        function renderStoredReloadFlash() {
+            if (typeof window.sessionStorage === 'undefined') {
+                return;
+            }
+
+            const raw = window.sessionStorage.getItem('admin-ui:reload-flash');
+            if (!raw) {
+                return;
+            }
+            window.sessionStorage.removeItem('admin-ui:reload-flash');
+
+            let payload = null;
+            try {
+                payload = JSON.parse(raw);
+            } catch (error) {
+                payload = null;
+            }
+
+            const type = payload && typeof payload.type === 'string' ? payload.type.trim() : '';
+            const message = payload && typeof payload.message === 'string' ? payload.message.trim() : '';
+            if (type === '' || message === '') {
+                return;
+            }
+
+            const targetRoot = document.querySelector('.admin-ui.min-w-0.grid.gap-4') || document.querySelector('.admin-ui');
+            if (!(targetRoot instanceof HTMLElement)) {
+                return;
+            }
+
+            const box = document.createElement('div');
+            box.className = type === 'success'
+                ? 'rounded-xl border-l-4 border-emerald-500 bg-emerald-50 p-3 text-sm text-emerald-700'
+                : 'rounded-xl border-l-4 border-rose-500 bg-rose-50 p-3 text-sm text-rose-700';
+            box.textContent = message;
+            targetRoot.insertBefore(box, targetRoot.firstChild);
+        }
+
+        function markModalForReload(modalBody) {
+            const modal = modalBody instanceof HTMLElement ? modalBody.closest('.admin-edit-modal-backdrop') : null;
+            if (modal instanceof HTMLElement) {
+                modal.dataset.reloadOnClose = '1';
+            }
+        }
+
+        function parseProcessStatusList(value) {
+            return String(value || '')
+                .split(',')
+                .map(function (item) {
+                    return normalizeText(item);
+                })
+                .filter(function (item) {
+                    return item !== '';
+                });
+        }
+
+        function syncProcessConvertAvailability(modalBody) {
+            if (!(modalBody instanceof HTMLElement)) {
+                return;
+            }
+
+            const statusSelect = modalBody.querySelector('[data-process-status-select="1"]');
+            const convertForm = modalBody.querySelector('[data-process-convert-form="1"]');
+            if (!(convertForm instanceof HTMLFormElement)) {
+                return;
+            }
+
+            const convertButton = convertForm.querySelector('[data-process-convert-button="1"]');
+            const allowedStatuses = parseProcessStatusList(convertForm.getAttribute('data-valid-statuses') || '');
+            const currentStatus = statusSelect instanceof HTMLSelectElement ? normalizeText(statusSelect.value) : '';
+            const canConvert = allowedStatuses.indexOf(currentStatus) !== -1;
+
+            if (convertButton instanceof HTMLButtonElement || convertButton instanceof HTMLInputElement) {
+                convertButton.disabled = !canConvert;
+                convertButton.setAttribute('aria-disabled', canConvert ? 'false' : 'true');
+                if (canConvert) {
+                    convertButton.setAttribute('title', 'Có thể chuyển đổi user.');
+                } else {
+                    convertButton.setAttribute('title', 'Trạng thái hiện tại chưa hợp lệ để chuyển đổi user.');
+                }
+            }
+        }
+
+        function bindProcessModalState(modalBody) {
+            if (!(modalBody instanceof HTMLElement)) {
+                return;
+            }
+
+            const statusSelect = modalBody.querySelector('[data-process-status-select="1"]');
+            if (statusSelect instanceof HTMLSelectElement && statusSelect.dataset.processStateBound !== '1') {
+                statusSelect.dataset.processStateBound = '1';
+                statusSelect.addEventListener('change', function () {
+                    syncProcessConvertAvailability(modalBody);
+                });
+            }
+
+            syncProcessConvertAvailability(modalBody);
+        }
+
+        function syncProcessModalAfterUpdate(form, modalBody, actionPath) {
+            if (!(form instanceof HTMLFormElement) || !(modalBody instanceof HTMLElement)) {
+                return;
+            }
+
+            const statusSelect = form.querySelector('select[name="status"]');
+            const badge = modalBody.querySelector('[data-process-status-badge="1"]');
+            if (statusSelect instanceof HTMLSelectElement && badge instanceof HTMLElement) {
+                const selectedOption = statusSelect.selectedOptions[0];
+                badge.textContent = selectedOption ? String(selectedOption.textContent || '').trim() : badge.textContent;
+            }
+
+            if (actionPath.endsWith('/leads/update')) {
+                const noteField = form.querySelector('textarea[name="admin_note"]');
+                const convertNoteField = modalBody.querySelector('form[action="/api/leads/convert"] textarea[name="admin_note"]');
+                if (noteField instanceof HTMLTextAreaElement && convertNoteField instanceof HTMLTextAreaElement) {
+                    convertNoteField.value = noteField.value;
+                }
+                return;
+            }
+
+            if (actionPath.endsWith('/applications/update')) {
+                const noteField = form.querySelector('textarea[name="hr_note"]');
+                const convertNoteField = modalBody.querySelector('form[action="/api/applications/convert"] textarea[name="admin_note"]');
+                if (noteField instanceof HTMLTextAreaElement && convertNoteField instanceof HTMLTextAreaElement) {
+                    convertNoteField.value = noteField.value;
+                }
+            }
+
+            syncProcessConvertAvailability(modalBody);
         }
 
         function buildReadonlyModalForm(sourceForm) {
@@ -491,6 +720,8 @@
                         throw new Error('Không xác định được địa chỉ lưu dữ liệu.');
                     }
 
+                    const actionPath = String(actionUrl.pathname || '');
+
                     const response = await fetch(actionUrl.toString(), {
                         method: 'POST',
                         credentials: 'same-origin',
@@ -501,13 +732,30 @@
                         throw new Error('Máy chủ từ chối cập nhật dữ liệu. Vui lòng thử lại.');
                     }
 
+                    const responseText = await response.text();
+                    const responseDoc = new DOMParser().parseFromString(responseText, 'text/html');
+
+                    if (actionPath.endsWith('/leads/update') || actionPath.endsWith('/applications/update')) {
+                        markModalForReload(modalBody);
+                        syncProcessModalAfterUpdate(form, modalBody, actionPath);
+                        showModalFeedback(modalBody, 'success', 'Đã lưu cập nhật. Bạn có thể tiếp tục xử lý hoặc chuyển đổi tài khoản ngay trong popup này.');
+                        return;
+                    }
+
+                    if (actionPath.endsWith('/leads/convert') || actionPath.endsWith('/applications/convert')) {
+                        const flashInfo = extractFlashMessageFromDoc(responseDoc);
+                        if (flashInfo) {
+                            storeReloadFlash(flashInfo.type, flashInfo.message);
+                        }
+                        closeEditModal();
+                        window.location.reload();
+                        return;
+                    }
+
                     closeEditModal();
                     window.location.reload();
                 } catch (error) {
-                    const box = document.createElement('div');
-                    box.className = 'admin-edit-modal-error';
-                    box.textContent = error instanceof Error ? error.message : 'Cập nhật thất bại. Vui lòng thử lại.';
-                    modalBody.insertBefore(box, modalBody.firstChild);
+                    showModalFeedback(modalBody, 'error', error instanceof Error ? error.message : 'Cập nhật thất bại. Vui lòng thử lại.');
                 } finally {
                     form.dataset.submitting = '0';
                     submitButtons.forEach(function (button) {
@@ -531,7 +779,7 @@
 
             const html = await response.text();
             const doc = new DOMParser().parseFromString(html, 'text/html');
-            return extractEditSaveForm(doc);
+            return extractEditModalSource(doc);
         }
 
         async function openEditModalForUrl(url) {
@@ -540,6 +788,11 @@
             if (!(body instanceof HTMLElement)) {
                 window.location.href = url.toString();
                 return;
+            }
+
+            const dialog = modal.querySelector('.admin-edit-modal-dialog');
+            if (dialog instanceof HTMLElement) {
+                dialog.classList.remove('is-process-modal');
             }
 
             setEditModalTitle(modal, 'Cập nhật dữ liệu');
@@ -554,24 +807,44 @@
                     return;
                 }
 
+                const customTitle = sourceForm instanceof HTMLElement ? String(sourceForm.getAttribute('data-edit-modal-title') || '').trim() : '';
+                const modalMode = sourceForm instanceof HTMLElement ? String(sourceForm.getAttribute('data-edit-modal-mode') || '').trim() : '';
+                setEditModalTitle(modal, customTitle !== '' ? customTitle : 'Cập nhật dữ liệu');
+
                 const wrapper = buildModalForm(sourceForm);
                 if (!wrapper) {
                     window.location.href = url.toString();
                     return;
                 }
 
+                if (dialog instanceof HTMLElement && modalMode === 'process') {
+                    dialog.classList.add('is-process-modal');
+                }
+
                 body.innerHTML = '';
                 body.appendChild(wrapper);
+                bindProcessModalState(body);
 
-                const clonedForm = wrapper.querySelector('form');
-                if (clonedForm instanceof HTMLFormElement) {
-                    bindRoleProfileSections(clonedForm);
-                    bindModalFormSubmit(clonedForm, body);
-                }
+                wrapper.querySelectorAll('form').forEach(function (formElement) {
+                    if (formElement instanceof HTMLFormElement) {
+                        bindRoleProfileSections(formElement);
+                        bindModalFormSubmit(formElement, body);
+                    }
+                });
             } catch (error) {
                 const message = error instanceof Error ? error.message : 'Không thể mở biểu mẫu chỉnh sửa.';
                 body.innerHTML = '<div class="admin-edit-modal-error">' + message + '</div>';
             }
+        }
+
+        function openEditModalFromValue(value) {
+            const url = value instanceof URL ? value : toUrl(value);
+            if (!url) {
+                return false;
+            }
+
+            openEditModalForUrl(url);
+            return true;
         }
 
         function bindGlobalEditModal() {
@@ -2157,10 +2430,12 @@
             restorePaginationScroll();
             bindGlobalRowDetailButtons();
             bindGlobalEditModal();
+            renderStoredReloadFlash();
             initGlobalTomSelect(document);
             initPhoneInputs(document);
             initGlobalAjaxTables();
             window.__refreshAdminUi = refreshAdminUi;
+            window.__openAdminEditModal = openEditModalFromValue;
 
             // Observe for dynamically added selects (e.g. inside modals)
             const observer = new MutationObserver(function(mutations) {

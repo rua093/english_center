@@ -131,6 +131,13 @@ if (!function_exists('job_application_format_datetime')) {
     }
 }
 
+if (!function_exists('job_application_can_convert_status')) {
+    function job_application_can_convert_status(string $status): bool
+    {
+        return in_array(strtoupper(trim($status)), ['INTERVIEWING', 'PASSED'], true);
+    }
+}
+
 $adminModel = new AdminModel();
 $statusOptions = [
     'PENDING'      => 'Mới nhận',
@@ -215,14 +222,24 @@ $canDeleteApplication = has_permission('job_application.delete');
         <?php
             $editingStatus = (string) ($editingApplication['status'] ?? 'PENDING');
             $editingStatusLabel = (string) ($statusOptions[$editingStatus] ?? $editingStatus);
+            $editingApplicationConverted = (int) ($editingApplication['converted_user_id'] ?? 0) > 0;
+            $editingApplicationCanConvertNow = job_application_can_convert_status($editingStatus);
+            $editingApplicationUrl = page_url('job-applications-manage', [
+                'edit' => (int) ($editingApplication['id'] ?? 0),
+                'application_page' => $applicationPage,
+                'application_per_page' => $applicationPerPage,
+                'status' => $statusFilter !== '' ? $statusFilter : null,
+                'search' => $searchQuery !== '' ? $searchQuery : null,
+            ]);
         ?>
-        <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <a id="job-application-edit-auto-open" href="<?= e($editingApplicationUrl); ?>" class="hidden" aria-hidden="true" tabindex="-1">Mở popup xử lý hồ sơ</a>
+        <article class="hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm" aria-hidden="true" data-edit-form-source="1" data-edit-modal-mode="process" data-edit-modal-title="Xử lý hồ sơ ứng tuyển">
             <div class="mb-4 flex flex-wrap items-start justify-between gap-3">
                 <div>
                     <h3 class="mb-1">Xử lý hồ sơ #<?= (int) ($editingApplication['id'] ?? 0); ?> - <?= e((string) ($editingApplication['full_name'] ?? '')); ?></h3>
                     <p class="text-sm text-slate-600">Tạo lúc: <strong><?= e(job_application_format_datetime((string) ($editingApplication['created_at'] ?? ''))); ?></strong></p>
                 </div>
-                <span class="inline-flex items-center rounded-full border px-3 py-1 text-xs font-extrabold <?= e(job_application_status_badge_class($editingStatus)); ?>">
+                <span data-process-status-badge="1" class="inline-flex items-center rounded-full border px-3 py-1 text-xs font-extrabold <?= e(job_application_status_badge_class($editingStatus)); ?>">
                     <?= e($editingStatusLabel); ?>
                 </span>
             </div>
@@ -261,26 +278,40 @@ $canDeleteApplication = has_permission('job_application.delete');
                     </dl>
                 </div>
 
-                <div class="rounded-xl border border-slate-200 bg-white p-3">
+                <div
+                    class="rounded-xl border border-slate-200 bg-white p-3"
+                    <?= $editingApplicationConverted ? 'data-process-locked-section="1" title="Hồ sơ đã được chuyển đổi thành user nên không thể chỉnh lại quy trình."' : ''; ?>
+                >
                     <h4 class="mb-2 text-sm font-extrabold text-slate-800">Cập nhật quy trình tuyển dụng</h4>
                     <form class="grid gap-2" method="post" action="/api/applications/update">
                         <?= csrf_input(); ?>
                         <input type="hidden" name="id" value="<?= (int) ($editingApplication['id'] ?? 0); ?>">
-                        <label>
-                            Trạng thái
-                            <select name="status" required>
-                                <?php foreach ($statusOptions as $statusValue => $statusLabel): ?>
-                                    <option value="<?= e($statusValue); ?>" <?= $editingStatus === $statusValue ? 'selected' : ''; ?>><?= e($statusLabel); ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                        </label>
-                        <label>
-                            Ghi chú HR
-                            <textarea name="hr_note" rows="4" placeholder="Ví dụ: Đã phỏng vấn vòng 1, hẹn dạy demo vào thứ 7..."><?= e((string) ($editingApplication['hr_note'] ?? '')); ?></textarea>
-                        </label>
-                        <div>
-                            <button class="<?= ui_btn_primary_classes('sm'); ?>" type="submit">Lưu cập nhật</button>
-                        </div>
+                        <fieldset class="grid gap-2" <?= $editingApplicationConverted ? 'disabled aria-disabled="true"' : ''; ?>>
+                            <label>
+                                Trạng thái
+                                <select
+                                    name="status"
+                                    required
+                                    data-process-status-select="1"
+                                    data-is-converted="<?= $editingApplicationConverted ? '1' : '0'; ?>"
+                                    data-locked-status="passed"
+                                    <?= $editingApplicationConverted ? 'title="Hồ sơ đã được chuyển đổi nên không thể đổi lại trạng thái cũ."' : ''; ?>
+                                >
+                                    <?php foreach ($statusOptions as $statusValue => $statusLabel): ?>
+                                        <?php $isLockedOutStatus = $editingApplicationConverted && $statusValue !== 'PASSED'; ?>
+                                        <?php $isSelectedStatus = $editingApplicationConverted ? $statusValue === 'PASSED' : $editingStatus === $statusValue; ?>
+                                        <option value="<?= e($statusValue); ?>" <?= $isSelectedStatus ? 'selected' : ''; ?> <?= $isLockedOutStatus ? 'disabled' : ''; ?>><?= e($statusLabel); ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </label>
+                            <label>
+                                Ghi chú HR
+                                <textarea name="hr_note" rows="4" placeholder="Ví dụ: Đã phỏng vấn vòng 1, hẹn dạy demo vào thứ 7..."><?= e((string) ($editingApplication['hr_note'] ?? '')); ?></textarea>
+                            </label>
+                            <div>
+                                <button class="<?= ui_btn_primary_classes('sm'); ?>" type="submit">Lưu cập nhật</button>
+                            </div>
+                        </fieldset>
                     </form>
                 </div>
             </div>
@@ -291,7 +322,7 @@ $canDeleteApplication = has_permission('job_application.delete');
                     <p class="text-sm leading-relaxed text-slate-700"><?= nl2br(e(job_application_value_or_dash($editingApplication['bio_summary'] ?? ''))); ?></p>
                 </div>
 
-                <?php if ((int) ($editingApplication['converted_user_id'] ?? 0) > 0): ?>
+                <?php if ($editingApplicationConverted): ?>
                     <div class="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">
                         <p class="font-semibold">Hồ sơ này đã được chuyển thành tài khoản giáo viên.</p>
                         <p class="mt-1">Mã tài khoản:
@@ -307,7 +338,15 @@ $canDeleteApplication = has_permission('job_application.delete');
                 <?php elseif ($canConvertApplication): ?>
                     <div class="rounded-xl border border-blue-200 bg-blue-50 p-3">
                         <h4 class="mb-2 text-sm font-extrabold text-blue-900">Tạo tài khoản giáo viên</h4>
-                        <form class="grid gap-2 md:grid-cols-2" method="post" action="/api/applications/convert">
+                        <form
+                            class="grid gap-2 md:grid-cols-2"
+                            method="post"
+                            action="/api/applications/convert"
+                            data-process-convert-form="1"
+                            data-valid-statuses="interviewing,passed"
+                            data-locked-status="passed"
+                            data-is-converted="0"
+                        >
                             <?= csrf_input(); ?>
                             <input type="hidden" name="id" value="<?= (int) ($editingApplication['id'] ?? 0); ?>">
                             <label>
@@ -323,10 +362,14 @@ $canDeleteApplication = has_permission('job_application.delete');
                                 <textarea name="admin_note" rows="2"><?= e((string) ($editingApplication['hr_note'] ?? '')); ?></textarea>
                             </label>
                             <div class="md:col-span-2">
-                                <button class="<?= ui_btn_primary_classes('sm'); ?>" type="submit">Tạo user giáo viên</button>
+                                <button
+                                    class="<?= ui_btn_primary_classes('sm'); ?>"
+                                    type="submit"
+                                    data-process-convert-button="1"
+                                    <?= $editingApplicationCanConvertNow ? '' : 'disabled aria-disabled="true" title="Cần chuyển hồ sơ sang Đã phỏng vấn hoặc Đã trúng tuyển trước khi tạo user."'; ?>
+                                >Tạo user giáo viên</button>
                             </div>
                         </form>
-                        <p class="mt-2 text-xs font-semibold text-blue-700">Lưu ý: chỉ chuyển đổi khi ứng viên đã qua phỏng vấn.</p>
                     </div>
                 <?php endif; ?>
             </div>
@@ -518,3 +561,26 @@ $canDeleteApplication = has_permission('job_application.delete');
         </div>
     </article>
 </div>
+<?php if (is_array($editingApplication)): ?>
+<script>
+window.addEventListener('load', function () {
+    const autoOpenLink = document.getElementById('job-application-edit-auto-open');
+    if (!(autoOpenLink instanceof HTMLAnchorElement) || autoOpenLink.dataset.opened === '1') {
+        return;
+    }
+
+    window.setTimeout(function () {
+        if (autoOpenLink.dataset.opened === '1') {
+            return;
+        }
+
+        if (typeof window.__openAdminEditModal !== 'function') {
+            return;
+        }
+
+        autoOpenLink.dataset.opened = '1';
+        window.__openAdminEditModal(autoOpenLink.href);
+    }, 0);
+}, { once: true });
+</script>
+<?php endif; ?>

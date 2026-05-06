@@ -1,5 +1,6 @@
 <?php
 require_any_permission(['academic.classes.view', 'academic.schedules.view']);
+require_once __DIR__ . '/../../core/file_storage.php';
 
 $academicModel = new AcademicModel();
 $lookups = $academicModel->classroomLookups();
@@ -79,6 +80,7 @@ $nextWeekStart = $weekStartDate->modify('+7 days')->format('Y-m-d');
 $weekRefValue = $weekStartDate->format('o-\\WW');
 $prevWeekRef = $weekStartDate->modify('-7 days')->format('o-\\WW');
 $nextWeekRef = $weekStartDate->modify('+7 days')->format('o-\\WW');
+$todayDateValue = (new DateTimeImmutable('today'))->format('Y-m-d');
 
 $weekDayLabels = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'Chủ nhật'];
 $weekDays = [];
@@ -144,6 +146,9 @@ $classroomAssignmentsBySchedule = [];
 $weekSchedules = [];
 $weekTimeSlots = [];
 $weekScheduleGrid = [];
+$classroomLessonMaterialRows = [];
+$allAssignmentRows = [];
+$classroomAssignmentRows = [];
 
 if ($selectedClassId > 0) {
     $lessons = $academicModel->listLessonsByClass($selectedClassId);
@@ -206,7 +211,8 @@ if ($selectedClassId > 0) {
     }
 
     $assignmentSubmissionStats = [];
-    foreach ($academicModel->listAssignments() as $assignmentRow) {
+    $allAssignmentRows = $academicModel->listAssignments();
+    foreach ($allAssignmentRows as $assignmentRow) {
         $scheduleId = (int) ($assignmentRow['schedule_id'] ?? 0);
         $assignmentId = (int) ($assignmentRow['id'] ?? 0);
         if ($scheduleId <= 0 || $assignmentId <= 0 || !isset($scheduleById[$scheduleId])) {
@@ -372,8 +378,72 @@ $canUpdateLesson = has_permission('academic.classes.update') || $teacherOwnsSele
 $canViewAttendance = has_permission('academic.schedules.view') || $teacherOwnsSelectedClass;
 $canManageAttendance = has_permission('academic.schedules.update') || $teacherOwnsSelectedClass;
 $canCreateAssignment = has_permission('academic.assignments.create') || $teacherOwnsSelectedClass;
+$canUpdateAssignment = has_permission('academic.assignments.update') || $teacherOwnsSelectedClass;
+$canDeleteAssignment = has_permission('academic.assignments.delete') || $teacherOwnsSelectedClass;
 $canGradeSubmission = has_permission('academic.submissions.grade') || $teacherOwnsSelectedClass;
 $canManageExams = $canGradeSubmission;
+
+if ($selectedClassId > 0) {
+    foreach ($lessons as $lessonRow) {
+        $attachmentPath = normalize_public_file_url((string) ($lessonRow['attachment_file_path'] ?? ''));
+        if ($attachmentPath === '') {
+            continue;
+        }
+
+        $scheduleId = (int) ($lessonRow['schedule_id'] ?? 0);
+        $scheduleRow = $scheduleId > 0 ? ($scheduleById[$scheduleId] ?? null) : null;
+        $studyDate = is_array($scheduleRow) ? (string) ($scheduleRow['study_date'] ?? '') : '';
+        $startTime = is_array($scheduleRow) ? (string) ($scheduleRow['start_time'] ?? '') : '';
+        $endTime = is_array($scheduleRow) ? (string) ($scheduleRow['end_time'] ?? '') : '';
+        $roomName = is_array($scheduleRow) ? trim((string) ($scheduleRow['room_name'] ?? 'Trực tuyến')) : 'Chưa xếp lịch';
+        $lessonTitle = trim((string) ($lessonRow['actual_title'] ?? ''));
+        if ($lessonTitle === '') {
+            $lessonTitle = 'Buổi #' . (int) ($lessonRow['id'] ?? 0);
+        }
+
+        $scheduleMeta = trim($formatDate($studyDate) . ' | ' . $formatTime($startTime) . '-' . $formatTime($endTime), ' |-');
+        $classroomLessonMaterialRows[] = [
+            'lesson_id' => (int) ($lessonRow['id'] ?? 0),
+            'lesson_title' => $lessonTitle,
+            'schedule_meta' => $scheduleMeta !== '' ? $scheduleMeta : 'Chưa xếp lịch học',
+            'room_name' => $roomName !== '' ? $roomName : 'Trực tuyến',
+            'file_url' => $attachmentPath,
+            'file_name' => basename(str_replace('\\', '/', $attachmentPath)),
+        ];
+    }
+
+    foreach ($allAssignmentRows as $assignmentRow) {
+        $scheduleId = (int) ($assignmentRow['schedule_id'] ?? 0);
+        if ($scheduleId <= 0 || !isset($scheduleById[$scheduleId])) {
+            continue;
+        }
+
+        $scheduleRow = $scheduleById[$scheduleId];
+        $classId = (int) ($scheduleRow['class_id'] ?? 0);
+        if ($classId !== $selectedClassId) {
+            continue;
+        }
+
+        $fileUrl = normalize_public_file_url((string) ($assignmentRow['file_url'] ?? ''));
+        $lessonTitle = trim((string) ($scheduleRow['assigned_lesson_title'] ?? ''));
+        if ($lessonTitle === '' && isset($lessonByScheduleId[$scheduleId])) {
+            $lessonTitle = trim((string) ($lessonByScheduleId[$scheduleId]['actual_title'] ?? ''));
+        }
+        if ($lessonTitle === '') {
+            $lessonTitle = 'Buổi #' . $scheduleId;
+        }
+
+        $classroomAssignmentRows[] = [
+            'id' => (int) ($assignmentRow['id'] ?? 0),
+            'title' => (string) ($assignmentRow['title'] ?? ''),
+            'deadline' => (string) ($assignmentRow['deadline'] ?? ''),
+            'lesson_title' => $lessonTitle,
+            'file_url' => $fileUrl,
+            'description' => (string) ($assignmentRow['description'] ?? ''),
+            'schedule_id' => $scheduleId,
+        ];
+    }
+}
 
 $classroomAssignmentsByScheduleJson = json_encode($classroomAssignmentsBySchedule, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 if (!is_string($classroomAssignmentsByScheduleJson)) {
@@ -470,33 +540,36 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
     </article>
 
     <?php if (is_array($selectedClass)): ?>
-        <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+
+        <article class="rounded-2xl border border-slate-200 bg-gradient-to-r from-slate-900 via-slate-800 to-blue-900 p-5 text-white shadow-sm">
             <div class="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                    <h3>Soạn giáo án buổi học</h3>
-                    <p class="text-sm text-slate-600">Soạn hoặc cập nhật nội dung buổi học trực tiếp từ menu thao tác trên ô lịch hoặc danh sách giáo án chưa xếp lịch.</p>
+                    <h3 class="text-white">Điều hướng nhanh lớp học</h3>
+                    <p class="mt-1 text-sm text-blue-100">Đi thẳng tới khu vực bạn cần làm việc hoặc mở nhanh kho tài liệu của lớp.</p>
                 </div>
-                <?php if ($canCreateLesson): ?>
-                    <button id="classroom-open-lesson-create" class="<?= ui_btn_primary_classes(); ?>" type="button">Soạn giáo án mới</button>
-                <?php else: ?>
-                    <span class="inline-flex items-center rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-700">Bạn chưa có quyền tạo giáo án mới.</span>
-                <?php endif; ?>
+                <div class="flex flex-wrap gap-2">
+                    <button type="button" data-scroll-target="#classroom-schedule-section" class="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/20">Thời khóa biểu</button>
+                    <button type="button" id="classroom-open-assignments" class="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/20">Quản lý bài tập</button>
+                    <button type="button" data-scroll-target="#classroom-exams-card" class="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/20">Quản lý bảng điểm</button>
+                    <button type="button" data-scroll-target="#classroom-lessons-section" class="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/20">Quản lý giáo án</button>
+                    <button type="button" id="classroom-open-materials" class="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/20">Tài liệu của lớp</button>
+                </div>
             </div>
         </article>
 
         <div class="min-w-0" data-weekly-shell="1" data-week-start="<?= e($weekStartValue); ?>" data-week-ref="<?= e($weekRefValue); ?>">
 
-        <article class="min-w-0 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm" data-weekly-card="1">
+        <article id="classroom-schedule-section" class="min-w-0 rounded-3xl border border-slate-200 bg-gradient-to-b from-white via-slate-50/70 to-white p-5 shadow-sm" data-weekly-card="1">
             <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
                 <div>
-                    <h3>Thời khóa biểu tuần lớp <?= e((string) ($selectedClass['class_name'] ?? '')); ?></h3>
-                    <p class="text-xs text-slate-500">Từ <?= e($weekStartDate->format('d/m/Y')); ?> đến <?= e($weekEndDate->format('d/m/Y')); ?></p>
+                    <h3 class="text-slate-900">Thời khóa biểu tuần lớp <?= e((string) ($selectedClass['class_name'] ?? '')); ?></h3>
+                    <p class="text-xs font-medium text-slate-500">Từ <?= e($weekStartDate->format('d/m/Y')); ?> đến <?= e($weekEndDate->format('d/m/Y')); ?></p>
                 </div>
                 <div class="flex flex-wrap items-center gap-1.5">
-                    <a data-week-nav-link="1" class="inline-flex h-8 items-center rounded-md border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('classrooms-academic', array_merge(['course_id' => $selectedCourseId, 'class_id' => $selectedClassId, 'week_start' => $prevWeekStart, 'week_ref' => $prevWeekRef], $classroomReturnQuery))); ?>">Tuần trước</a>
-                    <span class="inline-flex h-8 items-center rounded-md border border-slate-200 bg-slate-50 px-3 text-xs font-semibold text-slate-700"><?= e($weekStartDate->format('d/m')); ?> - <?= e($weekEndDate->format('d/m')); ?></span>
-                    <a data-week-nav-link="1" class="inline-flex h-8 items-center rounded-md border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('classrooms-academic', array_merge(['course_id' => $selectedCourseId, 'class_id' => $selectedClassId, 'week_start' => $nextWeekStart, 'week_ref' => $nextWeekRef], $classroomReturnQuery))); ?>">Tuần sau</a>
-                    <form data-week-nav-form="1" class="inline-flex items-center gap-1.5 rounded-md border border-slate-300 bg-white px-2 py-1" method="get" action="<?= e(page_url('classrooms-academic')); ?>">
+                    <a data-week-nav-link="1" class="inline-flex h-9 items-center rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-sky-400 hover:bg-sky-50 hover:text-sky-700" href="<?= e(page_url('classrooms-academic', array_merge(['course_id' => $selectedCourseId, 'class_id' => $selectedClassId, 'week_start' => $prevWeekStart, 'week_ref' => $prevWeekRef], $classroomReturnQuery))); ?>">Tuần trước</a>
+                    <span class="inline-flex h-9 items-center rounded-xl border border-slate-300 bg-slate-100 px-3 text-xs font-semibold text-slate-700 shadow-sm"><?= e($weekStartDate->format('d/m')); ?> - <?= e($weekEndDate->format('d/m')); ?></span>
+                    <a data-week-nav-link="1" class="inline-flex h-9 items-center rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-sky-400 hover:bg-sky-50 hover:text-sky-700" href="<?= e(page_url('classrooms-academic', array_merge(['course_id' => $selectedCourseId, 'class_id' => $selectedClassId, 'week_start' => $nextWeekStart, 'week_ref' => $nextWeekRef], $classroomReturnQuery))); ?>">Tuần sau</a>
+                    <form data-week-picker-form="1" class="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-2 py-1 shadow-sm" method="get" action="<?= e(page_url('classrooms-academic')); ?>">
                         <input type="hidden" name="page" value="classrooms-academic">
                         <input type="hidden" name="course_id" value="<?= (int) $selectedCourseId; ?>">
                         <input type="hidden" name="class_id" value="<?= (int) $selectedClassId; ?>">
@@ -507,31 +580,43 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
                             <input type="hidden" name="class_per_page" value="<?= (int) $classReturnPerPage; ?>">
                         <?php endif; ?>
                         <label class="text-[11px] font-semibold text-slate-600" for="classroom-week-picker">Chọn tuần</label>
-                        <input id="classroom-week-picker" type="week" name="week_ref" value="<?= e($weekRefValue); ?>" class="h-7 rounded-md border border-slate-300 bg-white px-2 text-xs font-semibold text-slate-700">
-                        <button type="submit" class="inline-flex h-7 items-center rounded-md border border-slate-300 bg-slate-50 px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700">Xem</button>
+                        <input id="classroom-week-picker" type="week" name="week_ref" value="<?= e($weekRefValue); ?>" class="h-8 rounded-lg border border-slate-300 bg-white px-2 text-xs font-semibold text-slate-700">
                     </form>
-                    <span id="classroom-weekly-loading" class="hidden inline-flex h-8 items-center rounded-md border border-blue-200 bg-blue-50 px-3 text-xs font-semibold text-blue-700">Đang tải tuần...</span>
                 </div>
             </div>
 
             <div class="mb-3 flex flex-wrap items-center gap-2 text-xs">
                 <span class="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 font-semibold text-emerald-700">Xanh: Đã có giáo án buổi học</span>
                 <span class="inline-flex items-center rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 font-semibold text-rose-700">Đỏ: Khung lịch chưa có giáo án</span>
-                <span class="inline-flex items-center rounded-full border border-slate-200 bg-slate-100 px-2.5 py-1 font-semibold text-slate-600">Chuột phải hoặc phím Menu / Shift+F10 để mở menu thao tác nhanh</span>
+                <span class="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 font-semibold text-blue-700">Buổi hôm nay sẽ được làm nổi bật, buổi đã qua sẽ mờ hơn</span>
             </div>
 
             <?php if (empty($weekTimeSlots)): ?>
                 <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">Không có lịch học trong tuần này.</div>
             <?php else: ?>
-                <div class="max-w-full overflow-hidden rounded-xl border border-slate-200 bg-white">
-                    <table class="w-full table-fixed border-collapse border border-slate-300 text-sm">
+                <div class="classroom-weekly-scroll rounded-3xl border border-slate-400 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.05)]" style="overflow-x:auto;">
+                    <div class="min-w-[960px]">
+                    <table class="w-full table-fixed border-collapse text-sm" data-disable-row-detail="1" data-disable-global-filter="1" data-skip-action-icon="1">
+                            <colgroup>
+                                <col style="width:120px;">
+                                <?php for ($weekdayIndex = 0; $weekdayIndex < 7; $weekdayIndex++): ?>
+                                    <col style="width:calc((100% - 120px) / 7);">
+                                <?php endfor; ?>
+                            </colgroup>
                             <thead>
                                 <tr>
-                                    <th class="w-[96px] border border-slate-300 bg-slate-100 px-2 py-2 text-left text-xs font-semibold uppercase tracking-wide text-slate-700">Khung giờ</th>
+                                    <th class="w-[120px] whitespace-nowrap border-b border-r border-slate-400 bg-slate-100 px-3 py-3 text-left text-xs font-semibold uppercase tracking-[0.16em] text-slate-700">Khung giờ</th>
                                     <?php foreach ($weekDays as $weekDay): ?>
-                                        <th class="border border-slate-300 bg-slate-100 px-2 py-2 text-center">
-                                            <div class="font-semibold"><?= e((string) $weekDay['label']); ?></div>
-                                            <div class="text-[11px] font-medium text-slate-500"><?= e((string) $weekDay['display']); ?></div>
+                                        <?php
+                                        $isTodayColumn = (string) ($weekDay['value'] ?? '') === $todayDateValue;
+                                        $weekDayHeaderClasses = $isTodayColumn
+                                            ? 'border-b border-r border-slate-400 bg-[linear-gradient(180deg,rgba(248,252,255,1)_0%,rgba(238,248,255,1)_100%)] text-sky-950'
+                                            : 'border-b border-r border-slate-400 bg-slate-50 text-slate-700';
+                                        $weekDaySubLabelClasses = $isTodayColumn ? 'text-sky-700' : 'text-slate-500';
+                                        ?>
+                                        <th class="px-2 py-3 text-center <?= e($weekDayHeaderClasses); ?>">
+                                            <div class="text-[15px] font-bold"><?= e((string) $weekDay['label']); ?></div>
+                                            <div class="mt-0.5 text-[11px] font-semibold <?= e($weekDaySubLabelClasses); ?>"><?= e((string) $weekDay['display']); ?></div>
                                         </th>
                                     <?php endforeach; ?>
                                 </tr>
@@ -539,12 +624,18 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
                             <tbody>
                                 <?php foreach ($weekTimeSlots as $slot): ?>
                                     <tr>
-                                        <td class="border border-slate-300 bg-slate-50 px-2 py-2 text-xs font-semibold text-slate-700"><?= e((string) $slot['label']); ?></td>
+                                        <td class="whitespace-nowrap border-b border-r border-slate-400 bg-slate-50 px-3 py-3 text-xs font-semibold text-slate-700"><?= e((string) $slot['label']); ?></td>
                                     <?php foreach ($weekDays as $weekDay): ?>
                                         <?php $slotSchedules = $weekScheduleGrid[(string) $weekDay['value']][(string) $slot['key']] ?? []; ?>
-                                            <td class="border border-slate-300 align-top px-1.5 py-1.5">
+                                            <?php
+                                            $isTodayColumn = (string) ($weekDay['value'] ?? '') === $todayDateValue;
+                                            $weekDayCellClasses = $isTodayColumn
+                                                ? 'border-b border-r border-slate-400 bg-[linear-gradient(180deg,rgba(251,253,255,1)_0%,rgba(243,249,255,1)_100%)]'
+                                                : 'border-b border-r border-slate-400 bg-white';
+                                            ?>
+                                            <td class="align-top px-2 py-2 <?= e($weekDayCellClasses); ?>">
                                             <?php if (empty($slotSchedules)): ?>
-                                                <span class="text-xs text-slate-300">-</span>
+                                                <span class="text-xs font-medium <?= e($isTodayColumn ? 'text-sky-300' : 'text-slate-300'); ?>">-</span>
                                             <?php else: ?>
                                                 <?php foreach ($slotSchedules as $slotSchedule): ?>
                                                     <?php
@@ -559,7 +650,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
                                                         ? trim((string) ($linkedLesson['actual_title'] ?? ($slotSchedule['assigned_lesson_title'] ?? 'Buổi học')))
                                                         : 'Chưa soạn giáo án';
                                                     $lessonContent = is_array($linkedLesson) ? trim((string) ($linkedLesson['actual_content'] ?? '')) : '';
-                                                    $lessonAttachmentPath = is_array($linkedLesson) ? trim((string) ($linkedLesson['attachment_file_path'] ?? '')) : '';
+                                                    $lessonAttachmentPath = is_array($linkedLesson) ? normalize_public_file_url((string) ($linkedLesson['attachment_file_path'] ?? '')) : '';
                                                     $roadmapTopic = is_array($linkedLesson) ? trim((string) ($linkedLesson['roadmap_topic'] ?? '')) : '';
 
                                                     $studyDateValue = trim((string) ($slotSchedule['study_date'] ?? ''));
@@ -590,6 +681,17 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
                                                     $chipClasses = $hasLesson
                                                         ? 'border-emerald-300 bg-emerald-50 text-emerald-800'
                                                         : 'border-rose-300 bg-rose-50 text-rose-700';
+                                                    $slotState = 'upcoming';
+                                                    if ($studyDateValue !== '') {
+                                                        if ($studyDateValue < $todayDateValue) {
+                                                            $slotState = 'past';
+                                                            $chipClasses .= ' opacity-60 saturate-[0.85]';
+                                                        } elseif ($studyDateValue === $todayDateValue) {
+                                                            $slotState = 'today';
+                                                            $chipClasses .= ' ring-2 ring-offset-1 ring-amber-300 shadow-lg shadow-amber-100';
+                                                        }
+                                                    }
+                                                    $chipClasses .= ' classroom-slot-trigger transition duration-200 hover:-translate-y-0.5 hover:shadow-md focus-visible:-translate-y-0.5';
 
                                                     if ($focusedScheduleId > 0 && $focusedScheduleId === $scheduleId) {
                                                         $chipClasses .= ' ring-2 ring-blue-300';
@@ -601,8 +703,9 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
                                                         . ' | ' . ($roomName !== '' ? $roomName : 'Trực tuyến');
                                                     ?>
                                                     <div
-                                                        class="classroom-week-chip mb-1 last:mb-0 max-w-full cursor-context-menu overflow-hidden rounded-lg border px-2 py-1 text-[11px] font-semibold leading-tight focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 <?= e($chipClasses); ?>"
+                                                        class="classroom-week-chip mb-1 last:mb-0 max-w-full cursor-pointer overflow-hidden rounded-lg border px-2 py-2 text-[11px] font-semibold leading-tight focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 <?= e($chipClasses); ?>"
                                                         data-classroom-slot="1"
+                                                        data-slot-state="<?= e($slotState); ?>"
                                                         data-course-id="<?= (int) $selectedCourseId; ?>"
                                                         data-class-id="<?= (int) $selectedClassId; ?>"
                                                         data-schedule-id="<?= $scheduleId; ?>"
@@ -632,11 +735,18 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
                                                         aria-haspopup="menu"
                                                         aria-expanded="false"
                                                     >
-                                                        <div class="break-words whitespace-normal text-[11px] font-bold leading-snug"><?= e($lessonTitle !== '' ? $lessonTitle : 'Buổi học'); ?></div>
-                                                        <div class="mt-0.5 flex flex-wrap gap-1 text-[10px]">
-                                                            <span class="inline-flex items-center rounded-full border border-slate-200 bg-white/85 px-1.5 py-0.5 font-semibold"><?= e($timeLabel !== '' ? $timeLabel : '--:--'); ?></span>
-                                                            <span class="inline-flex max-w-full items-center truncate rounded-full border border-slate-200 bg-white/85 px-1.5 py-0.5 font-semibold"><?= e($roomName !== '' ? $roomName : 'Trực tuyến'); ?></span>
-                                                        </div>
+                                                    <div class="break-words whitespace-normal text-center text-[11px] font-bold leading-snug">
+                                                        <?= e($lessonTitle !== '' ? $lessonTitle : 'Buổi học'); ?>
+                                                    </div>
+
+                                                    <div class="mt-1 flex items-center justify-center gap-1 text-[10px] whitespace-nowrap">
+                                                        <span class="inline-flex items-center rounded-full border border-slate-200 bg-white/85 px-1.5 py-0.5 font-semibold">
+                                                            Bài tập: <?= (int) $assignmentCount; ?>
+                                                        </span>
+                                                        <span class="inline-flex max-w-[96px] items-center justify-center truncate rounded-full border border-slate-200 bg-white/85 px-1.5 py-0.5 font-semibold">
+                                                            <?= e($roomName !== '' ? $roomName : 'Trực tuyến'); ?>
+                                                        </span>
+                                                    </div>
                                                     </div>
                                                 <?php endforeach; ?>
                                             <?php endif; ?>
@@ -646,38 +756,56 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
                                 <?php endforeach; ?>
                             </tbody>
                         </table>
+                    </div>
                 </div>
             <?php endif; ?>
         </article>
 
-        <?php if (!empty($unscheduledLessons)): ?>
-            <article class="mt-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                <h3>Giáo án chưa xếp vào khung lịch</h3>
-                <p class="mb-3 text-sm text-slate-500">Kéo giáo án và thả vào ô lịch chưa có giáo án để xếp nhanh.</p>
-                <div class="flex flex-wrap gap-2.5">
-                    <?php foreach ($unscheduledLessons as $lesson): ?>
-                        <?php
-                        $lessonId = (int) ($lesson['id'] ?? 0);
-                        $unscheduledTitle = (string) ($lesson['actual_title'] ?? ('Buổi #' . $lessonId));
-                        ?>
-                        <a
-                            class="inline-flex max-w-[320px] items-center gap-2 rounded-lg border border-rose-300 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700 hover:border-rose-400 hover:bg-rose-100"
-                            href="<?= e(page_url('classrooms-academic', array_merge(['course_id' => $selectedCourseId, 'class_id' => $selectedClassId, 'lesson_id' => $lessonId, 'week_start' => $weekStartValue, 'week_ref' => $weekRefValue], $classroomReturnQuery))); ?>"
-                            data-open-lesson-modal="1"
-                            data-draggable-lesson="1"
-                            data-lesson-id="<?= $lessonId; ?>"
-                            data-schedule-id="0"
-                            data-slot-label="<?= e($unscheduledTitle); ?>"
-                            draggable="<?= $canUpdateLesson ? 'true' : 'false'; ?>"
-                            title="Kéo để xếp vào ô lịch trống hoặc click để chỉnh sửa"
-                        >
-                            <span class="truncate"><?= e($unscheduledTitle); ?></span>
-                            <span class="shrink-0 rounded border border-rose-200 bg-white px-2 py-0.5 text-[10px] font-bold uppercase">Chưa xếp</span>
-                        </a>
-                    <?php endforeach; ?>
-                </div>
-            </article>
-        <?php endif; ?>
+            <article id="classroom-lessons-section" class="mt-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div class="mb-3 flex flex-wrap items-start justify-between gap-3">
+        <div>
+            <h3>Quản lý giáo án</h3>
+            <p class="text-sm text-slate-500">Kéo giáo án và thả vào ô lịch chưa có giáo án để xếp nhanh, hoặc bấm vào buổi học để mở thao tác.</p>
+        </div>
+        
+        <div>
+            <?php if ($canCreateLesson): ?>
+                <button id="classroom-open-lesson-create" class="<?= ui_btn_primary_classes(); ?>" type="button">Soạn giáo án</button>
+            <?php else: ?>
+                <span class="inline-flex items-center rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-700">Bạn chưa có quyền tạo giáo án mới.</span>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <?php if (!empty($unscheduledLessons)): ?>
+    <div class="flex flex-wrap gap-2.5">
+        <?php foreach ($unscheduledLessons as $lesson): ?>
+            <?php
+            $lessonId = (int) ($lesson['id'] ?? 0);
+            $unscheduledTitle = (string) ($lesson['actual_title'] ?? ('Buổi #' . $lessonId));
+            ?>
+            <a
+                class="inline-flex max-w-[320px] items-center gap-2 rounded-lg border border-rose-300 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700 hover:border-rose-400 hover:bg-rose-100"
+                href="<?= e(page_url('classrooms-academic', array_merge(['course_id' => $selectedCourseId, 'class_id' => $selectedClassId, 'lesson_id' => $lessonId, 'week_start' => $weekStartValue, 'week_ref' => $weekRefValue], $classroomReturnQuery))); ?>"
+                data-open-lesson-modal="1"
+                data-draggable-lesson="1"
+                data-lesson-id="<?= $lessonId; ?>"
+                data-schedule-id="0"
+                data-slot-label="<?= e($unscheduledTitle); ?>"
+                draggable="<?= $canUpdateLesson ? 'true' : 'false'; ?>"
+                title="Kéo để xếp vào ô lịch trống hoặc click để chỉnh sửa"
+            >
+                <span class="truncate"><?= e($unscheduledTitle); ?></span>
+                <span class="shrink-0 rounded border border-rose-200 bg-white px-2 py-0.5 text-[10px] font-bold uppercase">Chưa xếp</span>
+            </a>
+        <?php endforeach; ?>
+    </div>
+    <?php else: ?>
+        <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-600">
+            Tất cả giáo án hiện đã được xếp vào buổi học. Bạn vẫn có thể bấm vào từng buổi trong thời khóa biểu để xem hoặc cập nhật giáo án.
+        </div>
+    <?php endif; ?>
+</article>
 
         </div>
 
@@ -940,7 +1068,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
     </div>
 </div>
 
-<div id="classroom-assignment-modal" class="fixed inset-0 z-[96] hidden overflow-y-auto bg-slate-900/50 p-4" role="dialog" aria-modal="true" aria-labelledby="classroom-assignment-modal-title">
+<div id="classroom-assignment-modal" class="fixed inset-0 z-[98] hidden overflow-y-auto bg-slate-900/50 p-4" role="dialog" aria-modal="true" aria-labelledby="classroom-assignment-modal-title">
     <div class="mx-auto mt-8 w-full max-w-2xl rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl">
         <div class="mb-4 flex items-start justify-between gap-2">
             <div>
@@ -971,19 +1099,20 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
             </label>
             <label>
                 Mô tả
-                <textarea name="description" rows="4" placeholder="Yêu cầu, tiêu chí chấm, định dạng file nộp..."></textarea>
+                <textarea id="classroom-assignment-description" name="description" rows="4" placeholder="Yêu cầu, tiêu chí chấm, định dạng file nộp..."></textarea>
             </label>
             <label>
                 Hạn nộp
-                <input type="datetime-local" name="deadline" required>
+                <input id="classroom-assignment-deadline" type="datetime-local" name="deadline" required>
             </label>
             <label>
                 File đính kèm (tùy chọn)
-                <input type="file" name="assignment_file" accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.png">
+                <input id="classroom-assignment-file" type="file" name="assignment_file" accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.png">
             </label>
+            <p id="classroom-assignment-file-hint" class="text-xs text-slate-500">Có thể thêm file bài tập cho buổi học này.</p>
 
             <div class="mt-1 flex flex-wrap gap-2">
-                <button class="<?= ui_btn_primary_classes(); ?>" type="submit">Lưu bài tập</button>
+                <button id="classroom-assignment-submit" class="<?= ui_btn_primary_classes(); ?>" type="submit">Lưu bài tập</button>
                 <button id="classroom-assignment-cancel" class="<?= ui_btn_secondary_classes(); ?>" type="button">Hủy</button>
             </div>
         </form>
@@ -1087,7 +1216,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
             </label>
             <label class="grid gap-1 text-sm font-semibold text-slate-700">
                 Loại
-                <select name="exam_type" required class="h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm font-medium text-slate-800 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100">
+                <select name="exam_type" required data-no-search="1" class="no-search h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm font-medium text-slate-800 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100">
                     <option value="">-- Chọn loại --</option>
                     <option value="entry">Entry</option>
                     <option value="periodic">Periodic</option>
@@ -1131,7 +1260,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
             </label>
             <label class="grid gap-1 text-sm font-semibold text-slate-700">
                 Loại
-                <select id="classroom-exam-edit-type" name="exam_type" required class="h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm font-medium text-slate-800 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100">
+                <select id="classroom-exam-edit-type" name="exam_type" required data-no-search="1" class="no-search h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm font-medium text-slate-800 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100">
                     <option value="">-- Chọn loại --</option>
                     <option value="entry">Entry</option>
                     <option value="periodic">Periodic</option>
@@ -1206,9 +1335,153 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
     </div>
 </div>
 
+<div id="classroom-assignments-modal" class="fixed inset-0 z-[96] hidden overflow-y-auto bg-slate-900/50 p-4" role="dialog" aria-modal="true" aria-labelledby="classroom-assignments-modal-title">
+    <div class="mx-auto mt-6 flex max-h-[calc(100vh-2rem)] w-full max-w-6xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl">
+        <div class="mb-4 flex items-start justify-between gap-2">
+            <div>
+                <h3 id="classroom-assignments-modal-title">Quản lý bài tập của lớp</h3>
+                <p class="text-sm text-slate-600">Toàn bộ bài tập thuộc lớp đang chọn, có thể mở file, sửa hoặc xóa trực tiếp.</p>
+            </div>
+            <button id="classroom-assignments-close" type="button" class="inline-flex h-8 items-center rounded-md border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700">Đóng</button>
+        </div>
+
+        <div class="min-h-0 overflow-auto rounded-xl border border-slate-200 bg-white">
+            <?php if (empty($classroomAssignmentRows)): ?>
+                <div class="p-5 text-sm text-slate-600">Lớp này chưa có bài tập nào.</div>
+            <?php else: ?>
+                <table class="min-w-full border-collapse text-sm">
+                    <thead class="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">
+                        <tr>
+                            <th class="px-4 py-3">Bài tập</th>
+                            <th class="px-4 py-3">Buổi học</th>
+                            <th class="px-4 py-3">Hạn nộp</th>
+                            <th class="px-4 py-3">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($classroomAssignmentRows as $assignmentRow): ?>
+                            <tr class="border-t border-slate-100">
+                                <td class="px-4 py-3 align-top">
+                                    <div class="font-semibold text-slate-800"><?= e((string) $assignmentRow['title']); ?></div>
+                                    <?php if (trim((string) $assignmentRow['description']) !== ''): ?>
+                                        <div class="mt-1 text-xs text-slate-500"><?= e((string) $assignmentRow['description']); ?></div>
+                                    <?php endif; ?>
+                                </td>
+                                <td class="px-4 py-3 align-top text-slate-700"><?= e((string) $assignmentRow['lesson_title']); ?></td>
+                                <td class="px-4 py-3 align-top text-slate-700"><?= e((string) $assignmentRow['deadline']); ?></td>
+                                <td class="px-4 py-3 align-top">
+                                    <div class="flex flex-wrap gap-2">
+                                        <?php if (trim((string) $assignmentRow['file_url']) !== ''): ?>
+                                            <a href="<?= e((string) $assignmentRow['file_url']); ?>" target="_blank" rel="noopener noreferrer" class="inline-flex items-center rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700">Mở file</a>
+                                        <?php else: ?>
+                                            <span class="inline-flex cursor-not-allowed items-center rounded-lg border border-slate-200 bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-400" title="Bài tập này chưa có file đính kèm" aria-disabled="true">Mở file</span>
+                                        <?php endif; ?>
+                                        <?php if ($canUpdateAssignment): ?>
+                                            <a
+                                                href="<?= e(page_url('assignments-academic-edit', ['id' => (int) $assignmentRow['id']])); ?>"
+                                                data-open-assignment-edit="1"
+                                                data-assignment-id="<?= (int) $assignmentRow['id']; ?>"
+                                                data-schedule-id="<?= (int) $assignmentRow['schedule_id']; ?>"
+                                                data-title="<?= e((string) $assignmentRow['title']); ?>"
+                                                data-description="<?= e((string) $assignmentRow['description']); ?>"
+                                                data-deadline="<?= e((string) $assignmentRow['deadline']); ?>"
+                                                data-file-url="<?= e((string) $assignmentRow['file_url']); ?>"
+                                                data-lesson-title="<?= e((string) $assignmentRow['lesson_title']); ?>"
+                                                class="inline-flex items-center rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700"
+                                            >Sửa</a>
+                                        <?php endif; ?>
+                                        <?php if ($canDeleteAssignment): ?>
+                                            <form method="post" action="/api/assignments/delete?id=<?= (int) $assignmentRow['id']; ?>&redirect_page=classrooms-academic&course_id=<?= (int) $selectedCourseId; ?>&class_id=<?= (int) $selectedClassId; ?>&focus_schedule_id=<?= (int) $assignmentRow['schedule_id']; ?>&week_start=<?= e($weekStartValue); ?>&week_ref=<?= e($weekRefValue); ?><?php if ($classReturnPage > 0): ?>&class_page=<?= (int) $classReturnPage; ?><?php endif; ?><?php if ($classReturnPerPage > 0): ?>&class_per_page=<?= (int) $classReturnPerPage; ?><?php endif; ?>" onsubmit="return confirm('Xóa bài tập này?');">
+                                                <?= csrf_input(); ?>
+                                                <button type="submit" class="inline-flex items-center rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-700 hover:border-rose-300 hover:bg-rose-100">Xóa</button>
+                                            </form>
+                                        <?php endif; ?>
+                                    </div>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            <?php endif; ?>
+        </div>
+    </div>
+</div>
+
+<div id="classroom-materials-modal" class="fixed inset-0 z-[96] hidden overflow-y-auto bg-slate-900/50 p-4" role="dialog" aria-modal="true" aria-labelledby="classroom-materials-modal-title">
+    <div class="mx-auto mt-6 flex max-h-[calc(100vh-2rem)] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl">
+        <div class="mb-4 flex items-start justify-between gap-2">
+            <div>
+                <h3 id="classroom-materials-modal-title">Tài liệu của lớp</h3>
+                <p class="text-sm text-slate-600">Tổng hợp tất cả tài liệu đính kèm từ các giáo án đã được soạn cho lớp này.</p>
+            </div>
+            <button id="classroom-materials-close" type="button" class="inline-flex h-8 items-center rounded-md border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700">Đóng</button>
+        </div>
+
+        <div class="min-h-0 overflow-y-auto pr-1">
+            <?php if (empty($classroomLessonMaterialRows)): ?>
+                <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-5 text-sm text-slate-600">Lớp này chưa có tài liệu đính kèm trong giáo án.</div>
+            <?php else: ?>
+                <div class="grid gap-3">
+                    <?php foreach ($classroomLessonMaterialRows as $materialRow): ?>
+                        <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                            <div class="flex flex-wrap items-start justify-between gap-3">
+                                <div>
+                                    <p class="text-sm font-bold text-slate-800"><?= e((string) $materialRow['lesson_title']); ?></p>
+                                    <p class="mt-1 text-xs font-medium text-slate-500"><?= e((string) $materialRow['schedule_meta']); ?></p>
+                                    <p class="mt-1 text-xs font-medium text-slate-500">Phòng học: <?= e((string) $materialRow['room_name']); ?></p>
+                                </div>
+                                <a href="<?= e((string) $materialRow['file_url']); ?>" target="_blank" rel="noopener noreferrer" class="inline-flex items-center rounded-lg border border-blue-200 bg-white px-3 py-2 text-xs font-semibold text-blue-700 hover:border-blue-300 hover:bg-blue-50">Mở tài liệu</a>
+                            </div>
+                            <p class="mt-2 truncate text-xs text-slate-500"><?= e((string) $materialRow['file_name']); ?></p>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
+</div>
+
 <div id="classroom-drag-toast" class="pointer-events-none fixed bottom-4 right-4 z-[120] hidden rounded-lg border px-3 py-2 text-xs font-semibold shadow-lg transition duration-150"></div>
+<button id="classroom-scroll-top" type="button" class="fixed bottom-5 right-5 z-[94] hidden h-11 w-11 rounded-full border border-slate-300 bg-white/95 text-slate-700 shadow-lg transition hover:-translate-y-0.5 hover:border-blue-300 hover:text-blue-700" aria-label="Lên đầu trang">
+    ↑
+</button>
 
 <style>
+.classroom-slot-trigger[data-slot-state="today"] {
+    animation: classroomTodayPulse 2.2s ease-in-out infinite;
+}
+
+.classroom-attendance-choice:has(input:checked) {
+    border-color: rgb(59 130 246 / 0.45);
+    background-color: rgb(239 246 255 / 1);
+    color: rgb(30 64 175 / 1);
+}
+
+.classroom-attendance-choice {
+    position: relative;
+    cursor: pointer;
+}
+
+.classroom-attendance-choice input[data-attendance-radio="1"] {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.classroom-attendance-choice:focus-within {
+    outline: none;
+    box-shadow: none;
+}
+
+@keyframes classroomTodayPulse {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-1px);
+    }
+}
+
 .classroom-drop-hint-valid {
     box-shadow: inset 0 0 0 2px rgba(16, 185, 129, 0.65);
     background-color: rgba(16, 185, 129, 0.08);
@@ -1683,10 +1956,16 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
     const assignmentCloseButton = document.getElementById('classroom-assignment-close');
     const assignmentCancelButton = document.getElementById('classroom-assignment-cancel');
     const assignmentContext = document.getElementById('classroom-assignment-context');
+    const assignmentModalTitle = document.getElementById('classroom-assignment-modal-title');
     const assignmentTitleInput = document.getElementById('classroom-assignment-title');
-
+    const assignmentDescriptionInput = document.getElementById('classroom-assignment-description');
+    const assignmentDeadlineInput = document.getElementById('classroom-assignment-deadline');
+    const assignmentFileHint = document.getElementById('classroom-assignment-file-hint');
+    const assignmentSubmitButton = document.getElementById('classroom-assignment-submit');
     const assignmentScheduleIdInput = document.getElementById('classroom-assignment-schedule-id');
     const assignmentFocusScheduleIdInput = document.getElementById('classroom-assignment-focus-schedule-id');
+    const assignmentIdInput = document.getElementById('classroom-assignment-id');
+    const assignmentExistingFileUrlInput = document.getElementById('classroom-assignment-existing-file-url');
 
     const gradingModal = document.getElementById('classroom-grading-modal');
     const gradingForm = document.getElementById('classroom-grading-form');
@@ -1703,6 +1982,13 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
     const gradingSelectAllButton = document.getElementById('classroom-grading-select-all');
     const gradingClearButton = document.getElementById('classroom-grading-clear');
     const gradingSubmitButton = document.getElementById('classroom-grading-submit');
+    const assignmentsOpenButton = document.getElementById('classroom-open-assignments');
+    const assignmentsModal = document.getElementById('classroom-assignments-modal');
+    const assignmentsCloseButton = document.getElementById('classroom-assignments-close');
+    const materialsOpenButton = document.getElementById('classroom-open-materials');
+    const materialsModal = document.getElementById('classroom-materials-modal');
+    const materialsCloseButton = document.getElementById('classroom-materials-close');
+    const scrollTopButton = document.getElementById('classroom-scroll-top');
 
     const summaryTotal = document.getElementById('classroom-grading-summary-total');
     const summarySubmitted = document.getElementById('classroom-grading-summary-submitted');
@@ -1715,6 +2001,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
     const canViewAttendance = <?= $canViewAttendance ? 'true' : 'false'; ?>;
     const canManageAttendance = <?= $canManageAttendance ? 'true' : 'false'; ?>;
     const canCreateAssignment = <?= $canCreateAssignment ? 'true' : 'false'; ?>;
+    const canUpdateAssignment = <?= $canUpdateAssignment ? 'true' : 'false'; ?>;
     const canGradeSubmission = <?= $canGradeSubmission ? 'true' : 'false'; ?>;
     const canManageExams = <?= $canManageExams ? 'true' : 'false'; ?>;
     const csrfToken = <?= json_encode(csrf_token(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
@@ -3738,8 +4025,8 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
             return;
         }
 
-        const selects = Array.from(attendanceList.querySelectorAll('select[data-attendance-select="1"]'));
-        if (selects.length === 0) {
+        const rows = Array.from(attendanceList.querySelectorAll('tr[data-attendance-row="1"]'));
+        if (rows.length === 0) {
             return;
         }
 
@@ -3748,12 +4035,13 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
         let absent = 0;
         let unmarked = 0;
 
-        selects.forEach(function (selectElement) {
-            if (!(selectElement instanceof HTMLSelectElement)) {
+        rows.forEach(function (rowElement) {
+            if (!(rowElement instanceof HTMLTableRowElement)) {
                 return;
             }
 
-            const value = normalizeText(selectElement.value);
+            const checkedRadio = rowElement.querySelector('input[data-attendance-radio="1"]:checked');
+            const value = checkedRadio instanceof HTMLInputElement ? normalizeText(checkedRadio.value) : '';
             if (value === 'present') {
                 present++;
                 return;
@@ -3771,7 +4059,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
         });
 
         renderAttendanceSummary({
-            total: selects.length,
+            total: rows.length,
             present: present,
             late: late,
             absent: absent,
@@ -3809,22 +4097,32 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
             const attendanceStatus = normalizeText(row.attendance_status).toLowerCase();
             const attendanceNote = escapeHtml(normalizeText(row.attendance_note));
 
-            const optionUnmarked = attendanceStatus === '' ? ' selected' : '';
-            const optionPresent = attendanceStatus === 'present' ? ' selected' : '';
-            const optionLate = attendanceStatus === 'late' ? ' selected' : '';
-            const optionAbsent = attendanceStatus === 'absent' ? ' selected' : '';
+            const optionPresent = attendanceStatus === 'present' ? ' checked' : '';
+            const optionLate = attendanceStatus === 'late' ? ' checked' : '';
+            const optionAbsent = attendanceStatus === 'absent' ? ' checked' : '';
 
             return ''
-                + '<tr class="border-b border-slate-100 last:border-b-0">'
+                + '<tr data-attendance-row="1" class="border-b border-slate-100 last:border-b-0">'
                     + '<td class="px-4 py-3 align-top text-slate-600">' + studentCode + '</td>'
                     + '<td class="px-4 py-3 align-top font-semibold text-slate-800">' + studentName + '</td>'
-                    + '<td class="px-4 py-3 align-top">'
-                        + '<select data-attendance-select="1" data-no-search="1" name="attendance_status[' + studentId + ']" class="h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm font-medium text-slate-700 no-search"' + statusDisabledAttr + '>'
-                            + '<option value=""' + optionUnmarked + '>Chưa đánh dấu</option>'
-                            + '<option value="present"' + optionPresent + '>Có mặt</option>'
-                            + '<option value="late"' + optionLate + '>Đi muộn</option>'
-                            + '<option value="absent"' + optionAbsent + '>Vắng</option>'
-                        + '</select>'
+                    + '<td class="px-3 py-3 align-top">'
+                        + '<input type="hidden" name="attendance_status[' + studentId + ']" value="">'
+                        + '<label class="classroom-attendance-choice flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700">'
+                            + '<input data-attendance-radio="1" type="radio" name="attendance_status[' + studentId + ']" value="present" class="mr-2 h-4 w-4 border-slate-300 text-emerald-600"' + optionPresent + statusDisabledAttr + '>'
+                            + 'Có mặt'
+                        + '</label>'
+                    + '</td>'
+                    + '<td class="px-3 py-3 align-top">'
+                        + '<label class="classroom-attendance-choice flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700">'
+                            + '<input data-attendance-radio="1" type="radio" name="attendance_status[' + studentId + ']" value="late" class="mr-2 h-4 w-4 border-slate-300 text-blue-600"' + optionLate + statusDisabledAttr + '>'
+                            + 'Đi muộn'
+                        + '</label>'
+                    + '</td>'
+                    + '<td class="px-3 py-3 align-top">'
+                        + '<label class="classroom-attendance-choice flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700">'
+                            + '<input data-attendance-radio="1" type="radio" name="attendance_status[' + studentId + ']" value="absent" class="mr-2 h-4 w-4 border-slate-300 text-rose-600"' + optionAbsent + statusDisabledAttr + '>'
+                            + 'Vắng'
+                        + '</label>'
                     + '</td>'
                     + '<td class="px-4 py-3 align-top">'
                         + '<input type="text" name="attendance_note[' + studentId + ']" value="' + attendanceNote + '" placeholder="Ghi chú thêm (nếu có)" class="h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-700"' + noteReadonlyAttr + '>'
@@ -3839,7 +4137,9 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
                         + '<tr>'
                             + '<th class="px-4 py-3">Mã HV</th>'
                             + '<th class="px-4 py-3">Học viên</th>'
-                            + '<th class="px-4 py-3">Điểm danh</th>'
+                            + '<th class="px-3 py-3 text-center">Có mặt</th>'
+                            + '<th class="px-3 py-3 text-center">Đi muộn</th>'
+                            + '<th class="px-3 py-3 text-center">Vắng</th>'
                             + '<th class="px-4 py-3">Ghi chú</th>'
                         + '</tr>'
                     + '</thead>'
@@ -3854,9 +4154,9 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
         }
 
         if (canManageAttendance) {
-            attendanceList.querySelectorAll('select[data-attendance-select="1"]').forEach(function (selectElement) {
-                if (selectElement instanceof HTMLSelectElement) {
-                    selectElement.addEventListener('change', function () {
+            attendanceList.querySelectorAll('input[data-attendance-radio="1"]').forEach(function (radioElement) {
+                if (radioElement instanceof HTMLInputElement) {
+                    radioElement.addEventListener('change', function () {
                         recalculateAttendanceSummaryFromInputs();
                     });
                 }
@@ -4111,8 +4411,12 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
         }
         if (lessonAttachmentHint instanceof HTMLElement) {
             if (isEditing && normalizeText(lessonRecord.attachment_file_path) !== '') {
-                lessonAttachmentHint.innerHTML = 'Tài liệu hiện tại: <a class="font-semibold text-blue-700 hover:underline" href="'
-                    + escapeHtml(normalizeText(lessonRecord.attachment_file_path))
+                const attachmentUrl = normalizePublicFileUrl(lessonRecord.attachment_file_path);
+                const attachmentName = escapeHtml(normalizeText(String(lessonRecord.attachment_file_path || '').split(/[\\/]/).pop()));
+                lessonAttachmentHint.innerHTML = 'Tài liệu hiện tại: <span class="font-semibold text-slate-700">'
+                    + attachmentName
+                    + '</span> <a class="font-semibold text-blue-700 hover:underline" href="'
+                    + escapeHtml(attachmentUrl)
                     + '" target="_blank" rel="noopener noreferrer">Mở file</a>. Chọn file mới để thay thế.';
             } else {
                 lessonAttachmentHint.textContent = 'Có thể tải lên tài liệu dùng riêng cho buổi học này.';
@@ -4206,7 +4510,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
             + ' | Đã nộp ' + toInt(context.submissionCount)
             + ' | Chưa chấm ' + toInt(context.ungradedCount);
         const roadmapLabel = normalizeText(context.roadmapTopic) !== '' ? normalizeText(context.roadmapTopic) : '--';
-        const attachmentPath = normalizeText(context.lessonAttachmentPath);
+        const attachmentPath = normalizePublicFileUrl(context.lessonAttachmentPath);
 
         if (lessonInfoContext instanceof HTMLElement) {
             lessonInfoContext.textContent = normalizeText(context.slotLabel) !== ''
@@ -4258,16 +4562,15 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
         );
     }
 
-    function setWeeklyLoading(isLoading) {
-        const weeklyShell = document.querySelector('[data-weekly-shell="1"]');
-        if (weeklyShell instanceof HTMLElement) {
-            weeklyShell.classList.toggle('opacity-70', isLoading);
-            weeklyShell.classList.toggle('pointer-events-none', isLoading);
-        }
+    function currentWeeklyCard() {
+        return document.querySelector('[data-weekly-card="1"]');
+    }
 
-        const loadingBadge = document.getElementById('classroom-weekly-loading');
-        if (loadingBadge instanceof HTMLElement) {
-            loadingBadge.classList.toggle('hidden', !isLoading);
+    function setWeeklyLoading(isLoading) {
+        const weeklyCard = currentWeeklyCard();
+        if (weeklyCard instanceof HTMLElement) {
+            weeklyCard.classList.toggle('opacity-70', isLoading);
+            weeklyCard.classList.toggle('pointer-events-none', isLoading);
         }
     }
 
@@ -4298,7 +4601,8 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
         }
 
         const currentWeeklyShell = document.querySelector('[data-weekly-shell="1"]');
-        if (!(currentWeeklyShell instanceof HTMLElement)) {
+        const currentCardElement = currentWeeklyCard();
+        if (!(currentWeeklyShell instanceof HTMLElement) || !(currentCardElement instanceof HTMLElement)) {
             window.location.assign(targetUrl);
             return;
         }
@@ -4324,11 +4628,12 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
             const parser = new DOMParser();
             const nextDocument = parser.parseFromString(html, 'text/html');
             const nextWeeklyShell = nextDocument.querySelector('[data-weekly-shell="1"]');
-            if (!(nextWeeklyShell instanceof HTMLElement)) {
+            const nextWeeklyCard = nextDocument.querySelector('[data-weekly-card="1"]');
+            if (!(nextWeeklyShell instanceof HTMLElement) || !(nextWeeklyCard instanceof HTMLElement)) {
                 throw new Error('Không tìm thấy dữ liệu tuần để cập nhật.');
             }
 
-            currentWeeklyShell.innerHTML = nextWeeklyShell.innerHTML;
+            currentCardElement.replaceWith(nextWeeklyCard);
             currentWeeklyShell.setAttribute('data-week-start', normalizeText(nextWeeklyShell.getAttribute('data-week-start')));
             currentWeeklyShell.setAttribute('data-week-ref', normalizeText(nextWeeklyShell.getAttribute('data-week-ref')));
 
@@ -4563,6 +4868,18 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
         }
 
         assignmentForm.reset();
+        if (assignmentModalTitle instanceof HTMLElement) {
+            assignmentModalTitle.textContent = 'Giao bài tập theo buổi';
+        }
+        if (assignmentSubmitButton instanceof HTMLButtonElement) {
+            assignmentSubmitButton.textContent = 'Lưu bài tập';
+        }
+        if (assignmentIdInput instanceof HTMLInputElement) {
+            assignmentIdInput.value = '0';
+        }
+        if (assignmentExistingFileUrlInput instanceof HTMLInputElement) {
+            assignmentExistingFileUrlInput.value = '';
+        }
         if (assignmentScheduleIdInput instanceof HTMLInputElement) {
             assignmentScheduleIdInput.value = String(context.scheduleId);
         }
@@ -4576,9 +4893,93 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
             const lessonTitle = normalizeText(context.lessonTitle);
             assignmentTitleInput.value = lessonTitle !== '' ? ('Bài tập - ' + lessonTitle) : '';
         }
+        if (assignmentDescriptionInput instanceof HTMLTextAreaElement) {
+            assignmentDescriptionInput.value = '';
+        }
+        if (assignmentDeadlineInput instanceof HTMLInputElement) {
+            assignmentDeadlineInput.value = '';
+        }
+        if (assignmentFileHint instanceof HTMLElement) {
+            assignmentFileHint.textContent = 'Có thể thêm file bài tập cho buổi học này.';
+        }
 
         closeMenu(false);
         openModal(assignmentModal, assignmentTitleInput instanceof HTMLElement ? assignmentTitleInput : assignmentCloseButton, activeSlotElement);
+    }
+
+    function formatAssignmentDeadlineForInput(rawValue) {
+        const normalized = normalizeText(rawValue);
+        if (normalized === '') {
+            return '';
+        }
+
+        const match = normalized.match(/^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2})/);
+        if (match) {
+            return match[1] + 'T' + match[2];
+        }
+
+        return normalized;
+    }
+
+    function openAssignmentEditModalFromTrigger(triggerElement) {
+        if (!canUpdateAssignment || !(triggerElement instanceof HTMLElement)) {
+            return;
+        }
+        if (!(assignmentModal instanceof HTMLElement) || !(assignmentForm instanceof HTMLFormElement)) {
+            return;
+        }
+
+        assignmentForm.reset();
+
+        const assignmentId = toInt(triggerElement.getAttribute('data-assignment-id'));
+        const scheduleId = toInt(triggerElement.getAttribute('data-schedule-id'));
+        const title = normalizeText(triggerElement.getAttribute('data-title'));
+        const description = normalizeText(triggerElement.getAttribute('data-description'));
+        const deadline = formatAssignmentDeadlineForInput(triggerElement.getAttribute('data-deadline'));
+        const fileUrl = normalizePublicFileUrl(triggerElement.getAttribute('data-file-url'));
+        const lessonTitle = normalizeText(triggerElement.getAttribute('data-lesson-title'));
+
+        if (assignmentModalTitle instanceof HTMLElement) {
+            assignmentModalTitle.textContent = 'Cập nhật bài tập';
+        }
+        if (assignmentSubmitButton instanceof HTMLButtonElement) {
+            assignmentSubmitButton.textContent = 'Cập nhật bài tập';
+        }
+        if (assignmentIdInput instanceof HTMLInputElement) {
+            assignmentIdInput.value = String(assignmentId);
+        }
+        if (assignmentExistingFileUrlInput instanceof HTMLInputElement) {
+            assignmentExistingFileUrlInput.value = fileUrl;
+        }
+        if (assignmentScheduleIdInput instanceof HTMLInputElement) {
+            assignmentScheduleIdInput.value = String(scheduleId);
+        }
+        if (assignmentFocusScheduleIdInput instanceof HTMLInputElement) {
+            assignmentFocusScheduleIdInput.value = String(scheduleId);
+        }
+        if (assignmentContext instanceof HTMLElement) {
+            assignmentContext.textContent = lessonTitle !== '' ? lessonTitle : 'Bài tập thuộc buổi học đã chọn';
+        }
+        if (assignmentTitleInput instanceof HTMLInputElement) {
+            assignmentTitleInput.value = title;
+        }
+        if (assignmentDescriptionInput instanceof HTMLTextAreaElement) {
+            assignmentDescriptionInput.value = description;
+        }
+        if (assignmentDeadlineInput instanceof HTMLInputElement) {
+            assignmentDeadlineInput.value = deadline;
+        }
+        if (assignmentFileHint instanceof HTMLElement) {
+            assignmentFileHint.innerHTML = fileUrl !== ''
+                ? 'File hiện tại: <a class="font-semibold text-blue-700 hover:underline" href="' + escapeHtml(fileUrl) + '" target="_blank" rel="noopener noreferrer">Mở file</a>. Chọn file mới để thay thế.'
+                : 'Bài tập này hiện chưa có file đính kèm.';
+        }
+
+        openModal(
+            assignmentModal,
+            assignmentTitleInput instanceof HTMLElement ? assignmentTitleInput : assignmentCloseButton,
+            triggerElement
+        );
     }
 
     function populateGradingAssignments(context) {
@@ -4697,9 +5098,26 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
     function bindSlotListeners() {
         slots = Array.from(document.querySelectorAll('[data-classroom-slot="1"]'));
         slots.forEach(function (slotElement) {
+            slotElement.addEventListener('click', function (event) {
+                if (event.defaultPrevented) {
+                    return;
+                }
+
+                event.preventDefault();
+                event.stopPropagation();
+                const rect = slotElement.getBoundingClientRect();
+                const posX = rect.left + Math.min(rect.width / 2, 120);
+                const posY = rect.top + Math.min(rect.height / 2, 40);
+                openMenu(slotElement, posX, posY, true);
+            });
+
             slotElement.addEventListener('contextmenu', function (event) {
                 event.preventDefault();
-                openMenu(slotElement, event.clientX, event.clientY, false);
+                event.stopPropagation();
+                const rect = slotElement.getBoundingClientRect();
+                const posX = rect.left + Math.min(rect.width / 2, 120);
+                const posY = rect.top + Math.min(rect.height / 2, 40);
+                openMenu(slotElement, posX, posY, true);
             });
 
             slotElement.addEventListener('keydown', function (event) {
@@ -4988,6 +5406,50 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
         assignmentModal.addEventListener('click', function (event) {
             if (event.target === assignmentModal) {
                 closeModal(assignmentModal, true);
+            }
+        });
+    }
+
+    if (assignmentsOpenButton instanceof HTMLButtonElement) {
+        assignmentsOpenButton.addEventListener('click', function () {
+            if (!(assignmentsModal instanceof HTMLElement)) {
+                return;
+            }
+
+            openModal(assignmentsModal, assignmentsCloseButton instanceof HTMLElement ? assignmentsCloseButton : assignmentsModal, assignmentsOpenButton);
+        });
+    }
+    if (assignmentsCloseButton instanceof HTMLButtonElement && assignmentsModal instanceof HTMLElement) {
+        assignmentsCloseButton.addEventListener('click', function () {
+            closeModal(assignmentsModal, true);
+        });
+    }
+    if (assignmentsModal instanceof HTMLElement) {
+        assignmentsModal.addEventListener('click', function (event) {
+            if (event.target === assignmentsModal) {
+                closeModal(assignmentsModal, true);
+            }
+        });
+    }
+
+    if (materialsOpenButton instanceof HTMLButtonElement) {
+        materialsOpenButton.addEventListener('click', function () {
+            if (!(materialsModal instanceof HTMLElement)) {
+                return;
+            }
+
+            openModal(materialsModal, materialsCloseButton instanceof HTMLElement ? materialsCloseButton : materialsModal, materialsOpenButton);
+        });
+    }
+    if (materialsCloseButton instanceof HTMLButtonElement && materialsModal instanceof HTMLElement) {
+        materialsCloseButton.addEventListener('click', function () {
+            closeModal(materialsModal, true);
+        });
+    }
+    if (materialsModal instanceof HTMLElement) {
+        materialsModal.addEventListener('click', function (event) {
+            if (event.target === materialsModal) {
+                closeModal(materialsModal, true);
             }
         });
     }
@@ -5558,6 +6020,26 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
                 return;
             }
 
+            const scrollTrigger = clickTarget.closest('[data-scroll-target]');
+            if (scrollTrigger instanceof HTMLElement) {
+                event.preventDefault();
+                const selector = normalizeText(scrollTrigger.getAttribute('data-scroll-target'));
+                if (selector !== '') {
+                    const targetElement = document.querySelector(selector);
+                    if (targetElement instanceof HTMLElement) {
+                        targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                }
+                return;
+            }
+
+            const assignmentEditTrigger = clickTarget.closest('[data-open-assignment-edit="1"]');
+            if (assignmentEditTrigger instanceof HTMLElement) {
+                event.preventDefault();
+                openAssignmentEditModalFromTrigger(assignmentEditTrigger);
+                return;
+            }
+
             const weekNavLink = clickTarget.closest('[data-week-nav-link="1"]');
             if (weekNavLink instanceof HTMLAnchorElement) {
                 event.preventDefault();
@@ -5618,7 +6100,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
             return;
         }
 
-        if (formElement.getAttribute('data-week-nav-form') !== '1') {
+        if (formElement.getAttribute('data-week-picker-form') !== '1') {
             return;
         }
 
@@ -5627,6 +6109,34 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
         const action = normalizeText(formElement.getAttribute('action'));
         const targetUrl = new URL(action !== '' ? action : window.location.pathname, window.location.origin);
         const formData = new FormData(formElement);
+        const searchParams = new URLSearchParams();
+
+        formData.forEach(function (rawValue, rawKey) {
+            if (typeof rawValue !== 'string') {
+                return;
+            }
+
+            searchParams.set(String(rawKey), rawValue);
+        });
+
+        targetUrl.search = searchParams.toString();
+        loadWeekView(targetUrl.toString(), true);
+    });
+
+    document.addEventListener('change', function (event) {
+        const inputElement = event.target;
+        if (!(inputElement instanceof HTMLInputElement) || inputElement.name !== 'week_ref') {
+            return;
+        }
+
+        const pickerForm = inputElement.closest('form[data-week-picker-form="1"]');
+        if (!(pickerForm instanceof HTMLFormElement) || normalizeText(inputElement.value) === '') {
+            return;
+        }
+
+        const action = normalizeText(pickerForm.getAttribute('action'));
+        const targetUrl = new URL(action !== '' ? action : window.location.pathname, window.location.origin);
+        const formData = new FormData(pickerForm);
         const searchParams = new URLSearchParams();
 
         formData.forEach(function (rawValue, rawKey) {
@@ -5675,6 +6185,10 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
     });
 
     window.addEventListener('scroll', function () {
+        if (scrollTopButton instanceof HTMLButtonElement) {
+            scrollTopButton.classList.toggle('hidden', window.scrollY < 480);
+        }
+
         if (!contextMenu.classList.contains('hidden')) {
             closeMenu(false);
         }
@@ -5700,6 +6214,12 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
     bindExamsLayoutObserver();
     if (examsFilterInput instanceof HTMLInputElement) {
         examsFilterInput.disabled = selectedClassId <= 0;
+    }
+    if (scrollTopButton instanceof HTMLButtonElement) {
+        scrollTopButton.addEventListener('click', function () {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+        scrollTopButton.classList.toggle('hidden', window.scrollY < 480);
     }
     if (examsOpenCreateButton instanceof HTMLButtonElement && selectedClassId <= 0) {
         examsOpenCreateButton.disabled = true;
