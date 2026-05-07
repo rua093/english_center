@@ -10,29 +10,44 @@ function api_notifications_save_action(): void
 
     $notificationId = input_int($_POST, 'id');
     api_guard_permission($notificationId > 0 ? 'notifications.update' : 'notifications.create');
+    $currentUser = auth_user() ?? [];
 
-    $userId = input_int($_POST, 'user_id');
+    $targetType = strtoupper(trim((string) ($_POST['target_type'] ?? '')));
+    $targetId = 0;
+    if ($targetType === 'USER') {
+        $targetId = input_int($_POST, 'target_user_id');
+    } elseif ($targetType === 'ROLE') {
+        $targetId = input_int($_POST, 'target_role_id');
+    } elseif ($targetType === 'CLASS') {
+        $targetId = input_int($_POST, 'target_class_id');
+    }
     $title = trim((string) ($_POST['title'] ?? ''));
     $message = trim((string) ($_POST['message'] ?? ''));
-    $isRead = input_int($_POST, 'is_read') === 1 ? 1 : 0;
 
     $redirectQuery = [];
     if ($notificationId > 0) {
         $redirectQuery['edit'] = $notificationId;
     }
 
-    if ($userId <= 0 || $title === '' || $message === '') {
-        set_flash('error', 'Vui long chon nguoi nhan va nhap day du tieu de, noi dung.');
+    $allowedTargetTypes = ['ALL', 'ROLE', 'CLASS', 'USER'];
+    if (!in_array($targetType, $allowedTargetTypes, true) || $title === '' || $message === '') {
+        set_flash('error', 'Vui long chon doi tuong nhan va nhap day du tieu de, noi dung.');
+        redirect(page_url('notifications-manage', $redirectQuery));
+    }
+
+    if ($targetType !== 'ALL' && $targetId <= 0) {
+        set_flash('error', 'Vui long chon doi tuong nhan cu the cho thong bao.');
         redirect(page_url('notifications-manage', $redirectQuery));
     }
 
     try {
         (new AcademicModel())->saveNotification([
             'id' => $notificationId,
-            'user_id' => $userId,
+            'sender_id' => (int) ($currentUser['id'] ?? 0),
+            'target_type' => $targetType,
+            'target_id' => $targetType === 'ALL' ? null : $targetId,
             'title' => $title,
             'message' => $message,
-            'is_read' => $isRead,
         ]);
     } catch (Throwable $exception) {
         set_flash('error', 'Khong the luu thong bao. Vui long thu lai.');

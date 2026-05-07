@@ -325,6 +325,15 @@ final class UsersTableModel extends BaseTableModel
         return $this->fetchAll($sql, $params);
     }
 
+    public function listRoleLookups(): array
+    {
+        return $this->fetchAll(
+            'SELECT id, role_name
+             FROM roles
+             ORDER BY role_name ASC'
+        );
+    }
+
     public function usernameExists(string $username, int $excludeUserId = 0): bool
     {
         $normalized = trim($username);

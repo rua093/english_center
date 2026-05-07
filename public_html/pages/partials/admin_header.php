@@ -1036,6 +1036,7 @@
                 grid-template-columns: 290px minmax(0, 1fr);
             }
 
+            html.admin-sidebar-collapsed .admin-shell,
             .admin-shell.is-sidebar-collapsed {
                 grid-template-columns: 92px minmax(0, 1fr);
             }
@@ -1084,20 +1085,39 @@
                 width: 100%;
             }
 
-            .admin-page-profile-link {
-                width: 100%;
-            }
+        .admin-page-profile-link {
+            width: 100%;
+        }
 
-            .admin-ui .table-filter-bar {
-                flex-direction: column;
-                align-items: stretch;
-            }
+        .admin-main-content.is-ajax-loading {
+            opacity: 0.65;
+            pointer-events: none;
+            transition: opacity 140ms ease;
+        }
+
+        .admin-ui .table-filter-bar {
+            flex-direction: column;
+            align-items: stretch;
+        }
 
             .admin-ui .table-filter-counter {
                 text-align: right;
             }
         }
     </style>
+    <script>
+        (function () {
+            try {
+                if (window.localStorage.getItem('admin-ui:sidebar-collapsed') === '1') {
+                    document.documentElement.classList.add('admin-sidebar-collapsed');
+                } else {
+                    document.documentElement.classList.remove('admin-sidebar-collapsed');
+                }
+            } catch (error) {
+                document.documentElement.classList.remove('admin-sidebar-collapsed');
+            }
+        })();
+    </script>
 </head>
 <body class="min-h-screen bg-slate-100 admin-font leading-relaxed text-slate-900">
 <?php
@@ -1531,6 +1551,7 @@ if ($displayAdminDescription === '') {
                 }
 
                 shell.classList.toggle('is-sidebar-collapsed', collapsed);
+                document.documentElement.classList.toggle('admin-sidebar-collapsed', collapsed);
 
                 const expandedText = collapsed ? 'false' : 'true';
                 const labelText = collapsed ? 'Mở sidebar' : 'Thu gọn sidebar';
@@ -1593,7 +1614,7 @@ if ($displayAdminDescription === '') {
         })();
     </script>
 
-    <main class="min-w-0 p-4 md:p-6">
+    <main class="admin-main-content min-w-0 p-4 md:p-6" id="adminMainContent" data-admin-main-content="1">
         <header class="admin-page-hero">
             <div class="admin-page-hero-content">
                 <div class="admin-page-hero-title-row">

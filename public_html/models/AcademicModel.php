@@ -602,7 +602,16 @@ final class AcademicModel
 
     public function notificationRecipientLookups(): array
     {
-        return $this->usersTable->listActiveByRoleNames(['admin', 'staff', 'teacher', 'student']);
+        return $this->notificationTargetLookups()['users'];
+    }
+
+    public function notificationTargetLookups(): array
+    {
+        return [
+            'users' => $this->usersTable->listActiveByRoleNames(['admin', 'staff', 'teacher', 'student']),
+            'roles' => $this->usersTable->listRoleLookups(),
+            'classes' => $this->classesTable->listSimple(),
+        ];
     }
 
     public function registrationLookups(): array
@@ -869,9 +878,9 @@ final class AcademicModel
         $this->notificationsTable->save($data);
     }
 
-    public function markNotificationRead(int $id): void
+    public function markNotificationRead(int $id, int $userId = 0): void
     {
-        $this->notificationsTable->markRead($id);
+        $this->notificationsTable->markRead($id, $userId);
     }
 
     public function deleteNotification(int $id): void

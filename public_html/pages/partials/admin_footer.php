@@ -15,8 +15,10 @@
         const AJAX_TBODY_SELECTOR = 'tbody[data-ajax-tbody="1"]';
         const AJAX_PAGINATION_SELECTOR = '[data-ajax-pagination="1"]';
         const AJAX_ROW_INFO_SELECTOR = '[data-ajax-row-info="1"]';
+        const ADMIN_MAIN_CONTENT_SELECTOR = '[data-admin-main-content="1"]';
         const ajaxTableControllers = new WeakMap();
         const ajaxTableSearchTimers = new WeakMap();
+        let adminNavigationController = null;
 
         function hasPaginationParam(url) {
             const entries = Array.from(url.searchParams.keys());
@@ -296,6 +298,200 @@
             if (shouldReload) {
                 window.location.reload();
             }
+        }
+
+        function isSidebarAjaxLink(anchor) {
+            if (!(anchor instanceof HTMLAnchorElement)) {
+                return false;
+            }
+
+            if (!anchor.matches('.admin-sidebar-link, .admin-sidebar-brand')) {
+                return false;
+            }
+
+            const url = toUrl(anchor.href);
+            if (!(url instanceof URL) || url.origin !== window.location.origin) {
+                return false;
+            }
+
+            return String(url.searchParams.get('page') || '').trim() !== '';
+        }
+
+        function executeScriptsWithin(rootElement) {
+            if (!(rootElement instanceof HTMLElement)) {
+                return;
+            }
+
+            const originalDocumentAddEventListener = document.addEventListener.bind(document);
+            const originalWindowAddEventListener = window.addEventListener.bind(window);
+
+            document.addEventListener = function (type, listener, options) {
+                if (type === 'DOMContentLoaded' && typeof listener === 'function') {
+                    listener.call(document, new Event('DOMContentLoaded'));
+                    return;
+                }
+
+                return originalDocumentAddEventListener(type, listener, options);
+            };
+
+            window.addEventListener = function (type, listener, options) {
+                if (type === 'load' && typeof listener === 'function') {
+                    listener.call(window, new Event('load'));
+                    return;
+                }
+
+                return originalWindowAddEventListener(type, listener, options);
+            };
+
+            const scripts = Array.from(rootElement.querySelectorAll('script'));
+            try {
+                scripts.forEach(function (oldScript) {
+                    const newScript = document.createElement('script');
+                    Array.from(oldScript.attributes).forEach(function (attribute) {
+                        newScript.setAttribute(attribute.name, attribute.value);
+                    });
+
+                    if (!oldScript.src) {
+                        newScript.textContent = oldScript.textContent || '';
+                    }
+
+                    oldScript.parentNode?.replaceChild(newScript, oldScript);
+                });
+            } finally {
+                document.addEventListener = originalDocumentAddEventListener;
+                window.addEventListener = originalWindowAddEventListener;
+            }
+        }
+
+        function syncSidebarActiveState(nextDocument) {
+            if (!(nextDocument instanceof Document)) {
+                return;
+            }
+
+            const nextActiveLink = nextDocument.querySelector('.admin-sidebar-link.is-active');
+            const nextActiveUrl = nextActiveLink instanceof HTMLAnchorElement ? toUrl(nextActiveLink.href) : null;
+            const nextActiveKey = nextActiveUrl ? nextActiveUrl.pathname + nextActiveUrl.search : '';
+
+            document.querySelectorAll('.admin-sidebar-link').forEach(function (link) {
+                if (!(link instanceof HTMLAnchorElement)) {
+                    return;
+                }
+
+                const currentUrl = toUrl(link.href);
+                const currentKey = currentUrl ? currentUrl.pathname + currentUrl.search : '';
+                link.classList.toggle('is-active', nextActiveKey !== '' && currentKey === nextActiveKey);
+            });
+        }
+
+        async function replaceAdminMainContentFromUrl(targetUrl, historyMode) {
+            const currentMain = document.querySelector(ADMIN_MAIN_CONTENT_SELECTOR);
+            if (!(currentMain instanceof HTMLElement)) {
+                window.location.href = targetUrl.toString();
+                return;
+            }
+
+            if (adminNavigationController) {
+                adminNavigationController.abort();
+            }
+
+            adminNavigationController = new AbortController();
+            currentMain.classList.add('is-ajax-loading');
+
+            try {
+                const response = await fetch(targetUrl.toString(), {
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    credentials: 'same-origin',
+                    signal: adminNavigationController.signal,
+                });
+
+                if (!response.ok) {
+                    window.location.href = targetUrl.toString();
+                    return;
+                }
+
+                const html = await response.text();
+                const nextDocument = new DOMParser().parseFromString(html, 'text/html');
+                const nextMain = nextDocument.querySelector(ADMIN_MAIN_CONTENT_SELECTOR);
+                if (!(nextMain instanceof HTMLElement)) {
+                    window.location.href = targetUrl.toString();
+                    return;
+                }
+
+                if (typeof window.__closeAdminEditModal === 'function') {
+                    window.__closeAdminEditModal();
+                }
+
+                currentMain.replaceWith(nextMain);
+                document.title = String(nextDocument.title || document.title);
+                syncSidebarActiveState(nextDocument);
+
+                executeScriptsWithin(nextMain);
+
+                if (historyMode === 'push') {
+                    window.history.pushState({ adminAjax: true }, '', targetUrl.toString());
+                } else if (historyMode === 'replace') {
+                    window.history.replaceState({ adminAjax: true }, '', targetUrl.toString());
+                }
+
+                window.scrollTo(0, 0);
+
+                if (typeof window.__refreshAdminUi === 'function') {
+                    await window.__refreshAdminUi(nextMain);
+                }
+            } catch (error) {
+                if (!(error instanceof DOMException) || error.name !== 'AbortError') {
+                    window.location.href = targetUrl.toString();
+                }
+            } finally {
+                const activeMain = document.querySelector(ADMIN_MAIN_CONTENT_SELECTOR);
+                if (activeMain instanceof HTMLElement) {
+                    activeMain.classList.remove('is-ajax-loading');
+                }
+            }
+        }
+
+        function initAdminSidebarAjaxNavigation() {
+            document.addEventListener('click', function (event) {
+                const anchor = event.target instanceof Element ? event.target.closest('a[href]') : null;
+                if (!(anchor instanceof HTMLAnchorElement) || !isSidebarAjaxLink(anchor)) {
+                    return;
+                }
+
+                if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+                    return;
+                }
+
+                const targetUrl = toUrl(anchor.href);
+                if (!(targetUrl instanceof URL)) {
+                    return;
+                }
+
+                const currentUrl = new URL(window.location.href);
+                if ((currentUrl.pathname + currentUrl.search) === (targetUrl.pathname + targetUrl.search)) {
+                    return;
+                }
+
+                event.preventDefault();
+                replaceAdminMainContentFromUrl(targetUrl, 'push');
+            });
+
+            window.addEventListener('popstate', function () {
+                const currentMain = document.querySelector(ADMIN_MAIN_CONTENT_SELECTOR);
+                if (!(currentMain instanceof HTMLElement)) {
+                    return;
+                }
+
+                const targetUrl = new URL(window.location.href);
+                if (String(targetUrl.searchParams.get('page') || '').trim() === '') {
+                    window.location.reload();
+                    return;
+                }
+
+                replaceAdminMainContentFromUrl(targetUrl, null);
+            });
         }
 
         function extractEditSaveForm(doc) {
@@ -1980,6 +2176,8 @@
         async function refreshAdminUi(rootElement) {
             const scope = rootElement instanceof HTMLElement ? rootElement : document;
 
+            clearCreateSaveForms();
+
             scope.querySelectorAll('table').forEach(function (table) {
                 if (table instanceof HTMLTableElement) {
                     delete table.dataset.globalRowDetailReady;
@@ -2436,6 +2634,7 @@
             initGlobalAjaxTables();
             window.__refreshAdminUi = refreshAdminUi;
             window.__openAdminEditModal = openEditModalFromValue;
+            window.__closeAdminEditModal = closeEditModal;
 
             // Observe for dynamically added selects (e.g. inside modals)
             const observer = new MutationObserver(function(mutations) {
@@ -2458,6 +2657,7 @@
                 });
             });
             observer.observe(document.body, { childList: true, subtree: true });
+            initAdminSidebarAjaxNavigation();
         }
 
         if (document.readyState === 'loading') {
