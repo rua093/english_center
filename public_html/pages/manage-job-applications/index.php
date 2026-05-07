@@ -254,7 +254,7 @@ $canDeleteApplication = has_permission('job_application.delete');
                         <div><dt class="inline font-semibold">Địa chỉ:</dt> <dd class="inline"><?= e(job_application_value_or_dash($editingApplication['address'] ?? '')); ?></dd></div>
                         <div><dt class="inline font-semibold">Vị trí:</dt> <dd class="inline"><?= e(job_application_value_or_dash($editingApplication['position_applied'] ?? '')); ?></dd></div>
                         <div><dt class="inline font-semibold">Hình thức:</dt> <dd class="inline"><?= e(job_application_value_or_dash($editingApplication['work_mode'] ?? '')); ?></dd></div>
-                        <div><dt class="inline font-semibold">Sẵn sàng đi làm:</dt> <dd class="inline"><?= e(job_application_value_or_dash($editingApplication['start_date'] ?? '')); ?></dd></div>
+                        <div><dt class="inline font-semibold">Sẵn sàng đi làm:</dt> <dd class="inline"><?= e(ui_format_date((string) ($editingApplication['start_date'] ?? ''), '—')); ?></dd></div>
                         <div><dt class="inline font-semibold">Mức lương mong muốn:</dt> <dd class="inline"><?= e(job_application_value_or_dash($editingApplication['salary_expectation'] ?? '')); ?></dd></div>
                         <div><dt class="inline font-semibold">CV:</dt> <dd class="inline"><?= e(job_application_value_or_dash($editingApplication['cv_file_url'] ?? '')); ?></dd></div>
                     </dl>

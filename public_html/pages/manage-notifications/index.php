@@ -167,7 +167,7 @@ $canManageNotifications = has_any_permission(['notifications.create', 'notificat
                                         <span class="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-700">Chưa đọc</span>
                                     <?php endif; ?>
                                 </td>
-                                <td><?= e((string) ($notification['created_at'] ?? '')); ?></td>
+                                <td><?= e(ui_format_datetime((string) ($notification['created_at'] ?? ''))); ?></td>
                                 <td>
                                     <span class="inline-flex flex-wrap items-center gap-2">
                                         <button

@@ -116,7 +116,7 @@ for ($dayOffset = 0; $dayOffset < 7; $dayOffset++) {
     $weekDays[] = [
         'label' => $weekDayLabels[$dayOffset],
         'value' => $currentDate->format('Y-m-d'),
-        'display' => $currentDate->format('d/m'),
+        'display' => $currentDate->format('d/m/Y'),
     ];
 }
 
@@ -237,7 +237,7 @@ $scheduleConflictDataset = array_map(static function (array $schedule): array {
                 </div>
                 <div class="flex flex-wrap items-center gap-1.5">
                     <a class="inline-flex h-9 items-center rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-sky-400 hover:bg-sky-50 hover:text-sky-700" data-week-nav-link="1" href="<?= e(page_url('schedules-academic', ['week_start' => $prevWeekStart, 'week_ref' => $prevWeekRef, 'schedule_page' => $schedulePage, 'schedule_per_page' => $schedulePerPage])); ?>">Tuần trước</a>
-                    <span class="inline-flex h-9 items-center rounded-xl border border-slate-300 bg-slate-100 px-3 text-xs font-semibold text-slate-700 shadow-sm"><?= e($weekStartDate->format('d/m')); ?> - <?= e($weekEndDate->format('d/m')); ?></span>
+                    <span class="inline-flex h-9 items-center rounded-xl border border-slate-300 bg-slate-100 px-3 text-xs font-semibold text-slate-700 shadow-sm"><?= e($weekStartDate->format('d/m/Y')); ?> - <?= e($weekEndDate->format('d/m/Y')); ?></span>
                     <a class="inline-flex h-9 items-center rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-sky-400 hover:bg-sky-50 hover:text-sky-700" data-week-nav-link="1" href="<?= e(page_url('schedules-academic', ['week_start' => $nextWeekStart, 'week_ref' => $nextWeekRef, 'schedule_page' => $schedulePage, 'schedule_per_page' => $schedulePerPage])); ?>">Tuần sau</a>
                     <form class="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-2 py-1 shadow-sm" method="get" action="<?= e(page_url('schedules-academic')); ?>" data-week-picker-form="1">
                         <input type="hidden" name="page" value="schedules-academic">
@@ -371,7 +371,7 @@ $scheduleConflictDataset = array_map(static function (array $schedule): array {
                             <td><?= e((string) ($schedule['room_name'] ?? '')); ?></td>
                             <td><?= e((string) ($schedule['teacher_code'] ?? '-')); ?></td>
                             <td><?= e((string) ($schedule['teacher_name'] ?? 'Giáo viên')); ?></td>
-                            <td><?= e((string) $schedule['study_date']); ?></td>
+                            <td><?= e(ui_format_date((string) ($schedule['study_date'] ?? ''))); ?></td>
                             <td><?= e((string) $schedule['start_time']); ?> - <?= e((string) $schedule['end_time']); ?></td>
                             <td>
                                 <span class="inline-flex flex-wrap items-center gap-2">

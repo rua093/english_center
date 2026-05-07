@@ -522,11 +522,11 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
                 </div>
                 <div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
                     <p class="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Ngày bắt đầu</p>
-                    <p class="mt-1 text-sm font-bold text-slate-800"><?= e(trim((string) ($selectedClass['start_date'] ?? '')) !== '' ? (string) $selectedClass['start_date'] : 'Chưa cập nhật'); ?></p>
+                    <p class="mt-1 text-sm font-bold text-slate-800"><?= e(ui_format_date((string) ($selectedClass['start_date'] ?? ''), 'Chưa cập nhật')); ?></p>
                 </div>
                 <div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
                     <p class="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Ngày kết thúc</p>
-                    <p class="mt-1 text-sm font-bold text-slate-800"><?= e(trim((string) ($selectedClass['end_date'] ?? '')) !== '' ? (string) $selectedClass['end_date'] : 'Chưa cập nhật'); ?></p>
+                    <p class="mt-1 text-sm font-bold text-slate-800"><?= e(ui_format_date((string) ($selectedClass['end_date'] ?? ''), 'Chưa cập nhật')); ?></p>
                 </div>
             </div>
             <p class="mt-3 text-sm text-slate-600">
@@ -2100,7 +2100,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
         }
 
         const parts = text.split('-');
-        return parts[2] + '/' + parts[1];
+        return parts[2] + '/' + parts[1] + '/' + parts[0];
     }
 
     function formatExamTypeLabel(type) {

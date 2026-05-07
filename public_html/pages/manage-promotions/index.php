@@ -237,15 +237,7 @@ $today = date('Y-m-d');
                             $quantityLimit = $promotion['quantity_limit'] ?? null;
                             $quantityRemaining = $promotion['quantity_remaining'] ?? null;
 
-                            if ($startDate !== '' && $endDate !== '') {
-                                $effectiveText = $startDate . ' - ' . $endDate;
-                            } elseif ($startDate !== '') {
-                                $effectiveText = 'Từ ' . $startDate;
-                            } elseif ($endDate !== '') {
-                                $effectiveText = 'Đến ' . $endDate;
-                            } else {
-                                $effectiveText = 'Không giới hạn';
-                            }
+                            $effectiveText = ui_format_date_range($startDate, $endDate);
 
                             $isActive = ($startDate === '' || $startDate <= $today)
                                 && ($endDate === '' || $endDate >= $today);

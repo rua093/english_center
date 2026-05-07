@@ -188,7 +188,7 @@ $error = get_flash('error');
                                 <td><span class="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-bold capitalize is-<?= e((string) $app['status']); ?>"><?= e((string) $app['status']); ?></span></td>
                                 <td><?= e((string) ($app['requester_name'] ?? '-')); ?></td>
                                 <td><?= $app['approver_name'] ? e((string) $app['approver_name']) : '-'; ?></td>
-                                <td><?= e((string) ($app['created_at'] ?? '')); ?></td>
+                                <td><?= e(ui_format_datetime((string) ($app['created_at'] ?? ''))); ?></td>
                                 <td>
                                     <?php
                                     $approvalRowType = strtolower(trim((string) $displayType));

@@ -125,7 +125,10 @@ $canUpdateMaterial = has_permission('materials.update');
                             <?php
                             $title = trim((string) ($lesson['actual_title'] ?? ''));
                             if ($title === '') {
-                                $title = 'Buổi học ' . ($lesson['study_date'] ?? '') . ' ' . ($lesson['start_time'] ?? '');
+                                $title = 'Buổi học '
+                                    . ui_format_date((string) ($lesson['study_date'] ?? ''), (string) ($lesson['study_date'] ?? ''))
+                                    . ' '
+                                    . (string) ($lesson['start_time'] ?? '');
                             }
                             ?>
                             <option data-class-id="<?= (int) ($lesson['class_id'] ?? 0); ?>" value="<?= (int) $lesson['id']; ?>" <?= $selectedAssignmentScheduleId === (int) $lesson['id'] ? 'selected' : ''; ?>><?= e($title); ?> - <?= e((string) $lesson['class_name']); ?></option>
@@ -191,7 +194,7 @@ $canUpdateMaterial = has_permission('materials.update');
                         <tr>
                             <td><?= e((string) $assignment['title']); ?></td>
                             <td><?= e((string) $assignment['class_name']); ?></td>
-                            <td><?= e((string) $assignment['deadline']); ?></td>
+                            <td><?= e(ui_format_datetime((string) ($assignment['deadline'] ?? ''))); ?></td>
                             <td>
                                 <span class="inline-flex flex-wrap items-center gap-2">
                                     <?php if ($assignmentFileUrl !== ''): ?>

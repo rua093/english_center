@@ -262,7 +262,7 @@ $error = get_flash('error');
                                 <td><?= format_money((float) $txn['amount']); ?></td>
                                 <td><span class="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-bold capitalize text-blue-700 whitespace-nowrap"><?= e((string) ($paymentMethodOptions[$txn['method']] ?? $txn['method'])); ?></span></td>
                                 <td><span class="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-bold capitalize is-<?= e((string) $txn['transaction_status']); ?>"><?= e((string) $txn['transaction_status']); ?></span></td>
-                                <td><?= e((string) ($txn['transaction_date'] ?? '')); ?></td>
+                                <td><?= e(ui_format_datetime((string) ($txn['transaction_date'] ?? ''))); ?></td>
                                 <td>
                                     <div class="inline-flex flex-wrap items-center gap-2">
                                         <?php if ($canUpdatePayment): ?>
@@ -467,5 +467,4 @@ if (initialValue) {
         }
     })();
 </script>
-
 

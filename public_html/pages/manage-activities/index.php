@@ -24,15 +24,29 @@ if ($activityPage > $activityTotalPages) {
 }
 $activities = $academicModel->listActivitiesPage($activityPage, $activityPerPage, $searchQuery, $activityFilters);
 $activityPerPageOptions = ui_pagination_per_page_options();
+$registrationLookups = $academicModel->registrationLookups();
+$registrationStudents = is_array($registrationLookups['students'] ?? null) ? $registrationLookups['students'] : [];
 $selectedRegistrationActivityId = max(0, (int) ($_GET['registrations_activity'] ?? 0));
 $selectedRegistrationStudentId = max(0, (int) ($_GET['registration_student'] ?? 0));
 $selectedRegistrationActivity = null;
 $selectedRegistrations = [];
 $editingRegistration = null;
+$availableRegistrationStudents = $registrationStudents;
 if ($selectedRegistrationActivityId > 0) {
     $selectedRegistrationActivity = $academicModel->findActivity($selectedRegistrationActivityId);
     if (is_array($selectedRegistrationActivity)) {
         $selectedRegistrations = $academicModel->listActivityRegistrations($selectedRegistrationActivityId);
+        $registeredStudentIds = [];
+        foreach ($selectedRegistrations as $registrationRow) {
+            $registeredStudentIds[(int) ($registrationRow['user_id'] ?? 0)] = true;
+        }
+        $availableRegistrationStudents = array_values(array_filter(
+            $registrationStudents,
+            static function (array $studentRow) use ($registeredStudentIds): bool {
+                $studentId = (int) ($studentRow['id'] ?? 0);
+                return $studentId > 0 && !isset($registeredStudentIds[$studentId]);
+            }
+        ));
         if ($selectedRegistrationStudentId > 0) {
             foreach ($selectedRegistrations as $registrationRow) {
                 if ((int) ($registrationRow['user_id'] ?? 0) === $selectedRegistrationStudentId) {
@@ -54,6 +68,11 @@ $error = get_flash('error');
 
 $editingThumbnailUrl = normalize_public_file_url((string) ($editingActivity['image_thumbnail'] ?? ''));
 ?>
+<style>
+    #activity-registration-list {
+        scroll-margin-top: 2rem;
+    }
+</style>
 <div class="grid gap-4">
     <?php
     $canCreateActivity = has_permission('activity.create');
@@ -193,8 +212,8 @@ $editingThumbnailUrl = normalize_public_file_url((string) ($editingActivity['ima
                                         <span class="text-xs text-slate-400">Chưa có ảnh</span>
                                     <?php endif; ?>
                                 </td>
-                                <td><?= e((string) ($act['start_date'] ?? '')); ?></td>
-                                <td><?= e((string) ($act['end_date'] ?? '')); ?></td>
+                                <td><?= e(ui_format_date((string) ($act['start_date'] ?? ''))); ?></td>
+                                <td><?= e(ui_format_date((string) ($act['end_date'] ?? ''))); ?></td>
                                 <td><?= e((string) ($act['location'] ?? '-')); ?></td>
                                 <td><?= (int) $act['registered']; ?></td>
                                 <td>
@@ -229,8 +248,10 @@ $editingThumbnailUrl = normalize_public_file_url((string) ($editingActivity['ima
                                                 </span>
                                             </a>
                                             <a
-                                                href="<?= e(page_url('activities-manage', ['registrations_activity' => (int) $act['id'], 'activity_page' => $activityPage, 'activity_per_page' => $activityPerPage, 'search' => $searchQuery, 'status' => $activityStatusFilter])); ?>"
+                                                href="<?= e(page_url('activities-manage', ['registrations_activity' => (int) $act['id'], 'activity_page' => $activityPage, 'activity_per_page' => $activityPerPage, 'search' => $searchQuery, 'status' => $activityStatusFilter]) . '#activity-registration-list') ?>"
                                                 class="admin-action-icon-btn"
+                                                data-registration-activity-link="1"
+                                                data-activity-id="<?= (int) $act['id']; ?>"
                                                 data-action-kind="detail"
                                                 data-skip-action-icon="1"
                                                 title="Danh sách học viên"
@@ -302,11 +323,41 @@ $editingThumbnailUrl = normalize_public_file_url((string) ($editingActivity['ima
     </article>
 
     <?php if ($selectedRegistrationActivityId > 0 && is_array($selectedRegistrationActivity)): ?>
-        <article class="order-2 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <article id="activity-registration-list" class="order-2 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
                 <h3>Danh sách học viên đăng ký: <?= e((string) ($selectedRegistrationActivity['activity_name'] ?? '')); ?></h3>
                 <a class="<?= ui_btn_secondary_classes('sm'); ?>" href="<?= e(page_url('activities-manage', ['activity_page' => $activityPage, 'activity_per_page' => $activityPerPage, 'search' => $searchQuery, 'status' => $activityStatusFilter])); ?>">Đóng</a>
             </div>
+
+            <?php if ($canUpdateActivity): ?>
+                <div class="mb-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                    <h4 class="text-sm font-extrabold text-slate-800">Đăng ký giúp học viên từ phía admin</h4>
+                    <p class="mt-1 text-xs text-slate-500">Chọn học viên chưa có trong danh sách để thêm trực tiếp vào hoạt động ngoại khóa này.</p>
+                    <form class="mt-3 grid gap-3 md:grid-cols-[minmax(0,1fr)_auto]" method="post" action="/api/activities/add-student">
+                        <?= csrf_input(); ?>
+                        <input type="hidden" name="activity_id" value="<?= (int) $selectedRegistrationActivityId; ?>">
+                        <input type="hidden" name="activity_page" value="<?= (int) $activityPage; ?>">
+                        <input type="hidden" name="activity_per_page" value="<?= (int) $activityPerPage; ?>">
+                        <input type="hidden" name="search" value="<?= e($searchQuery); ?>">
+                        <input type="hidden" name="status" value="<?= e($activityStatusFilter); ?>">
+                        <label>
+                            Học viên
+                            <select name="student_id" required>
+                                <option value="">-- Chọn học viên --</option>
+                                <?php foreach ($availableRegistrationStudents as $student): ?>
+                                    <option value="<?= (int) ($student['id'] ?? 0); ?>"><?= e(student_dropdown_label($student)); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </label>
+                        <div class="flex items-end">
+                            <button class="<?= ui_btn_primary_classes(); ?>" type="submit" <?= empty($availableRegistrationStudents) ? 'disabled' : ''; ?>>Đăng ký học viên</button>
+                        </div>
+                    </form>
+                    <?php if (empty($availableRegistrationStudents)): ?>
+                        <p class="mt-2 text-xs font-medium text-slate-500">Tất cả học viên đang hoạt động đã có trong danh sách đăng ký của hoạt động này.</p>
+                    <?php endif; ?>
+                </div>
+            <?php endif; ?>
 
             <?php if ($canUpdateActivity && is_array($editingRegistration)): ?>
                 <div class="hidden" aria-hidden="true">
@@ -318,6 +369,8 @@ $editingThumbnailUrl = normalize_public_file_url((string) ($editingActivity['ima
                         <input type="hidden" name="student_id" value="<?= (int) ($editingRegistration['user_id'] ?? 0); ?>">
                         <input type="hidden" name="activity_page" value="<?= (int) $activityPage; ?>">
                         <input type="hidden" name="activity_per_page" value="<?= (int) $activityPerPage; ?>">
+                        <input type="hidden" name="search" value="<?= e($searchQuery); ?>">
+                        <input type="hidden" name="status" value="<?= e($activityStatusFilter); ?>">
                         <label>
                             Trạng thái đóng phí
                             <?php
@@ -347,7 +400,7 @@ $editingThumbnailUrl = normalize_public_file_url((string) ($editingActivity['ima
                         </div>
                         <div class="md:col-span-2 xl:col-span-4 flex flex-wrap items-center gap-2">
                             <button class="<?= ui_btn_primary_classes(); ?>" type="submit">Lưu thanh toán</button>
-                            <a class="<?= ui_btn_secondary_classes(); ?>" href="<?= e(page_url('activities-manage', ['registrations_activity' => $selectedRegistrationActivityId, 'activity_page' => $activityPage, 'activity_per_page' => $activityPerPage, 'search' => $searchQuery, 'status' => $activityStatusFilter])); ?>" data-admin-edit-close="1">Hủy</a>
+                            <a class="<?= ui_btn_secondary_classes(); ?>" href="<?= e(page_url('activities-manage', ['registrations_activity' => $selectedRegistrationActivityId, 'activity_page' => $activityPage, 'activity_per_page' => $activityPerPage, 'search' => $searchQuery, 'status' => $activityStatusFilter])) ?>" data-admin-edit-close="1">Hủy</a>
                         </div>
                     </form>
                 </div>
@@ -400,24 +453,26 @@ $editingThumbnailUrl = normalize_public_file_url((string) ($editingActivity['ima
                                         <div class="font-semibold text-slate-800"><?= e((string) ($registration['full_name'] ?? ('Học viên #' . $studentId))); ?></div>
                                         <div class="text-xs text-slate-500"><?= e((string) ($registration['username'] ?? '')); ?></div>
                                     </td>
-                                    <td><?= e((string) ($registration['registration_date'] ?? '')); ?></td>
+                                    <td><?= e(ui_format_datetime((string) ($registration['registration_date'] ?? ''))); ?></td>
                                     <td>
                                         <span class="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-bold <?= e($statusBadgeClass); ?>">
                                             <?= e($badgeLabel); ?>
                                         </span>
                                     </td>
                                     <td><?= format_money($amountPaid); ?></td>
-                                    <td><?= e((string) ($registration['payment_date'] ?? '-')); ?></td>
+                                    <td><?= e(ui_format_datetime((string) ($registration['payment_date'] ?? ''), '-')); ?></td>
                                     <td>
                                         <?php if ($canUpdateActivity): ?>
                                             <div class="flex flex-wrap items-center gap-2">
-                                                <a class="<?= ui_btn_secondary_classes('sm'); ?>" href="<?= e(page_url('activities-manage', ['registrations_activity' => $selectedRegistrationActivityId, 'registration_student' => $studentId, 'registration_edit' => 1, 'activity_page' => $activityPage, 'activity_per_page' => $activityPerPage])); ?>" title="Sửa thanh toán" aria-label="Sửa thanh toán">Sửa thanh toán</a>
+                                                <a class="<?= ui_btn_secondary_classes('sm'); ?>" href="<?= e(page_url('activities-manage', ['registrations_activity' => $selectedRegistrationActivityId, 'registration_student' => $studentId, 'registration_edit' => 1, 'activity_page' => $activityPage, 'activity_per_page' => $activityPerPage, 'search' => $searchQuery, 'status' => $activityStatusFilter])) ?>" title="Sửa thanh toán" aria-label="Sửa thanh toán">Sửa thanh toán</a>
                                                 <form method="post" action="/api/activities/remove-student" onsubmit="return confirm('Bạn có chắc muốn xóa học viên khỏi hoạt động này?');">
                                                     <?= csrf_input(); ?>
                                                     <input type="hidden" name="activity_id" value="<?= (int) $selectedRegistrationActivityId; ?>">
                                                     <input type="hidden" name="student_id" value="<?= $studentId; ?>">
                                                     <input type="hidden" name="activity_page" value="<?= (int) $activityPage; ?>">
                                                     <input type="hidden" name="activity_per_page" value="<?= (int) $activityPerPage; ?>">
+                                                    <input type="hidden" name="search" value="<?= e($searchQuery); ?>">
+                                                    <input type="hidden" name="status" value="<?= e($activityStatusFilter); ?>">
                                                     <button class="<?= ui_btn_danger_classes('sm'); ?>" type="submit">Xóa khỏi hoạt động</button>
                                                 </form>
                                             </div>
@@ -434,3 +489,43 @@ $editingThumbnailUrl = normalize_public_file_url((string) ($editingActivity['ima
         </article>
     <?php endif; ?>
 </div>
+<script>
+(function () {
+    // Hàm thực hiện cuộn mượt mà
+    function scrollToRegistrationList() {
+        const anchor = document.getElementById('activity-registration-list');
+        if (!anchor) return;
+
+        // Sử dụng setTimeout để đảm bảo trình duyệt đã tính toán xong Layout
+        setTimeout(function () {
+            anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 300); 
+    }
+
+    // 1. Xử lý khi trang vừa nạp xong (từ link hoặc F5)
+    window.addEventListener('DOMContentLoaded', function () {
+        const params = new URLSearchParams(window.location.search);
+        // Nếu có tham số registrations_activity trong URL, tiến hành scroll
+        if (params.has('registrations_activity')) {
+            scrollToRegistrationList();
+        }
+    });
+
+    // 2. Xử lý sự kiện click vào các nút "Học viên"
+    document.addEventListener('click', function (event) {
+        const trigger = event.target.closest('a[data-registration-activity-link="1"]');
+        if (!trigger) return;
+
+        const targetUrl = new URL(trigger.href, window.location.origin);
+        const currentUrl = new URL(window.location.href);
+
+        // KIỂM TRA: Nếu bấm vào chính activity đang hiển thị (cùng ID trên URL)
+        if (targetUrl.searchParams.get('registrations_activity') === currentUrl.searchParams.get('registrations_activity')) {
+            event.preventDefault(); // Chặn load lại trang
+            scrollToRegistrationList(); // Chỉ cuộn xuống
+        }
+        // Nếu là activity khác, trình duyệt sẽ tự load trang, 
+        // và bước 1 (DOMContentLoaded) sẽ lo việc scroll sau khi trang mới nạp.
+    });
+})();
+</script>

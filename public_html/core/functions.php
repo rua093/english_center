@@ -20,6 +20,56 @@ function ui_pagination_resolve_per_page(string $queryKey, int $defaultPerPage = 
 
 	return $defaultPerPage;
 }
+
+function ui_format_date(?string $value, string $fallback = '—'): string
+{
+	$raw = trim((string) $value);
+	if ($raw === '') {
+		return $fallback;
+	}
+
+	try {
+		$dt = new DateTimeImmutable($raw);
+		return $dt->format('d/m/Y');
+	} catch (Throwable) {
+		return $raw;
+	}
+}
+
+function ui_format_datetime(?string $value, string $fallback = '—'): string
+{
+	$raw = trim((string) $value);
+	if ($raw === '') {
+		return $fallback;
+	}
+
+	try {
+		$dt = new DateTimeImmutable($raw);
+		return $dt->format('d/m/Y H:i');
+	} catch (Throwable) {
+		return $raw;
+	}
+}
+
+function ui_format_date_range(?string $startDate, ?string $endDate, string $fallback = 'Không giới hạn'): string
+{
+	$start = trim((string) $startDate);
+	$end = trim((string) $endDate);
+
+	if ($start !== '' && $end !== '') {
+		return ui_format_date($start, $start) . ' - ' . ui_format_date($end, $end);
+	}
+
+	if ($start !== '') {
+		return 'Từ ' . ui_format_date($start, $start);
+	}
+
+	if ($end !== '') {
+		return 'Đến ' . ui_format_date($end, $end);
+	}
+
+	return $fallback;
+}
 require_once __DIR__ . '/validation.php';
 require_once __DIR__ . '/db_helper.php';
 require_once __DIR__ . '/logger.php';

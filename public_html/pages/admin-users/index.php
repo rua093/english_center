@@ -288,7 +288,7 @@ $isEditingStudent = $editingRoleName === 'student';
                                 <td><?= e((string) ($item['full_name'] ?? '')); ?></td>
                                 <td><span class="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-bold capitalize border-blue-200 bg-blue-50 text-blue-700"><?= e(strtoupper((string) $item['role_name'])); ?></span></td>
                                 <td><span class="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-bold capitalize is-<?= e((string) $item['status']); ?>"><?= e((string) $item['status']); ?></span></td>
-                                <td><?= e((string) $item['created_at']); ?></td>
+                                <td><?= e(ui_format_datetime((string) ($item['created_at'] ?? ''))); ?></td>
                                 <td>
                                     <div class="inline-flex flex-wrap items-center gap-2">
                                         <button
