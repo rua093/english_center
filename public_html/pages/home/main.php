@@ -234,9 +234,9 @@ $homeFormatFeedbackDate = static function (?string $value): string {
             </div>
 
             <div class="space-y-7" data-aos="fade-left">
-                <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 border border-blue-100 shadow-sm">
-                    <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
-                    <span class="text-blue-800 text-xs font-bold uppercase tracking-wider">Về Nhuệ Minh Edu</span>
+                <div class="inline-flex items-center gap-3 px-5 py-3 rounded-full bg-gradient-to-r from-white to-blue-50 border border-blue-200 shadow-md shadow-blue-100/60 ring-1 ring-white/70">
+                    <span class="w-3 h-3 rounded-full bg-blue-500 animate-pulse shadow-[0_0_0_6px_rgba(59,130,246,0.12)]"></span>
+                    <span class="text-blue-900 text-sm md:text-base font-black uppercase tracking-[0.22em]">Về Nhuệ Minh Edu</span>
                 </div>
                 <h2 class="text-4xl md:text-5xl font-extrabold leading-[1.15] text-blue-950">Nâng tầm ngoại ngữ,<br><span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500">Khơi nguồn tự tin</span></h2>
                 <p class="text-lg text-slate-600 leading-relaxed font-medium">Trung tâm ngoại ngữ hiện đại với không gian học tập truyền cảm hứng, cam kết mang lại giá trị thực tế, giúp học viên phát triển toàn diện 4 kỹ năng và sẵn sàng hội nhập.</p>

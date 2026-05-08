@@ -325,7 +325,7 @@ $relatedCourses = array_slice($relatedCourses, 0, 4);
         </div>
     </section>
 
-    <section class="py-12 md:py-20">
+    <!-- <section class="py-12 md:py-20">
         <div class="mx-auto max-w-[1450px] px-4 sm:px-6">
             <div class="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between" data-aos="fade-up">
                 <div>
@@ -366,7 +366,7 @@ $relatedCourses = array_slice($relatedCourses, 0, 4);
                 <?php endforeach; ?>
             </div>
         </div>
-    </section>
+    </section> -->
 
     <section id="dang-ky-tu-van" class="py-14 md:py-20">
         <div class="mx-auto max-w-[1450px] px-4 sm:px-6">
