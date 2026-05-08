@@ -634,6 +634,16 @@ final class AcademicModel
         return $this->usersTable->listActiveByRoleNames(['teacher']);
     }
 
+    public function countActiveTeachers(): int
+    {
+        return $this->usersTable->countActiveByRoleNames(['teacher']);
+    }
+
+    public function listActiveTeachersPage(int $page, int $perPage): array
+    {
+        return $this->usersTable->listActiveByRoleNamesPage($page, $perPage, ['teacher']);
+    }
+
     public function listTeacherCertificatesByUserId(int $userId): array
     {
         return $this->usersTable->listTeacherCertificatesByUserId($userId);

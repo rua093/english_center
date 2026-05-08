@@ -31,7 +31,45 @@ $teacherIntroPoster = $teacherAvatar;
 $teacherCertificates = $academicModel->listTeacherCertificatesByUserId($teacherId);
 ?>
 
-<section class="min-h-screen bg-[#f8fafc] font-jakarta pb-24 relative">
+<style>
+    .teacher-detail-page {
+        font-family: 'Be Vietnam Pro', ui-sans-serif, system-ui, sans-serif;
+    }
+
+    .teacher-bio-content blockquote {
+        margin: 1rem 0;
+        padding: 1rem 1.25rem;
+        border-left: 4px solid rgb(16 185 129);
+        background: rgb(236 253 245);
+        border-radius: 1rem;
+        font-style: italic;
+    }
+
+    .teacher-bio-content ul,
+    .teacher-bio-content ol {
+        margin: 1rem 0;
+        padding-left: 1.5rem;
+    }
+
+    .teacher-bio-content li {
+        margin: 0.35rem 0;
+    }
+
+    .teacher-bio-content a {
+        color: rgb(5 150 105);
+        text-decoration: underline;
+        text-underline-offset: 0.2em;
+    }
+
+    .teacher-bio-content code {
+        padding: 0.15rem 0.4rem;
+        border-radius: 0.5rem;
+        background: rgb(241 245 249);
+        font-size: 0.95em;
+    }
+</style>
+
+<section class="teacher-detail-page min-h-screen bg-[#f8fafc] font-jakarta pb-24 relative">
     
     <div class="absolute inset-0 overflow-hidden pointer-events-none -z-10">
         <div class="absolute top-0 right-0 w-[600px] h-[600px] bg-emerald-200/30 rounded-full blur-[100px]"></div>
@@ -93,9 +131,9 @@ $teacherCertificates = $academicModel->listTeacherCertificatesByUserId($teacherI
                     <h2 class="text-2xl font-black text-slate-800 mb-6 flex items-center gap-3">
                         <span class="w-2 h-8 bg-emerald-500 rounded-full"></span> Về Giảng viên
                     </h2>
-                    <p class="text-slate-600 font-medium leading-loose text-[15px] text-justify">
-                        <?= e($teacherBio !== '' ? $teacherBio : 'Thông tin giới thiệu giáo viên đang được cập nhật.') ?>
-                    </p>
+                    <div class="teacher-bio-content text-slate-600 font-medium leading-loose text-[15px] text-justify">
+                        <?= $teacherBio !== '' ? ui_render_bbcode($teacherBio) : e('Thông tin giới thiệu giáo viên đang được cập nhật.') ?>
+                    </div>
                 </div>
             </div>
 

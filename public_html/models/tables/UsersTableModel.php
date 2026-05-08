@@ -325,6 +325,62 @@ final class UsersTableModel extends BaseTableModel
         return $this->fetchAll($sql, $params);
     }
 
+    public function countActiveByRoleNames(array $roleNames): int
+    {
+        if (empty($roleNames)) {
+            return 0;
+        }
+
+        $placeholders = [];
+        $params = [];
+        foreach (array_values($roleNames) as $idx => $roleName) {
+            $key = ':active_count_role_' . $idx;
+            $placeholders[] = $key;
+            $params['active_count_role_' . $idx] = (string) $roleName;
+        }
+
+        return (int) $this->fetchScalar(
+            'SELECT COUNT(*) AS count
+             FROM users u
+             INNER JOIN roles r ON r.id = u.role_id
+             WHERE r.role_name IN (' . implode(',', $placeholders) . ')
+               AND u.deleted_at IS NULL
+               AND u.status = "active"',
+            $params,
+            'count',
+            0
+        );
+    }
+
+    public function listActiveByRoleNamesPage(int $page, int $perPage, array $roleNames): array
+    {
+        if (empty($roleNames)) {
+            return [];
+        }
+
+        $pagination = $this->pagination($page, $perPage, 4, 100);
+        $placeholders = [];
+        $params = [];
+        foreach (array_values($roleNames) as $idx => $roleName) {
+            $key = ':active_page_role_' . $idx;
+            $placeholders[] = $key;
+            $params['active_page_role_' . $idx] = (string) $roleName;
+        }
+
+        $sql = 'SELECT u.id, u.full_name, r.role_name, tp.teacher_code, sp.student_code
+            FROM users u
+            INNER JOIN roles r ON r.id = u.role_id
+            LEFT JOIN teacher_profiles tp ON tp.user_id = u.id
+            LEFT JOIN student_profiles sp ON sp.user_id = u.id
+            WHERE r.role_name IN (' . implode(',', $placeholders) . ')
+              AND u.deleted_at IS NULL
+              AND u.status = "active"
+            ORDER BY u.full_name ASC
+            LIMIT ' . (int) $pagination['limit'] . ' OFFSET ' . (int) $pagination['offset'];
+
+        return $this->fetchAll($sql, $params);
+    }
+
     public function listRoleLookups(): array
     {
         return $this->fetchAll(
