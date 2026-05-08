@@ -309,15 +309,17 @@ $canManageNotifications = has_any_permission(['notifications.create', 'notificat
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const form = document.querySelector('[data-notification-form="1"]');
-    if (!form) {
-        return;
-    }
+    function syncTargetFields(form) {
+        if (!(form instanceof HTMLElement)) {
+            return;
+        }
 
-    const typeSelect = form.querySelector('[data-notification-target-type="1"]');
-    const targetBlocks = form.querySelectorAll('[data-target-select]');
+        const typeSelect = form.querySelector('[data-notification-target-type="1"]');
+        const targetBlocks = form.querySelectorAll('[data-target-select]');
+        if (!(typeSelect instanceof HTMLSelectElement) || targetBlocks.length === 0) {
+            return;
+        }
 
-    function syncTargetFields() {
         const selectedType = typeSelect ? typeSelect.value : 'ALL';
 
         targetBlocks.forEach(function (block) {
@@ -346,10 +348,52 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    if (typeSelect) {
-        typeSelect.addEventListener('change', syncTargetFields);
+    function initNotificationForms(root) {
+        const scope = root instanceof HTMLElement || root instanceof Document ? root : document;
+        scope.querySelectorAll('[data-notification-form="1"]').forEach(function (form) {
+            syncTargetFields(form);
+        });
     }
 
-    syncTargetFields();
+    document.addEventListener('change', function (event) {
+        const target = event.target;
+        if (!(target instanceof HTMLElement)) {
+            return;
+        }
+
+        if (!target.matches('[data-notification-target-type="1"]')) {
+            return;
+        }
+
+        const form = target.closest('[data-notification-form="1"]');
+        if (form) {
+            syncTargetFields(form);
+        }
+    });
+
+    initNotificationForms(document);
+
+    if (document.body instanceof HTMLElement && typeof MutationObserver !== 'undefined') {
+        const observer = new MutationObserver(function (mutations) {
+            mutations.forEach(function (mutation) {
+                mutation.addedNodes.forEach(function (node) {
+                    if (!(node instanceof HTMLElement)) {
+                        return;
+                    }
+
+                    if (node.matches('[data-notification-form="1"]')) {
+                        syncTargetFields(node);
+                        return;
+                    }
+
+                    if (node.querySelector('[data-notification-form="1"]')) {
+                        initNotificationForms(node);
+                    }
+                });
+            });
+        });
+
+        observer.observe(document.body, { childList: true, subtree: true });
+    }
 });
 </script>

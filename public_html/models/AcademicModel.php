@@ -878,6 +878,62 @@ final class AcademicModel
         $this->notificationsTable->save($data);
     }
 
+    public function syncOverdueMonthlyTuitionNotifications(): int
+    {
+        $today = new DateTimeImmutable('today');
+        $currentMonth = $today->format('Y-m');
+        $currentDay = (int) $today->format('j');
+        $createdCount = 0;
+
+        foreach ($this->tuitionFeesTable->listMonthlyDebtNotificationCandidates() as $fee) {
+            $dueMeta = $this->resolveOverdueMonthlyTuitionDueMeta($fee, $currentMonth, $currentDay);
+            if ($dueMeta === null) {
+                continue;
+            }
+
+            $studentId = (int) ($fee['student_id'] ?? 0);
+            $tuitionId = (int) ($fee['id'] ?? 0);
+            if ($studentId <= 0 || $tuitionId <= 0) {
+                continue;
+            }
+
+            $studentName = trim((string) ($fee['student_name'] ?? 'Học viên'));
+            $studentCode = trim((string) ($fee['student_code'] ?? ''));
+            $className = trim((string) ($fee['class_name'] ?? ''));
+            $courseName = trim((string) ($fee['course_name'] ?? ''));
+            $remainingAmount = max(0, (float) ($fee['total_amount'] ?? 0) - (float) ($fee['amount_paid'] ?? 0));
+            $monthLabel = $this->formatMonthLabel((string) $dueMeta['due_month']);
+            $dueDateLabel = $this->formatDueDateLabel((string) $dueMeta['due_month'], (int) $dueMeta['due_day']);
+            $notificationKey = '[AUTO_TUITION_OVERDUE][TUITION:' . $tuitionId . '][MONTH:' . (string) $dueMeta['due_month'] . ']';
+
+            $title = 'Thông báo quá hạn học phí tháng ' . $monthLabel;
+            $messageParts = [
+                'Học viên ' . $studentName . ($studentCode !== '' ? ' (' . $studentCode . ')' : '') . ' đã quá hạn đóng học phí theo tháng.',
+                'Lớp: ' . ($className !== '' ? $className : 'Chưa xác định') . ($courseName !== '' ? ' - Khóa: ' . $courseName : ''),
+                'Hạn đóng: ' . $dueDateLabel . '.',
+                'Số tiền còn thiếu: ' . number_format($remainingAmount, 0, ',', '.') . ' VNĐ.',
+                'Mã học phí #' . $tuitionId . ' - Kỳ ' . $monthLabel . '.',
+                $notificationKey,
+            ];
+            $message = implode(' ', $messageParts);
+
+            if ($this->notificationsTable->existsByTargetAndMessageFragment('USER', $studentId, $notificationKey)) {
+                continue;
+            }
+
+            $this->notificationsTable->save([
+                'sender_id' => 0,
+                'target_type' => 'USER',
+                'target_user_id' => $studentId,
+                'title' => $title,
+                'message' => $message,
+            ]);
+            $createdCount++;
+        }
+
+        return $createdCount;
+    }
+
     public function markNotificationRead(int $id, int $userId = 0): void
     {
         $this->notificationsTable->markRead($id, $userId);
@@ -886,6 +942,108 @@ final class AcademicModel
     public function deleteNotification(int $id): void
     {
         $this->notificationsTable->deleteById($id);
+    }
+
+    private function resolveOverdueMonthlyTuitionDueMeta(array $fee, string $currentMonth, int $currentDay): ?array
+    {
+        $paymentPlan = strtolower(trim((string) ($fee['payment_plan'] ?? '')));
+        if ($paymentPlan !== 'monthly') {
+            return null;
+        }
+
+        $totalAmount = (float) ($fee['total_amount'] ?? 0);
+        $amountPaid = (float) ($fee['amount_paid'] ?? 0);
+        if ($totalAmount <= 0 || $amountPaid >= $totalAmount) {
+            return null;
+        }
+
+        $startMonth = $this->normalizeMonthValue((string) ($fee['monthly_start_month'] ?? ''));
+        $endMonth = $this->normalizeMonthValue((string) ($fee['monthly_end_month'] ?? ''));
+        $paymentDay = (int) ($fee['monthly_payment_day'] ?? 0);
+        if ($paymentDay <= 0) {
+            return null;
+        }
+
+        if ($startMonth !== '' && $currentMonth < $startMonth) {
+            return null;
+        }
+
+        $dueMonth = $currentMonth;
+        if ($endMonth !== '' && $currentMonth > $endMonth) {
+            $dueMonth = $endMonth;
+        }
+
+        if ($dueMonth === '') {
+            return null;
+        }
+
+        $daysInDueMonth = $this->daysInMonth($dueMonth);
+        if ($daysInDueMonth <= 0) {
+            return null;
+        }
+
+        $dueDay = min($paymentDay, $daysInDueMonth);
+        if ($endMonth !== '' && $currentMonth > $endMonth) {
+            return [
+                'due_month' => $dueMonth,
+                'due_day' => $dueDay,
+            ];
+        }
+
+        if ($currentDay <= $dueDay) {
+            return null;
+        }
+
+        return [
+            'due_month' => $dueMonth,
+            'due_day' => $dueDay,
+        ];
+    }
+
+    private function normalizeMonthValue(string $value): string
+    {
+        $value = trim($value);
+        if ($value === '') {
+            return '';
+        }
+
+        if (preg_match('/^(\d{4}-\d{2})/', $value, $matches)) {
+            return $matches[1];
+        }
+
+        return $value;
+    }
+
+    private function daysInMonth(string $monthValue): int
+    {
+        if (!preg_match('/^\d{4}-\d{2}$/', $monthValue)) {
+            return 0;
+        }
+
+        $date = DateTimeImmutable::createFromFormat('Y-m-d', $monthValue . '-01');
+        if (!$date instanceof DateTimeImmutable) {
+            return 0;
+        }
+
+        return (int) $date->format('t');
+    }
+
+    private function formatMonthLabel(string $monthValue): string
+    {
+        if (preg_match('/^(\d{4})-(\d{2})$/', $monthValue, $matches)) {
+            return $matches[2] . '/' . $matches[1];
+        }
+
+        return $monthValue;
+    }
+
+    private function formatDueDateLabel(string $monthValue, int $day): string
+    {
+        if (preg_match('/^(\d{4})-(\d{2})$/', $monthValue, $matches)) {
+            return str_pad((string) max(1, $day), 2, '0', STR_PAD_LEFT) . '/' . $matches[2] . '/' . $matches[1];
+        }
+
+        return str_pad((string) max(1, $day), 2, '0', STR_PAD_LEFT) . '/' . $monthValue;
     }
 
     public function listFeedbacks(): array

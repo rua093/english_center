@@ -382,6 +382,35 @@ final class TuitionFeesTableModel extends BaseTableModel
         );
     }
 
+    public function listMonthlyDebtNotificationCandidates(): array
+    {
+        return $this->fetchAll(
+            "SELECT t.id,
+                    t.student_id,
+                    t.class_id,
+                    t.total_amount,
+                    t.amount_paid,
+                    t.payment_plan,
+                    t.status,
+                    t.monthly_start_month,
+                    t.monthly_end_month,
+                    t.monthly_payment_day,
+                    u.full_name AS student_name,
+                    sp.student_code,
+                    c.class_name,
+                    co.course_name
+             FROM tuition_fees t
+             INNER JOIN users u ON u.id = t.student_id
+             LEFT JOIN student_profiles sp ON sp.user_id = u.id
+             INNER JOIN classes c ON c.id = t.class_id
+             INNER JOIN courses co ON co.id = c.course_id AND co.deleted_at IS NULL
+             WHERE t.payment_plan = 'monthly'
+               AND t.status = 'debt'
+               AND COALESCE(t.total_amount, 0) > COALESCE(t.amount_paid, 0)
+             ORDER BY t.id DESC"
+        );
+    }
+
     public function findTotalById(int $tuitionId): ?float
     {
         $row = $this->findByIdFrom('tuition_fees', $tuitionId, 'total_amount');
