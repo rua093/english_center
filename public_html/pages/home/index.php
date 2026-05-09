@@ -244,3 +244,85 @@ if (is_logged_in()) {
         animation-play-state: paused;
     }
 </style>
+<style>
+    /* Chỉ áp dụng cho Mobile (dưới 640px) */
+    @media (max-width: 639.98px) {
+        .mobile-swipe-track {
+            display: flex !important;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch; /* Hỗ trợ vuốt mượt trên iOS */
+            scroll-snap-type: x mandatory; /* Hỗ trợ khựng lại ở giữa card khi vuốt */
+            scrollbar-width: none; /* Ẩn thanh cuộn Firefox */
+            padding-bottom: 1rem; /* Tạo khoảng không cho bóng đổ (shadow) */
+        }
+        .mobile-swipe-track::-webkit-scrollbar {
+            display: none; /* Ẩn thanh cuộn Chrome/Safari/Edge */
+        }
+        .mobile-swipe-card {
+            width: 85vw !important; /* Độ rộng của 1 card trên mobile */
+            flex-shrink: 0;
+            scroll-snap-align: center; /* Tự động căn giữa màn hình khi vuốt xong */
+        }
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Chỉ kích hoạt JS tự chạy ở màn hình điện thoại (Dưới 640px)
+    if (window.innerWidth < 640) {
+        const tracks = document.querySelectorAll('.mobile-swipe-track');
+        
+        tracks.forEach(track => {
+            let isTouching = false;
+            let direction = 1; // 1: Trượt phải, -1: Trượt trái
+            let animationFrameId;
+
+            // Hàm tự động cuộn
+            const autoScroll = () => {
+                if (!isTouching) {
+                    track.scrollLeft += direction;
+                    
+                    // Kiểm tra chạm hai mép biên để tự đảo chiều
+                    if (track.scrollLeft >= (track.scrollWidth - track.clientWidth - 1)) {
+                        direction = -1; // Chạm phải -> chạy lùi
+                    } else if (track.scrollLeft <= 0) {
+                        direction = 1;  // Chạm trái -> chạy tới
+                    }
+                }
+                // Sử dụng requestAnimationFrame để hoạt ảnh siêu mượt (60fps)
+                animationFrameId = requestAnimationFrame(autoScroll);
+            };
+
+            // Hàm kích hoạt lại tự động cuộn
+            const startScroll = () => {
+                track.style.scrollSnapType = 'none'; // Tắt khóa dính để cuộn tự động mượt mà
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = requestAnimationFrame(autoScroll);
+            };
+
+            // Hàm dừng khi người dùng thao tác
+            const stopScroll = () => {
+                cancelAnimationFrame(animationFrameId);
+                track.style.scrollSnapType = 'x mandatory'; // Bật lại khóa dính giúp vuốt tay có lực hút
+            };
+
+            // ---- Lắng nghe hành vi vuốt màn hình (Mobile) ----
+            track.addEventListener('touchstart', () => {
+                isTouching = true;
+                stopScroll();
+            }, { passive: true });
+
+            track.addEventListener('touchend', () => {
+                isTouching = false;
+                // Đợi 1.5 giây sau khi người dùng thả tay mới bắt đầu chạy tự động lại
+                setTimeout(() => {
+                    if (!isTouching) startScroll();
+                }, 1500);
+            });
+
+            // Chạy lần đầu tiên khi vừa load trang
+            startScroll();
+        });
+    }
+});
+</script>

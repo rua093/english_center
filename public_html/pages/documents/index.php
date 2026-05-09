@@ -27,6 +27,33 @@ $fileBadge = static function (string $filePath): array {
     .compact-text { font-size: 0.8rem; line-height: 1.25rem; }
     .pagination-btn:hover { background: #10b981; color: white; border-color: #10b981; }
     .pagination-active { background: #065f46; color: white; border-color: #065f46; }
+    .material-description blockquote {
+        margin: 0.75rem 0;
+        padding: 0.8rem 1rem;
+        border-left: 4px solid #10b981;
+        background: #ecfdf5;
+        border-radius: 1rem;
+        font-style: italic;
+    }
+    .material-description ul,
+    .material-description ol {
+        margin: 0.75rem 0;
+        padding-left: 1.35rem;
+    }
+    .material-description li {
+        margin: 0.25rem 0;
+    }
+    .material-description a {
+        color: #047857;
+        text-decoration: underline;
+        text-underline-offset: 0.18em;
+    }
+    .material-description code {
+        padding: 0.12rem 0.4rem;
+        border-radius: 0.45rem;
+        background: #f1f5f9;
+        font-size: 0.95em;
+    }
     
     /* Style cho Checkbox Custom */
     .filter-checkbox:checked + div { background-color: #10b981; border-color: #10b981; }
@@ -70,7 +97,7 @@ $fileBadge = static function (string $filePath): array {
                     <p class="text-sm text-slate-500">Hãy thêm dữ liệu vào bảng materials để tài liệu xuất hiện ở đây.</p>
                 </div>
             <?php else: ?>
-                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
                     <?php foreach ($documents as $doc): ?>
                         <?php
                         $materialFilePath = normalize_public_file_url((string) ($doc['file_path'] ?? ''));
@@ -78,47 +105,47 @@ $fileBadge = static function (string $filePath): array {
                         $courseName = trim((string) ($doc['course_name'] ?? ''));
                         $description = trim((string) ($doc['description'] ?? ''));
                         ?>
-                        <article class="resource-card group relative bg-white rounded-3xl border border-slate-100 p-5 transition-all duration-300 shadow-lg shadow-slate-200/40">
-                            <div class="flex items-start justify-between gap-4 mb-4">
+                        <article class="resource-card group relative bg-white rounded-2xl border border-slate-100 p-4 transition-all duration-300 shadow-lg shadow-slate-200/40">
+                            <div class="flex items-start justify-between gap-3 mb-3">
                                 <div class="min-w-0">
-                                    <p class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-2">Tài liệu học tập</p>
-                                    <h3 class="text-lg font-black text-slate-800 leading-snug line-clamp-2 group-hover:text-emerald-600 transition-colors">
+                                    <p class="text-[9px] font-black uppercase tracking-[0.28em] text-slate-400 mb-1.5">Tài liệu học tập</p>
+                                    <h3 class="text-sm font-black text-slate-800 leading-snug line-clamp-2 group-hover:text-emerald-600 transition-colors">
                                         <?= e((string) ($doc['title'] ?? '')) ?>
                                     </h3>
                                 </div>
-                                <div class="w-12 h-12 rounded-2xl border flex items-center justify-center text-xl shrink-0 <?= e($badge['color']) ?>">
+                                <div class="w-10 h-10 rounded-2xl border flex items-center justify-center text-sm shrink-0 <?= e($badge['color']) ?>">
                                     <i class="fa-solid <?= e($badge['icon']) ?>"></i>
                                 </div>
                             </div>
 
-                            <div class="flex flex-wrap gap-2 mb-4">
-                                <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full border text-xs font-black <?= e($badge['color']) ?>">
+                            <div class="flex flex-wrap gap-1.5 mb-3">
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full border text-[10px] font-black <?= e($badge['color']) ?>">
                                     <i class="fa-solid fa-layer-group"></i>
                                     <?= e($badge['label']) ?>
                                 </span>
                                 <?php if ($courseName !== ''): ?>
-                                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100 text-xs font-black">
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100 text-[10px] font-black">
                                         <i class="fa-solid fa-book-open"></i>
                                         <?= e($courseName) ?>
                                     </span>
                                 <?php endif; ?>
                             </div>
 
-                            <p class="text-sm text-slate-500 leading-6 min-h-[3.5rem]">
-                                <?= e($description !== '' ? $description : 'Tài liệu được lưu trong hệ thống và có thể tải trực tiếp.') ?>
-                            </p>
+                            <div class="material-description text-xs text-slate-500 leading-5 min-h-[3rem]">
+                                <?= $description !== '' ? ui_render_bbcode($description) : e('Tài liệu được lưu trong hệ thống và có thể tải trực tiếp.') ?>
+                            </div>
 
-                            <div class="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
-                                <span class="text-xs font-bold text-slate-400 truncate">
+                            <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                                <span class="text-[10px] font-bold text-slate-400 truncate">
                                     <i class="fa-regular fa-file-lines mr-1"></i>
                                     <?= e((string) basename((string) ($doc['file_path'] ?? ''))) ?>
                                 </span>
                                 <?php if ($materialFilePath !== ''): ?>
-                                    <a href="<?= e($materialFilePath) ?>" target="_blank" rel="noopener noreferrer" class="btn-download-gradient inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-white text-xs font-black transition-all hover:shadow-md hover:-translate-y-0.5">
-                                        Tải ngay <i class="fa-solid fa-arrow-down-to-bracket text-[10px]"></i>
+                                    <a href="<?= e($materialFilePath) ?>" target="_blank" rel="noopener noreferrer" class="btn-download-gradient inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-white text-[10px] font-black transition-all hover:shadow-md hover:-translate-y-0.5">
+                                        Tải ngay <i class="fa-solid fa-arrow-down-to-bracket text-[9px]"></i>
                                     </a>
                                 <?php else: ?>
-                                    <span class="inline-flex items-center justify-center px-4 py-2.5 rounded-xl bg-slate-100 text-slate-400 text-xs font-black">Chưa có file</span>
+                                    <span class="inline-flex items-center justify-center px-3 py-2 rounded-xl bg-slate-100 text-slate-400 text-[10px] font-black">Chưa có file</span>
                                 <?php endif; ?>
                             </div>
                         </article>
