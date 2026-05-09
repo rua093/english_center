@@ -115,6 +115,9 @@ function api_lessons_save_action(): void
     $classId = input_int($_POST, 'class_id');
     $title = input_string($_POST, 'actual_title');
     if ($classId <= 0 || $title === '') {
+        if (api_expects_json()) {
+            api_error('Vui lòng chọn lớp học và nhập tiêu đề buổi học.', ['code' => 'INVALID_PAYLOAD'], 422);
+        }
         set_flash('error', 'Vui lòng chọn lớp học và nhập tiêu đề buổi học.');
         redirect($redirectPath);
     }
@@ -133,6 +136,9 @@ function api_lessons_save_action(): void
     if ($scheduleId > 0) {
         $schedule = $academicModel->findSchedule($scheduleId);
         if (!is_array($schedule) || (int) ($schedule['class_id'] ?? 0) !== $classId) {
+            if (api_expects_json()) {
+                api_error('Lich hoc duoc chon khong thuoc lop hoc nay.', ['code' => 'SCHEDULE_CLASS_MISMATCH'], 422);
+            }
             set_flash('error', 'Lich hoc duoc chon khong thuoc lop hoc nay.');
             redirect($redirectPath);
         }
@@ -173,6 +179,38 @@ function api_lessons_save_action(): void
 
         set_flash('error', $exception->getMessage());
         redirect($redirectPath);
+    }
+
+    if (api_expects_json()) {
+        $savedLessonId = $lessonId;
+        if ($savedLessonId <= 0) {
+            $foundLesson = null;
+            if ($scheduleId > 0) {
+                foreach ($academicModel->listLessonsByClass($classId) as $lessonRow) {
+                    if ((int) ($lessonRow['schedule_id'] ?? 0) === $scheduleId && trim((string) ($lessonRow['actual_title'] ?? '')) === $title) {
+                        $foundLesson = $lessonRow;
+                        break;
+                    }
+                }
+            }
+
+            if (is_array($foundLesson)) {
+                $savedLessonId = (int) ($foundLesson['id'] ?? 0);
+            }
+        }
+
+        $savedLesson = $savedLessonId > 0 ? $academicModel->findLesson($savedLessonId) : null;
+        api_success($lessonId > 0 ? 'Đã cập nhật buổi học.' : 'Đã tạo buổi học mới.', [
+            'lesson' => is_array($savedLesson) ? $savedLesson : [
+                'id' => $savedLessonId,
+                'class_id' => $classId,
+                'roadmap_id' => (int) ($payload['roadmap_id'] ?? 0),
+                'actual_title' => $title,
+                'actual_content' => (string) ($payload['actual_content'] ?? ''),
+                'attachment_file_path' => (string) ($payload['attachment_file_path'] ?? ''),
+                'schedule_id' => $scheduleId,
+            ],
+        ]);
     }
 
     set_flash('success', $lessonId > 0 ? 'Đã cập nhật buổi học.' : 'Đã tạo buổi học mới.');

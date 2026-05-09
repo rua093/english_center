@@ -85,10 +85,10 @@ $editingPortfolioMediaPath = normalize_public_file_url((string) ($editingPortfol
                 </select>
             </label>
 
-            <label>
-                Mô tả
-                <textarea name="description" rows="4" placeholder="Ghi chú ngắn về nội dung hồ sơ tiến bộ"><?= e($selectedDescription); ?></textarea>
-            </label>
+            <div>
+                <label for="portfolio-description">Mô tả</label>
+                <?= render_bbcode_editor('description', $selectedDescription, ['id' => 'portfolio-description', 'rows' => 4, 'placeholder' => 'Ghi chú ngắn về nội dung hồ sơ tiến bộ']); ?>
+            </div>
 
             <label>
                 Tải lên tệp phương tiện
@@ -212,7 +212,13 @@ $editingPortfolioMediaPath = normalize_public_file_url((string) ($editingPortfol
                                         <a href="<?= e($portfolioMediaUrl); ?>" target="_blank" rel="noopener noreferrer" class="text-xs font-semibold text-blue-700 hover:underline">Mở liên kết</a>
                                     <?php endif; ?>
                                 </td>
-                                <td><?= e($portfolioDescription !== '' ? $portfolioDescription : '-'); ?></td>
+                                <td>
+                                    <?php if ($portfolioDescription === ''): ?>
+                                        <span class="text-slate-400">-</span>
+                                    <?php else: ?>
+                                        <div class="bbcode-content"><?= bbcode_to_html($portfolioDescription); ?></div>
+                                    <?php endif; ?>
+                                </td>
                                 <td>
                                     <?php if ((int) ($portfolio['is_public_web'] ?? 0) === 1): ?>
                                         <span class="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700">Công khai</span>

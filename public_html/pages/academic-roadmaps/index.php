@@ -114,10 +114,10 @@ $selectedOutlineContent = trim((string) ($editingRoadmap['outline_content'] ?? '
                         <input type="text" name="topic_title" required value="<?= e($selectedTopicTitle); ?>">
                     </label>
 
-                    <label class="md:col-span-2">
-                        Nội dung khung
-                        <textarea name="outline_content" rows="4" placeholder="Mô tả mục tiêu, kiến thức và kỹ năng cần đạt của chủ đề này."><?= e($selectedOutlineContent); ?></textarea>
-                    </label>
+                    <div class="md:col-span-2">
+                        <label for="roadmap-outline-content">Nội dung khung</label>
+                        <?= render_bbcode_editor('outline_content', $selectedOutlineContent, ['id' => 'roadmap-outline-content', 'rows' => 4, 'placeholder' => 'Mô tả mục tiêu, kiến thức và kỹ năng cần đạt của chủ đề này.']); ?>
+                    </div>
 
                     <div class="md:col-span-2 inline-flex flex-wrap items-center gap-2">
                         <button class="<?= ui_btn_primary_classes(); ?>" type="submit"><?= $editingRoadmap ? 'Cập nhật lộ trình' : 'Tạo lộ trình'; ?></button>
@@ -184,7 +184,7 @@ $selectedOutlineContent = trim((string) ($editingRoadmap['outline_content'] ?? '
                                         <?php if ($outlineText === ''): ?>
                                             <span class="text-slate-400">-</span>
                                         <?php else: ?>
-                                            <?= e($outlineText); ?>
+                                            <div class="bbcode-content"><?= bbcode_to_html($outlineText); ?></div>
                                         <?php endif; ?>
                                     </td>
                                     <td>

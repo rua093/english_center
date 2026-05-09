@@ -1,6 +1,8 @@
         </div>
     </main>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/sceditor@3/minified/sceditor.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sceditor@3/minified/formats/bbcode.min.js"></script>
 <script>
     (function () {
         'use strict';
@@ -18,7 +20,329 @@
         const ADMIN_MAIN_CONTENT_SELECTOR = '[data-admin-main-content="1"]';
         const ajaxTableControllers = new WeakMap();
         const ajaxTableSearchTimers = new WeakMap();
+        const bbcodeTextareaSyncLocks = new WeakSet();
         let adminNavigationController = null;
+
+        function escapeBbcodeHtml(value) {
+            return String(value || '')
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#39;');
+        }
+
+        function sanitizeBbcodeUrl(rawValue) {
+            const value = String(rawValue || '').trim();
+            if (value === '') {
+                return '';
+            }
+
+            if (/^(https?:|mailto:|tel:|\/)/i.test(value)) {
+                return value;
+            }
+
+            return '';
+        }
+
+        function replaceSimpleBbcodeTag(content, tagName, htmlOpen, htmlClose) {
+            let output = content;
+            for (let index = 0; index < 6; index += 1) {
+                const updated = output.replace(new RegExp('\\[' + tagName + '\\]([\\s\\S]*?)\\[\\/' + tagName + '\\]', 'gi'), htmlOpen + '$1' + htmlClose);
+                if (updated === output) {
+                    break;
+                }
+                output = updated;
+            }
+            return output;
+        }
+
+        function renderBbcodeHtml(rawValue) {
+            const rawText = String(rawValue || '').replaceAll('\r\n', '\n').replaceAll('\r', '\n');
+            if (rawText.trim() === '') {
+                return '';
+            }
+
+            const placeholders = [];
+            let placeholderIndex = 0;
+            const tokenPrefix = '__BBCODE_TOKEN_';
+
+            let content = rawText.replace(/\[code\]([\s\S]*?)\[\/code\]/gi, function (_, codeValue) {
+                const token = tokenPrefix + String(placeholderIndex++) + '__';
+                placeholders.push({
+                    token: token,
+                    html: '<pre class="bbcode-code"><code>' + escapeBbcodeHtml(codeValue) + '</code></pre>',
+                });
+                return token;
+            });
+
+            content = content.replace(/\[img\]([\s\S]*?)\[\/img\]/gi, function (_, imageUrl) {
+                const token = tokenPrefix + String(placeholderIndex++) + '__';
+                const safeUrl = sanitizeBbcodeUrl(imageUrl);
+                placeholders.push({
+                    token: token,
+                    html: safeUrl !== ''
+                        ? '<img class="bbcode-image" src="' + escapeBbcodeHtml(safeUrl) + '" alt="BBCode image">'
+                        : escapeBbcodeHtml('[img]' + String(imageUrl || '') + '[/img]'),
+                });
+                return token;
+            });
+
+            content = escapeBbcodeHtml(content);
+            content = replaceSimpleBbcodeTag(content, 'b', '<strong>', '</strong>');
+            content = replaceSimpleBbcodeTag(content, 'i', '<em>', '</em>');
+            content = replaceSimpleBbcodeTag(content, 'u', '<u>', '</u>');
+            content = replaceSimpleBbcodeTag(content, 's', '<s>', '</s>');
+            content = replaceSimpleBbcodeTag(content, 'quote', '<blockquote class="bbcode-quote">', '</blockquote>');
+
+            content = content.replace(/\[url=([^\]]+)\]([\s\S]*?)\[\/url\]/gi, function (_, urlValue, labelValue) {
+                const safeUrl = sanitizeBbcodeUrl(urlValue);
+                if (safeUrl === '') {
+                    return String(labelValue || '');
+                }
+
+                return '<a class="bbcode-link" href="' + escapeBbcodeHtml(safeUrl) + '" target="_blank" rel="noopener noreferrer">' + String(labelValue || '') + '</a>';
+            });
+
+            content = content.replace(/\[url\]([\s\S]*?)\[\/url\]/gi, function (_, urlValue) {
+                const normalizedUrl = String(urlValue || '').trim();
+                const safeUrl = sanitizeBbcodeUrl(normalizedUrl);
+                if (safeUrl === '') {
+                    return escapeBbcodeHtml(normalizedUrl);
+                }
+
+                return '<a class="bbcode-link" href="' + escapeBbcodeHtml(safeUrl) + '" target="_blank" rel="noopener noreferrer">' + escapeBbcodeHtml(normalizedUrl) + '</a>';
+            });
+
+            content = content.replace(/\n/g, '<br>');
+
+            placeholders.forEach(function (placeholder) {
+                content = content.replaceAll(placeholder.token, placeholder.html);
+            });
+
+            content = content.replace(/<br>\s*(<\/(?:blockquote|pre)>)/gi, '$1');
+            content = content.replace(/(<(?:blockquote|pre)[^>]*>)\s*<br>/gi, '$1');
+            return content;
+        }
+
+        function renderBbcodeFallback(rawValue) {
+            return renderBbcodeHtml(rawValue);
+        }
+
+        function bbcodeToolbarIconMarkup(name) {
+            const icons = {
+                bold: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h6a4 4 0 0 1 0 8H7z"></path><path d="M7 13h7a4 4 0 0 1 0 8H7z"></path></svg>',
+                italic: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h4"></path><path d="M6 20h4"></path><path d="M14 4 10 20"></path></svg>',
+                underline: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v7a5 5 0 0 0 10 0V4"></path><path d="M5 20h14"></path></svg>',
+                strike: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12h12"></path><path d="M9 6.5A3.5 3.5 0 0 1 12 5h.5A3.5 3.5 0 0 1 16 8.5"></path><path d="M15 17.5A3.5 3.5 0 0 1 12.5 19H12A4 4 0 0 1 8 15"></path></svg>',
+                link: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 1 0-7l1.2-1.2a5 5 0 0 1 7 7L17 13"></path><path d="M14 11a5 5 0 0 1 0 7l-1.2 1.2a5 5 0 1 1-7-7L7 11"></path></svg>',
+                image: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="14" rx="2"></rect><circle cx="9" cy="10" r="1.4"></circle><path d="m20 16-4.2-4.2a1.5 1.5 0 0 0-2.1 0L8 17"></path></svg>',
+                quote: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 8H6a1 1 0 0 0-1 1v4a2 2 0 0 0 2 2h2V8z"></path><path d="M18 8h-3a1 1 0 0 0-1 1v4a2 2 0 0 0 2 2h2V8z"></path></svg>',
+                code: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 8-4 4 4 4"></path><path d="m16 8 4 4-4 4"></path><path d="m14 4-4 16"></path></svg>',
+                source: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 7-5 5 5 5"></path><path d="m15 7 5 5-5 5"></path></svg>',
+            };
+
+            return icons[name] || '';
+        }
+
+        function decorateBbcodeToolbar(editor) {
+            if (!(editor instanceof HTMLElement)) {
+                return;
+            }
+
+            const labels = {
+                bold: 'In đậm',
+                italic: 'In nghiêng',
+                underline: 'Gạch chân',
+                strike: 'Gạch ngang',
+                link: 'Chèn liên kết',
+                image: 'Chèn hình ảnh',
+                quote: 'Trích dẫn',
+                code: 'Khối mã',
+                source: 'Chế độ BBCode',
+            };
+
+            Object.keys(labels).forEach(function (name) {
+                const button = editor.querySelector('.sceditor-button-' + name);
+                if (!(button instanceof HTMLElement)) {
+                    return;
+                }
+
+                if (button.dataset.bbcodeIconReady === '1') {
+                    return;
+                }
+
+                button.setAttribute('title', labels[name]);
+                button.setAttribute('aria-label', labels[name]);
+                button.innerHTML = bbcodeToolbarIconMarkup(name);
+                button.dataset.bbcodeIconReady = '1';
+            });
+        }
+
+        function normalizeBbcodeToolbarState(editor) {
+            if (!(editor instanceof HTMLElement)) {
+                return;
+            }
+
+            editor.querySelectorAll(
+                '.sceditor-button-bold, .sceditor-button-italic, .sceditor-button-underline, .sceditor-button-strike, .sceditor-button-link, .sceditor-button-image, .sceditor-button-quote, .sceditor-button-code'
+            ).forEach(function (button) {
+                if (button instanceof HTMLElement) {
+                    button.classList.remove('disabled');
+                    button.removeAttribute('disabled');
+                    button.setAttribute('aria-disabled', 'false');
+                }
+            });
+        }
+
+        function getBbcodeEditorInstance(input) {
+            if (!(input instanceof HTMLTextAreaElement) || typeof window.sceditor === 'undefined' || !window.sceditor) {
+                return null;
+            }
+
+            try {
+                return typeof window.sceditor.instance === 'function' ? (window.sceditor.instance(input) || null) : null;
+            } catch (error) {
+                return null;
+            }
+        }
+
+        function syncBbcodeEditorOriginalValue(input) {
+            const instance = getBbcodeEditorInstance(input);
+            if (instance && typeof instance.updateOriginal === 'function') {
+                instance.updateOriginal();
+            }
+        }
+
+        function syncBbcodeEditorFromTextarea(input) {
+            if (!(input instanceof HTMLTextAreaElement)) {
+                return;
+            }
+
+            const instance = getBbcodeEditorInstance(input);
+            if (!instance || typeof instance.val !== 'function') {
+                return;
+            }
+
+            const nextValue = String(input.value || '');
+            const currentValue = String(instance.val() || '');
+            if (currentValue === nextValue) {
+                return;
+            }
+
+            bbcodeTextareaSyncLocks.add(input);
+            try {
+                instance.val(nextValue);
+                syncBbcodeEditorOriginalValue(input);
+            } finally {
+                bbcodeTextareaSyncLocks.delete(input);
+            }
+        }
+
+        function setBbcodeEditorValue(input, value) {
+            if (!(input instanceof HTMLTextAreaElement)) {
+                return;
+            }
+
+            input.value = String(value || '');
+            syncBbcodeEditorFromTextarea(input);
+            input.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+
+        function refreshBbcodeEditorUi(input, shouldFocus) {
+            if (!(input instanceof HTMLTextAreaElement)) {
+                return;
+            }
+
+            const editor = input.closest('[data-bbcode-editor="1"]');
+            if (editor instanceof HTMLElement) {
+                decorateBbcodeToolbar(editor);
+                normalizeBbcodeToolbarState(editor);
+            }
+
+            const instance = getBbcodeEditorInstance(input);
+            if (!instance) {
+                return;
+            }
+
+            if (typeof instance.updateOriginal === 'function') {
+                instance.updateOriginal();
+            }
+
+            if (shouldFocus === true && typeof instance.focus === 'function') {
+                window.requestAnimationFrame(function () {
+                    try {
+                        instance.focus();
+                    } catch (error) {
+                        // Keep modal flow stable even if the editor refuses focus.
+                    }
+
+                    if (editor instanceof HTMLElement) {
+                        normalizeBbcodeToolbarState(editor);
+                    }
+                });
+            }
+        }
+
+        function syncBbcodeEditorsInForm(form) {
+            if (!(form instanceof HTMLFormElement)) {
+                return;
+            }
+
+            form.querySelectorAll('textarea[data-bbcode-input="1"]').forEach(function (field) {
+                if (field instanceof HTMLTextAreaElement) {
+                    syncBbcodeEditorOriginalValue(field);
+                }
+            });
+        }
+
+        function initBbcodeEditors(root) {
+            const scope = (root && typeof root.querySelectorAll === 'function') ? root : document;
+            const editors = scope.querySelectorAll('[data-bbcode-editor="1"]');
+            editors.forEach(function (editor) {
+                if (!(editor instanceof HTMLElement) || editor.dataset.bbcodeReady === '1') {
+                    return;
+                }
+
+                const input = editor.querySelector('textarea[data-bbcode-input="1"]');
+                if (!(input instanceof HTMLTextAreaElement)) {
+                    return;
+                }
+
+                input.addEventListener('input', function () {
+                    if (bbcodeTextareaSyncLocks.has(input)) {
+                        return;
+                    }
+
+                    syncBbcodeEditorFromTextarea(input);
+                });
+
+                if (typeof window.sceditor !== 'undefined' && window.sceditor && typeof window.sceditor.create === 'function' && !getBbcodeEditorInstance(input)) {
+                    window.sceditor.create(input, {
+                        format: 'bbcode',
+                        style: 'https://cdn.jsdelivr.net/npm/sceditor@3/minified/themes/content/default.min.css',
+                        autoUpdate: true,
+                        resizeEnabled: true,
+                        width: '100%',
+                        height: Math.max(260, Number(input.rows || 0) * 30),
+                        toolbar: 'bold,italic,underline,strike|link,image|quote,code|source',
+                    });
+                }
+
+                decorateBbcodeToolbar(editor);
+                normalizeBbcodeToolbarState(editor);
+                syncBbcodeEditorFromTextarea(input);
+                editor.dataset.bbcodeReady = '1';
+            });
+        }
+
+        window.adminBbcode = {
+            initEditors: initBbcodeEditors,
+            renderHtml: renderBbcodeFallback,
+            setValue: setBbcodeEditorValue,
+            syncTextarea: syncBbcodeEditorOriginalValue,
+            refreshUi: refreshBbcodeEditorUi,
+        };
 
         function hasPaginationParam(url) {
             const entries = Array.from(url.searchParams.keys());
@@ -171,7 +495,12 @@
                     }
 
                     if (field instanceof HTMLTextAreaElement) {
-                        field.value = '';
+                        if (field.matches('textarea[data-bbcode-input="1"]') && window.adminBbcode && typeof window.adminBbcode.setValue === 'function') {
+                            window.adminBbcode.setValue(field, '');
+                        } else {
+                            field.value = '';
+                            field.dispatchEvent(new Event('input', { bubbles: true }));
+                        }
                         return;
                     }
 
@@ -1213,7 +1542,7 @@
             }
 
             const clone = labelElement.cloneNode(true);
-            clone.querySelectorAll('input, select, textarea, button').forEach(function (node) {
+            clone.querySelectorAll('input, select, textarea, button, [data-bbcode-editor="1"], .bbcode-preview-label, .bbcode-preview, .bbcode-hint').forEach(function (node) {
                 node.remove();
             });
 
@@ -1343,6 +1672,7 @@
                 pairs.push({
                     label: label,
                     value: value === '' ? 'Chưa cập nhật' : value,
+                    format: control instanceof HTMLTextAreaElement && control.dataset.bbcodeField === '1' ? 'bbcode' : 'text',
                 });
 
                 if (key !== '') {
@@ -1413,6 +1743,18 @@
                 fieldLabel.appendChild(labelText);
 
                 const value = String(pair.value || 'Chưa cập nhật');
+                if (pair.format === 'bbcode') {
+                    const content = document.createElement('div');
+                    content.className = 'bbcode-rendered-box bbcode-content';
+                    content.innerHTML = renderBbcodeHtml(value);
+                    if (content.innerHTML.trim() === '') {
+                        content.textContent = 'Chưa cập nhật';
+                    }
+                    fieldLabel.appendChild(content);
+                    detailForm.appendChild(fieldLabel);
+                    return;
+                }
+
                 const useTextarea = value.length > 120 || value.includes('\n');
                 if (useTextarea) {
                     const textarea = document.createElement('textarea');
@@ -2617,6 +2959,25 @@
 
         async function bootstrapAdminUi() {
             clearCreateSaveForms();
+            initBbcodeEditors(document);
+            document.addEventListener('submit', function (event) {
+                if (event.target instanceof HTMLFormElement) {
+                    syncBbcodeEditorsInForm(event.target);
+                }
+            }, true);
+            document.addEventListener('reset', function (event) {
+                if (!(event.target instanceof HTMLFormElement)) {
+                    return;
+                }
+
+                window.setTimeout(function () {
+                    event.target.querySelectorAll('textarea[data-bbcode-input="1"]').forEach(function (field) {
+                        if (field instanceof HTMLTextAreaElement) {
+                            syncBbcodeEditorFromTextarea(field);
+                        }
+                    });
+                }, 0);
+            }, true);
             try {
                 await initGlobalRowDetails();
             } catch (error) {
@@ -2648,6 +3009,7 @@
                                 } else if (node.tagName === 'INPUT') {
                                     initPhoneInputs(node.parentElement || node);
                                 } else if (node.querySelectorAll) {
+                                    initBbcodeEditors(node);
                                     initGlobalTomSelect(node);
                                     initPhoneInputs(node);
                                 }

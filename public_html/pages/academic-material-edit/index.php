@@ -26,10 +26,10 @@ $adminTitle = $editingMaterial ? 'Học vụ - Sửa tài liệu' : 'Học vụ 
                 Tiêu đề tài liệu
                 <input type="text" name="title" value="<?= e((string) ($editingMaterial['title'] ?? '')); ?>" required>
             </label>
-            <label>
-                Mô tả tài liệu
-                <textarea name="description" rows="3" placeholder="Mô tả ngắn về nội dung tài liệu"><?= e((string) ($editingMaterial['description'] ?? '')); ?></textarea>
-            </label>
+            <div>
+                <label for="material-edit-description">Mô tả tài liệu</label>
+                <?= render_bbcode_editor('description', (string) ($editingMaterial['description'] ?? ''), ['id' => 'material-edit-description', 'rows' => 3, 'placeholder' => 'Mô tả ngắn về nội dung tài liệu']); ?>
+            </div>
             <label>
                 Tải lên file đính kèm
                 <input type="file" name="material_file" accept=".pdf,.ppt,.pptx,.doc,.docx,.jpg,.jpeg,.png,.mp4,.mov,.webm,.mp3,.avi">
