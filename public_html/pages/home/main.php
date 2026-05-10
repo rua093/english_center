@@ -74,7 +74,7 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                     <h3 class="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 leading-tight tracking-tight uppercase mb-2.5">
                         Bứt Phá Giới Hạn <span class="hidden md:inline">-</span> <br class="md:hidden">
                         <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-rose-600">
-                            Thống Lĩnh Ngôn Ngữ
+                            Chinh Phục Ngôn Ngữ
                         </span>
                     </h3>
 
@@ -96,70 +96,265 @@ $homeFormatFeedbackDate = static function (?string $value): string {
     </section>
 
     <section id="trang-chu" class="relative bg-transparent pt-12 lg:pt-16 lg:pb-8 overflow-hidden border-b border-blue-100/50">
+        <!-- Background Blur -->
         <div class="absolute inset-0 z-0 pointer-events-none">
             <div class="absolute w-[300px] md:w-[600px] h-[300px] md:h-[600px] bg-blue-400/20 blur-[80px] md:blur-[120px] rounded-full -top-20 md:-top-40 -left-20 md:-left-40"></div>
             <div class="absolute w-[250px] md:w-[500px] h-[250px] md:h-[500px] bg-cyan-400/20 blur-[80px] md:blur-[120px] rounded-full bottom-[-80px] md:bottom-[-150px] right-[-80px] md:right-[-150px]"></div>
         </div>
 
         <div class="relative z-10 max-w-[1450px] mx-auto px-4 sm:px-6 flex flex-col lg:flex-row gap-8 lg:gap-14 items-center lg:items-stretch">
+
+            <!-- LEFT IMAGE -->
             <div class="hidden lg:flex lg:w-5/12 relative items-center justify-center lg:-mt-20" data-aos="fade-right" data-aos-duration="1200">
+
                 <div class="absolute bottom-10 left-1/2 -translate-x-1/2 w-[90%] h-[80%] bg-gradient-to-t from-blue-300/40 to-transparent rounded-[3rem] blur-[60px] -z-10"></div>
-                <img src="assets/images/student_girl.png" alt="Học sinh tiêu biểu" class="w-full max-w-[550px] object-contain relative z-10 drop-shadow-[0_20px_40px_rgba(30,58,138,0.25)]">
-                
-                <div class="absolute top-1/4 -left-4 bg-white/95 backdrop-blur-md px-4 sm:px-5 py-3 sm:py-4 rounded-2xl shadow-xl border border-blue-50 z-20 animate-bounce" style="animation-duration: 2s;">
-                    <div class="flex items-center gap-2 sm:gap-3">
-                        <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-yellow-100 text-yellow-500 flex items-center justify-center text-lg sm:text-xl shadow-inner"><i class="fa-solid fa-star"></i></div>
+
+                <img src="assets/images/student_girl.png"
+                    alt="Học sinh tiêu biểu"
+                    class="w-full max-w-[540px] object-contain relative z-10 drop-shadow-[0_20px_40px_rgba(30,58,138,0.25)]">
+
+                <!-- Floating Badge -->
+                <div class="absolute top-1/4 -left-4 bg-white/95 backdrop-blur-md px-5 py-4 rounded-2xl shadow-xl border border-blue-50 z-20 animate-bounce"
+                    style="animation-duration:2s;">
+
+                    <div class="flex items-center gap-3">
+
+                        <div class="w-10 h-10 rounded-full bg-yellow-100 text-yellow-500 flex items-center justify-center text-xl shadow-inner">
+                            <i class="fa-solid fa-star"></i>
+                        </div>
+
                         <div>
-                            <h4 class="text-xs sm:text-sm font-black text-blue-950 uppercase">Chất lượng</h4>
-                            <p class="text-[9px] sm:text-[11px] font-bold text-slate-500">Chuẩn quốc tế</p>
+                            <h4 class="text-sm font-black text-blue-950 uppercase">
+                                Chất lượng
+                            </h4>
+
+                            <p class="text-[11px] font-bold text-slate-500">
+                                Chuẩn quốc tế
+                            </p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="w-full lg:w-7/12 flex flex-col gap-4 sm:gap-5 md:gap-6 pb-12 lg:py-6 z-20">
-                <div class="grid sm:grid-cols-2 gap-4 sm:gap-5 md:gap-6 h-full min-h-[140px] sm:min-h-[180px]">
-                    <div class="group relative rounded-[1.5rem] sm:rounded-[2rem] p-6 sm:p-8 md:p-10 bg-gradient-to-br from-sky-400 to-blue-500 text-white shadow-[0_15px_30px_rgba(14,165,233,0.3)] overflow-hidden flex flex-col justify-center" data-aos="fade-up">
-                        <div class="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition duration-500"></div>
-                        <i class="fa-solid fa-rocket absolute -right-2 sm:-right-4 -bottom-2 sm:-bottom-4 text-[6rem] sm:text-[8rem] opacity-20 group-hover:scale-110 transition-transform duration-700"></i>
-                        <h1 class="text-2xl sm:text-3xl md:text-4xl lg:text-4xl xl:text-5xl font-black leading-[1.15] text-blue-950 relative z-10 drop-shadow-sm text-left">Khát Vọng<br>Là Khởi Đầu</h1>
+            <!-- RIGHT CONTENT -->
+            <div class="w-full lg:w-7/12 flex flex-col gap-5 sm:gap-6 pb-12 lg:py-6 z-20">
+
+                <!-- HERO QUOTE -->
+                <div class="relative min-h-[360px] sm:min-h-[420px]">
+
+                    <!-- MAIN LONG BANNER -->
+                    <div class="group relative rounded-[2rem] sm:rounded-[2.5rem]
+                                p-8 sm:p-10 md:p-12
+                                bg-gradient-to-br from-sky-400 via-blue-500 to-blue-700
+                                shadow-[0_20px_60px_rgba(37,99,235,0.25)]
+                                overflow-visible h-auto sm:min-h-[320px] flex items-start pr-56 sm:pr-72 md:pr-80">
+
+                        <!-- Glow -->
+                        <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.25),transparent_40%)]"></div>
+
+                        <!-- Decorative -->
+                        <i class="fa-solid fa-rocket 
+                                absolute -right-8 sm:-right-10 bottom-0
+                                text-[8rem] sm:text-[11rem]
+                                opacity-10 text-white
+                                group-hover:scale-110 transition-transform duration-700"></i>
+
+                        <!-- Text -->
+                        <div class="relative z-10 max-w-xl flex-1">
+
+                            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full
+                                        bg-white/15 border border-white/20 backdrop-blur-md mb-5">
+
+                                <span class="w-2 h-2 rounded-full bg-cyan-200 animate-pulse"></span>
+
+                                <span class="text-[10px] sm:text-xs uppercase tracking-[0.2em] font-bold text-blue-50">
+                                    Nhuệ Minh Edu
+                                </span>
+                            </div>
+
+                            <h1 class="text-3xl sm:text-4xl md:text-5xl
+                                    font-black leading-[1.08]
+                                    text-white drop-shadow-lg">
+
+                                Khát Vọng <br>
+                                Là Khởi Đầu
+                            </h1>
+                        </div>
+                        <!-- FLOATING SMALL CARD - Inside Banner -->
+                        <div class="absolute
+                                    top-1/2 -translate-y-1/2
+                                    right-2 sm:right-4 md:right-6
+                                    w-[252px] sm:w-[324px] md:w-[378px]
+                                    h-[90%]
+                                    z-20">
+
+                            <div class="group relative rounded-[1.8rem] sm:rounded-[2rem]
+                                        bg-white/95 backdrop-blur-xl
+                                        border border-blue-100
+                                        shadow-[0_15px_40px_rgba(15,23,42,0.12)]
+                                        overflow-hidden p-5 sm:p-7 md:p-9
+                                        h-full flex flex-col justify-center">
+
+                                <!-- Gradient -->
+                                <div class="absolute inset-0 bg-gradient-to-br from-white via-blue-50/40 to-cyan-50/50"></div>
+
+                                <!-- Decorative Blur -->
+                                <div class="absolute -top-4 -right-4 w-20 h-20 rounded-full bg-blue-100/50 blur-2xl"></div>
+
+                                <div class="relative z-10 flex items-start gap-4 sm:gap-5">
+
+                                    <!-- Icon -->
+                                    <div class="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-2xl
+                                                bg-gradient-to-br from-amber-300 to-yellow-400
+                                                text-amber-900
+                                                flex items-center justify-center
+                                                text-2xl sm:text-3xl
+                                                shadow-inner shrink-0">
+
+                                        <i class="fa-solid fa-trophy"></i>
+                                    </div>
+
+                                    <!-- Text -->
+                                    <div class="flex-1">
+
+                                        <div class="text-xs uppercase tracking-[0.18em]
+                                                    text-slate-500 font-black mb-2">
+                                            Thành Tựu
+                                        </div>
+
+                                        <h2 class="text-xl sm:text-2xl md:text-3xl font-black leading-tight text-blue-950">
+                                            Của Mọi <br>
+                                            Thành Công
+                                        </h2>
+
+                                        <p class="mt-2 text-xs sm:text-sm text-slate-600 leading-relaxed font-medium">
+                                            Mỗi bước tiến hôm nay sẽ mở ra cơ hội tương lai.
+                                        </p>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="group relative rounded-[1.5rem] sm:rounded-[2rem] p-6 sm:p-8 md:p-10 bg-gradient-to-bl from-blue-900 to-blue-800 text-white shadow-[0_15px_30px_rgba(30,58,138,0.3)] overflow-hidden flex flex-col justify-center" data-aos="fade-up" data-aos-delay="100">
-                        <div class="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition duration-500"></div>
-                        <i class="fa-solid fa-trophy absolute -right-2 sm:-right-4 -bottom-2 sm:-bottom-4 text-[6rem] sm:text-[8rem] opacity-10 group-hover:scale-110 transition-transform duration-700"></i>
-                        <h2 class="text-2xl sm:text-3xl md:text-4xl lg:text-4xl xl:text-5xl font-black leading-[1.15] relative z-10 drop-shadow-sm text-left text-blue-50">Của Mọi<br>Thành Tựu</h2>
+
+                <!-- FEATURE CARDS -->
+                <div class="grid sm:grid-cols-2 gap-4 sm:gap-5 md:gap-6 pt-4 sm:pt-5 md:pt-6 pb-4 sm:pb-5 md:pb-6">
+
+                    <!-- Card 1 -->
+                    <div class="group relative rounded-[2rem] p-8
+                                bg-gradient-to-br from-rose-600 to-red-500
+                                shadow-[0_15px_30px_rgba(225,29,72,0.2)]
+                                overflow-hidden h-48 flex flex-col justify-end">
+
+                        <div class="absolute top-5 left-5 bg-white text-red-600
+                                    text-xs font-black px-4 py-1.5
+                                    rounded-full uppercase shadow-md">
+
+                            Đánh Giá
+                        </div>
+
+                        <i class="fa-solid fa-chalkboard-user
+                                absolute -right-6 -top-6
+                                text-[9rem] opacity-15"></i>
+
+                        <div class="relative z-10">
+
+                            <h3 class="text-2xl font-black text-white mb-2">
+                                Kiểm Tra Năng Lực
+                            </h3>
+
+                            <p class="text-sm text-rose-100 leading-relaxed">
+                                Đánh giá chính xác trình độ tiếng Anh theo chuẩn quốc tế hiện đại.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Card 2 -->
+                    <div class="group relative rounded-[2rem] p-8
+                                bg-gradient-to-br from-blue-600 to-sky-500
+                                shadow-[0_15px_30px_rgba(37,99,235,0.2)]
+                                overflow-hidden h-48 flex flex-col justify-end">
+
+                        <i class="fa-solid fa-book-open
+                                absolute -right-6 -bottom-6
+                                text-[9rem] opacity-15"></i>
+
+                        <div class="relative z-10">
+
+                            <h3 class="text-2xl font-black text-white mb-2">
+                                Học Liệu Chuyên Sâu
+                            </h3>
+
+                            <p class="text-sm text-blue-100 leading-relaxed">
+                                Giáo trình chọn lọc và cập nhật liên tục theo xu hướng giáo dục toàn cầu.
+                            </p>
+                        </div>
                     </div>
                 </div>
 
-                <div class="grid sm:grid-cols-2 gap-4 sm:gap-5 md:gap-6">
-                    <a href="#thi-thu" class="group relative rounded-[1.5rem] sm:rounded-[2rem] p-6 sm:p-8 md:p-10 bg-gradient-to-br from-rose-600 to-red-500 text-white shadow-[0_15px_30px_rgba(225,29,72,0.3)] overflow-hidden transition-all hover:-translate-y-2 h-40 sm:h-48 md:h-56 flex flex-col justify-end" data-aos="fade-up" data-aos-delay="200">
-                        <div class="absolute top-4 sm:top-6 left-4 sm:left-6 bg-white text-red-600 text-[9px] sm:text-[10px] lg:text-xs font-black px-3 sm:px-4 py-1 sm:py-1.5 rounded-full uppercase tracking-widest shadow-md">NEW</div>
-                        <i class="fa-solid fa-chalkboard-user absolute -right-4 sm:-right-6 -top-4 sm:-top-6 text-[8rem] sm:text-[10rem] opacity-15 group-hover:scale-110 group-hover:rotate-6 transition-transform duration-700"></i>
-                        <h3 class="text-xl sm:text-2xl md:text-3xl font-black relative z-10 leading-[1.2] w-11/12 drop-shadow-md">Thi Thử Nhận Kết Quả Ngay</h3>
-                    </a>
-                    <a href="#tai-lieu" class="group relative rounded-[1.5rem] sm:rounded-[2rem] p-6 sm:p-8 md:p-10 bg-gradient-to-br from-blue-600 to-sky-500 text-white shadow-[0_15px_30px_rgba(37,99,235,0.3)] overflow-hidden transition-all hover:-translate-y-2 h-40 sm:h-48 md:h-56 flex flex-col justify-end" data-aos="fade-up" data-aos-delay="300">
-                        <i class="fa-solid fa-book-open absolute -right-4 sm:-right-6 -bottom-4 sm:-bottom-6 text-[8rem] sm:text-[10rem] opacity-15 group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-700"></i>
-                        <h3 class="text-xl sm:text-2xl md:text-3xl font-black relative z-10 leading-[1.2] w-11/12 drop-shadow-md">Tài Liệu Học Tiếng Anh</h3>
-                    </a>
-                </div>
+                <!-- VALUE BLOCKS -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 md:gap-5 pt-4 sm:pt-5 md:pt-6">
 
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 md:gap-5" data-aos="fade-up" data-aos-delay="400">
-                    <a href="#ovi" class="group relative rounded-2xl p-4 sm:p-5 bg-white/90 backdrop-blur-xl border border-blue-100 shadow-[0_10px_20px_rgba(30,58,138,0.05)] transition-all hover:-translate-y-2 hover:shadow-xl hover:border-blue-400 flex flex-col items-center text-center">
-                        <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-2 sm:mb-3 group-hover:bg-blue-600 group-hover:text-white transition-colors shadow-sm"><i class="fa-solid fa-laptop-code text-lg sm:text-xl"></i></div>
-                        <h4 class="font-extrabold text-blue-950 text-xs sm:text-sm leading-tight">Cổng OVI</h4><span class="text-[9px] sm:text-[10px] font-semibold text-slate-500 mt-1 block">Hệ thống học tập</span>
-                    </a>
-                    <a href="#he" class="group relative rounded-2xl p-4 sm:p-5 bg-white/90 backdrop-blur-xl border border-teal-100 shadow-[0_10px_20px_rgba(20,184,166,0.05)] transition-all hover:-translate-y-2 hover:shadow-xl hover:border-teal-400 flex flex-col items-center text-center">
-                        <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center mb-2 sm:mb-3 group-hover:bg-teal-600 group-hover:text-white transition-colors shadow-sm"><i class="fa-solid fa-sun text-lg sm:text-xl animate-[spin_6s_linear_infinite]"></i></div>
-                        <h4 class="font-extrabold text-blue-950 text-xs sm:text-sm leading-tight">Tiếng Anh Hè</h4><span class="text-[9px] sm:text-[10px] font-semibold text-slate-500 mt-1 block">Chương trình 2026</span>
-                    </a>
-                    <a href="#doanh-nghiep" class="group relative rounded-2xl p-4 sm:p-5 bg-white/90 backdrop-blur-xl border border-amber-100 shadow-[0_10px_20px_rgba(245,158,11,0.05)] transition-all hover:-translate-y-2 hover:shadow-xl hover:border-amber-400 flex flex-col items-center text-center">
-                        <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center mb-2 sm:mb-3 group-hover:bg-amber-500 group-hover:text-white transition-colors shadow-sm"><i class="fa-solid fa-briefcase text-lg sm:text-xl"></i></div>
-                        <h4 class="font-extrabold text-blue-950 text-xs sm:text-sm leading-tight">Doanh Nghiệp</h4><span class="text-[9px] sm:text-[10px] font-semibold text-slate-500 mt-1 block">Giải pháp đào tạo</span>
-                    </a>
-                    <a href="#thanh-tich" class="group relative rounded-2xl p-4 sm:p-5 bg-white/90 backdrop-blur-xl border border-emerald-100 shadow-[0_10px_20px_rgba(16,185,129,0.05)] transition-all hover:-translate-y-2 hover:shadow-xl hover:border-emerald-400 flex flex-col items-center text-center">
-                        <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-2 sm:mb-3 group-hover:bg-emerald-500 group-hover:text-white transition-colors shadow-sm"><i class="fa-solid fa-medal text-lg sm:text-xl"></i></div>
-                        <h4 class="font-extrabold text-blue-950 text-xs sm:text-sm leading-tight">Thành Tích</h4><span class="text-[9px] sm:text-[10px] font-semibold text-slate-500 mt-1 block">Học viên xuất sắc</span>
-                    </a>
+                    <!-- Block -->
+                    <div class="group rounded-2xl p-5 bg-white/90 backdrop-blur-xl border border-blue-100 shadow-sm text-center">
+                        <div class="w-12 h-12 mx-auto mb-3 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                            <i class="fa-solid fa-comments"></i>
+                        </div>
+
+                        <h4 class="font-extrabold text-blue-950 text-sm">
+                            Giao Tiếp Tự Tin
+                        </h4>
+
+                        <span class="text-[10px] text-slate-500 font-semibold">
+                            Phản xạ tiếng Anh tự nhiên
+                        </span>
+                    </div>
+
+                    <!-- Block -->
+                    <div class="group rounded-2xl p-5 bg-white/90 backdrop-blur-xl border border-emerald-100 shadow-sm text-center">
+                        <div class="w-12 h-12 mx-auto mb-3 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                            <i class="fa-solid fa-earth-asia"></i>
+                        </div>
+
+                        <h4 class="font-extrabold text-blue-950 text-sm">
+                            Hội Nhập Quốc Tế
+                        </h4>
+
+                        <span class="text-[10px] text-slate-500 font-semibold">
+                            Tư duy công dân toàn cầu
+                        </span>
+                    </div>
+
+                    <!-- Block -->
+                    <div class="group rounded-2xl p-5 bg-white/90 backdrop-blur-xl border border-amber-100 shadow-sm text-center">
+                        <div class="w-12 h-12 mx-auto mb-3 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                            <i class="fa-solid fa-lightbulb"></i>
+                        </div>
+
+                        <h4 class="font-extrabold text-blue-950 text-sm">
+                            Tư Duy Hiện Đại
+                        </h4>
+
+                        <span class="text-[10px] text-slate-500 font-semibold">
+                            Học tập chủ động
+                        </span>
+                    </div>
+
+                    <!-- Block -->
+                    <div class="group rounded-2xl p-5 bg-white/90 backdrop-blur-xl border border-rose-100 shadow-sm text-center">
+                        <div class="w-12 h-12 mx-auto mb-3 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
+                            <i class="fa-solid fa-rocket"></i>
+                        </div>
+
+                        <h4 class="font-extrabold text-blue-950 text-sm">
+                            Bứt Phá Tương Lai
+                        </h4>
+
+                        <span class="text-[10px] text-slate-500 font-semibold">
+                            Sẵn sàng cho mọi hành trình
+                        </span>
+                    </div>
+
                 </div>
             </div>
         </div>
@@ -322,7 +517,7 @@ $homeFormatFeedbackDate = static function (?string $value): string {
             <div class="space-y-5 sm:space-y-7 mt-8 lg:mt-0" data-aos="fade-left">
                 <div class="inline-flex items-center gap-2 sm:gap-3 px-4 sm:px-5 py-2 sm:py-3 rounded-full bg-gradient-to-r from-white to-blue-50 border border-blue-200 shadow-md shadow-blue-100/60 ring-1 ring-white/70">
                     <span class="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-blue-500 animate-pulse shadow-[0_0_0_6px_rgba(59,130,246,0.12)]"></span>
-                    <span class="text-blue-900 text-xs sm:text-sm md:text-base font-black uppercase tracking-[0.22em]">Về Nhuệ Minh Edu</span>
+                    <span class="text-blue-900 text-xs sm:text-sm md:text-base font-black uppercase tracking-[0.22em]">Về <span class="text-red-600">Nhuệ Minh </span>Edu</span>
                 </div>
                 <h2 class="text-3xl sm:text-4xl md:text-5xl font-extrabold leading-[1.15] text-blue-950">Nâng tầm ngoại ngữ,<br><span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500">Khơi nguồn tự tin</span></h2>
                 <p class="text-base sm:text-lg text-slate-600 leading-relaxed font-medium">Trung tâm ngoại ngữ hiện đại với không gian học tập truyền cảm hứng, cam kết mang lại giá trị thực tế, giúp học viên phát triển toàn diện 4 kỹ năng và sẵn sàng hội nhập.</p>
@@ -665,6 +860,104 @@ $homeFormatFeedbackDate = static function (?string $value): string {
             </div>
         </div>
     </section>
+
+    <section id="feed-back-student" class="relative py-12 sm:py-14 md:py-20 overflow-hidden bg-transparent">
+        <div class="absolute inset-0 pointer-events-none hidden sm:block">
+            <div class="absolute -top-24 -right-24 h-80 w-80 rounded-full bg-lime-200/30 blur-3xl"></div>
+            <div class="absolute -bottom-24 -left-24 h-80 w-80 rounded-full bg-amber-200/30 blur-3xl"></div>
+        </div>
+
+        <div class="mx-auto w-full max-w-[1400px] px-4 sm:px-6 relative z-10">
+            <div class="mb-8 sm:mb-10" data-aos="fade-up">
+                <div class="max-w-2xl">
+                    <div class="inline-flex items-center gap-1.5 sm:gap-2 rounded-full border border-lime-100 bg-white/80 px-3 sm:px-4 py-1.5 sm:py-2 text-[9px] sm:text-[10px] font-black uppercase tracking-[0.35em] text-lime-600 shadow-sm">
+                        <i class="fa-solid fa-video"></i> Kết quả đạt được
+                    </div>
+                    <h2 class="mt-3 sm:mt-4 text-2xl sm:text-3xl md:text-5xl font-black tracking-tight text-slate-900">Kết quả nhận được <span class="text-transparent bg-clip-text bg-gradient-to-r from-lime-600 to-emerald-500">học viên</span></h2>
+                    <p class="mt-3 sm:mt-4 text-slate-600 font-medium text-sm sm:text-base md:text-lg leading-relaxed">Những video kết quả nhận được thực tế từ học viên về những kết quả tuyệt vời họ đã đạt được sau khi học tập tại trung tâm.</p>
+                </div>
+            </div>
+
+            <div class="swiper studentPortfolioSwiper" data-aos="fade-up" data-aos-delay="120">
+                <div class="swiper-wrapper pb-10 sm:pb-14">
+                    <?php 
+                    $studentPortfolios = $studentPortfolios ?? [];
+                    if (empty($studentPortfolios)): 
+                    ?>
+                        <div class="swiper-slide h-auto">
+                            <div class="rounded-2xl sm:rounded-[2rem] border border-dashed border-slate-300 bg-white/80 p-6 sm:p-8 text-center text-slate-500 font-medium text-sm sm:text-base">
+                                Hiện chưa có phản hồi video nào được duyệt để hiển thị.
+                            </div>
+                        </div>
+                    <?php else: ?>
+                        <?php foreach ($studentPortfolios as $portfolio): ?>
+                            <?php
+                            $portfolioName = (string) ($portfolio['full_name'] ?? $portfolio['student_name'] ?? 'Học viên');
+                            $portfolioAvatar = (string) ($portfolio['avatar_url'] ?? $portfolio['avatar'] ?? '');
+                            $portfolioMedia = (string) ($portfolio['media_url'] ?? '');
+                            $portfolioDescription = trim((string) ($portfolio['description'] ?? ''));
+                            $portfolioResult = trim((string) ($portfolio['result'] ?? 'Kết quả đạt được'));
+                            
+                            // Nếu không có avatar, dùng avatar mặc định
+                            if (empty($portfolioAvatar)) {
+                                $portfolioAvatar = 'https://ui-avatars.com/api/?name=' . urlencode($portfolioName !== '' ? $portfolioName : 'Student') . '&background=16a34a&color=fff&size=256&bold=true';
+                            }
+                            
+                            // Kiểm tra loại media (video hay image)
+                            $isVideo = preg_match('/(mp4|webm|ogg|avi|mov|mkv)$/i', $portfolioMedia);
+                            ?>
+                            <div class="swiper-slide h-auto">
+                                <article class="flex h-full flex-col rounded-[1.5rem] sm:rounded-[2rem] border border-white bg-white/90 overflow-hidden shadow-[0_15px_40px_rgba(15,23,42,0.08)] transition-all hover:-translate-y-1">
+                                    <!-- Media Container (reduced height ~70%) -->
+                                    <div class="relative w-full bg-slate-100 overflow-hidden portfolio-media" style="aspect-ratio: 2.54;" data-media="<?= e($portfolioMedia); ?>" data-is-video="<?= $isVideo ? '1' : '0' ?>">
+                                        <?php if ($isVideo): ?>
+                                            <video class="w-full h-full object-cover" muted playsinline preload="metadata">
+                                                <source src="<?= e($portfolioMedia); ?>" type="video/mp4">
+                                            </video>
+                                        <?php else: ?>
+                                            <img src="<?= e($portfolioMedia); ?>" alt="<?= e($portfolioName); ?>" class="w-full h-full object-cover">
+                                        <?php endif; ?>
+                                    </div>
+
+                                    <!-- Info Container -->
+                                    <div class="flex flex-col p-4 sm:p-5 md:p-6">
+                                        <div class="flex items-center gap-2.5 sm:gap-3 mb-3 sm:mb-4">
+                                            <img src="<?= e($portfolioAvatar); ?>" alt="<?= e($portfolioName); ?>" class="h-10 w-10 sm:h-12 sm:w-12 rounded-lg object-cover ring-2 ring-lime-50 shrink-0">
+                                            <div class="min-w-0">
+                                                <h3 class="truncate text-sm sm:text-base font-black text-slate-900"><?= e($portfolioName); ?></h3>
+                                                <p class="text-[9px] sm:text-[10px] md:text-[11px] font-semibold uppercase tracking-[0.2em] text-lime-600">Học viên</p>
+                                            </div>
+                                        </div>
+
+                                        <div class="inline-flex items-center gap-1.5 mb-3 sm:mb-4">
+                                            <span class="rounded-full bg-lime-50 px-2 sm:px-3 py-0.5 sm:py-1 text-[9px] sm:text-[10px] md:text-[11px] font-bold uppercase tracking-widest text-lime-700">
+                                                <i class="fa-solid fa-trophy text-amber-500 mr-1"></i><?= e($portfolioResult); ?>
+                                            </span>
+                                        </div>
+
+                                        <?php if ($portfolioDescription !== ''): ?>
+                                            <p class="text-xs sm:text-sm md:text-base leading-relaxed text-slate-600 line-clamp-2">
+                                                "<?= e($portfolioDescription); ?>"
+                                            </p>
+                                        <?php endif; ?>
+                                    </div>
+                                </article>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </div>
+                <div class="swiper-pagination-portfolio flex justify-center"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Portfolio video modal -->
+    <div id="portfolioVideoModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60">
+        <div class="relative w-full max-w-3xl mx-4">
+            <button id="portfolioModalClose" class="absolute right-0 top-0 m-2 text-white text-3xl leading-none">&times;</button>
+            <video id="portfolioModalVideo" class="w-full h-auto rounded-lg bg-black" controls playsinline></video>
+        </div>
+    </div>
 
     <section id="lien-he" class="relative py-10 sm:py-14 md:py-20 overflow-hidden bg-transparent z-10">
         <div class="mx-auto w-full max-w-[1400px] flex flex-col lg:flex-row">

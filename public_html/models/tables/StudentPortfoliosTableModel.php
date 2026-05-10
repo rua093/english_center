@@ -26,7 +26,7 @@ final class StudentPortfoliosTableModel
     public function listDetailed(): array
     {
         $sql = "SELECT p.id, p.student_id, p.type, p.media_url, p.description, p.is_public_web, p.created_at,
-                u.full_name AS full_name, sp.student_code
+                u.full_name AS full_name, u.avatar AS avatar_url, sp.student_code
             FROM student_portfolios p
             INNER JOIN users u ON u.id = p.student_id
             LEFT JOIN student_profiles sp ON sp.user_id = u.id
@@ -43,7 +43,7 @@ final class StudentPortfoliosTableModel
         $whereSql = $this->buildSearchWhereClause($searchQuery, $filters, $params);
 
         $sql = "SELECT p.id, p.student_id, p.type, p.media_url, p.description, p.is_public_web, p.created_at,
-                u.full_name AS full_name, sp.student_code
+                u.full_name AS full_name, u.avatar AS avatar_url, sp.student_code
             FROM student_portfolios p
             INNER JOIN users u ON u.id = p.student_id
             LEFT JOIN student_profiles sp ON sp.user_id = u.id
@@ -94,7 +94,13 @@ final class StudentPortfoliosTableModel
     public function findById(int $id): ?array
     {
         return $this->fetchOne(
-            'SELECT id, student_id, type, media_url, description, is_public_web FROM student_portfolios WHERE id = :id LIMIT 1',
+            'SELECT p.id, p.student_id, p.type, p.media_url, p.description, p.is_public_web, p.created_at,
+                u.full_name AS full_name, u.avatar AS avatar_url, sp.student_code
+            FROM student_portfolios p
+            INNER JOIN users u ON u.id = p.student_id
+            LEFT JOIN student_profiles sp ON sp.user_id = u.id
+            WHERE p.id = :id
+            LIMIT 1',
             ['id' => $id]
         );
     }

@@ -61,6 +61,9 @@ if (!empty($homeFeedbacks)) {
 	$homeFeedbackAverage = array_sum(array_map(static fn (array $feedback): float => (float) ($feedback['rating'] ?? 0), $homeFeedbacks)) / count($homeFeedbacks);
 }
 
+// Fetch public student portfolios to display on homepage (limit 6)
+$studentPortfolios = $academicModel->listPortfoliosPage(1, 6, '', ['is_public_web' => 1]);
+
 if (is_logged_in()) {
 	$user = auth_user();
 	if ($user) {
@@ -186,6 +189,25 @@ if (is_logged_in()) {
 		            1024: { slidesPerView: 2.2, spaceBetween: 28 }
 		        }
 		    });
+
+			// Student portfolio swiper (autoplay like feedback)
+			new Swiper('.studentPortfolioSwiper', {
+			    slidesPerView: 1,
+			    spaceBetween: 20,
+			    loop: true,
+			    autoplay: { delay: 3000, disableOnInteraction: false },
+			    pagination: {
+			        el: '.swiper-pagination-portfolio',
+			        clickable: true,
+			        renderBullet: function (index, className) {
+			            return '<span class="' + className + ' w-3 h-3 border-2 border-[#0f766e] rounded-full transition-all"></span>';
+			        },
+			    },
+			    breakpoints: {
+			        640: { slidesPerView: 1.1, spaceBetween: 24 },
+			        1024: { slidesPerView: 2.2, spaceBetween: 28 }
+			    }
+			});
 		}
 	});
 
@@ -193,6 +215,56 @@ if (is_logged_in()) {
 	window.addEventListener('load', function() {
 	    // Tính toán lại toàn bộ tọa độ AOS sau khi HTML, CSS và toàn bộ hình ảnh đã load xong 100%
 	    AOS.refresh();
+	});
+	</script>
+
+	<script>
+	// Portfolio modal handling: open modal and autoplay video when a portfolio media (video) is clicked
+	document.addEventListener('DOMContentLoaded', function() {
+	    const modal = document.getElementById('portfolioVideoModal');
+	    const modalVideo = document.getElementById('portfolioModalVideo');
+	    const modalClose = document.getElementById('portfolioModalClose');
+
+	    function openModal(src) {
+	        if (!modal || !modalVideo) return;
+	        modal.classList.remove('hidden');
+	        modal.classList.add('flex');
+	        modalVideo.src = src;
+	        modalVideo.load();
+	        // attempt autoplay
+	        const playPromise = modalVideo.play();
+	        if (playPromise !== undefined) {
+	            playPromise.catch(() => {
+	                // autoplay blocked, keep controls visible
+	            });
+	        }
+	    }
+
+	    function closeModal() {
+	        if (!modal || !modalVideo) return;
+	        modal.classList.add('hidden');
+	        modal.classList.remove('flex');
+	        try { modalVideo.pause(); } catch (e) {}
+	        modalVideo.removeAttribute('src');
+	        modalVideo.load();
+	    }
+
+	    // Delegate clicks inside the student portfolio swiper
+	    document.addEventListener('click', function(e) {
+	        const el = e.target.closest('.portfolio-media');
+	        if (!el) return;
+	        const isVideo = el.dataset.isVideo === '1' || el.dataset.isVideo === 'true';
+	        const src = el.dataset.media || '';
+	        if (isVideo && src) {
+	            openModal(src);
+	        }
+	    });
+
+	    // Close handlers
+	    if (modalClose) modalClose.addEventListener('click', closeModal);
+	    if (modal) modal.addEventListener('click', function(e) {
+	        if (e.target === modal) closeModal();
+	    });
 	});
 	</script>
 
