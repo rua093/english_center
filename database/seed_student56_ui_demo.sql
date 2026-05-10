@@ -32,7 +32,11 @@ WHERE student_id = 56
 DELETE FROM assignments
 WHERE title IN (
     'Demo Assignment - Student 56',
-    'Demo Assignment - Student 56 Writing'
+    'Demo Assignment - Student 56 Writing',
+    'Demo Assignment - Student 56 Listening',
+    'Demo Assignment - Student 56 Reading',
+    'Demo Assignment - Student 56 Speaking',
+    'Demo Assignment - Student 56 Review'
 );
 
 DELETE l
@@ -156,6 +160,34 @@ INSERT INTO assignments (
     'Bai tap viet mau voi noi dung ngan de xem UI render trang thai bai tap.',
     '2026-05-15 23:59:00',
     '/assets/uploads/assignment-demo-student56-writing.docx'
+),
+(
+    @demo_schedule_id_2,
+    'Demo Assignment - Student 56 Listening',
+    'Bai tap nghe va ghi chu y chinh cho buoi shadowing.',
+    '2026-05-16 23:59:00',
+    '/assets/uploads/assignment-demo-student56-listening.pdf'
+),
+(
+    @demo_schedule_id_3,
+    'Demo Assignment - Student 56 Reading',
+    'Bai doc hieu ngan de kiem tra tu vung va y chinh.',
+    '2026-05-18 23:59:00',
+    '/assets/uploads/assignment-demo-student56-reading.pdf'
+),
+(
+    @demo_schedule_id_4,
+    'Demo Assignment - Student 56 Speaking',
+    'Bai noi quay video gioi thieu ban than va muc tieu hoc tap.',
+    '2026-05-20 23:59:00',
+    '/assets/uploads/assignment-demo-student56-speaking.mp4'
+),
+(
+    @demo_schedule_id_1,
+    'Demo Assignment - Student 56 Review',
+    'Bai tong on no luc trong ca tuan de hien thi phan trang.',
+    '2026-05-22 23:59:00',
+    '/assets/uploads/assignment-demo-student56-review.docx'
 );
 SET @demo_assignment_id_1 := (
         SELECT id
