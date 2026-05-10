@@ -32,7 +32,11 @@ WHERE student_id = 56
 DELETE FROM assignments
 WHERE title IN (
     'Demo Assignment - Student 56',
-    'Demo Assignment - Student 56 Writing'
+    'Demo Assignment - Student 56 Writing',
+    'Demo Assignment - Student 56 Listening',
+    'Demo Assignment - Student 56 Reading',
+    'Demo Assignment - Student 56 Speaking',
+    'Demo Assignment - Student 56 Review'
 );
 
 DELETE l
@@ -78,7 +82,7 @@ INSERT INTO class_students (
     '2026-05-03'
 );
 
--- Create a schedule for class 2 so assignments can attach to it.
+-- Create four schedules for class 2 on the same day so the calendar detail modal has richer sample data.
 INSERT INTO schedules (
     class_id,
     room_id,
@@ -86,15 +90,17 @@ INSERT INTO schedules (
     study_date,
     start_time,
     end_time
-) VALUES (
-    2,
-    1,
-    45,
-    '2026-05-08',
-    '18:00:00',
-    '20:00:00'
-);
-SET @demo_schedule_id := LAST_INSERT_ID();
+) VALUES
+    (2, 1, 45, '2026-05-08', '08:00:00', '09:30:00'),
+    (2, 1, 45, '2026-05-08', '10:00:00', '11:30:00'),
+    (2, 1, 45, '2026-05-08', '14:00:00', '15:30:00'),
+    (2, 1, 45, '2026-05-08', '18:00:00', '19:30:00');
+
+SET @demo_schedule_id_1 := (SELECT id FROM schedules WHERE class_id = 2 AND study_date = '2026-05-08' AND start_time = '08:00:00' LIMIT 1);
+SET @demo_schedule_id_2 := (SELECT id FROM schedules WHERE class_id = 2 AND study_date = '2026-05-08' AND start_time = '10:00:00' LIMIT 1);
+SET @demo_schedule_id_3 := (SELECT id FROM schedules WHERE class_id = 2 AND study_date = '2026-05-08' AND start_time = '14:00:00' LIMIT 1);
+SET @demo_schedule_id_4 := (SELECT id FROM schedules WHERE class_id = 2 AND study_date = '2026-05-08' AND start_time = '18:00:00' LIMIT 1);
+SET @demo_schedule_id := @demo_schedule_id_1;
 
 -- Lesson content for hover details on the student timetable.
 INSERT INTO lessons (
@@ -103,13 +109,35 @@ INSERT INTO lessons (
     actual_content,
     attachment_file_path,
     schedule_id
-) VALUES (
-    2,
-    'Demo Lesson - Student 56 Speaking Practice',
-    'On tap chu de Travel, tu vung theo tinh huong va file tai lieu dung de xem nhanh khi hover lich hoc.',
-    '/assets/uploads/lessons/demo-student56-speaking-practice.pdf',
-    @demo_schedule_id
-);
+) VALUES
+    (
+        2,
+        'Demo Lesson - Morning Speaking Drill',
+        'On tap tu vung Travel, cau tra loi ngan va cach mo dau tu tin trong 15 phut dau buoi hoc.',
+        '/assets/uploads/lessons/demo-student56-speaking-drill.pdf',
+        @demo_schedule_id_1
+    ),
+    (
+        2,
+        'Demo Lesson - Listening Shadowing',
+        'Nghe mau, shadowing va ghi chu y chinh xac tung cum tu de hien thi day du trong modal.',
+        '/assets/uploads/lessons/demo-student56-listening-shadowing.pdf',
+        @demo_schedule_id_2
+    ),
+    (
+        2,
+        'Demo Lesson - Reading Sprint',
+        'Luyen doc hieu nhanh, toan bo ghi chu bai hoc va file dinh kem se duoc hien thi trong popup.',
+        '/assets/uploads/lessons/demo-student56-reading-sprint.pdf',
+        @demo_schedule_id_3
+    ),
+    (
+        2,
+        'Demo Lesson - Writing Wrap-up',
+        'Tong ket buoi hoc, nhan xet cua giao vien va tai lieu buoi hoc de xem lai sau khi hover lich.',
+        '/assets/uploads/lessons/demo-student56-writing-wrap-up.pdf',
+        @demo_schedule_id_4
+    );
 
 -- Create a couple of assignments for the new schedule.
 INSERT INTO assignments (
@@ -132,6 +160,34 @@ INSERT INTO assignments (
     'Bai tap viet mau voi noi dung ngan de xem UI render trang thai bai tap.',
     '2026-05-15 23:59:00',
     '/assets/uploads/assignment-demo-student56-writing.docx'
+),
+(
+    @demo_schedule_id_2,
+    'Demo Assignment - Student 56 Listening',
+    'Bai tap nghe va ghi chu y chinh cho buoi shadowing.',
+    '2026-05-16 23:59:00',
+    '/assets/uploads/assignment-demo-student56-listening.pdf'
+),
+(
+    @demo_schedule_id_3,
+    'Demo Assignment - Student 56 Reading',
+    'Bai doc hieu ngan de kiem tra tu vung va y chinh.',
+    '2026-05-18 23:59:00',
+    '/assets/uploads/assignment-demo-student56-reading.pdf'
+),
+(
+    @demo_schedule_id_4,
+    'Demo Assignment - Student 56 Speaking',
+    'Bai noi quay video gioi thieu ban than va muc tieu hoc tap.',
+    '2026-05-20 23:59:00',
+    '/assets/uploads/assignment-demo-student56-speaking.mp4'
+),
+(
+    @demo_schedule_id_1,
+    'Demo Assignment - Student 56 Review',
+    'Bai tong on no luc trong ca tuan de hien thi phan trang.',
+    '2026-05-22 23:59:00',
+    '/assets/uploads/assignment-demo-student56-review.docx'
 );
 SET @demo_assignment_id_1 := (
         SELECT id

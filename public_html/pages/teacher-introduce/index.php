@@ -1,6 +1,16 @@
 <?php
 $academicModel = new AcademicModel();
-$teacherRows = $academicModel->listActiveTeachers();
+$teachersPerPage = 12;
+$currentTeacherPage = max(1, (int) ($_GET['teachers_page'] ?? 1));
+$teacherTotal = $academicModel->countActiveTeachers();
+$totalTeacherPages = max(1, (int) ceil($teacherTotal / $teachersPerPage));
+$currentTeacherPage = min($currentTeacherPage, $totalTeacherPages);
+$teacherRows = $teacherTotal > 0
+    ? $academicModel->listActiveTeachersPage($currentTeacherPage, $teachersPerPage)
+    : [];
+$buildTeacherPageUrl = static function (int $page) : string {
+    return page_url('teacher-introduce', ['teachers_page' => $page]) . '#danh-sach-giang-vien';
+};
 $teachers = [];
 
 foreach ($teacherRows as $teacherRow) {
@@ -69,34 +79,50 @@ foreach ($teacherRows as $teacherRow) {
 </style>
 
 <section class="min-h-screen bg-slate-50 font-jakarta pb-24">
-    <div class="relative bg-slate-900 pt-24 pb-32 overflow-hidden">
-        <div class="absolute inset-0">
-            <img src="https://images.unsplash.com/photo-1524178232363-1fb2b075b655?q=80&w=1600&auto=format&fit=crop" class="w-full h-full object-cover opacity-20 mix-blend-overlay">
-            <div class="absolute inset-0 bg-gradient-to-t from-slate-900 to-transparent"></div>
-        </div>
-        <div class="container mx-auto px-4 max-w-6xl relative z-10 text-center">
-            <span class="inline-block px-4 py-1.5 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-black uppercase tracking-widest border border-emerald-500/30 mb-6">Niềm tự hào của Nhuệ Minh</span>
-            <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white tracking-tight mb-6">
-                Đội ngũ Giảng viên <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300">Tinh hoa</span>
-            </h1>
-            <p class="text-slate-300 text-lg md:text-xl max-w-2xl mx-auto font-medium">100% Giảng viên sở hữu chứng chỉ giảng dạy quốc tế (TESOL, CELTA), tận tâm đồng hành cùng sự phát triển của học viên.</p>
-        </div>
+   <div class="relative bg-slate-900 pt-24 pb-32 overflow-hidden">
+    <div class="absolute inset-0">
+        <img src="<?= e('/assets/images/teacher_page_banner.jpg'); ?>" alt="Banner đội ngũ giảng viên" class="w-full h-full object-cover object-center opacity-100">
     </div>
+    
+    <div class="container mx-auto px-4 max-w-6xl relative z-10 text-left">
+        
+        <span class="inline-block px-4 py-1.5 rounded-full bg-black/30 text-white text-xs font-bold uppercase tracking-widest border border-white/40 shadow-sm mb-6 backdrop-blur-md">Niềm tự hào của Nhuệ Minh</span>
+        
+        <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tight mb-6">
+            <span class="inline-block [text-shadow:0px_5px_15px_rgba(0,0,0,0.85)]">Đội ngũ Giảng viên</span>
+            <span class="block mt-2 [text-shadow:0px_5px_15px_rgba(0,0,0,0.85)]">Tinh hoa</span>
+        </h1>
+        
+        <p class="text-white text-lg md:text-xl max-w-2xl font-medium leading-relaxed [text-shadow:0px_3px_8px_rgba(0,0,0,0.9)]">
+            100% Giảng viên sở hữu chứng chỉ giảng dạy quốc tế (TESOL, CELTA), tận tâm đồng hành cùng sự phát triển của học viên.
+        </p>
+        
+    </div>
+</div>
 
     <div class="container mx-auto px-4 max-w-6xl relative z-20 -mt-16">
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div id="danh-sach-giang-vien" class="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3">
             <?php $teacherDelay = 0; ?>
             <?php foreach($teachers as $teacher): ?>
             <div class="teacher-card bg-white/95 rounded-[2rem] p-4 border border-white shadow-[0_14px_40px_rgba(15,23,42,0.08)] flex flex-col group cursor-pointer relative overflow-hidden transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_24px_60px_rgba(15,23,42,0.14)]" onclick="window.location.href='/teacher-detail?id=<?= $teacher['id'] ?>'" data-aos="fade-up" data-aos-delay="<?= $teacherDelay; ?>" data-aos-duration="700">
-                
-                <div class="relative h-72 rounded-[1.5rem] overflow-hidden mb-5 bg-slate-100">
-                    <img src="<?= e($teacher['avatar']) ?>" alt="<?= e($teacher['name']) ?>" class="teacher-card-img w-full h-full object-cover transition-transform duration-700">
-                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/5 to-transparent opacity-75 group-hover:opacity-90 transition-opacity duration-500"></div>
-                    
-                    <div class="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-xl flex items-center gap-2 shadow-sm">
-                        <div class="w-6 h-6 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center text-[10px]"><i class="fa-solid fa-briefcase"></i></div>
-                        <span class="text-xs font-black text-slate-800"><?= $teacher['experience'] ?> năm kinh nghiệm</span>
+                <div class="mb-5 overflow-hidden rounded-[1.5rem] bg-slate-100">
+                    <div class="relative aspect-[4/3] w-full">
+                        <img src="<?= e($teacher['avatar']) ?>" alt="<?= e($teacher['name']) ?>" class="teacher-card-img h-full w-full object-cover transition-transform duration-700">
+                        <div class="absolute inset-0 bg-gradient-to-t from-slate-950/75 via-slate-950/10 to-transparent opacity-80 transition-opacity duration-500 group-hover:opacity-90"></div>
+
+                        <div class="absolute left-4 top-4 rounded-full bg-white/90 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-emerald-600 shadow-sm backdrop-blur-sm">
+                            Hồ sơ giảng viên
+                        </div>
+
+                        <div class="absolute bottom-4 left-4 right-4 flex items-end justify-between gap-3">
+                            <div class="rounded-2xl bg-white/90 px-3 py-2 backdrop-blur-sm shadow-sm">
+                                <p class="text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">Kinh nghiệm</p>
+                                <p class="text-sm font-black text-slate-900"><?= $teacher['experience'] ?> năm</p>
+                            </div>
+                            <div class="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500 text-white shadow-lg shadow-emerald-500/25 transition-transform duration-300 group-hover:-translate-y-1">
+                                <i class="fa-solid fa-arrow-right"></i>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -125,6 +151,60 @@ foreach ($teacherRows as $teacherRow) {
             <?php $teacherDelay += 100; ?>
             <?php endforeach; ?>
         </div>
+
+        <?php if ($totalTeacherPages > 1): ?>
+            <div class="mt-10 rounded-[2rem] border border-white bg-white/85 p-4 shadow-[0_12px_30px_rgba(15,23,42,0.06)] backdrop-blur-md">
+                <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <p class="text-sm md:text-base font-medium text-slate-600">
+                        Đang hiển thị <?= count($teachers); ?> / <?= number_format($teacherTotal, 0, ',', '.'); ?> giảng viên
+                    </p>
+                    <p class="text-xs md:text-sm font-bold uppercase tracking-[0.18em] text-emerald-600">
+                        Trang <?= $currentTeacherPage; ?> / <?= $totalTeacherPages; ?>
+                    </p>
+                </div>
+
+                <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+             
+
+                <nav class="flex flex-wrap items-center justify-center gap-2" aria-label="Phân trang giảng viên">
+                    <a href="<?= e($buildTeacherPageUrl(max(1, $currentTeacherPage - 1))); ?>" class="inline-flex h-11 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-black text-slate-700 shadow-sm transition-all hover:-translate-y-0.5 hover:border-emerald-300 hover:text-emerald-600 <?= $currentTeacherPage === 1 ? 'pointer-events-none opacity-40' : ''; ?>">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </a>
+
+                    <?php
+                    $pageStart = max(1, $currentTeacherPage - 2);
+                    $pageEnd = min($totalTeacherPages, $currentTeacherPage + 2);
+                    if ($pageStart > 1) {
+                        echo '<a href="' . e($buildTeacherPageUrl(1)) . '" class="inline-flex h-11 min-w-11 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-black text-slate-700 shadow-sm transition-all hover:-translate-y-0.5 hover:border-emerald-300 hover:text-emerald-600">1</a>';
+                        if ($pageStart > 2) {
+                            echo '<span class="px-1 text-slate-400">...</span>';
+                        }
+                    }
+
+                    for ($page = $pageStart; $page <= $pageEnd; $page++) {
+                        $isCurrentPage = $page === $currentTeacherPage;
+                        $pageClasses = $isCurrentPage
+                            ? 'border-emerald-600 bg-emerald-600 text-white shadow-md'
+                            : 'border-slate-200 bg-white text-slate-700 shadow-sm hover:-translate-y-0.5 hover:border-emerald-300 hover:text-emerald-600';
+
+                        echo '<a href="' . e($buildTeacherPageUrl($page)) . '" class="inline-flex h-11 min-w-11 items-center justify-center rounded-full border px-4 text-sm font-black transition-all ' . $pageClasses . '"' . ($isCurrentPage ? ' aria-current="page"' : '') . '>' . $page . '</a>';
+                    }
+
+                    if ($pageEnd < $totalTeacherPages) {
+                        if ($pageEnd < $totalTeacherPages - 1) {
+                            echo '<span class="px-1 text-slate-400">...</span>';
+                        }
+                        echo '<a href="' . e($buildTeacherPageUrl($totalTeacherPages)) . '" class="inline-flex h-11 min-w-11 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-black text-slate-700 shadow-sm transition-all hover:-translate-y-0.5 hover:border-emerald-300 hover:text-emerald-600">' . $totalTeacherPages . '</a>';
+                    }
+                    ?>
+
+                    <a href="<?= e($buildTeacherPageUrl(min($totalTeacherPages, $currentTeacherPage + 1))); ?>" class="inline-flex h-11 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-black text-slate-700 shadow-sm transition-all hover:-translate-y-0.5 hover:border-emerald-300 hover:text-emerald-600 <?= $currentTeacherPage >= $totalTeacherPages ? 'pointer-events-none opacity-40' : ''; ?>">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </a>
+                </nav>
+                </div>
+            </div>
+        <?php endif; ?>
 
     </div>
 </section>

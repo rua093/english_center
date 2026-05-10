@@ -70,6 +70,8 @@ $classDetail = [
     'teacher' => (string) ($classRow['teacher_name'] ?? ''),
     'status' => $classStatus,
     'schedule' => $firstSchedule ? (date('d/m/Y', strtotime((string) ($firstSchedule['study_date'] ?? ''))) . ' ' . date('H:i', strtotime((string) ($firstSchedule['start_time'] ?? ''))) . ' - ' . date('H:i', strtotime((string) ($firstSchedule['end_time'] ?? '')))) : 'Chưa có lịch học',
+    'start_time' => $firstSchedule && !empty($firstSchedule['start_time']) ? date('H:i', strtotime((string) $firstSchedule['start_time'])) : '--:--',
+    'end_time' => $firstSchedule && !empty($firstSchedule['end_time']) ? date('H:i', strtotime((string) $firstSchedule['end_time'])) : '--:--',
     'room' => $firstSchedule ? trim((string) ($firstSchedule['room_name'] ?? 'Online')) : 'Chưa phân phòng',
     'course' => (string) ($classRow['course_name'] ?? ''),
     'start_date' => !empty($classRow['start_date']) ? date('d/m/Y', strtotime((string) $classRow['start_date'])) : '---',
@@ -172,6 +174,17 @@ if ($defaultHomework === null) {
     $defaultHomework = $assignments[0] ?? null;
 }
 
+$assignmentPage = max(1, (int) ($_GET['assignment_page'] ?? 1));
+$assignmentPerPage = ui_pagination_resolve_per_page('assignment_per_page', 5);
+$assignmentPerPageOptions = ui_pagination_per_page_options();
+$assignmentTotal = count($assignments);
+$assignmentTotalPages = max(1, (int) ceil($assignmentTotal / $assignmentPerPage));
+if ($assignmentPage > $assignmentTotalPages) {
+	$assignmentPage = $assignmentTotalPages;
+}
+$assignmentOffset = ($assignmentPage - 1) * $assignmentPerPage;
+$pagedAssignments = array_slice($assignments, $assignmentOffset, $assignmentPerPage);
+
 $averageAssignmentScore = !empty($assignmentScores) ? number_format(array_sum($assignmentScores) / count($assignmentScores), 1) : '--';
 
 $examRows = $examsTable->listExamRowsByClassAndStudent($selectedClassId, $studentId);
@@ -247,6 +260,12 @@ foreach ($examRows as $examRow) {
                         <span><i class="fa-regular fa-user mr-1 text-slate-400"></i> GV: <span class="text-slate-700"><?= e($classDetail['teacher']) ?></span></span>
                         <span class="hidden sm:inline text-slate-300">|</span>
                         <span><i class="fa-regular fa-clock mr-1 text-slate-400"></i> <?= e($classDetail['schedule']) ?></span>
+                    </p>
+                    <p class="mt-1 text-xs font-semibold text-slate-500">
+                        <span class="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2.5 py-1 shadow-sm">
+                            <i class="fa-regular fa-hourglass-half text-slate-400"></i>
+                            <span>Thời gian học: <?= e($classDetail['start_date']) ?> - <?= e($classDetail['end_date']) ?></span>
+                        </span>
                     </p>
                     <?php if (!empty($scheduleItems)): ?>
                         <div class="mt-3 flex flex-wrap gap-2">
@@ -385,7 +404,7 @@ foreach ($examRows as $examRow) {
             </div>
         </div>
 
-        <div id="class-assignments" class="scroll-mt-8 rounded-[2rem] border border-slate-200 bg-white shadow-2xl shadow-slate-300/60 overflow-visible">
+        <div id="class-assignments" data-assignment-panel="1" class="scroll-mt-24 md:scroll-mt-8 rounded-[2rem] border border-slate-200 bg-white shadow-2xl shadow-slate-300/60 overflow-visible transition-all duration-300">
             <div class="p-6 md:p-8 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <h2 class="text-lg font-black text-slate-800 flex items-center gap-3">
                     <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-sm"><i class="fa-solid fa-laptop-file"></i></div>
@@ -404,8 +423,93 @@ foreach ($examRows as $examRow) {
                 </span>
             </div>
             
-            <div class="overflow-visible">
-                <table class="w-full table-modern table-fixed text-left">
+            <div class="max-h-[70vh] md:max-h-[640px] overflow-y-auto overflow-x-hidden">
+                <div class="space-y-3 p-3 md:hidden">
+                    <?php if (empty($pagedAssignments)): ?>
+                        <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-8 text-center text-sm font-semibold text-slate-500">
+                            Chưa có bài tập nào được giao cho lớp này.
+                        </div>
+                    <?php else: ?>
+                        <?php foreach ($pagedAssignments as $hw): ?>
+                            <article class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                                <div class="flex items-start justify-between gap-3">
+                                    <div class="min-w-0 flex-1">
+                                        <h3 class="text-sm font-black leading-snug text-slate-800 break-words"><?= e($hw['title']) ?></h3>
+                                        <div class="mt-2 flex flex-wrap gap-2 text-[11px] font-semibold">
+                                            <span class="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-slate-500">
+                                                <i class="fa-regular fa-clock"></i> <?= e($hw['deadline']) ?>
+                                            </span>
+                                            <?php if (!empty($hw['submitted_at'])): ?>
+                                                <span class="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-emerald-700">
+                                                    <i class="fa-regular fa-paper-plane"></i> <?= e($hw['submitted_at']) ?>
+                                                </span>
+                                            <?php else: ?>
+                                                <span class="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-slate-400">Chưa nộp</span>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                    <?php
+                                        $badgeClass = match($hw['color']) {
+                                            'emerald' => 'bg-emerald-50 text-emerald-600 border-emerald-200',
+                                            'rose' => 'bg-rose-50 text-rose-600 border-rose-200',
+                                            'blue' => 'bg-blue-50 text-blue-600 border-blue-200',
+                                            default => 'bg-slate-50 text-slate-500 border-slate-200'
+                                        };
+                                    ?>
+                                    <span class="shrink-0 rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-wider <?= $badgeClass ?>">
+                                        <?= e($hw['status']) ?>
+                                    </span>
+                                </div>
+
+                                <?php if (!empty($hw['file_url'])): ?>
+                                    <a href="<?= e(normalize_public_file_url((string) $hw['file_url'])); ?>" target="_blank" rel="noopener" class="mt-3 inline-flex items-center gap-1 rounded-full border border-blue-100 bg-blue-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-blue-700 transition hover:bg-blue-100">
+                                        <i class="fa-solid fa-paperclip"></i> Tải file đề
+                                    </a>
+                                <?php endif; ?>
+
+                                <div class="mt-3 flex items-center justify-between gap-3">
+                                    <div>
+                                        <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Điểm số</p>
+                                        <p class="text-sm font-black <?= $hw['score'] !== '--' ? ((float) $hw['score'] >= 5.0 ? 'text-emerald-600' : 'text-rose-600') : 'text-slate-300'; ?>"><?= $hw['score'] !== '--' ? e($hw['score']) : '--'; ?></p>
+                                    </div>
+                                    <?php if (!empty($hw['can_submit']) || !empty($hw['can_resubmit'])): ?>
+                                        <?php
+                                            $actionClass = !empty($hw['can_resubmit'])
+                                                ? 'bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 text-white shadow-lg shadow-orange-500/20 hover:shadow-orange-500/35'
+                                                : 'bg-gradient-to-r from-blue-600 via-sky-600 to-cyan-600 text-white shadow-lg shadow-blue-500/20 hover:shadow-blue-500/35';
+                                        ?>
+                                        <button
+                                            type="button"
+                                            class="inline-flex items-center justify-center rounded-xl border border-transparent px-3 py-2 text-[11px] font-black uppercase tracking-widest transition-all active:scale-[0.98] <?= $actionClass ?>"
+                                            data-homework-open="1"
+                                            data-homework-assignment-id="<?= (int) ($hw['id'] ?? 0); ?>"
+                                            data-homework-class="<?= e($classDetail['name']); ?>"
+                                            data-homework-assignment="<?= e($hw['title']); ?>"
+                                            data-homework-deadline="<?= e((string) ($hw['deadline_raw'] ?? '')); ?>"
+                                            data-homework-note="<?= e((string) ($hw['note'] ?? '')); ?>"
+                                            data-homework-status="<?= e((string) ($hw['status'] ?? '')); ?>"
+                                            data-homework-empty="0"
+                                        >
+                                            <?= !empty($hw['can_resubmit']) ? 'Nộp lại' : 'Nộp bài'; ?>
+                                        </button>
+                                    <?php else: ?>
+                                        <span class="inline-flex max-w-[120px] items-center justify-center rounded-xl border border-slate-200 bg-slate-100 px-3 py-2 text-[11px] font-black uppercase tracking-widest text-slate-400 text-center leading-tight">
+                                            Hết hạn
+                                        </span>
+                                    <?php endif; ?>
+                                </div>
+
+                                <?php if (!empty($hw['teacher_comment'])): ?>
+                                    <p class="mt-3 rounded-xl bg-slate-50 px-3 py-2 text-[11px] leading-relaxed text-slate-500">
+                                        <?= e($hw['teacher_comment']) ?>
+                                    </p>
+                                <?php endif; ?>
+                            </article>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </div>
+
+                <table class="hidden w-full table-modern table-fixed text-left md:table">
                     <thead>
                         <tr>
                             <th class="w-[31%]">Tên bài tập</th>
@@ -417,12 +521,12 @@ foreach ($examRows as $examRow) {
                         </tr>
                     </thead>
                     <tbody>
-                        <?php if (empty($assignments)): ?>
+                        <?php if (empty($pagedAssignments)): ?>
                         <tr>
                             <td colspan="6" class="px-4 py-8 text-center text-sm font-semibold text-slate-500">Chưa có bài tập nào được giao cho lớp này.</td>
                         </tr>
                         <?php else: ?>
-                        <?php foreach($assignments as $hw): ?>
+                        <?php foreach($pagedAssignments as $hw): ?>
                         <tr>
                             <td class="align-top">
                                 <div class="whitespace-normal break-words text-sm font-black leading-snug text-slate-800"><?= e($hw['title']) ?></div>
@@ -514,6 +618,38 @@ foreach ($examRows as $examRow) {
                     </tbody>
                 </table>
             </div>
+            <?php if ($assignmentTotalPages > 1): ?>
+                <div data-assignment-pagination="1" class="border-t border-slate-200 bg-slate-50/80 px-4 py-3 sm:px-6">
+                    <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                        <div class="text-xs font-semibold text-slate-500">
+                            Trang <?= (int) $assignmentPage; ?>/<?= (int) $assignmentTotalPages; ?> · Tổng <?= (int) $assignmentTotal; ?> bài tập
+                        </div>
+                        <form class="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2" method="get" action="<?= e(page_url('classes-my-details', ['class_id' => $selectedClassId])); ?>" data-assignment-per-page-form="1">
+                            <input type="hidden" name="class_id" value="<?= (int) $selectedClassId; ?>">
+                            <input type="hidden" name="assignment_page" value="1">
+                            <label for="assignment-per-page" class="text-xs font-semibold text-slate-500">Số dòng</label>
+                            <select id="assignment-per-page" name="assignment_per_page" class="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 shadow-sm sm:w-auto" data-assignment-per-page="1">
+                                <?php foreach ($assignmentPerPageOptions as $option): ?>
+                                    <option value="<?= (int) $option; ?>" <?= $assignmentPerPage === (int) $option ? 'selected' : ''; ?>><?= (int) $option; ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </form>
+                        <div class="grid grid-cols-2 gap-2 text-xs font-semibold text-slate-600 sm:flex sm:flex-wrap sm:items-center">
+                            <?php if ($assignmentPage > 1): ?>
+                                <a class="inline-flex h-10 items-center justify-center rounded-md border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 sm:h-8" href="<?= e(page_url('classes-my-details', ['class_id' => $selectedClassId, 'assignment_page' => $assignmentPage - 1, 'assignment_per_page' => $assignmentPerPage])); ?>" data-assignment-page-link="1">Trước</a>
+                            <?php else: ?>
+                                <span class="inline-flex h-10 items-center justify-center rounded-md border border-slate-200 bg-slate-100 px-3 text-xs font-semibold text-slate-400 sm:h-8">Trước</span>
+                            <?php endif; ?>
+
+                            <?php if ($assignmentPage < $assignmentTotalPages): ?>
+                                <a class="inline-flex h-10 items-center justify-center rounded-md border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 sm:h-8" href="<?= e(page_url('classes-my-details', ['class_id' => $selectedClassId, 'assignment_page' => $assignmentPage + 1, 'assignment_per_page' => $assignmentPerPage])); ?>" data-assignment-page-link="1">Sau</a>
+                            <?php else: ?>
+                                <span class="inline-flex h-10 items-center justify-center rounded-md border border-slate-200 bg-slate-100 px-3 text-xs font-semibold text-slate-400 sm:h-8">Sau</span>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+            <?php endif; ?>
         </div>
 
         <div class="rounded-[2rem] border border-slate-200 bg-white shadow-2xl shadow-slate-300/60 overflow-hidden">
@@ -634,6 +770,7 @@ foreach ($examRows as $examRow) {
         <script>
             (function () {
                 const modal = document.getElementById('homework-modal');
+                let assignmentPanel = document.getElementById('class-assignments');
                 if (!modal) return;
 
                 const classInput = document.getElementById('homework-class-name');
@@ -646,6 +783,9 @@ foreach ($examRows as $examRow) {
                 const noteInput = document.getElementById('homework-note');
                 const noteDisplay = document.getElementById('homework-note-display');
                 const fileInput = document.getElementById('homework-file');
+
+                let assignmentRequestId = 0;
+                let assignmentRequestController = null;
 
                 function openModal(button) {
                     if (classInput && button.dataset.homeworkClass) {
@@ -689,26 +829,165 @@ foreach ($examRows as $examRow) {
                     document.body.classList.remove('overflow-hidden');
                 }
 
-                document.querySelectorAll('[data-homework-open="1"]').forEach(function (button) {
-                    button.addEventListener('click', function () {
-                        if (button.dataset.homeworkEmpty === '1') {
+                function setAssignmentPanelLoading(isLoading) {
+                    if (!assignmentPanel) {
+                        return;
+                    }
+
+                    assignmentPanel.classList.toggle('opacity-60', isLoading);
+                    assignmentPanel.classList.toggle('translate-y-1', isLoading);
+                    assignmentPanel.classList.toggle('pointer-events-none', isLoading);
+                }
+
+                function getAssignmentPageUrl(urlLike) {
+                    return new URL(urlLike, window.location.href);
+                }
+
+                async function loadAssignmentPanel(url, pushState) {
+                    if (!assignmentPanel) {
+                        window.location.href = url.toString();
+                        return;
+                    }
+
+                    const requestId = ++assignmentRequestId;
+                    if (assignmentRequestController instanceof AbortController) {
+                        assignmentRequestController.abort();
+                    }
+
+                    assignmentRequestController = new AbortController();
+                    setAssignmentPanelLoading(true);
+
+                    try {
+                        const response = await fetch(url.toString(), {
+                            method: 'GET',
+                            credentials: 'same-origin',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            signal: assignmentRequestController.signal
+                        });
+
+                        if (!response.ok) {
+                            throw new Error('Không thể tải danh sách bài tập.');
+                        }
+
+                        const html = await response.text();
+                        if (requestId !== assignmentRequestId) {
+                            return;
+                        }
+
+                        const doc = new DOMParser().parseFromString(html, 'text/html');
+                        const incomingPanel = doc.getElementById('class-assignments');
+
+                        if (!(incomingPanel instanceof HTMLElement)) {
+                            throw new Error('Không tìm thấy danh sách bài tập mới.');
+                        }
+
+                        incomingPanel.classList.add('opacity-0', 'translate-y-3');
+                        const previousPanel = assignmentPanel;
+                        previousPanel.replaceWith(incomingPanel);
+                        assignmentPanel = incomingPanel;
+
+                        window.requestAnimationFrame(function () {
+                            incomingPanel.classList.remove('opacity-0', 'translate-y-3');
+                        });
+
+                        incomingPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+                        if (pushState) {
+                            window.history.pushState({ assignmentPanel: true }, '', url.toString());
+                        } else {
+                            window.history.replaceState({ assignmentPanel: true }, '', url.toString());
+                        }
+                    } catch (error) {
+                        if (error instanceof DOMException && error.name === 'AbortError') {
+                            return;
+                        }
+
+                        window.location.href = url.toString();
+                    } finally {
+                        if (requestId === assignmentRequestId) {
+                            setAssignmentPanelLoading(false);
+                        }
+                    }
+                }
+
+                document.addEventListener('click', function (event) {
+                    if (!(event.target instanceof Element)) {
+                        return;
+                    }
+
+                    const openButton = event.target.closest('[data-homework-open="1"]');
+                    if (openButton instanceof HTMLElement) {
+                        if (openButton.dataset.homeworkEmpty === '1') {
                             if (typeof showNotify === 'function') {
                                 showNotify('info', 'Chưa có bài tập được giao');
                             }
                             return;
                         }
-                        openModal(button);
-                    });
+
+                        openModal(openButton);
+                        return;
+                    }
+
+                    const closeButton = event.target.closest('[data-homework-close="1"]');
+                    if (closeButton instanceof HTMLElement) {
+                        closeModal();
+                        return;
+                    }
+
+                    const paginationLink = event.target.closest('[data-assignment-page-link="1"]');
+                    if (paginationLink instanceof HTMLAnchorElement) {
+                        event.preventDefault();
+                        const url = getAssignmentPageUrl(paginationLink.href);
+                        loadAssignmentPanel(url, true);
+                    }
                 });
 
-                document.querySelectorAll('[data-homework-close="1"]').forEach(function (button) {
-                    button.addEventListener('click', closeModal);
+                document.addEventListener('change', function (event) {
+                    if (!(event.target instanceof Element)) {
+                        return;
+                    }
+
+                    const perPageSelect = event.target.closest('[data-assignment-per-page="1"]');
+                    if (!(perPageSelect instanceof HTMLSelectElement)) {
+                        return;
+                    }
+
+                    const form = perPageSelect.closest('[data-assignment-per-page-form="1"]');
+                    if (!(form instanceof HTMLFormElement)) {
+                        return;
+                    }
+
+                    const url = new URL(form.action, window.location.href);
+                    const formData = new FormData(form);
+                    formData.set('assignment_per_page', perPageSelect.value);
+                    formData.set('assignment_page', '1');
+
+                    formData.forEach(function (value, key) {
+                        url.searchParams.set(key, String(value));
+                    });
+
+                    loadAssignmentPanel(url, true);
                 });
 
                 modal.addEventListener('click', function (event) {
                     if (event.target === modal) {
                         closeModal();
                     }
+                });
+
+                if (window.location.search.includes('assignment_page=')) {
+                    const anchor = document.getElementById('class-assignments');
+                    if (anchor) {
+                        window.requestAnimationFrame(function () {
+                            anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        });
+                    }
+                }
+
+                window.addEventListener('popstate', function () {
+                    loadAssignmentPanel(new URL(window.location.href), false);
                 });
 
                 document.addEventListener('keydown', function (event) {

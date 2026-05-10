@@ -70,6 +70,84 @@ function ui_format_date_range(?string $startDate, ?string $endDate, string $fall
 
 	return $fallback;
 }
+
+function ui_render_bbcode(?string $value): string
+{
+	$text = trim((string) $value);
+	if ($text === '') {
+		return '';
+	}
+
+	$text = htmlspecialchars($text, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+	$replacements = [
+		'#\[br\s*/?\]#i' => '<br>',
+		'#\[b\](.*?)\[/b\]#is' => '<strong>$1</strong>',
+		'#\[i\](.*?)\[/i\]#is' => '<em>$1</em>',
+		'#\[u\](.*?)\[/u\]#is' => '<u>$1</u>',
+		'#\[s\](.*?)\[/s\]#is' => '<s>$1</s>',
+		'#\[quote\](.*?)\[/quote\]#is' => '<blockquote>$1</blockquote>',
+		'#\[code\](.*?)\[/code\]#is' => '<code>$1</code>',
+	];
+
+	foreach ($replacements as $pattern => $replacement) {
+		$text = preg_replace($pattern, $replacement, $text) ?? $text;
+	}
+
+	$text = preg_replace_callback(
+		'#\[url=([^\]]+)\](.*?)\[/url\]#is',
+		static function (array $matches): string {
+			$url = trim(html_entity_decode($matches[1], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'));
+			$label = $matches[2];
+			if ($url === '') {
+				return $label;
+			}
+
+			$escapedUrl = htmlspecialchars($url, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+			return '<a href="' . $escapedUrl . '" target="_blank" rel="noopener noreferrer">' . $label . '</a>';
+		},
+		$text
+	) ?? $text;
+
+	$text = preg_replace_callback(
+		'#\[url\](.*?)\[/url\]#is',
+		static function (array $matches): string {
+			$url = trim(html_entity_decode($matches[1], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'));
+			if ($url === '') {
+				return $matches[1];
+			}
+
+			$escapedUrl = htmlspecialchars($url, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+			return '<a href="' . $escapedUrl . '" target="_blank" rel="noopener noreferrer">' . $matches[1] . '</a>';
+		},
+		$text
+	) ?? $text;
+
+	$text = preg_replace_callback(
+		'#\[(ul|ol)\](.*?)\[/\1\]#is',
+		static function (array $matches): string {
+			$tag = strtolower((string) $matches[1]);
+			$inner = trim((string) $matches[2]);
+			$items = preg_split('#\[li\]#i', $inner) ?: [];
+			$listItems = [];
+			foreach ($items as $item) {
+				$item = trim(preg_replace('#\[/li\]#i', '', $item) ?? $item);
+				if ($item === '') {
+					continue;
+				}
+				$listItems[] = '<li>' . $item . '</li>';
+			}
+
+			if ($listItems === []) {
+				return '';
+			}
+
+			return '<' . $tag . '>' . implode('', $listItems) . '</' . $tag . '>';
+		},
+		$text
+	) ?? $text;
+
+	return nl2br($text, false);
+}
 require_once __DIR__ . '/validation.php';
 require_once __DIR__ . '/db_helper.php';
 require_once __DIR__ . '/logger.php';

@@ -87,7 +87,7 @@ if ($studentId > 0) {
                 'lesson_title' => trim((string) ($scheduleRow['lesson_title'] ?? '')),
                 'lesson_content' => trim((string) ($scheduleRow['lesson_content'] ?? '')),
                 'lesson_attachment_file_path' => trim((string) ($scheduleRow['lesson_attachment_file_path'] ?? '')),
-                'type' => $palette($className . '|' . $date),
+                'type' => $palette($className . '|' . $date . '|' . (string) ($scheduleRow['schedule_id'] ?? '') . '|' . $startTime . '|' . $endTime),
             ];
         }
 
@@ -152,7 +152,7 @@ $upcomingClassCount = count($recentClassNames);
 $calendarFocusDate = $calendarFocusDate ?: date('Y-m-d');
 ?>
 
-<section class="relative min-h-screen overflow-hidden bg-slate-200 py-8 px-2 sm:px-4 lg:px-6 xl:px-8">
+<section id="student-dashboard-main" class="relative min-h-screen overflow-hidden bg-slate-200 py-8 px-2 sm:px-4 lg:px-6 xl:px-8">
     <div class="absolute inset-0 z-0 opacity-[0.10] pointer-events-none" style="background-image: radial-gradient(#475569 1.5px, transparent 1.5px); background-size: 24px 24px;"></div>
     <div class="absolute inset-x-0 top-0 z-0 h-80 bg-gradient-to-b from-rose-200/75 via-slate-100/45 to-transparent pointer-events-none"></div>
     <div class="absolute -right-24 top-24 z-0 h-72 w-72 rounded-full bg-rose-200/30 blur-3xl pointer-events-none"></div>
@@ -160,36 +160,38 @@ $calendarFocusDate = $calendarFocusDate ?: date('Y-m-d');
     <div class="absolute left-1/2 bottom-10 z-0 h-80 w-80 -translate-x-1/2 rounded-full bg-cyan-200/20 blur-3xl pointer-events-none"></div>
 
     <div class="mx-auto w-full max-w-[1800px]">
-        <div class="grid grid-cols-1 gap-8 md:grid-cols-[16rem_minmax(0,1fr)] xl:grid-cols-[17rem_minmax(0,1fr)] md:items-start">
+        <div class="grid grid-cols-1 gap-6 md:grid-cols-[16rem_minmax(0,1fr)] xl:grid-cols-[17rem_minmax(0,1fr)] md:items-start">
             <aside class="self-start md:sticky md:top-24">
                 <?php require __DIR__ . '/partials/nav.php'; ?>
             </aside>
             <div class="min-w-0">
-                <div class="grid grid-cols-1 gap-8 md:grid-cols-[minmax(0,1.45fr)_minmax(360px,0.9fr)] 2xl:grid-cols-[minmax(0,1.55fr)_minmax(380px,0.92fr)] md:items-start">
-                    <article class="relative overflow-hidden rounded-[2rem] border border-slate-200/90 bg-gradient-to-br from-white via-slate-50 to-rose-50/70 p-5 shadow-2xl shadow-slate-200/60 transition-all md:p-6">
+                <div class="grid grid-cols-1 gap-6 md:grid-cols-[minmax(0,1.45fr)_minmax(360px,0.9fr)] 2xl:grid-cols-[minmax(0,1.55fr)_minmax(380px,0.92fr)] md:items-start">
+                    <article class="relative overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] border border-slate-200/90 bg-gradient-to-br from-white via-slate-50 to-rose-50/70 p-4 sm:p-5 shadow-2xl shadow-slate-200/60 transition-all md:p-6">
                     <div class="pointer-events-none absolute -top-24 -right-24 h-64 w-64 rounded-full bg-rose-200/30 blur-3xl"></div>
                     <div class="pointer-events-none absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-cyan-200/25 blur-3xl"></div>
 
-                    <div class="relative z-10 flex w-full flex-col gap-6">
-                    <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
-                        <div class="flex items-center gap-4">
-                            <div>
-                                <p class="text-[10px] font-black uppercase tracking-[0.35em] text-blue-400">Lịch học</p>
-                                <h3 id="calendar-title" class="mt-1 text-2xl md:text-3xl font-black text-slate-800 tracking-tight"></h3>
-                            </div>
-                            <div class="flex gap-1 rounded-2xl border border-slate-200 bg-white/90 p-1.5 shadow-sm">
-                                <button onclick="changeDate(-1)" class="rounded-xl bg-white px-3 py-2 text-slate-600 transition hover:bg-blue-50 hover:text-blue-700">&larr;</button>
-                                <button onclick="resetToToday()" class="rounded-xl bg-white px-4 py-2 text-[11px] font-black uppercase tracking-widest text-slate-700 transition hover:bg-emerald-50 hover:text-emerald-700">Hôm nay</button>
-                                <button onclick="changeDate(1)" class="rounded-xl bg-white px-3 py-2 text-slate-600 transition hover:bg-rose-50 hover:text-rose-700">&rarr;</button>
-                            </div>
+                    <div class="relative z-10 flex w-full flex-col gap-5 sm:gap-6">
+                    <div class="flex w-full flex-col gap-3 sm:items-center sm:flex-row sm:gap-4 md:flex-nowrap md:overflow-hidden">
+                        <div class="min-w-0 flex-1 shrink-0">
+                            <p class="text-[10px] font-black uppercase tracking-[0.35em] text-blue-400">Lịch học</p>
+                            <h3 id="calendar-title" class="mt-1 text-2xl md:text-3xl font-black text-slate-800 tracking-tight sm:whitespace-nowrap"></h3>
                         </div>
-                        <div class="flex rounded-2xl border border-slate-200 bg-white/90 p-1.5 shadow-sm">
-                            <button id="btn-view-month" onclick="setView('month')" class="px-5 py-2 text-xs font-black uppercase rounded-xl transition-all duration-300">Tháng</button>
-                            <button id="btn-view-week" onclick="setView('week')" class="px-5 py-2 text-xs font-black uppercase rounded-xl transition-all duration-300">Tuần</button>
+                        <div class="flex w-full shrink-0 items-center gap-2 sm:w-auto sm:ml-auto sm:justify-end">
+                            <button onclick="changeDate(-1)" aria-label="Tháng trước / ngày trước" class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-slate-600 ring-1 ring-slate-200 shadow-sm transition hover:bg-slate-100 hover:text-slate-900 hover:ring-slate-300 hover:shadow-md active:scale-[0.98]">
+                                <i class="fa-solid fa-chevron-left text-[11px]"></i>
+                            </button>
+                            <button id="today-button" onclick="resetToToday()" class="w-[92px] sm:w-auto shrink-0 cursor-pointer rounded-xl bg-white px-4 py-2 text-[11px] font-black uppercase tracking-widest text-slate-700 ring-1 ring-slate-200 shadow-sm transition hover:bg-slate-100 hover:text-slate-900 hover:ring-slate-300 hover:shadow-md active:scale-[0.98]">Hôm nay</button>
+                            <button onclick="changeDate(1)" aria-label="Tháng sau / ngày sau" class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-slate-600 ring-1 ring-slate-200 shadow-sm transition hover:bg-slate-100 hover:text-slate-900 hover:ring-slate-300 hover:shadow-md active:scale-[0.98]">
+                                <i class="fa-solid fa-chevron-right text-[11px]"></i>
+                            </button>
+                            <div class="flex shrink-0 rounded-2xl border border-slate-200 bg-white/90 p-1.5 shadow-sm">
+                                <button id="btn-view-month" onclick="setView('month')" class="px-4 sm:px-5 py-2 text-xs font-black uppercase rounded-xl transition-all duration-300">Tháng</button>
+                                <button id="btn-view-week" onclick="setView('week')" class="px-4 sm:px-5 py-2 text-xs font-black uppercase rounded-xl transition-all duration-300">Tuần</button>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-7 gap-px rounded-[1.75rem] border border-slate-200 bg-white/90 overflow-hidden shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
+                    <div class="grid grid-cols-7 gap-px rounded-[1.5rem] sm:rounded-[1.75rem] border border-slate-200 bg-white/90 overflow-x-auto shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
                         <?php 
                         $weekdays = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
                         foreach ($weekdays as $day): ?>
@@ -203,7 +205,7 @@ $calendarFocusDate = $calendarFocusDate ?: date('Y-m-d');
                     </article>
 
                     <aside class="space-y-6 self-start md:sticky md:top-24">
-                        <article class="bg-white rounded-3xl p-6 border border-slate-200 shadow-xl ring-1 ring-amber-100/70">
+                        <article class="bg-white rounded-3xl p-4 sm:p-6 border border-slate-200 shadow-xl ring-1 ring-amber-100/70">
                     <div class="flex items-center justify-between mb-6">
                         <h3 class="text-sm font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
                             <span class="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></span>
@@ -216,7 +218,7 @@ $calendarFocusDate = $calendarFocusDate ?: date('Y-m-d');
                         </div>
                 </article>
 
-                        <article class="relative overflow-hidden rounded-3xl border border-rose-100 bg-gradient-to-br from-rose-50 via-white to-amber-50 p-6 shadow-2xl shadow-rose-100/50 ring-1 ring-rose-100/80">
+                        <article class="relative overflow-hidden rounded-3xl border border-rose-100 bg-gradient-to-br from-rose-50 via-white to-amber-50 p-4 sm:p-6 shadow-2xl shadow-rose-100/50 ring-1 ring-rose-100/80">
                     <div class="pointer-events-none absolute -top-16 right-0 h-40 w-40 rounded-full bg-rose-200/40 blur-3xl"></div>
                     <div class="pointer-events-none absolute -bottom-12 left-10 h-32 w-32 rounded-full bg-amber-200/40 blur-3xl"></div>
 
@@ -289,7 +291,7 @@ $calendarFocusDate = $calendarFocusDate ?: date('Y-m-d');
                     </div>
                         </article>
 
-                        <div class="bg-gradient-to-br from-slate-900 via-indigo-900 to-emerald-900 rounded-3xl p-6 text-white shadow-lg shadow-slate-300 overflow-hidden relative group ring-1 ring-slate-200/40">
+                        <div class="bg-gradient-to-br from-slate-900 via-indigo-900 to-emerald-900 rounded-3xl p-4 sm:p-6 text-white shadow-lg shadow-slate-300 overflow-hidden relative group ring-1 ring-slate-200/40">
                     <div class="relative z-10">
                         <p class="text-indigo-100 text-xs font-bold uppercase tracking-widest mb-1">Học phí khóa học</p>
                         <h4 class="text-xl font-black mb-2"><?= number_format($totalTuitionPaid); ?> <span class="text-sm font-semibold text-blue-100">/ <?= number_format($totalTuitionAmount); ?> đ</span></h4>
@@ -339,8 +341,14 @@ $calendarFocusDate = $calendarFocusDate ?: date('Y-m-d');
             <p id="tooltip-lesson-content" class="mt-1 text-[11px] leading-relaxed text-slate-600"></p>
             <p id="tooltip-material" class="mt-2 text-[11px] font-semibold text-emerald-700"></p>
         </div>
+        <button type="button" onclick="openCalendarDetailFromTooltip()" class="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 py-3 text-[11px] font-black uppercase tracking-[0.25em] text-white shadow-lg shadow-slate-900/10 transition hover:bg-slate-800 active:scale-[0.99]">
+            <i class="fa-solid fa-square-poll-horizontal text-[12px]"></i>
+            Hiển thị tất cả
+        </button>
     </div>
 </section>
+
+<?php require __DIR__ . '/submodal/calender_detail.php'; ?>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
@@ -350,6 +358,8 @@ document.addEventListener('DOMContentLoaded', function () {
     let tooltipHideTimer = null;
     let tooltipIsHovered = false;
     let activeEventChip = null;
+    let activeEventDate = null;
+    let modalScrollState = null;
 
     const colorMap = {
         blue: 'bg-blue-50 text-blue-700 border-blue-200 border-l-[3px] border-l-blue-600',
@@ -422,39 +432,57 @@ document.addEventListener('DOMContentLoaded', function () {
         const isDimmed = type !== 'current';
         const bgClass = isToday ? 'bg-gradient-to-br from-blue-100 via-white to-cyan-100' : (isDimmed ? 'bg-slate-50/70' : 'bg-white');
         const textClass = isDimmed ? 'text-slate-300' : (isToday ? 'text-blue-700 font-black' : 'text-slate-700');
+        const dayEvents = getEventsForDate(dateStr);
+        const visibleEvents = dayEvents.slice(0, 2);
+        const hiddenCount = Math.max(0, dayEvents.length - visibleEvents.length);
 
-        let html = `<div class="${bgClass} min-h-[110px] p-2 border-t border-white/20 border-r border-r-slate-200/40 transition-all hover:z-20 group relative">
+        let html = `<div class="${bgClass} min-h-[110px] p-2 border-t border-white/20 border-r border-r-slate-200/40 transition-all hover:z-20 group relative flex flex-col">
             <span class="inline-flex h-8 w-8 items-center justify-center rounded-full text-sm md:text-base font-black ${isToday ? 'bg-blue-600 text-white shadow-md shadow-blue-200' : ''} ${textClass}">${day}</span>
             <div class="mt-1.5 space-y-1">`;
 
         if (!isDimmed) {
-            eventsData.filter((event) => event.date === dateStr).forEach((event) => {
+            visibleEvents.forEach((event) => {
                 html += `<div class="event-chip ${colorMap[event.type]} text-[9px] font-black px-1.5 py-1 rounded-md cursor-help truncate shadow-sm hover:brightness-95"
-                    data-title="${event.title}" data-time="${event.time}" data-teacher="${event.teacher}" data-room="${event.room}" data-lesson-title="${encodeURIComponent(event.lesson_title || '')}" data-lesson-content="${encodeURIComponent(event.lesson_content || '')}" data-lesson-attachment="${encodeURIComponent(event.lesson_attachment_file_path || '')}" data-color="${event.type}">${event.title}</div>`;
+                    data-date="${event.date}" data-hidden-count="${hiddenCount}" data-title="${event.title}" data-time="${event.time}" data-teacher="${event.teacher}" data-room="${event.room}" data-lesson-title="${encodeURIComponent(event.lesson_title || '')}" data-lesson-content="${encodeURIComponent(event.lesson_content || '')}" data-lesson-attachment="${encodeURIComponent(event.lesson_attachment_file_path || '')}" data-color="${event.type}">${event.title}</div>`;
             });
         }
 
-        html += `</div></div>`;
+        if (hiddenCount > 0) {
+            html += `<button type="button" onclick="openCalendarDetailFromDate('${dateStr}')" class="mt-1 inline-flex w-fit items-center rounded-full bg-slate-100 px-2 py-0.5 text-[8px] font-black uppercase tracking-[0.16em] text-slate-500 transition hover:bg-slate-200 hover:text-slate-700">+${hiddenCount} lịch học khác</button>`;
+        }
+
+        html += `</div>
+            ${isToday ? '<div class="mt-auto pt-2"><span class="inline-flex w-fit items-center whitespace-nowrap rounded-full bg-blue-600 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-[0.18em] text-white shadow-sm">Hôm nay</span></div>' : ''}
+        </div>`;
         container.innerHTML += html;
     }
 
     function renderWeekColumn(container, dateObj, isToday, dateStr) {
-        let html = `<div class="${isToday ? 'bg-gradient-to-b from-blue-50/70 to-cyan-50/40' : 'bg-white'} min-h-[400px] p-3 border-t border-white/35 border-r border-r-slate-200/40">
+        const dayEvents = getEventsForDate(dateStr);
+        const visibleEvents = dayEvents.slice(0, 2);
+        const hiddenCount = Math.max(0, dayEvents.length - visibleEvents.length);
+        let html = `<div class="${isToday ? 'bg-gradient-to-b from-blue-50/70 to-cyan-50/40' : 'bg-white'} min-h-[400px] p-3 border-t border-white/35 border-r border-r-slate-200/40 flex flex-col">
             <p class="text-center mb-4">
                 <span class="inline-flex h-10 w-10 items-center justify-center rounded-full text-xl font-black ${isToday ? 'bg-blue-600 text-white shadow-md shadow-blue-200' : 'bg-slate-100 text-slate-700'}">${dateObj.getDate()}</span>
                 <span class="mt-2 block text-[10px] font-black uppercase tracking-[0.28em] text-blue-400">Tháng ${dateObj.getMonth() + 1}</span>
             </p>
             <div class="space-y-2">`;
 
-        eventsData.filter((event) => event.date === dateStr).forEach((event) => {
+        visibleEvents.forEach((event) => {
             html += `<div class="event-chip ${colorMap[event.type]} p-2.5 rounded-xl text-[11px] font-black cursor-help shadow-sm"
-                data-title="${event.title}" data-time="${event.time}" data-teacher="${event.teacher}" data-room="${event.room}" data-lesson-title="${encodeURIComponent(event.lesson_title || '')}" data-lesson-content="${encodeURIComponent(event.lesson_content || '')}" data-lesson-attachment="${encodeURIComponent(event.lesson_attachment_file_path || '')}" data-color="${event.type}">
+                data-date="${event.date}" data-hidden-count="${hiddenCount}" data-title="${event.title}" data-time="${event.time}" data-teacher="${event.teacher}" data-room="${event.room}" data-lesson-title="${encodeURIComponent(event.lesson_title || '')}" data-lesson-content="${encodeURIComponent(event.lesson_content || '')}" data-lesson-attachment="${encodeURIComponent(event.lesson_attachment_file_path || '')}" data-color="${event.type}">
                 <div class="opacity-70 text-[9px] mb-1 uppercase tracking-tighter">${event.time}</div>
                 <div class="leading-tight">${event.title}</div>
             </div>`;
         });
 
-        html += `</div></div>`;
+        if (hiddenCount > 0) {
+            html += `<button type="button" onclick="openCalendarDetailFromDate('${dateStr}')" class="mt-1 inline-flex w-fit items-center rounded-full bg-slate-100 px-2 py-0.5 text-[8px] font-black uppercase tracking-[0.16em] text-slate-500 transition hover:bg-slate-200 hover:text-slate-700">+${hiddenCount} lịch học khác</button>`;
+        }
+
+        html += `</div>
+            ${isToday ? '<div class="mt-auto pt-3 text-center"><span class="inline-flex w-fit items-center whitespace-nowrap rounded-full bg-blue-600 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-[0.18em] text-white shadow-sm">Hôm nay</span></div>' : ''}
+        </div>`;
         container.innerHTML += html;
     }
 
@@ -524,6 +552,7 @@ document.addEventListener('DOMContentLoaded', function () {
         document.querySelectorAll('.event-chip').forEach((chip) => {
             chip.onmouseenter = () => {
                 activeEventChip = chip;
+                activeEventDate = chip.dataset.date || null;
                 cancelTooltipHide();
                 const rect = chip.getBoundingClientRect();
                 const tooltipTitle = document.getElementById('tooltip-title');
@@ -534,6 +563,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 const tooltipLessonTitle = document.getElementById('tooltip-lesson-title');
                 const tooltipLessonContent = document.getElementById('tooltip-lesson-content');
                 const tooltipMaterial = document.getElementById('tooltip-material');
+                const tooltipExtra = document.getElementById('tooltip-extra');
+                const hiddenCount = Math.max(0, getEventsForDate(chip.dataset.date || '').length - 2);
 
                 if (tooltipTitle) tooltipTitle.innerText = chip.dataset.title || '';
                 if (tooltipTime) tooltipTime.innerText = chip.dataset.time || '';
@@ -546,6 +577,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     const attachment = decodeURIComponent(chip.dataset.lessonAttachment || '');
                     tooltipMaterial.innerText = attachment ? `Tài liệu: ${attachment.split('/').pop()}` : 'Tài liệu: Chưa có file đính kèm';
                 }
+                if (tooltipExtra) {
+                    tooltipExtra.innerText = hiddenCount > 0
+                        ? `Còn ${hiddenCount} lịch học bạn chưa xem, hãy click vào xem tất cả.`
+                        : 'Đây là toàn bộ lịch học trong ngày này.';
+                }
 
                 tooltip.style.left = `${rect.left + rect.width / 2}px`;
                 tooltip.style.top = `${rect.top - 10}px`;
@@ -557,11 +593,156 @@ document.addEventListener('DOMContentLoaded', function () {
             chip.onmouseleave = () => {
                 if (activeEventChip === chip) {
                     activeEventChip = null;
+                    activeEventDate = null;
                 }
                 scheduleTooltipHide();
             };
         });
     }
+
+    function getEventsForDate(dateStr) {
+        if (!dateStr) {
+            return [];
+        }
+
+        return eventsData
+            .filter((event) => event.date === dateStr)
+            .sort((left, right) => (left.time || '').localeCompare(right.time || ''));
+    }
+
+    function renderCalendarDetail(dateStr) {
+        const modal = document.getElementById('calendar-detail-modal');
+        const title = document.getElementById('calendar-detail-title');
+        const subtitle = document.getElementById('calendar-detail-subtitle');
+        const summary = document.getElementById('calendar-detail-summary');
+        const list = document.getElementById('calendar-detail-list');
+
+        if (!modal || !title || !subtitle || !summary || !list) {
+            return;
+        }
+
+        const dayEvents = getEventsForDate(dateStr);
+        const eventCount = dayEvents.length;
+        const formattedDate = dateStr ? new Date(`${dateStr}T00:00:00`) : new Date();
+        const prettyDate = Number.isNaN(formattedDate.getTime())
+            ? dateStr
+            : formattedDate.toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' });
+
+        title.innerText = 'Chi tiết thời khoá biểu';
+        subtitle.innerText = prettyDate || 'Chưa xác định ngày';
+        summary.innerText = eventCount > 0 ? `${eventCount} buổi học trong ngày này` : 'Chưa có buổi học nào trong ngày này';
+
+        if (eventCount === 0) {
+            list.innerHTML = '<div class="rounded-3xl border border-dashed border-slate-200 bg-slate-50 p-5 text-sm text-slate-500">Chưa có dữ liệu thời khoá biểu cho ngày này.</div>';
+            return;
+        }
+
+        list.innerHTML = dayEvents.map((event, index) => `
+            <article class="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div class="min-w-0 flex-1">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.22em] text-blue-700">Buổi ${index + 1}</span>
+                            <span class="inline-flex items-center rounded-full ${event.type === 'blue' ? 'bg-blue-50 text-blue-700' : event.type === 'emerald' ? 'bg-emerald-50 text-emerald-700' : event.type === 'rose' ? 'bg-rose-50 text-rose-700' : 'bg-amber-50 text-amber-700'} px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em]">${event.time || '---'}</span>
+                        </div>
+                        <h4 class="mt-3 text-base font-black leading-tight text-slate-900">${event.title}</h4>
+                        <p class="mt-1 text-sm font-semibold text-slate-500">
+                            <span class="font-black text-slate-700">Giảng viên:</span> ${event.teacher || '---'}
+                            <span class="mx-2 text-slate-300">•</span>
+                            <span class="font-black text-slate-700">Phòng:</span> ${event.room || '---'}
+                        </p>
+                    </div>
+                </div>
+                <div class="mt-4 grid gap-3 sm:grid-cols-2">
+                    <div class="rounded-2xl bg-slate-50 p-3">
+                        <p class="text-[10px] font-black uppercase tracking-[0.22em] text-slate-400">Nội dung buổi học</p>
+                        <p class="mt-2 text-sm leading-relaxed text-slate-700">${event.lesson_content || 'Chưa có nội dung chi tiết.'}</p>
+                    </div>
+                    <div class="rounded-2xl bg-amber-50/80 p-3">
+                        <p class="text-[10px] font-black uppercase tracking-[0.22em] text-amber-600">Tài liệu đính kèm</p>
+                        <p class="mt-2 text-sm font-semibold text-slate-700">${event.lesson_title || 'Chưa có tiêu đề bài học'}</p>
+                        ${event.lesson_attachment_file_path ? `<a href="${event.lesson_attachment_file_path}" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex items-center gap-2 rounded-xl bg-white px-3 py-2 text-xs font-black uppercase tracking-[0.18em] text-blue-700 ring-1 ring-blue-200 transition hover:bg-blue-50 hover:text-blue-800">Mở / tải file <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i></a><p class="mt-2 text-[11px] text-slate-500 break-all">${event.lesson_attachment_file_path.split('/').pop()}</p>` : '<p class="mt-1 text-xs text-slate-500">Chưa có file đính kèm</p>'}
+                    </div>
+                </div>
+            </article>
+        `).join('');
+    }
+
+    function openCalendarDetailFromDate(dateStr) {
+        const modal = document.getElementById('calendar-detail-modal');
+        const panel = modal?.querySelector('[data-calendar-detail-panel]');
+        const mainPage = document.getElementById('student-dashboard-main');
+        if (!modal) {
+            return;
+        }
+
+        renderCalendarDetail(dateStr);
+        modal.classList.remove('hidden');
+        if (!modalScrollState) {
+            const body = document.body;
+            const html = document.documentElement;
+            modalScrollState = { mainPage, mainPageInert: mainPage ? mainPage.inert : false, mainPageAriaHidden: mainPage ? mainPage.getAttribute('aria-hidden') : null, bodyOverflow: body.style.overflow, htmlOverflow: html.style.overflow };
+            html.style.overflow = 'hidden';
+            body.style.overflow = 'hidden';
+            if (mainPage) {
+                mainPage.inert = true;
+                mainPage.setAttribute('aria-hidden', 'true');
+            }
+        }
+
+        requestAnimationFrame(() => {
+            modal.classList.remove('opacity-0');
+            modal.querySelector('[data-calendar-detail-panel]')?.classList.remove('translate-y-4', 'scale-95');
+            panel?.focus();
+        });
+    }
+
+    function closeCalendarDetail() {
+        const modal = document.getElementById('calendar-detail-modal');
+        if (!modal) {
+            return;
+        }
+
+        modal.classList.add('opacity-0');
+        modal.querySelector('[data-calendar-detail-panel]')?.classList.add('translate-y-4', 'scale-95');
+        if (modalScrollState) {
+            const body = document.body;
+            const html = document.documentElement;
+            const state = modalScrollState;
+
+            html.style.overflow = state.htmlOverflow;
+            body.style.overflow = state.bodyOverflow;
+
+            if (state.mainPage) {
+                state.mainPage.inert = state.mainPageInert;
+                if (state.mainPageAriaHidden === null) {
+                    state.mainPage.removeAttribute('aria-hidden');
+                } else {
+                    state.mainPage.setAttribute('aria-hidden', state.mainPageAriaHidden);
+                }
+            }
+
+            modalScrollState = null;
+        }
+        window.setTimeout(() => modal.classList.add('hidden'), 180);
+    }
+
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') {
+            const modal = document.getElementById('calendar-detail-modal');
+            if (modal && !modal.classList.contains('hidden')) {
+                closeCalendarDetail();
+            }
+        }
+    });
+
+    function openCalendarDetailFromTooltip() {
+        openCalendarDetailFromDate(activeEventDate || '<?= e($calendarFocusDate); ?>');
+    }
+
+    window.openCalendarDetailFromTooltip = openCalendarDetailFromTooltip;
+    window.openCalendarDetailFromDate = openCalendarDetailFromDate;
+    window.closeCalendarDetail = closeCalendarDetail;
 
     function setView(view) {
         currentView = view;
@@ -601,6 +782,6 @@ document.addEventListener('DOMContentLoaded', function () {
     window.changeDate = changeDate;
     window.resetToToday = resetToToday;
 
-    renderCalendar();
+    resetToToday();
 });
 </script>

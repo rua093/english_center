@@ -20,6 +20,54 @@ INSERT INTO courses (course_name, description, base_price, total_sessions, image
 SELECT 'Junior Speaking Club', 'Lop noi tu tin danh cho hoc vien tieng Anh cap 1-2.', 3900000, 20, '/assets/images/student_girl.png'
 WHERE NOT EXISTS (SELECT 1 FROM courses WHERE course_name = 'Junior Speaking Club');
 
+INSERT INTO courses (course_name, description, base_price, total_sessions, image_thumbnail)
+SELECT 'Preschool English Start', 'Lam quen tieng Anh qua bai hat, tro choi va hinh anh sinh dong cho tre mau giao.', 2800000, 16, '/assets/images/center.jpg'
+WHERE NOT EXISTS (SELECT 1 FROM courses WHERE course_name = 'Preschool English Start');
+
+INSERT INTO courses (course_name, description, base_price, total_sessions, image_thumbnail)
+SELECT 'Primary English Explorer', 'Xay dung tu vung, ngu am va ky nang doc hieu cho hoc sinh tieu hoc.', 3200000, 18, '/assets/images/student.jpg'
+WHERE NOT EXISTS (SELECT 1 FROM courses WHERE course_name = 'Primary English Explorer');
+
+INSERT INTO courses (course_name, description, base_price, total_sessions, image_thumbnail)
+SELECT 'Grammar Foundation', 'Cung co ngu phap, cau truc co ban va bai tap ung dung theo chu de.', 3000000, 20, '/assets/images/student2.jpg'
+WHERE NOT EXISTS (SELECT 1 FROM courses WHERE course_name = 'Grammar Foundation');
+
+INSERT INTO courses (course_name, description, base_price, total_sessions, image_thumbnail)
+SELECT 'IELTS Writing Lab', 'Tap trung viet task 1, task 2 va chinh sua bai viet theo tung muc band.', 7200000, 30, '/assets/images/mission.jpg'
+WHERE NOT EXISTS (SELECT 1 FROM courses WHERE course_name = 'IELTS Writing Lab');
+
+INSERT INTO courses (course_name, description, base_price, total_sessions, image_thumbnail)
+SELECT 'IELTS Speaking Boost', 'Luyen phan xa cau tra loi, phat am va tu vung theo chu de thong dung.', 6900000, 28, '/assets/images/student3.jpg'
+WHERE NOT EXISTS (SELECT 1 FROM courses WHERE course_name = 'IELTS Speaking Boost');
+
+INSERT INTO courses (course_name, description, base_price, total_sessions, image_thumbnail)
+SELECT 'Teen Communication Plus', 'Phat trien giao tiep tu tin, tranh luan va lam viec nhom cho hoc sinh THCS-THPT.', 4200000, 22, '/assets/images/student_girl.png'
+WHERE NOT EXISTS (SELECT 1 FROM courses WHERE course_name = 'Teen Communication Plus');
+
+INSERT INTO courses (course_name, description, base_price, total_sessions, image_thumbnail)
+SELECT 'Adult Conversation Class', 'Thuc hanh giao tiep ung dung, hoi dap va tinh huong doi thoai doi song.', 4600000, 24, '/assets/images/center.jpg'
+WHERE NOT EXISTS (SELECT 1 FROM courses WHERE course_name = 'Adult Conversation Class');
+
+INSERT INTO courses (course_name, description, base_price, total_sessions, image_thumbnail)
+SELECT 'Business Writing Essentials', 'Ren email, bao cao va van ban cong so ro rang, chuyen nghiep.', 5200000, 20, '/assets/images/student2.jpg'
+WHERE NOT EXISTS (SELECT 1 FROM courses WHERE course_name = 'Business Writing Essentials');
+
+INSERT INTO courses (course_name, description, base_price, total_sessions, image_thumbnail)
+SELECT 'TOEIC Foundation', 'Khoi dong tu vung, ngu phap va chien luoc lam bai TOEIC cap co ban.', 4300000, 20, '/assets/images/student.jpg'
+WHERE NOT EXISTS (SELECT 1 FROM courses WHERE course_name = 'TOEIC Foundation');
+
+INSERT INTO courses (course_name, description, base_price, total_sessions, image_thumbnail)
+SELECT 'Pronunciation Clinic', 'Chinh phat am, trong am va ngon dieu de noi tu tin hon.', 3500000, 18, '/assets/images/mission.jpg'
+WHERE NOT EXISTS (SELECT 1 FROM courses WHERE course_name = 'Pronunciation Clinic');
+
+INSERT INTO courses (course_name, description, base_price, total_sessions, image_thumbnail)
+SELECT 'Reading Power Track', 'Tang toc doc hieu, skimming va scanning qua cac dang bai da dang.', 4800000, 22, '/assets/images/student3.jpg'
+WHERE NOT EXISTS (SELECT 1 FROM courses WHERE course_name = 'Reading Power Track');
+
+INSERT INTO courses (course_name, description, base_price, total_sessions, image_thumbnail)
+SELECT 'Speaking Confidence Workshop', 'Xay dung su tu tin khi noi, nhan vien y va phan hoi nhanh trong lop hoc.', 4100000, 18, '/assets/images/student_girl.png'
+WHERE NOT EXISTS (SELECT 1 FROM courses WHERE course_name = 'Speaking Confidence Workshop');
+
 UPDATE courses
 SET image_thumbnail = '/assets/images/mission.jpg'
 WHERE course_name = 'hehe' AND (image_thumbnail IS NULL OR image_thumbnail = '');

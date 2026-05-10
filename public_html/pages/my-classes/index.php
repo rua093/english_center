@@ -67,6 +67,8 @@ if ($studentId > 0) {
 			'id' => $classId,
 			'name' => (string) ($row['class_name'] ?? ''),
 			'teacher' => (string) ($row['teacher_name'] ?? ''),
+			'start_date' => (string) ($row['start_date'] ?? ''),
+			'end_date' => (string) ($row['end_date'] ?? ''),
 			'status' => (string) ($row['class_status'] ?? 'upcoming'),
 			'attendance' => [
 				'present' => (int) ($attendance['present_count'] ?? 0),
@@ -123,21 +125,17 @@ $pagedClasses = array_slice($myClasses, $classOffset, $classPerPage);
 					<div>
 							<h2 class="text-lg font-bold leading-tight"><?= e($class['name']); ?></h2>
 							<p class="text-xs font-medium text-slate-300">Giảng viên: <?= e($class['teacher']); ?></p>
+							<?php
+								$classStartDate = (string) ($class['start_date'] ?? '');
+								$classEndDate = (string) ($class['end_date'] ?? '');
+								$classDateRange = ($classStartDate !== '' || $classEndDate !== '')
+									? trim((($classStartDate !== '' ? date('d/m/Y', strtotime($classStartDate)) : '--') . ' - ' . ($classEndDate !== '' ? date('d/m/Y', strtotime($classEndDate)) : '--')))
+									: '--';
+							?>
+							<p class="mt-1 text-xs font-medium text-slate-300">Thời gian học: <?= e($classDateRange); ?></p>
 					</div>
 						<div class="flex items-center gap-2 self-start sm:self-center">
 							<span class="rounded-full border border-blue-500/50 bg-blue-600/30 px-2.5 py-1 text-[11px] font-bold text-blue-200">Đang học</span>
-								<?php
-									$defaultHomework = null;
-									foreach ($class['assignments'] as $assignmentCandidate) {
-										if ((string) ($assignmentCandidate['submitted_at'] ?? '') === '' && empty($assignmentCandidate['is_expired'])) {
-											$defaultHomework = $assignmentCandidate;
-											break;
-										}
-									}
-									if ($defaultHomework === null) {
-										$defaultHomework = $class['assignments'][0] ?? null;
-									}
-								?>
 							<a class="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-2 text-[11px] font-black uppercase tracking-widest text-white transition hover:bg-white hover:text-slate-800" href="<?= e(page_url('classes-my-details', ['class_id' => (int) ($class['id'] ?? 0)])); ?>">
 								Hiển thị chi tiết <i class="fa-solid fa-arrow-right text-[10px]"></i>
 							</a>
@@ -181,20 +179,9 @@ $pagedClasses = array_slice($myClasses, $classOffset, $classPerPage);
 						<div class="p-4 lg:col-span-2 bg-white/95">
 							<div class="mb-4 flex items-center justify-between gap-3">
 								<h4 class="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-slate-700"><div class="h-2 w-2 rounded-full bg-blue-500"></div> Bài tập & Điểm số</h4>
-								<?php $defaultHomeworkCanOpen = !empty($defaultHomework) && (!empty($defaultHomework['can_submit']) || !empty($defaultHomework['can_resubmit'])); ?>
-								<span class="group relative inline-flex" <?= !empty($defaultHomework['disabled_reason']) ? 'title="' . e((string) $defaultHomework['disabled_reason']) . '"' : ''; ?>>
-									<button type="button" class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 via-sky-600 to-cyan-600 px-3 py-2 text-xs font-bold text-white shadow-sm shadow-blue-500/25 transition-all hover:-translate-y-0.5 hover:shadow-blue-500/35 disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none" data-homework-open="1" data-homework-class="<?= e($class['name']); ?>" data-homework-assignment-id="<?= (int) ($defaultHomework['id'] ?? 0); ?>" data-homework-assignment="<?= e((string) ($defaultHomework['title'] ?? '')); ?>" data-homework-deadline="<?= e((string) ($defaultHomework['deadline_raw'] ?? '')); ?>" data-homework-note="<?= e((string) ($defaultHomework['note'] ?? '')); ?>" data-homework-status="<?= e((string) ($defaultHomework['status'] ?? '')); ?>" data-homework-empty="<?= $class['assignments'] === [] ? '1' : '0'; ?>" <?= $defaultHomeworkCanOpen ? '' : 'disabled'; ?>>
-										<i class="fa-solid fa-plus"></i> <?= !empty($defaultHomework['can_resubmit']) ? 'Nộp lại' : 'Nộp bài mới'; ?>
-									</button>
-									<?php if (!$defaultHomeworkCanOpen && !empty($defaultHomework['disabled_reason'])): ?>
-										<span class="pointer-events-none absolute left-1/2 top-full z-[9999] mt-2 w-max max-w-[260px] -translate-x-1/2 rounded-xl bg-slate-900 px-3 py-2 text-[11px] font-semibold leading-tight text-white opacity-0 shadow-2xl transition group-hover:opacity-100">
-											<?= e((string) $defaultHomework['disabled_reason']); ?>
-										</span>
-									<?php endif; ?>
-								</span>
 						</div>
                         
-							<div class="overflow-visible rounded-2xl border border-slate-300 bg-white shadow-[0_20px_60px_rgba(15,23,42,0.10)]">
+							<div class="max-h-[10.75rem] overflow-y-auto overflow-x-hidden rounded-2xl border border-slate-300 bg-white shadow-[0_20px_60px_rgba(15,23,42,0.10)] sm:max-h-[11.25rem] lg:max-h-[11.75rem]">
 								<table class="w-full table-fixed text-left text-xs text-slate-600">
 									<thead class="border-b border-slate-200 bg-slate-100 text-[11px] font-semibold uppercase text-slate-600">
 									<tr>

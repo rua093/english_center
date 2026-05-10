@@ -98,6 +98,38 @@ $shouldShowAvailable = $activityFilter === 'all' || $activityFilter === 'availab
 		transform: translateY(-0.5rem);
 		box-shadow: 0 24px 60px rgba(15, 23, 42, 0.14);
 	}
+
+	@media (max-width: 767px) {
+		.activity-card-carousel {
+			overflow-x: auto;
+			display: flex;
+			gap: 0.75rem;
+			padding: 0 0.25rem 0.25rem;
+			scroll-snap-type: x mandatory;
+			scroll-behavior: smooth;
+			-webkit-overflow-scrolling: touch;
+			scrollbar-width: none;
+		}
+
+		.activity-card-carousel::-webkit-scrollbar {
+			display: none;
+		}
+
+		.activity-card-carousel .activity-card {
+			min-width: 82vw;
+			max-width: 82vw;
+			flex: 0 0 auto;
+			scroll-snap-align: start;
+			scroll-snap-stop: always;
+		}
+	}
+
+	@media (min-width: 768px) {
+		.activity-card-carousel {
+			overflow: visible;
+			display: grid;
+		}
+	}
 </style>
 <section class="relative min-h-screen overflow-hidden bg-slate-200 py-8 px-2 sm:px-4 lg:px-6 xl:px-8">
 	<div class="absolute inset-0 z-0 opacity-[0.10] pointer-events-none" style="background-image: radial-gradient(#475569 1.5px, transparent 1.5px); background-size: 24px 24px;"></div>
@@ -147,7 +179,7 @@ $shouldShowAvailable = $activityFilter === 'all' || $activityFilter === 'availab
 								Bạn chưa đăng ký hoạt động ngoại khoá nào.
 							</div>
 						<?php else: ?>
-							<div class="grid grid-cols-1 gap-6 items-stretch sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+							<div class="activity-card-carousel grid grid-cols-1 gap-6 items-stretch sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 								<?php $registeredDelay = 0; ?>
 								<?php foreach ($registeredActivitiesPage as $activity): ?>
 									<article class="activity-card flex flex-col overflow-hidden rounded-[2rem] border border-slate-300 bg-white shadow-[0_22px_65px_rgba(15,23,42,0.16)] group transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_32px_85px_rgba(15,23,42,0.22)]" data-aos="fade-up" data-aos-delay="<?= $registeredDelay; ?>" data-aos-duration="700">
@@ -241,14 +273,14 @@ $shouldShowAvailable = $activityFilter === 'all' || $activityFilter === 'availab
 							<span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700"><?= $availableTotal; ?> hoạt động</span>
 						</div>
 
-						<?php if ($availableActivitiesPage === []): ?>
+							<?php if ($availableActivitiesPage === []): ?>
 							<div class="rounded-3xl border border-dashed border-slate-300 bg-white p-8 text-center text-sm font-semibold text-slate-500 shadow-lg shadow-slate-200/60">
 								Chưa có hoạt động ngoại khoá nào trong database.
 							</div>
 						<?php else: ?>
-							<div class="grid grid-cols-1 gap-6 items-stretch sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-								<?php $availableDelay = 0; ?>
-								<?php foreach ($availableActivitiesPage as $activity): ?>
+								<div class="activity-card-carousel grid grid-cols-1 gap-6 items-stretch sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+									<?php $availableDelay = 0; ?>
+									<?php foreach ($availableActivitiesPage as $activity): ?>
 									<article class="activity-card flex flex-col overflow-hidden rounded-[2rem] border border-slate-300 bg-white shadow-[0_22px_65px_rgba(15,23,42,0.16)] group transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_32px_85px_rgba(15,23,42,0.22)]" data-aos="fade-up" data-aos-delay="<?= $availableDelay; ?>" data-aos-duration="700">
 										<div class="relative h-56 overflow-hidden">
 											<img src="<?= e((string) $activity['image_thumbnail']); ?>" alt="<?= e((string) $activity['title']); ?>" class="activity-card-img h-full w-full object-cover transition-transform duration-700">
@@ -333,12 +365,109 @@ $shouldShowAvailable = $activityFilter === 'all' || $activityFilter === 'availab
 </section>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+	const mobileCarouselQuery = window.matchMedia('(max-width: 767px)');
+	const carouselState = new WeakMap();
+
+	function stopCarouselAutoScroll(carousel) {
+		const state = carouselState.get(carousel);
+		if (!state) {
+			return;
+		}
+
+		if (state.timer) {
+			window.clearInterval(state.timer);
+			state.timer = null;
+		}
+
+		if (state.resumeTimer) {
+			window.clearTimeout(state.resumeTimer);
+			state.resumeTimer = null;
+		}
+	}
+
+	function startCarouselAutoScroll(carousel) {
+		if (!(carousel instanceof HTMLElement) || !mobileCarouselQuery.matches) {
+			return;
+		}
+
+		stopCarouselAutoScroll(carousel);
+
+		let state = carouselState.get(carousel);
+		if (!state) {
+			state = { timer: null, resumeTimer: null, handlersAttached: false };
+			carouselState.set(carousel, state);
+		}
+
+		const scheduleResume = () => {
+			if (state.resumeTimer) {
+				window.clearTimeout(state.resumeTimer);
+			}
+
+			stopCarouselAutoScroll(carousel);
+			state.resumeTimer = window.setTimeout(() => {
+				if (!mobileCarouselQuery.matches) {
+					return;
+				}
+
+				startCarouselAutoScroll(carousel);
+			}, 3500);
+		};
+
+		if (!state.handlersAttached) {
+			carousel.addEventListener('touchstart', scheduleResume, { passive: true });
+			carousel.addEventListener('pointerdown', scheduleResume, { passive: true });
+			carousel.addEventListener('mouseenter', scheduleResume, { passive: true });
+			state.handlersAttached = true;
+		}
+
+		state.timer = window.setInterval(() => {
+			if (!mobileCarouselQuery.matches || document.hidden) {
+				return;
+			}
+
+			const cards = Array.from(carousel.querySelectorAll('.activity-card'));
+			if (cards.length === 0) {
+				return;
+			}
+
+			const activeCard = cards.find((card) => {
+				const rect = card.getBoundingClientRect();
+				const carouselRect = carousel.getBoundingClientRect();
+				return rect.left >= carouselRect.left - 4 && rect.left < carouselRect.left + carouselRect.width * 0.5;
+			}) ?? cards[0];
+			const currentIndex = cards.indexOf(activeCard);
+			const nextIndex = (currentIndex + 1) % cards.length;
+			cards[nextIndex].scrollIntoView({ behavior: 'smooth', inline: 'start', block: 'nearest' });
+		}, 1500);
+	}
+
+	function syncActivityCarousels() {
+		document.querySelectorAll('.activity-card-carousel').forEach((carousel) => {
+			if (mobileCarouselQuery.matches) {
+				startCarouselAutoScroll(carousel);
+				return;
+			}
+
+			stopCarouselAutoScroll(carousel);
+			if (carousel instanceof HTMLElement) {
+				carousel.scrollTo({ left: 0, behavior: 'auto' });
+			}
+		});
+	}
+
 	if (typeof AOS !== 'undefined') {
 		AOS.init({
 			duration: 350,
 			once: true,
 			offset: 0
 		});
+	}
+
+	syncActivityCarousels();
+	if (typeof mobileCarouselQuery.addEventListener === 'function') {
+		mobileCarouselQuery.addEventListener('change', syncActivityCarousels);
+	} else if (typeof mobileCarouselQuery.addListener === 'function') {
+		mobileCarouselQuery.addListener(syncActivityCarousels);
 	}
 });
 

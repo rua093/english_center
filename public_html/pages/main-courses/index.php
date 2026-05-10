@@ -1,9 +1,16 @@
 <?php
 $academicModel = new AcademicModel();
+$coursesPerPage = 12;
+$currentCoursePage = max(1, (int) ($_GET['courses_page'] ?? 1));
 $courseTotal = $academicModel->countCourses();
+$totalCoursePages = max(1, (int) ceil($courseTotal / $coursesPerPage));
+$currentCoursePage = min($currentCoursePage, $totalCoursePages);
 $courseRows = $courseTotal > 0
-    ? $academicModel->listCoursesPage(1, $courseTotal)
+    ? $academicModel->listCoursesPage($currentCoursePage, $coursesPerPage)
     : [];
+$buildCoursePageUrl = static function (int $page) : string {
+    return page_url('courses', ['courses_page' => $page]) . '#danh-sach-khoa-hoc';
+};
 
 $studentTotal = $academicModel->dashboardStats()['student_count'] ?? 0;
 $feedbackAverageRating = $academicModel->averageFeedbackRating();
@@ -66,16 +73,16 @@ foreach ($courseRows as $row) {
 
 $stats = [
     ['value' => number_format($courseTotal, 0, ',', '.') . '+', 'label' => 'Chương trình học'],
-    ['value' => number_format((int) $studentTotal, 0, ',', '.') . '+', 'label' => 'Học viên đang theo học'],
-    ['value' => $satisfactionPercent . '%', 'label' => 'Hài lòng sau khóa học'],
+    ['value' => '100+', 'label' => 'Học viên đang theo học'],
+    ['value' => '99%', 'label' => 'Hài lòng sau khóa học'],
     ['value' => '100%', 'label' => 'Lộ trình được cá nhân hóa'],
 ];
 
-$highlights = [
-    ['icon' => 'fa-solid fa-users', 'title' => 'Lớp học nhỏ', 'desc' => 'Tối ưu tương tác, giáo viên theo sát từng học viên.'],
-    ['icon' => 'fa-solid fa-chalkboard-user', 'title' => 'Phương pháp thực hành', 'desc' => 'Giảm lý thuyết khô cứng, tăng luyện tập và phản xạ.'],
-    ['icon' => 'fa-solid fa-medal', 'title' => 'Lộ trình rõ ràng', 'desc' => 'Có mục tiêu đầu ra và mốc tiến độ từng giai đoạn.'],
-];
+// $highlights = [
+//     ['icon' => 'fa-solid fa-users', 'title' => 'Lớp học nhỏ', 'desc' => 'Tối ưu tương tác, giáo viên theo sát từng học viên.'],
+//     ['icon' => 'fa-solid fa-chalkboard-user', 'title' => 'Phương pháp thực hành', 'desc' => 'Giảm lý thuyết khô cứng, tăng luyện tập và phản xạ.'],
+//     ['icon' => 'fa-solid fa-medal', 'title' => 'Lộ trình rõ ràng', 'desc' => 'Có mục tiêu đầu ra và mốc tiến độ từng giai đoạn.'],
+// ];
 ?>
 
 <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css">
@@ -124,9 +131,9 @@ $highlights = [
                         Chương trình học
                     </span>
                     <div class="space-y-5 max-w-3xl">
-                        <h1 class="text-4xl md:text-5xl xl:text-6xl font-black leading-[1.05] text-slate-950">
+                        <h1 class="text-4xl md:text-5xl xl:text-6xl font-black leading-[1.15] md:leading-[1.1] xl:leading-[1.08] text-slate-950">
                             Khóa học phù hợp cho <br>
-                            <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-600 via-rose-500 to-lime-600">mọi độ tuổi và mục tiêu</span>
+                            <span class="inline-block text-transparent bg-clip-text bg-gradient-to-r from-red-600 via-rose-500 to-lime-600">mọi độ tuổi và mục tiêu</span>
                         </h1>
                         <p class="text-base md:text-lg text-slate-600 leading-relaxed max-w-2xl font-medium">
                             Từ mầm non, tiểu học đến IELTS và tiếng Anh doanh nghiệp, mỗi chương trình đều được thiết kế theo lộ trình rõ ràng, dễ theo dõi và có thể cá nhân hóa theo năng lực học viên.
@@ -195,12 +202,12 @@ $highlights = [
                             <div class="morph-content">
                             <div class="flex items-center justify-between gap-4">
                                 <div>
-                                    <p class="text-xs font-bold uppercase tracking-[0.2em] text-slate-500">Tư vấn nhanh</p>
-                                    <h3 class="mt-1 text-lg font-black text-slate-950">Chọn khóa học phù hợp trong 1 phút</h3>
+                                    <p class="text-xs font-bold uppercase tracking-[0.2em] text-slate-500">Đăng ký tư vấn nhanh</p>
+                                    <h3 class="mt-1 text-lg font-black text-slate-950">Nhanh chóng chọn chương trình phù hợp</h3>
                                 </div>
-                                <span class="hidden sm:inline-flex h-12 w-12 items-center justify-center rounded-full bg-slate-900 text-white shadow-md">
+                                <a href="<?= e(page_url('register-consultation')); ?>" class="hidden sm:inline-flex h-12 w-12 items-center justify-center rounded-full bg-slate-900 text-white shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:bg-rose-600 hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-rose-300" aria-label="Đăng ký tư vấn">
                                     <i class="fa-solid fa-arrow-right"></i>
-                                </span>
+                                </a>
                             </div>
                             </div>
                         </div>
@@ -211,7 +218,7 @@ $highlights = [
         </div>
     </section>
 
-    <section class="py-10 md:py-14">
+    <!-- <section class="py-10 md:py-14">
         <div class="mx-auto max-w-[1450px] px-4 sm:px-6">
             <div class="grid gap-4 md:grid-cols-3">
                 <?php $highlightDelay = 0; ?>
@@ -229,7 +236,7 @@ $highlights = [
                 <?php endforeach; ?>
             </div>
         </div>
-    </section>
+    </section> -->
 
     <section id="danh-sach-khoa-hoc" class="py-12 md:py-20">
         <div class="mx-auto max-w-[1450px] px-4 sm:px-6">
@@ -241,12 +248,12 @@ $highlights = [
                     </p>
                 </div>
 
-                <div class="flex flex-wrap gap-3">
+                <!-- <div class="flex flex-wrap gap-3">
                     <span class="rounded-full border border-red-200 bg-white px-4 py-2 text-sm font-bold text-rose-600 shadow-sm">Mầm non</span>
                     <span class="rounded-full border border-lime-200 bg-white px-4 py-2 text-sm font-bold text-emerald-600 shadow-sm">Tiểu học</span>
                     <span class="rounded-full border border-red-200 bg-white px-4 py-2 text-sm font-bold text-rose-600 shadow-sm">IELTS</span>
                     <span class="rounded-full border border-lime-200 bg-white px-4 py-2 text-sm font-bold text-emerald-600 shadow-sm">Doanh nghiệp</span>
-                </div>
+                </div> -->
             </div>
 
             <div class="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
@@ -296,6 +303,51 @@ $highlights = [
                     <?php $courseDelay += 100; ?>
                 <?php endforeach; ?>
             </div>
+
+            <?php if ($totalCoursePages > 1): ?>
+                <div class="mt-10 flex flex-col gap-4 rounded-[2rem] border border-white bg-white/80 p-4 shadow-[0_12px_30px_rgba(15,23,42,0.05)] backdrop-blur-md sm:flex-row sm:items-center sm:justify-between">
+                    <p class="text-sm font-medium text-slate-600">
+                        Đang hiển thị <?= count($courses); ?> / <?= number_format($courseTotal, 0, ',', '.'); ?> khóa học
+                    </p>
+
+                    <nav class="flex flex-wrap items-center justify-center gap-2" aria-label="Phân trang khóa học">
+                        <a href="<?= e($buildCoursePageUrl(max(1, $currentCoursePage - 1))); ?>" class="inline-flex h-11 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-black text-slate-700 shadow-sm transition-all hover:-translate-y-0.5 hover:border-rose-300 hover:text-rose-600 <?= $currentCoursePage === 1 ? 'pointer-events-none opacity-40' : ''; ?>">
+                            <i class="fa-solid fa-chevron-left"></i>
+                        </a>
+
+                        <?php
+                        $pageStart = max(1, $currentCoursePage - 2);
+                        $pageEnd = min($totalCoursePages, $currentCoursePage + 2);
+                        if ($pageStart > 1) {
+                            echo '<a href="' . e($buildCoursePageUrl(1)) . '" class="inline-flex h-11 min-w-11 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-black text-slate-700 shadow-sm transition-all hover:-translate-y-0.5 hover:border-rose-300 hover:text-rose-600">1</a>';
+                            if ($pageStart > 2) {
+                                echo '<span class="px-1 text-slate-400">...</span>';
+                            }
+                        }
+
+                        for ($page = $pageStart; $page <= $pageEnd; $page++) {
+                            $isCurrentPage = $page === $currentCoursePage;
+                            $pageClasses = $isCurrentPage
+                                ? 'border-rose-600 bg-rose-600 text-white shadow-md'
+                                : 'border-slate-200 bg-white text-slate-700 shadow-sm hover:-translate-y-0.5 hover:border-rose-300 hover:text-rose-600';
+
+                            echo '<a href="' . e($buildCoursePageUrl($page)) . '" class="inline-flex h-11 min-w-11 items-center justify-center rounded-full border px-4 text-sm font-black transition-all ' . $pageClasses . '"' . ($isCurrentPage ? ' aria-current="page"' : '') . '>' . $page . '</a>';
+                        }
+
+                        if ($pageEnd < $totalCoursePages) {
+                            if ($pageEnd < $totalCoursePages - 1) {
+                                echo '<span class="px-1 text-slate-400">...</span>';
+                            }
+                            echo '<a href="' . e($buildCoursePageUrl($totalCoursePages)) . '" class="inline-flex h-11 min-w-11 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-black text-slate-700 shadow-sm transition-all hover:-translate-y-0.5 hover:border-rose-300 hover:text-rose-600">' . $totalCoursePages . '</a>';
+                        }
+                        ?>
+
+                        <a href="<?= e($buildCoursePageUrl(min($totalCoursePages, $currentCoursePage + 1))); ?>" class="inline-flex h-11 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-black text-slate-700 shadow-sm transition-all hover:-translate-y-0.5 hover:border-rose-300 hover:text-rose-600 <?= $currentCoursePage >= $totalCoursePages ? 'pointer-events-none opacity-40' : ''; ?>">
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </a>
+                    </nav>
+                </div>
+            <?php endif; ?>
         </div>
     </section>
 

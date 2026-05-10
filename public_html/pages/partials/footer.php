@@ -41,32 +41,34 @@
                     <span class="absolute -bottom-2 left-0 w-6 h-0.5 bg-blue-400"></span>
                 </h4>
                 <ul class="space-y-3 text-xs font-bold mt-6">
-                    <li><a href="#" class="hover:text-blue-400 transition-all flex items-center gap-2 group"><i class="fa-solid fa-chevron-right text-[8px] opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all"></i>Về Nhuệ Minh</a></li>
-                    <li><a href="#" class="hover:text-blue-400 transition-all flex items-center gap-2 group"><i class="fa-solid fa-chevron-right text-[8px] opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all"></i>Các khóa học</a></li>
-                    <li><a href="#" class="hover:text-blue-400 transition-all flex items-center gap-2 group"><i class="fa-solid fa-chevron-right text-[8px] opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all"></i>Thành tích</a></li>
+                    <li><a href="<?= e(page_url('home') . '#gioi-thieu'); ?>" class="hover:text-blue-400 transition-all flex items-center gap-2 group"><i class="fa-solid fa-chevron-right text-[8px] opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all"></i>Về Nhuệ Minh</a></li>
+                    <li><a href="<?= e(page_url('home') . '#khoa-hoc'); ?>" class="hover:text-blue-400 transition-all flex items-center gap-2 group"><i class="fa-solid fa-chevron-right text-[8px] opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all"></i>Các khóa học</a></li>
+                    <li><a href="<?= e(page_url('home') . '#feed-back-student'); ?>" class="hover:text-blue-400 transition-all flex items-center gap-2 group"><i class="fa-solid fa-chevron-right text-[8px] opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all"></i>Thành tích</a></li>
                 </ul>
             </div>
 
             <div class="lg:col-span-3">
                 <h4 class="text-white font-black mb-6 text-xs uppercase tracking-widest relative">
-                    Hệ thống
+                    Nhanh truy cập
                     <span class="absolute -bottom-2 left-0 w-6 h-0.5 bg-blue-400"></span>
                 </h4>
                 <ul class="space-y-3 mt-6">
-                    <?php if (!is_logged_in()): ?>
-                        <li>
-                            <a href="<?= e(page_url('login')); ?>" class="group flex items-center gap-3 hover:text-white transition-all">
-                                <div class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-blue-400 group-hover:bg-blue-400 group-hover:text-blue-950 transition-all"><i class="fa-solid fa-graduation-cap text-xs"></i></div>
-                                <span class="text-xs font-bold">Cổng học viên</span>
-                            </a>
-                        </li>
-                    <?php endif; ?>
-                        <li>
-                        <a href="#" class="group flex items-center gap-3 hover:text-white transition-all">
-                            <div class="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center text-white shadow-md shadow-amber-500/30 group-hover:scale-105 group-hover:-translate-y-0.5 transition-all">
-                                <i class="fa-solid fa-calendar-days text-xs"></i>
-                            </div>
-                            <span class="text-xs font-bold">Lịch khai giảng</span>
+                    <li>
+                        <a href="<?= e(page_url('job-apply')); ?>" class="hover:text-blue-400 transition-all flex items-center gap-2 group">
+                            <i class="fa-solid fa-briefcase text-[10px] opacity-60"></i>
+                            <span class="text-xs font-bold">Tuyển dụng</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="<?= e(page_url('documents')); ?>" class="hover:text-blue-400 transition-all flex items-center gap-2 group">
+                            <i class="fa-solid fa-file-lines text-[10px] opacity-60"></i>
+                            <span class="text-xs font-bold">Tài liệu học tập</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="<?= e(page_url('home') . '#ngoai-khoa'); ?>" class="hover:text-blue-400 transition-all flex items-center gap-2 group">
+                            <i class="fa-solid fa-person-hiking text-[10px] opacity-60"></i>
+                            <span class="text-xs font-bold">Hoạt động ngoại khoá</span>
                         </a>
                     </li>
                 </ul>

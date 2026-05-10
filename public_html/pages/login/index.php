@@ -123,7 +123,6 @@ $success = get_flash('success');
                     <div class="group">
                         <div class="flex justify-between items-center mb-2 ml-1 mr-1">
                             <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide">Mật khẩu</label>
-                            <a href="<?= e(page_url('forgot-password')); ?>" class="text-xs font-bold text-emerald-600 hover:text-rose-600 transition-colors">Quên mật khẩu?</a>
                         </div>
                         <div class="relative flex items-center input-focus-ring rounded-2xl bg-slate-50 border border-slate-200 transition-all duration-300">
                             <div class="pl-5 pr-3 icon-input text-slate-400 transition-colors">
@@ -139,7 +138,7 @@ $success = get_flash('success');
                         </div>
                     </div>
 
-                    <div class="flex items-center ml-1">
+                    <div class="flex items-center justify-between gap-4 ml-1">
                         <label class="flex items-center cursor-pointer group">
                             <div class="relative">
                                 <input type="checkbox" name="remember" class="sr-only peer">
@@ -149,6 +148,10 @@ $success = get_flash('success');
                             </div>
                             <span class="ml-3 text-sm font-semibold text-slate-600 group-hover:text-slate-800 transition-colors">Ghi nhớ đăng nhập</span>
                         </label>
+
+                        <a href="<?= e(page_url('forgot-password')); ?>" class="text-xs font-bold text-emerald-600 hover:text-rose-600 transition-colors whitespace-nowrap">
+                            Quên mật khẩu?
+                        </a>
                     </div>
 
                     <button type="submit" class="group w-full relative inline-flex items-center justify-center gap-3 rounded-2xl bg-rose-600 hover:bg-rose-700 px-4 py-4 text-sm font-black text-white uppercase tracking-widest shadow-[0_10px_20px_rgba(225,29,72,0.3)] transition-all hover:-translate-y-1 hover:shadow-[0_15px_30px_rgba(225,29,72,0.4)] overflow-hidden">
@@ -156,6 +159,7 @@ $success = get_flash('success');
                         <div class="relative z-10 w-2 h-2 rounded-full bg-lime-400 group-hover:scale-150 transition-transform"></div>
                         <div class="absolute inset-0 h-full w-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></div>
                     </button>
+
                 </form>
 
             </div>
