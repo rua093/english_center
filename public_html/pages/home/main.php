@@ -35,7 +35,7 @@ $homeFormatFeedbackDate = static function (?string $value): string {
          style="background-image: radial-gradient(#1e3a8a 2px, transparent 2px); background-size: 30px 30px;">
     </div>
 
-    <section id="hero-video" class="relative w-full h-[80vh] min-h-[500px] md:min-h-[600px] flex items-center justify-center mb-16 sm:mb-20 md:mb-24">
+    <section id="hero-video" class="relative w-full h-[72vh] sm:h-[80vh] min-h-[420px] sm:min-h-[500px] md:min-h-[600px] flex items-center justify-center mb-16 sm:mb-20 md:mb-24">
         <div class="absolute inset-0 z-0 overflow-hidden bg-black">
             <video autoplay loop muted playsinline class="absolute top-1/2 left-1/2 min-w-full min-h-full w-auto h-auto -translate-x-1/2 -translate-y-1/2 object-cover">
                 <source src="assets/videodemo/iilavideo.mp4" type="video/mp4">
@@ -55,7 +55,7 @@ $homeFormatFeedbackDate = static function (?string $value): string {
             </div>
         </div>
 
-        <div class="absolute bottom-0 left-0 right-0 translate-y-1/2 z-30 flex flex-col items-center px-4 sm:px-6">
+        <div class="absolute bottom-0 left-0 right-0 translate-y-0 sm:translate-y-1/2 z-30 flex flex-col items-center px-4 sm:px-6">
             <div class="w-full max-w-[1180px] bg-gradient-to-br from-red-200 via-rose-200 to-lime-200 rounded-2xl sm:rounded-3xl shadow-[0_18px_60px_rgba(0,0,0,0.18)] flex flex-col overflow-hidden border border-lime-400/35 ring-1 ring-white/10">
                 <div class="h-1 w-full bg-gradient-to-r from-amber-400 via-cyan-300 to-sky-400"></div>
                 <div class="grid gap-0 lg:grid-cols-[1.35fr_1fr] items-stretch">
@@ -69,9 +69,9 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                     </div>
                     <div class="p-4 sm:p-6 md:p-8 lg:p-10 bg-white/72 backdrop-blur-sm flex items-center relative overflow-hidden">
                         <div class="absolute inset-0 pointer-events-none">
-                            <div class="absolute -top-8 right-10 h-16 w-16 sm:h-20 sm:w-20 rounded-none border border-lime-300/70 bg-white/50 rotate-12"></div>
-                            <div class="absolute bottom-8 right-16 h-10 w-10 sm:h-12 sm:w-12 rounded-none bg-lime-400/35 rotate-45"></div>
-                            <div class="absolute top-1/2 left-6 h-12 w-12 sm:h-14 sm:w-14 rounded-none border border-lime-300/60 bg-lime-100/50 -rotate-12"></div>
+                            <div class="absolute -top-8 right-10 h-16 w-16 sm:h-20 sm:w-20 rounded-none border border-lime-300/70 bg-white/50 rotate-12 max-sm:hidden"></div>
+                            <div class="absolute bottom-8 right-16 h-10 w-10 sm:h-12 sm:w-12 rounded-none bg-lime-400/35 rotate-45 max-sm:hidden"></div>
+                            <div class="absolute top-1/2 left-6 h-12 w-12 sm:h-14 sm:w-14 rounded-none border border-lime-300/60 bg-lime-100/50 -rotate-12 max-sm:hidden"></div>
                         </div>
                         <div class="relative z-10 w-full grid gap-3 sm:gap-4 sm:grid-cols-2">
                             <div class="relative">

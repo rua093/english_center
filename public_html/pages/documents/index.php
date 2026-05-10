@@ -76,8 +76,8 @@ $fileBadge = static function (string $filePath): array {
         </div>
 
         <div class="flex flex-col gap-6" data-aos="fade-up" data-aos-delay="100">
-            <div class="flex flex-col sm:flex-row justify-between items-center gap-4 mb-2">
-                <div>
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-3">
+                <div class="text-center sm:text-left">
                     <p class="text-sm font-bold text-slate-500">Tìm thấy <span class="text-emerald-600 font-black"><?= number_format($materialTotal, 0, ',', '.') ?></span> tài liệu</p>
                     <p class="text-xs font-medium text-slate-400 mt-1">Dữ liệu được lấy trực tiếp từ bảng materials.</p>
                 </div>
