@@ -24,3 +24,7 @@ if (!defined('ASSET_VERSION')) {
 if (!defined('APP_TIMEZONE')) {
     define('APP_TIMEZONE', 'Asia/Ho_Chi_Minh');
 }
+
+if (!defined('APP_BASE_URL')) {
+    define('APP_BASE_URL', '');
+}

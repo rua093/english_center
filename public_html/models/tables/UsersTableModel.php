@@ -119,6 +119,34 @@ final class UsersTableModel extends BaseTableModel
         return $user;
     }
 
+    public function findActiveByEmail(string $email): ?array
+    {
+        $normalizedEmail = strtolower(trim($email));
+        if ($normalizedEmail === '') {
+            return null;
+        }
+
+        $user = $this->fetchOne(
+            "SELECT u.id, u.username, u.full_name, u.role_id, u.phone, u.email, u.avatar, u.status, u.created_at,
+                    r.role_name
+             FROM users u
+             INNER JOIN roles r ON r.id = u.role_id
+             WHERE u.deleted_at IS NULL
+               AND u.status = 'active'
+               AND LOWER(COALESCE(u.email, '')) = :email
+             ORDER BY u.id DESC
+             LIMIT 1",
+            ['email' => $normalizedEmail]
+        );
+
+        if (!$user) {
+            return null;
+        }
+
+        $user['role_profile'] = $this->findRoleProfile((int) ($user['id'] ?? 0), (string) ($user['role_name'] ?? ''));
+        return $user;
+    }
+
     public function updateProfile(int $userId, array $data): void
     {
         $email = trim((string) ($data['email'] ?? ''));

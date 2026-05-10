@@ -104,6 +104,7 @@ function api_leads_submit_action(): void
     // Require name and at least one contact method (phone or email)
     $contactPhone = api_leads_extract_phone($parentPhone . ' ' . normalize_phone_string($legacyPhone) . ' ' . $parentName);
     $contactEmail = api_leads_extract_email($legacyEmail . ' ' . $parentName);
+    $payload['parent_email'] = $contactEmail;
 
     if ($payload['student_name'] === '' || ($contactPhone === '' && $contactEmail === '')) {
         set_flash('home_error', 'Vui long nhap ten hoc vien va thong tin lien he phu huynh (so dien thoai hoac email).');
@@ -134,6 +135,7 @@ function api_leads_submit_consultation_action(): void
     $parentName = input_string($_POST, 'parent_name');
     $fatherPhone = normalize_phone_string(input_string($_POST, 'father_phone'));
     $motherPhone = normalize_phone_string(input_string($_POST, 'mother_phone'));
+    $parentEmail = api_leads_extract_email(input_string($_POST, 'parent_email', input_string($_POST, 'email')));
     $legacyPhone = normalize_phone_string(input_string($_POST, 'parent_phone', input_string($_POST, 'phone')));
     $contactPhone = api_leads_extract_phone($fatherPhone . ' ' . $motherPhone . ' ' . $legacyPhone . ' ' . $parentName);
 
@@ -150,6 +152,7 @@ function api_leads_submit_consultation_action(): void
         'personality' => input_string($_POST, 'student_personality'),
         'parent_name' => $parentName,
         'parent_phone' => $contactPhone,
+        'parent_email' => $parentEmail,
         'school_name' => input_string($_POST, 'student_school'),
         'current_grade' => input_string($_POST, 'student_grade'),
         'referral_source' => implode(', ', array_filter((array) ($_POST['source_channels'] ?? []), static fn ($value) => trim((string) $value) !== '')),

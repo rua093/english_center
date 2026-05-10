@@ -23,6 +23,7 @@ function api_notifications_save_action(): void
     }
     $title = trim((string) ($_POST['title'] ?? ''));
     $message = trim((string) ($_POST['message'] ?? ''));
+    $sendEmail = (int) ($_POST['send_email'] ?? 0) === 1;
 
     $redirectQuery = [];
     if ($notificationId > 0) {
@@ -48,6 +49,7 @@ function api_notifications_save_action(): void
             'target_id' => $targetType === 'ALL' ? null : $targetId,
             'title' => $title,
             'message' => $message,
+            'send_email' => $sendEmail,
         ]);
     } catch (Throwable $exception) {
         set_flash('error', 'Khong the luu thong bao. Vui long thu lai.');

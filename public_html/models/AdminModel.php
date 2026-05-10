@@ -8,6 +8,7 @@ require_once __DIR__ . '/tables/RolePermissionsTableModel.php';
 require_once __DIR__ . '/tables/RolesTableModel.php';
 require_once __DIR__ . '/tables/StudentLeadsTableModel.php';
 require_once __DIR__ . '/tables/UsersTableModel.php';
+require_once __DIR__ . '/MailModel.php';
 
 final class AdminModel
 {
@@ -17,6 +18,7 @@ final class AdminModel
     private RolePermissionsTableModel $rolePermissionsTable;
     private StudentLeadsTableModel $studentLeadsTable;
     private JobApplicationsTableModel $jobApplicationsTable;
+    private MailModel $mailModel;
 
     public function __construct()
     {
@@ -26,6 +28,7 @@ final class AdminModel
         $this->rolePermissionsTable = new RolePermissionsTableModel();
         $this->studentLeadsTable = new StudentLeadsTableModel();
         $this->jobApplicationsTable = new JobApplicationsTableModel();
+        $this->mailModel = new MailModel();
     }
 
     public function listUsers(): array
@@ -57,6 +60,7 @@ final class AdminModel
     {
         $id = (int) ($data['id'] ?? 0);
         $password = (string) ($data['password'] ?? '');
+        $isCreate = $id <= 0;
 
         $role = $this->findRoleById((int) ($data['role_id'] ?? 0));
         if (!$role) {
@@ -80,6 +84,24 @@ final class AdminModel
 
         if ($id > 0 && $password !== '') {
             $this->updateUserPassword($savedUserId, $password);
+        }
+
+        $savedUser = $this->findUser($savedUserId);
+        if (!$savedUser) {
+            return;
+        }
+
+        if ($isCreate) {
+            $plainPassword = $password !== '' ? $password : '123456';
+            $savedUser['id'] = $savedUserId;
+            $savedUser['username'] = (string) ($savedUser['username'] ?? $data['username'] ?? '');
+            $this->mailModel->queueWelcomeAccountEmail($savedUser, $plainPassword, $this->roleLabel($newRoleName));
+            return;
+        }
+
+        if ($password !== '') {
+            $savedUser['id'] = $savedUserId;
+            $this->mailModel->queuePasswordChangedEmail($savedUser);
         }
     }
 
@@ -190,12 +212,16 @@ final class AdminModel
 
     public function saveConsultationLead(array $data): int
     {
-        return $this->studentLeadsTable->saveConsultationLead($data);
+        $leadId = $this->studentLeadsTable->saveConsultationLead($data);
+        $this->mailModel->queueLeadEmails($data);
+        return $leadId;
     }
 
     public function submitStudentLead(array $data): int
     {
-        return $this->studentLeadsTable->createFromPublic($data);
+        $leadId = $this->studentLeadsTable->createFromPublic($data);
+        $this->mailModel->queueLeadEmails($data);
+        return $leadId;
     }
 
     public function updateStudentLeadReview(int $id, string $status, string $adminNote): void
@@ -257,7 +283,10 @@ final class AdminModel
         if ($leadPhone === '') {
             $leadPhone = $this->extractPhoneFromText((string) ($lead['parent_name'] ?? '') . ' ' . (string) ($lead['school_name'] ?? ''));
         }
-        $leadEmail = $this->extractEmailFromText((string) ($lead['parent_name'] ?? '') . ' ' . (string) ($lead['school_name'] ?? ''));
+        $leadEmail = trim((string) ($lead['parent_email'] ?? ''));
+        if ($leadEmail === '') {
+            $leadEmail = $this->extractEmailFromText((string) ($lead['parent_name'] ?? '') . ' ' . (string) ($lead['school_name'] ?? ''));
+        }
 
         $payload = [
             'username' => $username,
@@ -280,6 +309,12 @@ final class AdminModel
             $this->usersTable->saveRoleProfile($createdUserId, 'student', $payload);
             $this->studentLeadsTable->markConverted($leadId, $createdUserId, $adminNote);
         });
+
+        $createdUser = $this->findUser($createdUserId);
+        if ($createdUser) {
+            $createdUser['username'] = $username;
+            $this->mailModel->queueWelcomeAccountEmail($createdUser, $password, 'học viên');
+        }
 
         return [
             'user_id' => $createdUserId,
@@ -396,6 +431,12 @@ final class AdminModel
             $this->jobApplicationsTable->markConverted($applicationId, $createdUserId, $adminNote);
         });
 
+        $createdUser = $this->findUser($createdUserId);
+        if ($createdUser) {
+            $createdUser['username'] = $username;
+            $this->mailModel->queueWelcomeAccountEmail($createdUser, $password, 'giáo viên');
+        }
+
         return [
             'user_id' => $createdUserId,
             'username' => $username,
@@ -407,6 +448,17 @@ final class AdminModel
     private function updateUserPassword(int $id, string $plainPassword): void
     {
         $this->usersTable->updatePassword($id, $plainPassword);
+    }
+
+    private function roleLabel(string $roleName): string
+    {
+        return match (strtolower(trim($roleName))) {
+            'admin' => 'quản trị viên',
+            'staff' => 'nhân viên',
+            'teacher' => 'giáo viên',
+            'student' => 'học viên',
+            default => 'người dùng',
+        };
     }
 
     private function aggregateMonthlyUserCountsByRole(string $roleName, int $limit): array

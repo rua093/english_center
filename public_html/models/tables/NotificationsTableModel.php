@@ -210,11 +210,10 @@ final class NotificationsTableModel
         ]);
     }
 
-    public function save(array $data): void
+    public function save(array $data): int
     {
         if (!$this->supportsHybrid()) {
-            $this->saveLegacy($data);
-            return;
+            return $this->saveLegacy($data);
         }
 
         $id = (int) ($data['id'] ?? 0);
@@ -231,7 +230,8 @@ final class NotificationsTableModel
             throw new InvalidArgumentException('Vui long chon doi tuong nhan thong bao.');
         }
 
-        $this->executeInTransaction(function () use ($id, $senderId, $title, $message, $targetType, $targetId): void {
+        $notificationId = 0;
+        $this->executeInTransaction(function () use ($id, $senderId, $title, $message, $targetType, $targetId, &$notificationId): void {
             if ($id > 0) {
                 $this->executeStatement(
                     'UPDATE notifications
@@ -279,6 +279,8 @@ final class NotificationsTableModel
                 ]
             );
         });
+
+        return $notificationId;
     }
 
     public function existsByTargetAndContent(string $targetType, ?int $targetId, string $title, string $message): bool
@@ -990,7 +992,7 @@ final class NotificationsTableModel
         );
     }
 
-    private function saveLegacy(array $data): void
+    private function saveLegacy(array $data): int
     {
         $id = (int) ($data['id'] ?? 0);
         $userId = (int) ($data['user_id'] ?? $data['recipient_id'] ?? 0);
@@ -1013,7 +1015,7 @@ final class NotificationsTableModel
                     'is_read' => $isRead,
                 ]
             );
-            return;
+            return $id;
         }
 
         $this->executeStatement(
@@ -1025,5 +1027,7 @@ final class NotificationsTableModel
                 'is_read' => $isRead,
             ]
         );
+
+        return (int) $this->pdo->lastInsertId();
     }
 }

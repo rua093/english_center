@@ -6,6 +6,7 @@ require_once __DIR__ . '/../../core/table_model_utils.php';
 final class StudentLeadsTableModel
 {
     use TableModelUtils;
+    private ?bool $supportsParentEmail = null;
 
     private const ALLOWED_STATUSES = [
         'new',
@@ -38,7 +39,7 @@ final class StudentLeadsTableModel
         $where = $this->buildSearchWhereClause($filters, $searchQuery, $params);
 
         $sql = 'SELECT sl.id, sl.student_name, sl.gender, sl.dob, sl.interests, sl.school_name, sl.current_grade,
-                    sl.personality, sl.parent_name, sl.parent_phone, sl.referral_source, sl.current_level,
+                    sl.personality, sl.parent_name, sl.parent_phone, ' . ($this->supportsParentEmailColumn() ? 'sl.parent_email' : 'NULL AS parent_email') . ', sl.referral_source, sl.current_level,
                     sl.study_time, sl.parent_expectation, sl.status, sl.admin_note,
                     sl.converted_user_id, sl.converted_at,
                     sl.created_at,
@@ -57,7 +58,7 @@ final class StudentLeadsTableModel
     {
         return $this->fetchOne(
             'SELECT sl.id, sl.student_name, sl.gender, sl.dob, sl.interests, sl.school_name, sl.current_grade,
-                    sl.personality, sl.parent_name, sl.parent_phone, sl.referral_source, sl.current_level,
+                    sl.personality, sl.parent_name, sl.parent_phone, ' . ($this->supportsParentEmailColumn() ? 'sl.parent_email' : 'NULL AS parent_email') . ', sl.referral_source, sl.current_level,
                     sl.study_time, sl.parent_expectation, sl.status, sl.admin_note,
                     sl.converted_user_id, sl.converted_at,
                     sl.created_at,
@@ -78,6 +79,7 @@ final class StudentLeadsTableModel
         // Prepare parent_name/parent_phone and school_name/current_grade with fallbacks from legacy keys
         $parentName = trim((string) ($data['parent_name'] ?? ''));
         $parentPhone = $this->normalizePhone($data['parent_phone'] ?? '');
+        $parentEmail = $this->normalizeEmail($data['parent_email'] ?? $data['email'] ?? '');
         if ($parentPhone === '' && !empty($data['phone'] ?? '')) {
             $parentPhone = $this->normalizePhone($data['phone'] ?? '');
         }
@@ -85,39 +87,23 @@ final class StudentLeadsTableModel
         $schoolName = trim((string) ($data['school_name'] ?? ''));
         $currentGrade = trim((string) ($data['current_grade'] ?? ''));
 
-        $sql = 'INSERT INTO student_leads (
-                    student_name,
-                    gender,
-                    dob,
-                    interests,
-                    school_name,
-                    current_grade,
-                    personality,
-                    parent_name,
-                    parent_phone,
-                    referral_source,
-                    current_level,
-                    study_time,
-                    parent_expectation,
-                    status
-                ) VALUES (
-                    :student_name,
-                    :gender,
-                    :dob,
-                    :interests,
-                    :school_name,
-                    :current_grade,
-                    :personality,
-                    :parent_name,
-                    :parent_phone,
-                    :referral_source,
-                    :current_level,
-                    :study_time,
-                    :parent_expectation,
-                    :status
-                )';
-
-        $this->executeStatement($sql, [
+        $columns = [
+            'student_name',
+            'gender',
+            'dob',
+            'interests',
+            'school_name',
+            'current_grade',
+            'personality',
+            'parent_name',
+            'parent_phone',
+            'referral_source',
+            'current_level',
+            'study_time',
+            'parent_expectation',
+            'status',
+        ];
+        $values = [
             'student_name' => $studentName,
             'gender' => $this->nullIfEmpty($data['gender'] ?? null),
             'dob' => $this->nullIfEmpty($data['dob'] ?? null),
@@ -132,7 +118,17 @@ final class StudentLeadsTableModel
             'study_time' => $this->nullIfEmpty($data['study_time'] ?? null),
             'parent_expectation' => $this->nullIfEmpty($data['parent_expectation'] ?? null),
             'status' => 'new',
-        ]);
+        ];
+
+        if ($this->supportsParentEmailColumn()) {
+            $columns[] = 'parent_email';
+            $values['parent_email'] = $this->nullIfEmpty($parentEmail);
+        }
+
+        $sql = 'INSERT INTO student_leads (' . implode(', ', $columns) . ')
+                VALUES (:' . implode(', :', $columns) . ')';
+
+        $this->executeStatement($sql, $values);
 
         return (int) $this->pdo->lastInsertId();
     }
@@ -148,6 +144,7 @@ final class StudentLeadsTableModel
             $data['mother_phone'] ?? null,
             $data['phone'] ?? null,
         ]);
+        $parentEmail = $this->normalizeEmail($data['parent_email'] ?? $data['email'] ?? '');
 
         $referralSource = $this->combineSelections(
             $data['source_channels'] ?? [],
@@ -173,39 +170,23 @@ final class StudentLeadsTableModel
             1000
         );
 
-        $sql = 'INSERT INTO student_leads (
-                    student_name,
-                    gender,
-                    dob,
-                    interests,
-                    personality,
-                    parent_name,
-                    parent_phone,
-                    school_name,
-                    current_grade,
-                    referral_source,
-                    current_level,
-                    study_time,
-                    parent_expectation,
-                    status
-                ) VALUES (
-                    :student_name,
-                    :gender,
-                    :dob,
-                    :interests,
-                    :personality,
-                    :parent_name,
-                    :parent_phone,
-                    :school_name,
-                    :current_grade,
-                    :referral_source,
-                    :current_level,
-                    :study_time,
-                    :parent_expectation,
-                    :status
-                )';
-
-        $this->executeStatement($sql, [
+        $columns = [
+            'student_name',
+            'gender',
+            'dob',
+            'interests',
+            'personality',
+            'parent_name',
+            'parent_phone',
+            'school_name',
+            'current_grade',
+            'referral_source',
+            'current_level',
+            'study_time',
+            'parent_expectation',
+            'status',
+        ];
+        $values = [
             'student_name' => $studentName,
             'gender' => $this->nullIfEmpty($data['student_gender'] ?? $data['gender'] ?? null),
             'dob' => $this->nullIfEmpty($data['student_dob'] ?? $data['dob'] ?? null),
@@ -220,7 +201,17 @@ final class StudentLeadsTableModel
             'study_time' => $this->nullIfEmpty($studyTime),
             'parent_expectation' => $this->nullIfEmpty($parentExpectation),
             'status' => 'new',
-        ]);
+        ];
+
+        if ($this->supportsParentEmailColumn()) {
+            $columns[] = 'parent_email';
+            $values['parent_email'] = $this->nullIfEmpty($parentEmail);
+        }
+
+        $sql = 'INSERT INTO student_leads (' . implode(', ', $columns) . ')
+                VALUES (:' . implode(', :', $columns) . ')';
+
+        $this->executeStatement($sql, $values);
 
         return (int) $this->pdo->lastInsertId();
     }
@@ -301,10 +292,12 @@ final class StudentLeadsTableModel
         $searchQuery = trim($searchQuery);
         if ($searchQuery !== '') {
             $likeValue = '%' . $searchQuery . '%';
+            $parentEmailColumn = $this->supportsParentEmailColumn() ? 'sl.parent_email' : "''";
             $params['search_id'] = $likeValue;
             $params['search_student_name'] = $likeValue;
             $params['search_parent_name'] = $likeValue;
             $params['search_parent_phone'] = $likeValue;
+            $params['search_parent_email'] = $likeValue;
             $params['search_source'] = $likeValue;
             $params['search_level'] = $likeValue;
             $params['search_status_text'] = $likeValue;
@@ -315,6 +308,7 @@ final class StudentLeadsTableModel
                 OR COALESCE(sl.student_name, '') LIKE :search_student_name
                 OR COALESCE(sl.parent_name, '') LIKE :search_parent_name
                 OR COALESCE(sl.parent_phone, '') LIKE :search_parent_phone
+                OR COALESCE({$parentEmailColumn}, '') LIKE :search_parent_email
                 OR COALESCE(sl.referral_source, '') LIKE :search_source
                 OR COALESCE(sl.current_level, '') LIKE :search_level
                 OR COALESCE(sl.status, '') LIKE :search_status_text
@@ -390,5 +384,35 @@ final class StudentLeadsTableModel
     {
         $digits = preg_replace('/\D+/', '', trim((string) $value));
         return is_string($digits) ? $digits : '';
+    }
+
+    private function normalizeEmail(mixed $value): string
+    {
+        $email = strtolower(trim((string) $value));
+        if ($email === '' || filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
+            return '';
+        }
+
+        return $email;
+    }
+
+    private function supportsParentEmailColumn(): bool
+    {
+        if ($this->supportsParentEmail !== null) {
+            return $this->supportsParentEmail;
+        }
+
+        $this->supportsParentEmail = (int) $this->fetchScalar(
+            'SELECT COUNT(*) AS total
+             FROM information_schema.COLUMNS
+             WHERE TABLE_SCHEMA = DATABASE()
+               AND TABLE_NAME = "student_leads"
+               AND COLUMN_NAME = "parent_email"',
+            [],
+            'total',
+            0
+        ) > 0;
+
+        return $this->supportsParentEmail;
     }
 }

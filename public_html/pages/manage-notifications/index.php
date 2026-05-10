@@ -120,6 +120,11 @@ $canManageNotifications = has_any_permission(['notifications.create', 'notificat
                     <?= render_bbcode_editor('message', (string) ($editingNotification['message'] ?? ''), ['id' => 'notification-message', 'rows' => 4, 'required' => true]); ?>
                 </div>
 
+                <label class="md:col-span-2 flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700">
+                    <input type="checkbox" name="send_email" value="1" class="h-4 w-4 accent-blue-600">
+                    <span>Gửi thêm email cho các người nhận có địa chỉ email hợp lệ</span>
+                </label>
+
                 <div class="md:col-span-2 flex flex-wrap items-center gap-2">
                     <button class="<?= ui_btn_primary_classes(); ?>" type="submit">Lưu thông báo</button>
                     <?php if ($editingNotification): ?>

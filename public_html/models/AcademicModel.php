@@ -23,6 +23,7 @@ require_once __DIR__ . '/tables/StudentPortfoliosTableModel.php';
 require_once __DIR__ . '/tables/SubmissionsTableModel.php';
 require_once __DIR__ . '/tables/TuitionFeesTableModel.php';
 require_once __DIR__ . '/tables/UsersTableModel.php';
+require_once __DIR__ . '/MailModel.php';
 
 final class AcademicModel
 {
@@ -48,6 +49,7 @@ final class AcademicModel
     private CoursePackagesTableModel $coursePackagesTable;
     private CourseRoadmapsTableModel $courseRoadmapsTable;
     private ExamsTableModel $examsTable;
+    private MailModel $mailModel;
 
     public function __construct()
     {
@@ -73,6 +75,7 @@ final class AcademicModel
         $this->coursePackagesTable = new CoursePackagesTableModel();
         $this->courseRoadmapsTable = new CourseRoadmapsTableModel();
         $this->examsTable = new ExamsTableModel();
+        $this->mailModel = new MailModel();
     }
 
     public function listStudentsForClass(int $classId): array
@@ -873,9 +876,24 @@ final class AcademicModel
         return $this->notificationsTable->findById($id);
     }
 
-    public function saveNotification(array $data): void
+    public function saveNotification(array $data): int
     {
-        $this->notificationsTable->save($data);
+        $notificationId = $this->notificationsTable->save($data);
+
+        if (!empty($data['send_email'])) {
+            $this->mailModel->queueSystemNotificationEmails(
+                (string) ($data['target_type'] ?? ''),
+                isset($data['target_id']) ? (int) $data['target_id'] : null,
+                (string) ($data['title'] ?? ''),
+                (string) ($data['message'] ?? ''),
+                [
+                    'notification_id' => $notificationId,
+                    'sender_id' => (int) ($data['sender_id'] ?? 0),
+                ]
+            );
+        }
+
+        return $notificationId;
     }
 
     public function syncOverdueMonthlyTuitionNotifications(): int
@@ -927,6 +945,14 @@ final class AcademicModel
                 'target_user_id' => $studentId,
                 'title' => $title,
                 'message' => $message,
+            ]);
+
+            $this->mailModel->queueTuitionOverdueEmail($studentId, [
+                'student_name' => $studentName . ($studentCode !== '' ? ' (' . $studentCode . ')' : ''),
+                'class_name' => $className !== '' ? $className : 'Chưa xác định',
+                'course_name' => $courseName,
+                'due_date_label' => $dueDateLabel,
+                'remaining_amount_label' => number_format($remainingAmount, 0, ',', '.') . ' VNĐ',
             ]);
             $createdCount++;
         }

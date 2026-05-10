@@ -234,6 +234,11 @@ $error = get_flash('home_error');
                         </div>
                     </div>
 
+                    <div class="space-y-2">
+                        <label class="text-xs font-black text-slate-500 uppercase ml-1">Email phụ huynh</label>
+                        <input type="email" name="parent_email" placeholder="phuhuynh@example.com" class="w-full px-5 py-3.5 rounded-xl bg-slate-50 outline-none focus-lime font-bold text-slate-700">
+                    </div>
+
                     <div class="space-y-3 pt-2">
                         <label class="text-xs font-black text-slate-500 uppercase ml-1">Ba mẹ biết Trung tâm thông qua</label>
                         <div class="grid sm:grid-cols-2 gap-4">
