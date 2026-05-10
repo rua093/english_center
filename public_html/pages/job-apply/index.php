@@ -2,7 +2,102 @@
 <main class="py-12 md:py-16 font-jakarta">
     <div class="container mx-auto px-4 max-w-7xl">
         
-        <div class="mb-12 text-center" data-aos="fade-down">
+        <!-- Section Giới thiệu Trung tâm -->
+        <div class="mb-16" data-aos="fade-up">
+            <div class="relative overflow-hidden rounded-3xl">
+                <!-- Background decorative -->
+                <div class="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-blue-50"></div>
+                <div class="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-rose-100 opacity-30 rounded-full -mr-48 -mt-48"></div>
+                <div class="absolute bottom-0 left-0 w-80 h-80 bg-gradient-to-tr from-lime-100 opacity-25 rounded-full -ml-40 -mb-40"></div>
+                <div class="absolute inset-0 pointer-events-none" style="background-image: radial-gradient(circle at 20% 50%, rgba(59, 130, 246, 0.05) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(244, 63, 94, 0.05) 0%, transparent 50%);"></div>
+                
+                <!-- Content -->
+                <div class="relative z-10 p-8 md:p-12 border border-slate-200 shadow-xl shadow-slate-100/50">
+                    <div class="max-w-4xl mx-auto">
+                        <!-- Tiêu đề -->
+                        <div class="mb-8">
+                            <span class="inline-block text-xs font-black text-rose-600 bg-rose-50 px-4 py-2 rounded-full uppercase tracking-widest mb-4">Về Nhuệ Minh Edu</span>
+                            <h2 class="text-4xl md:text-5xl font-black text-slate-900 leading-tight mb-6">
+                                Nhuệ Minh Edu - Trung tâm giáo dục <span class="text-rose-600">tiêu chuẩn quốc tế</span>
+                            </h2>
+                        </div>
+
+                        <!-- Nội dung chính -->
+                        <div class="grid md:grid-cols-2 gap-10 mb-12">
+                            <div>
+                                <p class="text-slate-700 font-bold text-lg leading-relaxed mb-6">
+                                    Là một trong những trung tâm giáo dục <span class="text-rose-600">hàng đầu</span> tại Việt Nam, Nhuệ Minh Edu cam kết cung cấp những <span class="text-rose-600">chương trình học chất lượng cao</span> với phương pháp giảng dạy <span class="text-rose-600">hiệu quả và tiên tiến</span>.
+                                </p>
+                                <p class="text-slate-700 font-bold text-lg leading-relaxed">
+                                    Chúng tôi không chỉ dạy kiến thức, mà còn <span class="text-rose-600">hình thành kỹ năng</span> và <span class="text-rose-600">giá trị nhân văn</span> cho mỗi học viên, tạo nền tảng vững chắc cho sự phát triển bền vững trong tương lai.
+                                </p>
+                            </div>
+
+                            <div>
+                                <p class="text-slate-700 font-bold text-lg leading-relaxed">
+                                    Thành công của Nhuệ Minh Edu được xây dựng trên nền tảng của một <span class="text-rose-600">đội ngũ giáo viên xuất sắc</span> - những chuyên gia tận tâm, giàu kinh nghiệm và luôn sẵn sàng <span class="text-rose-600">góp sức</span> để nâng cao chất lượng giáo dục.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Câu nhấn mạnh chính -->
+                        <div class="mb-12 p-8 md:p-10 bg-gradient-to-r from-rose-600 to-orange-600 rounded-3xl shadow-xl shadow-rose-600/30">
+                            <p class="text-white font-black text-2xl md:text-3xl leading-relaxed text-center">
+                                Chúng tôi đang tìm kiếm những <span class="bg-white text-rose-600 px-3 py-1 rounded-lg inline-block mx-1">nhân tài</span> có <span class="bg-white text-rose-600 px-3 py-1 rounded-lg inline-block mx-1">tâm huyết</span>, <span class="bg-white text-rose-600 px-3 py-1 rounded-lg inline-block mx-1">năng lực</span> và <span class="bg-white text-rose-600 px-3 py-1 rounded-lg inline-block mx-1">đam mê giáo dục</span> để trở thành một phần của <span class="bg-white text-rose-600 px-3 py-1 rounded-lg inline-block mx-1">gia đình Nhuệ Minh Edu</span>.
+                            </p>
+                        </div>
+
+                        <!-- Nút Ứng Tuyển -->
+                        <div class="text-center mb-4">
+                            <button onclick="document.getElementById('form-section').scrollIntoView({ behavior: 'smooth', block: 'start' })" class="inline-flex items-center justify-center gap-3 bg-gradient-to-r from-lime-500 to-emerald-500 hover:from-lime-600 hover:to-emerald-600 text-white font-black py-4 px-8 rounded-2xl shadow-lg shadow-lime-500/30 transition-all hover:scale-105 hover:-translate-y-1 uppercase tracking-widest text-sm group">
+                                <span>Bắt Đầu Ứng Tuyển</span>
+                                <i class="fa-solid fa-arrow-down group-hover:translate-y-1 transition-transform"></i>
+                            </button>
+                        </div>
+
+                        <!-- Điểm nổi bật -->
+                        <div class="grid md:grid-cols-3 gap-6">
+                            <div class="flex items-start gap-4 p-6 bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+                                <div class="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                                    <i class="fa-solid fa-award text-emerald-600 text-xl"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-black text-slate-900 mb-2 uppercase text-sm">Chất lượng công nhân quốc tế</h4>
+                                    <p class="text-slate-600 font-medium text-sm leading-relaxed">Đạt chuẩn giáo dục quốc tế, được công nhận và tín nhiệm từ các tổ chức uy tín toàn cầu</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start gap-4 p-6 bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+                                <div class="w-12 h-12 bg-sky-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                                    <i class="fa-solid fa-lightbulb text-sky-600 text-xl"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-black text-slate-900 mb-2 uppercase text-sm">Phương pháp hiệp tác hàng đầu</h4>
+                                    <p class="text-slate-600 font-medium text-sm leading-relaxed">Sử dụng công nghệ và phương pháp giảng dạy tiên tiến nhất, luôn cập nhật xu hướng giáo dục toàn cầu</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start gap-4 p-6 bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+                                <div class="w-12 h-12 bg-rose-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                                    <i class="fa-solid fa-hands-helping text-rose-600 text-xl"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-black text-slate-900 mb-2 uppercase text-sm">Đội ngũ tận tâm</h4>
+                                    <p class="text-slate-600 font-medium text-sm leading-relaxed">Giáo viên và cán bộ nhân viên luôn sẵn sàng góp sức vì sứ mệnh giáo dục cao quý</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Divider -->
+        <div class="mb-12">
+            <div class="w-20 h-1 bg-gradient-to-r from-rose-600 to-orange-600 mx-auto rounded-full"></div>
+        </div>
+
+        <div id="form-section" class="mb-12 text-center" data-aos="fade-down">
             <h1 class="text-4xl md:text-5xl font-black text-slate-900 mb-4">Hồ Sơ <span class="text-rose-600">Ứng Tuyển</span></h1>
             <p class="text-slate-500 font-medium">Hoàn thiện thông tin dưới đây để gia nhập đội ngũ chuyên gia tại Nhuệ Minh Edu</p>
         </div>

@@ -43,7 +43,7 @@ $homeFormatFeedbackDate = static function (?string $value): string {
             <div class="absolute inset-0 bg-gradient-to-r from-blue-950/80 md:from-blue-950/70 via-blue-950/40 md:via-blue-950/20 to-transparent w-full"></div>
         </div>
 
-       <div class="relative z-10 w-full max-w-[1450px] mx-auto px-4 sm:px-6 md:px-10 flex flex-col -mt-16 md:-mt-20">
+        <div class="relative z-10 w-full max-w-[1450px] mx-auto px-4 sm:px-6 md:px-10 flex flex-col -mt-16 md:-mt-20">
             <div class="max-w-2xl" data-aos="fade-right">
                 <h1 class="text-3xl sm:text-4xl md:text-5xl font-black text-white leading-tight uppercase drop-shadow-lg">
                     GREATER YOU EVERYDAY <br>
@@ -55,52 +55,44 @@ $homeFormatFeedbackDate = static function (?string $value): string {
             </div>
         </div>
 
-        <div class="absolute bottom-0 left-0 right-0 translate-y-0 sm:translate-y-1/2 z-30 flex flex-col items-center px-4 sm:px-6">
-            <div class="w-full max-w-[1180px] bg-gradient-to-br from-red-200 via-rose-200 to-lime-200 rounded-2xl sm:rounded-3xl shadow-[0_18px_60px_rgba(0,0,0,0.18)] flex flex-col overflow-hidden border border-lime-400/35 ring-1 ring-white/10">
-                <div class="h-1 w-full bg-gradient-to-r from-amber-400 via-cyan-300 to-sky-400"></div>
-                <div class="grid gap-0 lg:grid-cols-[1.35fr_1fr] items-stretch">
-                    <div class="p-4 sm:p-6 md:p-8 lg:p-10 lg:border-r border-lime-200/80 relative overflow-hidden flex items-center">
-                        <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.58),transparent_38%)]"></div>
-                        <div class="relative z-10 max-w-3xl">
-                            <p class="text-slate-800 font-semibold text-xs sm:text-sm md:text-base leading-relaxed max-w-2xl">
-                                Tìm các khóa học phù hợp với bạn và giúp con đường học vấn của bạn thành công
-                            </p>
-                        </div>
-                    </div>
-                    <div class="p-4 sm:p-6 md:p-8 lg:p-10 bg-white/72 backdrop-blur-sm flex items-center relative overflow-hidden">
-                        <div class="absolute inset-0 pointer-events-none">
-                            <div class="absolute -top-8 right-10 h-16 w-16 sm:h-20 sm:w-20 rounded-none border border-lime-300/70 bg-white/50 rotate-12 max-sm:hidden"></div>
-                            <div class="absolute bottom-8 right-16 h-10 w-10 sm:h-12 sm:w-12 rounded-none bg-lime-400/35 rotate-45 max-sm:hidden"></div>
-                            <div class="absolute top-1/2 left-6 h-12 w-12 sm:h-14 sm:w-14 rounded-none border border-lime-300/60 bg-lime-100/50 -rotate-12 max-sm:hidden"></div>
-                        </div>
-                        <div class="relative z-10 w-full grid gap-3 sm:gap-4 sm:grid-cols-2">
-                            <div class="relative">
-                                <select class="w-full bg-white text-slate-800 font-bold rounded-xl sm:rounded-2xl px-4 sm:px-5 py-2.5 sm:py-3 outline-none appearance-none cursor-pointer text-xs sm:text-sm shadow-inner border border-lime-200/90">
-                                    <option value="" disabled selected>Độ tuổi</option>
-                                    <option>Mầm non</option>
-                                    <option>Tiểu học</option>
-                                </select>
-                                <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-[10px]"></i>
-                            </div>
-                            <div class="relative">
-                                <select class="w-full bg-white text-slate-800 font-bold rounded-xl sm:rounded-2xl px-4 sm:px-5 py-2.5 sm:py-3 outline-none appearance-none cursor-pointer text-xs sm:text-sm shadow-inner border border-lime-200/90">
-                                    <option value="" disabled selected>Chương trình học</option>
-                                    <option>IELTS</option>
-                                    <option>Giao tiếp</option>
-                                </select>
-                                <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-[10px]"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+       <div class="absolute bottom-0 left-0 right-0 translate-y-0 sm:translate-y-1/2 z-30 flex flex-col items-center px-4 sm:px-6">
+    
+        <div class="w-full max-w-[1024px] bg-gradient-to-br from-red-200 via-rose-200 to-lime-200 rounded-2xl sm:rounded-[2rem] shadow-[0_15px_40px_rgba(0,0,0,0.15)] overflow-hidden border border-lime-400/35 ring-1 ring-white/20 relative">
 
-            <div class="mt-4">
-                <a href="<?= e(page_url('register-consultation')); ?>" class="bg-amber-400 hover:bg-amber-500 text-blue-950 font-black uppercase text-[10px] sm:text-xs px-6 sm:px-8 py-2.5 rounded-full shadow-lg border-2 border-white transition-transform hover:-translate-y-1 flex items-center gap-2">
-                    KIỂM TRA TRÌNH ĐỘ MIỄN PHÍ <span class="w-1.5 h-1.5 rounded-full bg-red-600"></span>
-                </a>
+            <div class="h-1.5 w-full bg-gradient-to-r from-amber-400 via-cyan-300 to-sky-400"></div>
+
+            <div class="relative p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6 md:gap-8">
+                
+                <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.6),transparent_60%)]"></div>
+                
+                <div class="relative z-10 w-full md:flex-1 text-center md:text-left">
+                    <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/90 border border-white text-[10px] font-black uppercase tracking-widest text-slate-800 mb-3 shadow-sm">
+                        <span class="w-2 h-2 rounded-full bg-red-600 animate-pulse"></span>
+                        Trung Tâm Tiếng Anh <span class="text-red-600">Nhuệ Minh</span>
+                    </div>
+
+                    <h3 class="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 leading-tight tracking-tight uppercase mb-2.5">
+                        Bứt Phá Giới Hạn <span class="hidden md:inline">-</span> <br class="md:hidden">
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-rose-600">
+                            Thống Lĩnh Ngôn Ngữ
+                        </span>
+                    </h3>
+
+                    <p class="text-slate-700 text-xs sm:text-sm leading-relaxed font-semibold max-w-2xl mx-auto md:mx-0">
+                        <strong class="text-slate-900">Xóa bỏ</strong> rào cản. <strong class="text-slate-900">Khai phóng</strong> tiềm năng. Là trung tâm tiếng Anh sở hữu hệ sinh thái <strong class="text-slate-900">độc quyền</strong>, chúng tôi giúp bạn <strong class="text-slate-900">làm chủ</strong> ngôn ngữ ở tầm vóc cao nhất.
+                    </p>
+                </div>
+
+                <div class="relative z-10 shrink-0 w-full md:w-auto flex justify-center mt-2 md:mt-0">
+                    <a href="<?= e(page_url('register-consultation')); ?>" class="group inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-amber-400 to-yellow-400 hover:scale-105 transition-all duration-300 text-blue-950 font-black uppercase text-[11px] sm:text-xs px-8 py-3.5 shadow-lg border-[3px] border-white whitespace-nowrap w-full md:w-auto">
+                        <i class="fa-solid fa-bolt text-red-600"></i>
+                        Đăng ký Test Trình Độ
+                    </a>
+                </div>
+
             </div>
         </div>
+    </div>
     </section>
 
     <section id="trang-chu" class="relative bg-transparent pt-12 lg:pt-16 lg:pb-8 overflow-hidden border-b border-blue-100/50">
@@ -174,6 +166,131 @@ $homeFormatFeedbackDate = static function (?string $value): string {
     </section>
 
     <?php include __DIR__ . '/../partials/social_contact.php'; ?>
+
+    <section id="khoa-hoc" class="pt-6 pb-14 md:pt-8 md:pb-18 relative overflow-hidden bg-transparent">
+        <div class="mx-auto w-full max-w-7xl px-4 sm:px-6 relative z-10">
+            <div class="mb-10 sm:mb-14 text-center" data-aos="fade-up">
+                <h2 class="text-2xl sm:text-3xl md:text-5xl font-black text-[#2e3192] uppercase tracking-tight">
+                    KHOÁ HỌC DÀNH CHO <span class="inline-block mt-2 md:mt-0 rounded-full bg-red-600 px-4 sm:px-6 py-1.5 sm:py-2 text-white shadow-lg transform -rotate-2">MỌI MỤC TIÊU</span>
+                </h2>
+                <p class="mt-4 sm:mt-6 text-sm sm:text-base md:text-lg text-slate-700 max-w-3xl mx-auto font-semibold">
+                    Dễ dàng lựa chọn khóa học tiếng Anh phù hợp cho riêng mình với chương trình học đa dạng, được thiết kế phù hợp với nhu cầu và trình độ thực tế.
+                </p>
+            </div>
+
+            <div class="rounded-[2rem] sm:rounded-[3rem] bg-white/40 backdrop-blur-md border border-white p-4 sm:p-6 md:p-8 lg:p-10 shadow-[0_15px_40px_rgba(30,58,138,0.06)] overflow-hidden" data-aos="zoom-in">
+                <?php if (empty($homeCourses)): ?>
+                    <div class="rounded-[2rem] border border-dashed border-slate-300 bg-white/70 px-6 py-14 text-center text-slate-500 font-medium">
+                        Hiện chưa có khóa học nào trong hệ thống.
+                    </div>
+                <?php else: ?>
+                    <div class="grid gap-5 sm:gap-6 sm:grid-cols-2 lg:grid-cols-4 mobile-swipe-track">
+                        <?php foreach ($homeCourses as $course): ?>
+                            <?php
+                            $courseTitle = (string) ($course['title'] ?? '');
+                            $courseSlug = (string) ($course['slug'] ?? '');
+                            $courseImage = (string) ($course['image'] ?? '');
+                            $courseDesc = trim((string) ($course['short_desc'] ?? ''));
+                            $courseLink = page_url('courses', ['course' => $courseSlug]);
+                            ?>
+                            <article class="mobile-swipe-card group flex flex-col overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] bg-white/90 shadow-lg border border-rose-100/70 transition-all duration-300 hover:-translate-y-3 hover:shadow-xl hover:shadow-rose-100/50">
+                                <div class="relative h-48 sm:h-56 overflow-hidden bg-gradient-to-br from-rose-50 via-white to-emerald-50">
+                                    <?php if ($courseImage !== ''): ?>
+                                        <img src="<?= e($courseImage); ?>" alt="<?= e($courseTitle); ?>" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                                        <div class="absolute inset-0 bg-gradient-to-t from-red-500/35 via-rose-400/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                                    <?php else: ?>
+                                        <div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-rose-50 via-white to-emerald-50">
+                                            <div class="text-center text-red-500">
+                                                <div class="mx-auto mb-3 flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-full bg-white/90 shadow-lg ring-1 ring-rose-100">
+                                                    <i class="fa-solid fa-book-open text-2xl sm:text-3xl text-red-400"></i>
+                                                </div>
+                                                <div class="text-[10px] sm:text-xs font-black uppercase tracking-[0.22em] text-slate-700">Ảnh khóa học</div>
+                                            </div>
+                                        </div>
+                                        <div class="absolute inset-0 bg-gradient-to-t from-red-500/12 via-rose-400/8 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                                    <?php endif; ?>
+                                    <div class="absolute top-3 sm:top-4 right-3 sm:right-4 bg-gradient-to-r from-red-500 to-emerald-500 text-white rounded-xl sm:rounded-2xl px-2 sm:px-3 py-1.5 sm:py-2 text-center shadow-md backdrop-blur-sm ring-1 ring-white/70">
+                                        <span class="block text-[8px] sm:text-[10px] uppercase font-bold opacity-90">Buổi học</span>
+                                        <span class="block text-xl sm:text-2xl font-black leading-none"><?= (int) ($course['total_sessions'] ?? 0); ?></span>
+                                    </div>
+                                </div>
+                                <div class="flex flex-1 flex-col p-5 sm:p-6">
+                                    <div class="inline-flex w-fit rounded-full bg-gradient-to-r from-emerald-50 to-rose-50 px-2.5 py-1 text-[9px] sm:text-[10px] font-black uppercase tracking-[0.18em] text-emerald-700 ring-1 ring-emerald-100/80">
+                                        <?= e((string) ($course['level'] ?? 'Khóa học')); ?>
+                                    </div>
+                                    <h3 class="mt-2 sm:mt-3 text-lg sm:text-xl font-extrabold uppercase leading-tight text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-rose-500 to-emerald-500 transition-colors"><?= e($courseTitle); ?></h3>
+                                    <p class="mt-2 sm:mt-3 text-xs sm:text-sm font-semibold text-slate-700 flex-1 leading-relaxed">
+                                        <?= e($courseDesc !== '' ? $courseDesc : 'Chương trình học được xây dựng theo lộ trình rõ ràng, phù hợp cho từng học viên.'); ?>
+                                    </p>
+                                    <div class="mt-4 sm:mt-5 pt-3 sm:pt-4 border-t-2 border-slate-100 flex flex-col gap-3 sm:gap-4">
+                                        <div class="flex items-end justify-between gap-3 sm:gap-4">
+                                            <div>
+                                                <span class="block text-[10px] sm:text-xs font-bold text-slate-700 uppercase tracking-wide">Học phí từ</span>
+                                                <span class="text-lg sm:text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-emerald-500"><?= e((string) ($course['price'] ?? '0đ')); ?></span>
+                                            </div>
+                                            <div class="text-right text-[10px] sm:text-xs font-semibold text-slate-700">
+                                                <div><?= (int) ($course['roadmap_count'] ?? 0); ?> lộ trình</div>
+                                                <div><?= (int) ($course['class_count'] ?? 0); ?> lớp học</div>
+                                            </div>
+                                        </div>
+                                        <a href="<?= e($courseLink); ?>" class="inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-red-500 via-rose-500 to-emerald-500 px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-bold text-white shadow-md transition-all hover:-translate-y-0.5 hover:from-red-600 hover:to-emerald-600 hover:shadow-lg">
+                                            Xem chi tiết <i class="fa-solid fa-arrow-right text-[10px] sm:text-xs"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </article>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+    </section>
+
+    <section id="lien-he" class="relative py-10 sm:py-14 md:py-20 overflow-hidden bg-transparent z-10">
+        <div class="mx-auto w-full max-w-[1400px] flex flex-col lg:flex-row">
+
+            <div class="w-full lg:w-1/2 flex flex-col justify-center px-4 sm:px-6 py-10 sm:py-16 lg:px-16 xl:px-32 z-10" data-aos="fade-right">
+                
+                <h2 class="text-2xl sm:text-[28px] md:text-[36px] font-bold text-[#185b9d] mb-4 sm:mb-5 tracking-tight">
+                    Tư vấn và kiểm tra miễn phí
+                </h2>
+
+                <p class="max-w-xl text-slate-600 text-sm sm:text-base md:text-lg font-medium leading-relaxed mb-6 sm:mb-8">
+                    Đăng ký ngay để được đội ngũ tư vấn hỗ trợ lộ trình học phù hợp, kiểm tra trình độ và nhận gợi ý khóa học tối ưu nhất.
+                </p>
+
+                <div class="inline-flex flex-col items-start gap-4 max-w-[420px]">
+                    <a href="<?= e(page_url('register-consultation')); ?>" class="group relative inline-flex items-center justify-center rounded-full sm:rounded-[1.5rem] bg-[#2e3192] px-6 sm:px-8 py-4 sm:py-5 text-white font-black uppercase tracking-[0.18em] shadow-[0_18px_40px_rgba(46,49,146,0.28)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_50px_rgba(46,49,146,0.38)] active:translate-y-0 focus:outline-none focus:ring-4 focus:ring-blue-400/30 w-full sm:w-auto">
+                        <span class="absolute inset-x-4 top-0 h-2 rounded-full bg-white/25 blur-sm"></span>
+                        <span class="relative flex items-center gap-2 sm:gap-3 text-sm sm:text-base md:text-lg">
+                            <i class="fa-solid fa-pen-to-square transition-transform duration-300 group-hover:rotate-[-8deg]"></i>
+                            Đăng ký ngay
+                        </span>
+                    </a>
+
+                    <div class="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm text-slate-500 font-medium bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl sm:rounded-2xl px-3 sm:px-4 py-2 sm:py-3 shadow-sm">
+                        <div class="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-circle-check"></i>
+                        </div>
+                        <span>Chỉ mất vài giây để mở form đăng ký tư vấn.</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="w-full lg:w-1/2 relative min-h-[300px] sm:min-h-[400px] lg:min-h-[600px] mt-8 lg:mt-0" data-aos="fade-left">
+                
+                <img src="assets/images/tu_van_student.jpg" alt="Học sinh" class="absolute inset-0 w-full h-full object-cover object-top lg:object-center rounded-3xl lg:rounded-none">
+
+                <div class="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-[#f4f7fb] to-transparent pointer-events-none lg:hidden"></div>
+
+                <div class="absolute inset-y-0 left-0 w-24 md:w-32 bg-gradient-to-r from-[#f4f7fb] to-transparent pointer-events-none hidden lg:block"></div>
+
+                <div class="absolute inset-y-0 right-0 w-24 md:w-32 bg-gradient-to-l from-[#f4f7fb] to-transparent pointer-events-none hidden lg:block"></div>
+
+            </div>
+
+        </div>
+    </section>
 
     <section id="gioi-thieu" class="relative py-16 sm:py-20 md:py-28 overflow-hidden bg-transparent">
         <div class="absolute top-[-5%] right-[-5%] w-[250px] sm:w-[400px] lg:w-[500px] h-[250px] sm:h-[400px] lg:h-[500px] bg-gradient-to-br from-blue-300/40 to-sky-200/40 rounded-full blur-2xl sm:blur-3xl mix-blend-multiply pointer-events-none"></div>
@@ -340,85 +457,6 @@ $homeFormatFeedbackDate = static function (?string $value): string {
         </div>
     </section>                            
 								
-    <section id="khoa-hoc" class="pt-6 pb-14 md:pt-8 md:pb-18 relative overflow-hidden bg-transparent">
-        <div class="mx-auto w-full max-w-7xl px-4 sm:px-6 relative z-10">
-            <div class="mb-10 sm:mb-14 text-center" data-aos="fade-up">
-                <h2 class="text-2xl sm:text-3xl md:text-5xl font-black text-[#2e3192] uppercase tracking-tight">
-                    KHOÁ HỌC DÀNH CHO <span class="inline-block mt-2 md:mt-0 rounded-full bg-red-600 px-4 sm:px-6 py-1.5 sm:py-2 text-white shadow-lg transform -rotate-2">MỌI MỤC TIÊU</span>
-                </h2>
-                <p class="mt-4 sm:mt-6 text-sm sm:text-base md:text-lg text-slate-700 max-w-3xl mx-auto font-semibold">
-                    Dễ dàng lựa chọn khóa học tiếng Anh phù hợp cho riêng mình với chương trình học đa dạng, được thiết kế phù hợp với nhu cầu và trình độ thực tế.
-                </p>
-            </div>
-
-            <div class="rounded-[2rem] sm:rounded-[3rem] bg-white/40 backdrop-blur-md border border-white p-4 sm:p-6 md:p-8 lg:p-10 shadow-[0_15px_40px_rgba(30,58,138,0.06)] overflow-hidden" data-aos="zoom-in">
-                <?php if (empty($homeCourses)): ?>
-                    <div class="rounded-[2rem] border border-dashed border-slate-300 bg-white/70 px-6 py-14 text-center text-slate-500 font-medium">
-                        Hiện chưa có khóa học nào trong hệ thống.
-                    </div>
-                <?php else: ?>
-                    <div class="grid gap-5 sm:gap-6 sm:grid-cols-2 lg:grid-cols-4 mobile-swipe-track">
-                        <?php foreach ($homeCourses as $course): ?>
-                            <?php
-                            $courseTitle = (string) ($course['title'] ?? '');
-                            $courseSlug = (string) ($course['slug'] ?? '');
-                            $courseImage = (string) ($course['image'] ?? '');
-                            $courseDesc = trim((string) ($course['short_desc'] ?? ''));
-                            $courseLink = page_url('courses', ['course' => $courseSlug]);
-                            ?>
-                            <article class="mobile-swipe-card group flex flex-col overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] bg-white/90 shadow-lg border border-rose-100/70 transition-all duration-300 hover:-translate-y-3 hover:shadow-xl hover:shadow-rose-100/50">
-                                <div class="relative h-48 sm:h-56 overflow-hidden bg-gradient-to-br from-rose-50 via-white to-emerald-50">
-                                    <?php if ($courseImage !== ''): ?>
-                                        <img src="<?= e($courseImage); ?>" alt="<?= e($courseTitle); ?>" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
-                                        <div class="absolute inset-0 bg-gradient-to-t from-red-500/35 via-rose-400/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                                    <?php else: ?>
-                                        <div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-rose-50 via-white to-emerald-50">
-                                            <div class="text-center text-red-500">
-                                                <div class="mx-auto mb-3 flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-full bg-white/90 shadow-lg ring-1 ring-rose-100">
-                                                    <i class="fa-solid fa-book-open text-2xl sm:text-3xl text-red-400"></i>
-                                                </div>
-                                                <div class="text-[10px] sm:text-xs font-black uppercase tracking-[0.22em] text-slate-700">Ảnh khóa học</div>
-                                            </div>
-                                        </div>
-                                        <div class="absolute inset-0 bg-gradient-to-t from-red-500/12 via-rose-400/8 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                                    <?php endif; ?>
-                                    <div class="absolute top-3 sm:top-4 right-3 sm:right-4 bg-gradient-to-r from-red-500 to-emerald-500 text-white rounded-xl sm:rounded-2xl px-2 sm:px-3 py-1.5 sm:py-2 text-center shadow-md backdrop-blur-sm ring-1 ring-white/70">
-                                        <span class="block text-[8px] sm:text-[10px] uppercase font-bold opacity-90">Buổi học</span>
-                                        <span class="block text-xl sm:text-2xl font-black leading-none"><?= (int) ($course['total_sessions'] ?? 0); ?></span>
-                                    </div>
-                                </div>
-                                <div class="flex flex-1 flex-col p-5 sm:p-6">
-                                    <div class="inline-flex w-fit rounded-full bg-gradient-to-r from-emerald-50 to-rose-50 px-2.5 py-1 text-[9px] sm:text-[10px] font-black uppercase tracking-[0.18em] text-emerald-700 ring-1 ring-emerald-100/80">
-                                        <?= e((string) ($course['level'] ?? 'Khóa học')); ?>
-                                    </div>
-                                    <h3 class="mt-2 sm:mt-3 text-lg sm:text-xl font-extrabold uppercase leading-tight text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-rose-500 to-emerald-500 transition-colors"><?= e($courseTitle); ?></h3>
-                                    <p class="mt-2 sm:mt-3 text-xs sm:text-sm font-semibold text-slate-700 flex-1 leading-relaxed">
-                                        <?= e($courseDesc !== '' ? $courseDesc : 'Chương trình học được xây dựng theo lộ trình rõ ràng, phù hợp cho từng học viên.'); ?>
-                                    </p>
-                                    <div class="mt-4 sm:mt-5 pt-3 sm:pt-4 border-t-2 border-slate-100 flex flex-col gap-3 sm:gap-4">
-                                        <div class="flex items-end justify-between gap-3 sm:gap-4">
-                                            <div>
-                                                <span class="block text-[10px] sm:text-xs font-bold text-slate-700 uppercase tracking-wide">Học phí từ</span>
-                                                <span class="text-lg sm:text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-emerald-500"><?= e((string) ($course['price'] ?? '0đ')); ?></span>
-                                            </div>
-                                            <div class="text-right text-[10px] sm:text-xs font-semibold text-slate-700">
-                                                <div><?= (int) ($course['roadmap_count'] ?? 0); ?> lộ trình</div>
-                                                <div><?= (int) ($course['class_count'] ?? 0); ?> lớp học</div>
-                                            </div>
-                                        </div>
-                                        <a href="<?= e($courseLink); ?>" class="inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-red-500 via-rose-500 to-emerald-500 px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-bold text-white shadow-md transition-all hover:-translate-y-0.5 hover:from-red-600 hover:to-emerald-600 hover:shadow-lg">
-                                            Xem chi tiết <i class="fa-solid fa-arrow-right text-[10px] sm:text-xs"></i>
-                                        </a>
-                                    </div>
-                                </div>
-                            </article>
-                        <?php endforeach; ?>
-                    </div>
-                <?php endif; ?>
-            </div>
-        </div>
-    </section>
-
     <section id="ngoai-khoa" class="py-12 sm:py-16 bg-transparent relative overflow-hidden">
         <div class="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 relative z-10">
             <div class="mb-10 sm:mb-12 text-center md:text-left" data-aos="fade-up">
