@@ -69,10 +69,10 @@ $selectedThumbnailUrl = normalize_public_file_url((string) ($editingCourse['imag
                     <input type="number" min="0" step="0.01" name="base_price" value="<?= e(number_format($selectedBasePrice, 2, '.', '')); ?>">
                 </label>
 
-                <label class="md:col-span-2">
-                    Mô tả khóa học
-                    <textarea name="description" rows="4" placeholder="Mô tả ngắn nội dung, mục tiêu và đối tượng học viên."><?= e($selectedDescription); ?></textarea>
-                </label>
+                <div class="md:col-span-2">
+                    <label for="course-description">Mô tả khóa học</label>
+                    <?= render_bbcode_editor('description', $selectedDescription, ['id' => 'course-description', 'rows' => 4, 'placeholder' => 'Mô tả ngắn nội dung, mục tiêu và đối tượng học viên.']); ?>
+                </div>
 
                 <label class="md:col-span-2">
                     Ảnh minh họa khóa học
@@ -167,7 +167,7 @@ $selectedThumbnailUrl = normalize_public_file_url((string) ($editingCourse['imag
                                     <?php endif; ?>
                                     <div class="font-semibold text-slate-800"><?= e($courseName); ?></div>
                                     <?php if (!empty($course['description'])): ?>
-                                        <div class="mt-1 text-xs text-slate-500"><?= e((string) $course['description']); ?></div>
+                                        <div class="mt-1 text-xs text-slate-500 bbcode-content"><?= bbcode_to_html((string) $course['description']); ?></div>
                                     <?php endif; ?>
                                 </td>
                                 <td><?= (int) ($course['total_sessions'] ?? 0); ?> buổi</td>

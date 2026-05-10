@@ -281,6 +281,127 @@ final class NotificationsTableModel
         });
     }
 
+    public function existsByTargetAndContent(string $targetType, ?int $targetId, string $title, string $message): bool
+    {
+        $normalizedType = strtoupper(trim($targetType));
+        $normalizedTitle = trim($title);
+        $normalizedMessage = trim($message);
+
+        if ($normalizedTitle === '' || $normalizedMessage === '') {
+            return false;
+        }
+
+        if (!$this->supportsHybrid()) {
+            if ($normalizedType !== 'USER' || (int) $targetId <= 0) {
+                return false;
+            }
+
+            return (int) $this->fetchScalar(
+                'SELECT COUNT(*) AS total
+                 FROM notifications
+                 WHERE user_id = :user_id
+                   AND title = :title
+                   AND message = :message',
+                [
+                    'user_id' => (int) $targetId,
+                    'title' => $normalizedTitle,
+                    'message' => $normalizedMessage,
+                ],
+                'total',
+                0
+            ) > 0;
+        }
+
+        if ($normalizedType === 'ALL') {
+            return (int) $this->fetchScalar(
+                "SELECT COUNT(*) AS total
+                 FROM notifications n
+                 INNER JOIN notification_targets nt ON nt.notification_id = n.id
+                 WHERE nt.target_type = 'ALL'
+                   AND n.title = :title
+                   AND n.message = :message",
+                [
+                    'title' => $normalizedTitle,
+                    'message' => $normalizedMessage,
+                ],
+                'total',
+                0
+            ) > 0;
+        }
+
+        if ((int) $targetId <= 0 || !in_array($normalizedType, ['USER', 'ROLE', 'CLASS'], true)) {
+            return false;
+        }
+
+        return (int) $this->fetchScalar(
+            'SELECT COUNT(*) AS total
+             FROM notifications n
+             INNER JOIN notification_targets nt ON nt.notification_id = n.id
+             WHERE nt.target_type = :target_type
+               AND nt.target_id = :target_id
+               AND n.title = :title
+               AND n.message = :message',
+            [
+                'target_type' => $normalizedType,
+                'target_id' => (int) $targetId,
+                'title' => $normalizedTitle,
+                'message' => $normalizedMessage,
+            ],
+            'total',
+            0
+        ) > 0;
+    }
+
+    public function existsByTargetAndMessageFragment(string $targetType, ?int $targetId, string $messageFragment): bool
+    {
+        $normalizedType = strtoupper(trim($targetType));
+        $normalizedFragment = trim($messageFragment);
+        if ($normalizedFragment === '') {
+            return false;
+        }
+
+        $likeFragment = '%' . $normalizedFragment . '%';
+
+        if (!$this->supportsHybrid()) {
+            if ($normalizedType !== 'USER' || (int) $targetId <= 0) {
+                return false;
+            }
+
+            return (int) $this->fetchScalar(
+                'SELECT COUNT(*) AS total
+                 FROM notifications
+                 WHERE user_id = :user_id
+                   AND message LIKE :message_fragment',
+                [
+                    'user_id' => (int) $targetId,
+                    'message_fragment' => $likeFragment,
+                ],
+                'total',
+                0
+            ) > 0;
+        }
+
+        if ((int) $targetId <= 0 || !in_array($normalizedType, ['USER', 'ROLE', 'CLASS'], true)) {
+            return false;
+        }
+
+        return (int) $this->fetchScalar(
+            'SELECT COUNT(*) AS total
+             FROM notifications n
+             INNER JOIN notification_targets nt ON nt.notification_id = n.id
+             WHERE nt.target_type = :target_type
+               AND nt.target_id = :target_id
+               AND n.message LIKE :message_fragment',
+            [
+                'target_type' => $normalizedType,
+                'target_id' => (int) $targetId,
+                'message_fragment' => $likeFragment,
+            ],
+            'total',
+            0
+        ) > 0;
+    }
+
     public function markRead(int $id, int $userId = 0): void
     {
         if ($id <= 0 || $userId <= 0) {
@@ -653,6 +774,27 @@ final class NotificationsTableModel
 
         $targetType = strtoupper(trim((string) ($data['target_type'] ?? '')));
         $targetId = isset($data['target_id']) && $data['target_id'] !== '' ? (int) $data['target_id'] : null;
+
+        if ($targetType === 'USER' && ($targetId === null || $targetId <= 0)) {
+            $resolvedUserId = (int) ($data['target_user_id'] ?? $data['recipient_id'] ?? 0);
+            if ($resolvedUserId > 0) {
+                $targetId = $resolvedUserId;
+            }
+        }
+
+        if ($targetType === 'ROLE' && ($targetId === null || $targetId <= 0)) {
+            $resolvedRoleId = (int) ($data['target_role_id'] ?? 0);
+            if ($resolvedRoleId > 0) {
+                $targetId = $resolvedRoleId;
+            }
+        }
+
+        if ($targetType === 'CLASS' && ($targetId === null || $targetId <= 0)) {
+            $resolvedClassId = (int) ($data['target_class_id'] ?? 0);
+            if ($resolvedClassId > 0) {
+                $targetId = $resolvedClassId;
+            }
+        }
 
         if ($targetType === 'ALL') {
             return ['ALL', null];

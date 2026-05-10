@@ -10,6 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
     <?php require_once __DIR__ . '/tailwind_cdn.php'; ?>
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/sceditor@3/minified/themes/default.min.css" rel="stylesheet">
     <style>
         .ts-wrapper {
             margin-top: 0.45rem !important;
@@ -84,9 +85,20 @@
             align-items: center;
         }
 
+        .admin-ui form > div > label,
+        .admin-ui form .grid > div > label,
+        .admin-ui form .bbcode-editor + label {
+            display: block;
+            font-size: 0.82rem;
+            font-weight: 700;
+            letter-spacing: 0.01em;
+            color: #334155;
+        }
+
         .admin-ui form label > input:not([type='checkbox']):not([type='hidden']),
         .admin-ui form label > select,
-        .admin-ui form label > textarea {
+        .admin-ui form label > textarea,
+        .admin-ui form .bbcode-editor textarea[data-bbcode-input='1'] {
             margin-top: 0.45rem;
             width: 100%;
             border-radius: 0.75rem;
@@ -99,14 +111,332 @@
             transition: border-color 120ms ease, box-shadow 120ms ease, background-color 120ms ease;
         }
 
-        .admin-ui form label > textarea {
+        .admin-ui form label > textarea,
+        .admin-ui form .bbcode-editor textarea[data-bbcode-input='1'] {
             min-height: 6.5rem;
             resize: vertical;
         }
 
+        .admin-ui form label > .bbcode-editor {
+            margin-top: 0.45rem;
+        }
+
+        .bbcode-rendered-box {
+            border-radius: 0.85rem;
+            border: 1px solid #dbe4f0;
+            background: #f8fafc;
+            padding: 0.8rem 0.9rem;
+            color: #0f172a;
+        }
+
+        .bbcode-editor {
+            margin-top: 0.45rem;
+        }
+
+        .bbcode-editor textarea[data-bbcode-input='1'] {
+            margin-top: 0;
+            min-height: 8rem;
+        }
+
+        .bbcode-editor {
+            --bbcode-editor-bg: #ffffff;
+            --bbcode-editor-panel: #f8fafc;
+            --bbcode-editor-panel-strong: #f1f5f9;
+            --bbcode-editor-border: #e2e8f0;
+            --bbcode-editor-border-strong: #cbd5e1;
+            --bbcode-editor-text: #0f172a;
+            --bbcode-editor-muted: #64748b;
+            --bbcode-editor-accent: #2563eb;
+            --bbcode-editor-accent-soft: rgba(37, 99, 235, 0.08);
+            --bbcode-editor-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 10px 24px rgba(15, 23, 42, 0.04);
+        }
+
+        .bbcode-editor .sceditor-container {
+            width: 100% !important;
+            border-radius: 0.9rem;
+            border: 1px solid var(--bbcode-editor-border) !important;
+            background: var(--bbcode-editor-bg) !important;
+            box-shadow: var(--bbcode-editor-shadow) !important;
+            overflow: hidden;
+            transition: border-color 140ms ease, box-shadow 140ms ease, background-color 140ms ease;
+        }
+
+        .bbcode-editor .sceditor-container.focus,
+        .bbcode-editor .sceditor-container:focus-within {
+            border-color: #93c5fd !important;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.10) !important;
+            background: #ffffff !important;
+        }
+
+        .bbcode-editor .sceditor-toolbar {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.35rem;
+            align-items: center;
+            border-bottom: 1px solid var(--bbcode-editor-border);
+            background: #fbfcfe;
+            padding: 0.55rem 0.6rem;
+        }
+
+        .bbcode-editor .sceditor-group {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.15rem;
+            margin: 0;
+            padding: 0;
+            border-radius: 0.7rem;
+            border: 0;
+            background: transparent;
+            box-shadow: none;
+        }
+
+        .bbcode-editor .sceditor-button {
+            position: relative;
+            display: inline-flex !important;
+            align-items: center;
+            justify-content: center;
+            width: 2rem;
+            height: 2rem;
+            min-width: 2rem;
+            border-radius: 0.6rem;
+            border: 1px solid transparent;
+            background: transparent;
+            color: var(--bbcode-editor-muted);
+            transition:
+                background-color 140ms ease,
+                color 140ms ease,
+                border-color 140ms ease,
+                box-shadow 140ms ease;
+        }
+
+        .bbcode-editor .sceditor-button:hover,
+        .bbcode-editor .sceditor-button.active,
+        .bbcode-editor .sceditor-button:focus {
+            background: #f3f6fb;
+            color: var(--bbcode-editor-text);
+            border-color: transparent;
+        }
+
+        .bbcode-editor .sceditor-button.active {
+            background: var(--bbcode-editor-accent-soft);
+            color: var(--bbcode-editor-accent);
+            border-color: transparent;
+            box-shadow: none;
+        }
+
+        .bbcode-editor .sceditor-button:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+        }
+
+        .bbcode-editor .sceditor-button.disabled {
+            opacity: 0.42;
+            pointer-events: none;
+        }
+
+        .bbcode-editor .sceditor-button div,
+        .bbcode-editor .sceditor-button span {
+            display: none !important;
+        }
+
+        .bbcode-editor .sceditor-button svg {
+            width: 1rem;
+            height: 1rem;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 1.85;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            pointer-events: none;
+        }
+
+        .bbcode-editor .sceditor-button.sceditor-button-source svg {
+            width: 1.05rem;
+            height: 1.05rem;
+        }
+
+        .bbcode-editor .sceditor-container iframe,
+        .bbcode-editor .sceditor-container textarea,
+        .bbcode-editor .sceditor-container .sceditor-wysiwyg {
+            min-height: 15rem !important;
+            padding: 1rem 1.1rem !important;
+            font-family: "Manrope", ui-sans-serif, system-ui, sans-serif !important;
+            font-size: 0.94rem !important;
+            line-height: 1.7 !important;
+            letter-spacing: 0.01em;
+            color: var(--bbcode-editor-text) !important;
+            background: #ffffff !important;
+            caret-color: var(--bbcode-editor-accent) !important;
+        }
+
+        .bbcode-editor .sceditor-container textarea {
+            border-top: 1px solid var(--bbcode-editor-border) !important;
+            background: #ffffff !important;
+        }
+
+        .bbcode-editor .sceditor-container iframe {
+            background: #ffffff !important;
+        }
+
+        .bbcode-editor .sceditor-container .sceditor-wysiwyg body,
+        .bbcode-editor .sceditor-container .sceditor-wysiwyg {
+            color: var(--bbcode-editor-text) !important;
+            font-family: "Manrope", ui-sans-serif, system-ui, sans-serif !important;
+            line-height: 1.72 !important;
+        }
+
+        .bbcode-editor .sceditor-container .sceditor-wysiwyg p,
+        .bbcode-editor .sceditor-container .sceditor-wysiwyg blockquote,
+        .bbcode-editor .sceditor-container .sceditor-wysiwyg pre {
+            margin-bottom: 0.85rem;
+        }
+
+        .bbcode-editor .sceditor-container .sceditor-wysiwyg blockquote {
+            margin: 1rem 0;
+            padding: 0.9rem 1rem;
+            border-left: 3px solid #cbd5e1;
+            border-radius: 0.75rem;
+            background: #f8fafc;
+            color: #1e3a8a;
+        }
+
+        .bbcode-editor .sceditor-container .sceditor-wysiwyg pre {
+            overflow-x: auto;
+            padding: 0.95rem 1rem;
+            border-radius: 0.8rem;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+
+        .bbcode-editor .sceditor-container .sceditor-wysiwyg a {
+            color: var(--bbcode-editor-accent);
+            text-decoration: underline;
+            text-underline-offset: 0.16em;
+        }
+
+        .bbcode-editor .sceditor-statusbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            padding: 0.42rem 0.8rem;
+            border-top: 1px solid var(--bbcode-editor-border);
+            background: #fafbfc;
+            color: var(--bbcode-editor-muted);
+            font-size: 0.73rem;
+        }
+
+        .bbcode-editor .sceditor-grip {
+            opacity: 0.58;
+            filter: saturate(0);
+        }
+
+        .bbcode-hint {
+            margin-top: 0.55rem;
+            padding: 0 0.2rem;
+            font-size: 0.76rem;
+            line-height: 1.55;
+            color: #64748b;
+        }
+
+        #classroom-lesson-modal .bbcode-editor .sceditor-container iframe,
+        #classroom-lesson-modal .bbcode-editor .sceditor-container textarea,
+        #classroom-lesson-modal .bbcode-editor .sceditor-container .sceditor-wysiwyg,
+        #classroom-assignment-modal .bbcode-editor .sceditor-container iframe,
+        #classroom-assignment-modal .bbcode-editor .sceditor-container textarea,
+        #classroom-assignment-modal .bbcode-editor .sceditor-container .sceditor-wysiwyg {
+            min-height: 10.5rem !important;
+        }
+
+        @media (max-width: 767px) {
+            .bbcode-editor .sceditor-toolbar {
+                gap: 0.3rem;
+                padding: 0.5rem;
+            }
+
+            .bbcode-editor .sceditor-group {
+                gap: 0.1rem;
+                border-radius: 0.7rem;
+            }
+
+            .bbcode-editor .sceditor-button {
+                width: 1.9rem;
+                height: 1.9rem;
+                min-width: 1.9rem;
+                border-radius: 0.55rem;
+            }
+
+            .bbcode-editor .sceditor-container iframe,
+            .bbcode-editor .sceditor-container textarea,
+            .bbcode-editor .sceditor-container .sceditor-wysiwyg {
+                min-height: 12.5rem !important;
+                padding: 0.9rem 1rem !important;
+                font-size: 0.92rem !important;
+            }
+
+            #classroom-lesson-modal .bbcode-editor .sceditor-container iframe,
+            #classroom-lesson-modal .bbcode-editor .sceditor-container textarea,
+            #classroom-lesson-modal .bbcode-editor .sceditor-container .sceditor-wysiwyg,
+            #classroom-assignment-modal .bbcode-editor .sceditor-container iframe,
+            #classroom-assignment-modal .bbcode-editor .sceditor-container textarea,
+            #classroom-assignment-modal .bbcode-editor .sceditor-container .sceditor-wysiwyg {
+                min-height: 9rem !important;
+            }
+        }
+
+
+        .bbcode-content {
+            font-size: 0.9rem;
+            line-height: 1.6;
+            word-break: break-word;
+        }
+
+        .bbcode-content:empty::before {
+            content: "Chưa có nội dung để xem trước.";
+            color: #94a3b8;
+        }
+
+        .bbcode-content .bbcode-link {
+            color: #1d4ed8;
+            font-weight: 700;
+            text-decoration: underline;
+        }
+
+        .bbcode-content .bbcode-quote {
+            margin: 0.35rem 0;
+            border-left: 4px solid #93c5fd;
+            background: #eff6ff;
+            padding: 0.7rem 0.85rem;
+            border-radius: 0 0.8rem 0.8rem 0;
+            color: #1e3a8a;
+        }
+
+        .bbcode-content .bbcode-code {
+            margin: 0.35rem 0;
+            overflow-x: auto;
+            border-radius: 0.8rem;
+            background: #0f172a;
+            padding: 0.8rem 0.95rem;
+            color: #e2e8f0;
+            font-size: 0.82rem;
+            line-height: 1.55;
+        }
+
+        .bbcode-content .bbcode-image {
+            display: block;
+            max-width: 100%;
+            height: auto;
+            margin: 0.5rem 0;
+            border-radius: 0.8rem;
+        }
+
         .admin-ui form label > input:not([type='checkbox']):not([type='hidden']):focus,
         .admin-ui form label > select:focus,
-        .admin-ui form label > textarea:focus {
+        .admin-ui form label > textarea:focus,
+        .admin-ui form .bbcode-editor textarea[data-bbcode-input='1']:focus {
             outline: none;
             border-color: #60a5fa;
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18);
@@ -116,6 +446,7 @@
         .admin-ui form label > input:not([type='checkbox']):not([type='hidden']):disabled,
         .admin-ui form label > select:disabled,
         .admin-ui form label > textarea:disabled,
+        .admin-ui form .bbcode-editor textarea[data-bbcode-input='1']:disabled,
         .admin-ui form fieldset:disabled,
         .admin-ui form fieldset:disabled *,
         .admin-edit-modal-body button:disabled,
@@ -125,7 +456,8 @@
 
         .admin-ui form label > input:not([type='checkbox']):not([type='hidden']):disabled,
         .admin-ui form label > select:disabled,
-        .admin-ui form label > textarea:disabled {
+        .admin-ui form label > textarea:disabled,
+        .admin-ui form .bbcode-editor textarea[data-bbcode-input='1']:disabled {
             color: #475569;
             background: #f8fafc;
             border-color: #dbe4f0;
@@ -156,7 +488,8 @@
         }
 
         .admin-ui form input::placeholder,
-        .admin-ui form textarea::placeholder {
+        .admin-ui form textarea::placeholder,
+        .admin-ui form .bbcode-editor textarea[data-bbcode-input='1']::placeholder {
             color: #94a3b8;
         }
 

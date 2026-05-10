@@ -99,14 +99,14 @@ $editingThumbnailUrl = normalize_public_file_url((string) ($editingActivity['ima
                     Tên hoạt động
                     <input type="text" name="activity_name" value="<?= e((string) ($editingActivity['activity_name'] ?? '')); ?>" required>
                 </label>
-                <label class="md:col-span-2">
-                    Mô tả
-                    <textarea name="description" rows="4"><?= e((string) ($editingActivity['description'] ?? '')); ?></textarea>
-                </label>
-                <label class="md:col-span-2">
-                    Nội dung chi tiết
-                    <textarea name="content" rows="4"><?= e((string) ($editingActivity['content'] ?? '')); ?></textarea>
-                </label>
+                <div class="md:col-span-2">
+                    <label for="activity-description">Mô tả</label>
+                    <?= render_bbcode_editor('description', (string) ($editingActivity['description'] ?? ''), ['id' => 'activity-description', 'rows' => 4]); ?>
+                </div>
+                <div class="md:col-span-2">
+                    <label for="activity-content">Nội dung chi tiết</label>
+                    <?= render_bbcode_editor('content', (string) ($editingActivity['content'] ?? ''), ['id' => 'activity-content', 'rows' => 5]); ?>
+                </div>
                 <label>
                     Địa điểm
                     <input type="text" name="location" value="<?= e((string) ($editingActivity['location'] ?? '')); ?>" placeholder="Ví dụ: Cơ sở A - Phòng 203">

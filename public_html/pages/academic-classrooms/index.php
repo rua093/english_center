@@ -957,7 +957,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
         <?php if (!$canCreateLesson && !$canUpdateLesson): ?>
             <div class="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-700">Bạn chưa có quyền soạn hoặc cập nhật giáo án buổi học.</div>
         <?php else: ?>
-            <form id="classroom-lesson-form" class="grid min-h-0 gap-3" method="post" action="/api/lessons/save" enctype="multipart/form-data">
+            <form id="classroom-lesson-form" class="grid min-h-0 gap-3 overflow-y-auto pr-1" method="post" action="/api/lessons/save" enctype="multipart/form-data">
                 <?= csrf_input(); ?>
                 <input id="classroom-lesson-id" type="hidden" name="id" value="0">
                 <input id="classroom-lesson-existing-attachment-file-path" type="hidden" name="existing_attachment_file_path" value="">
@@ -987,17 +987,17 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
                     Tiêu đề buổi học
                     <input id="classroom-lesson-actual-title" type="text" name="actual_title" required placeholder="Ví dụ: Speaking Practice - Topic Debate">
                 </label>
-                <label>
-                    Nội dung giáo án
-                    <textarea id="classroom-lesson-actual-content" name="actual_content" rows="5" placeholder="Mục tiêu, hoạt động lớp, tổng hợp nội dung buổi học..."></textarea>
-                </label>
+                <div>
+                    <label for="classroom-lesson-actual-content">Nội dung giáo án</label>
+                    <?= render_bbcode_editor('actual_content', '', ['id' => 'classroom-lesson-actual-content', 'rows' => 5, 'placeholder' => 'Mục tiêu, hoạt động lớp, tổng hợp nội dung buổi học...']); ?>
+                </div>
                 <label>
                     Tài liệu buổi học (PDF, PPT, DOCX)
                     <input id="classroom-lesson-attachment-file" type="file" name="lesson_attachment_file" accept=".pdf,.ppt,.pptx,.doc,.docx">
                 </label>
                 <p id="classroom-lesson-attachment-hint" class="text-xs text-slate-500">Có thể tải lên tài liệu dùng riêng cho buổi học này.</p>
 
-                <div class="mt-1 flex flex-wrap gap-2">
+                <div class="sticky bottom-0 z-[1] -mx-1 mt-1 flex flex-wrap gap-2 border-t border-slate-100 bg-white px-1 pt-3">
                     <button id="classroom-lesson-submit" class="<?= ui_btn_primary_classes(); ?>" type="submit">Lưu giáo án</button>
                     <button id="classroom-lesson-cancel" class="<?= ui_btn_secondary_classes(); ?>" type="button">Hủy</button>
                 </div>
@@ -1024,7 +1024,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
 
             <label class="grid gap-1 text-sm font-semibold text-slate-700">
                 Nội dung giáo án
-                <textarea id="classroom-lesson-info-content" rows="4" readonly class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700"></textarea>
+                <div id="classroom-lesson-info-content" class="bbcode-rendered-box bbcode-content">Chưa có nội dung giáo án cho buổi học này.</div>
             </label>
             <div class="grid gap-1 text-sm font-semibold text-slate-700">
                 Tài liệu đính kèm
@@ -1069,7 +1069,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
 </div>
 
 <div id="classroom-assignment-modal" class="fixed inset-0 z-[98] hidden overflow-y-auto bg-slate-900/50 p-4" role="dialog" aria-modal="true" aria-labelledby="classroom-assignment-modal-title">
-    <div class="mx-auto mt-8 w-full max-w-2xl rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl">
+    <div class="mx-auto mt-8 flex max-h-[calc(100vh-2rem)] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl">
         <div class="mb-4 flex items-start justify-between gap-2">
             <div>
                 <h3 id="classroom-assignment-modal-title">Giao bài tập theo buổi</h3>
@@ -1078,7 +1078,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
             <button id="classroom-assignment-close" type="button" class="inline-flex h-8 items-center rounded-md border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700">Đóng</button>
         </div>
 
-        <form id="classroom-assignment-form" class="grid gap-3" method="post" action="/api/assignments/save" enctype="multipart/form-data">
+        <form id="classroom-assignment-form" class="grid min-h-0 gap-3 overflow-y-auto pr-1" method="post" action="/api/assignments/save" enctype="multipart/form-data">
             <?= csrf_input(); ?>
             <input id="classroom-assignment-id" type="hidden" name="id" value="0">
             <input id="classroom-assignment-existing-file-url" type="hidden" name="existing_file_url" value="">
@@ -1097,10 +1097,10 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
                 Tiêu đề bài tập
                 <input id="classroom-assignment-title" type="text" name="title" required placeholder="Ví dụ: Homework - Unit 5">
             </label>
-            <label>
-                Mô tả
-                <textarea id="classroom-assignment-description" name="description" rows="4" placeholder="Yêu cầu, tiêu chí chấm, định dạng file nộp..."></textarea>
-            </label>
+            <div>
+                <label for="classroom-assignment-description">Mô tả</label>
+                <?= render_bbcode_editor('description', '', ['id' => 'classroom-assignment-description', 'rows' => 4, 'placeholder' => 'Yêu cầu, tiêu chí chấm, định dạng file nộp...']); ?>
+            </div>
             <label>
                 Hạn nộp
                 <input id="classroom-assignment-deadline" type="datetime-local" name="deadline" required>
@@ -1111,7 +1111,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
             </label>
             <p id="classroom-assignment-file-hint" class="text-xs text-slate-500">Có thể thêm file bài tập cho buổi học này.</p>
 
-            <div class="mt-1 flex flex-wrap gap-2">
+            <div class="sticky bottom-0 z-[1] -mx-1 mt-1 flex flex-wrap gap-2 border-t border-slate-100 bg-white px-1 pt-3">
                 <button id="classroom-assignment-submit" class="<?= ui_btn_primary_classes(); ?>" type="submit">Lưu bài tập</button>
                 <button id="classroom-assignment-cancel" class="<?= ui_btn_secondary_classes(); ?>" type="button">Hủy</button>
             </div>
@@ -1364,7 +1364,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
                                 <td class="px-4 py-3 align-top">
                                     <div class="font-semibold text-slate-800"><?= e((string) $assignmentRow['title']); ?></div>
                                     <?php if (trim((string) $assignmentRow['description']) !== ''): ?>
-                                        <div class="mt-1 text-xs text-slate-500"><?= e((string) $assignmentRow['description']); ?></div>
+                                        <div class="mt-1 text-xs text-slate-500 bbcode-content"><?= bbcode_to_html((string) $assignmentRow['description']); ?></div>
                                     <?php endif; ?>
                                 </td>
                                 <td class="px-4 py-3 align-top text-slate-700"><?= e((string) $assignmentRow['lesson_title']); ?></td>
@@ -2008,6 +2008,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
     const allClasses = <?= $classroomAllClassesJson; ?>;
     const selectedCourseId = <?= (int) $selectedCourseId; ?>;
     const selectedClassId = <?= (int) $selectedClassId; ?>;
+    const todayDateValue = <?= json_encode($todayDateValue, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
     const lessonsById = <?= $classroomLessonsByIdJson; ?>;
     const assignmentsBySchedule = <?= $classroomAssignmentsByScheduleJson; ?>;
     const hasSuccessFlash = <?= $success ? 'true' : 'false'; ?>;
@@ -4244,23 +4245,145 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
         loadAttendanceRoster(context.scheduleId);
     }
 
-    function submitQuickLessonAssign(lessonId, scheduleId) {
-        if (!canUpdateLesson || lessonId <= 0 || scheduleId <= 0) {
+    function buildSlotLabel(context, lessonTitle) {
+        const resolvedTitle = normalizeText(lessonTitle) !== '' ? normalizeText(lessonTitle) : 'Buổi học';
+        const studyDateLabel = normalizeText(context && context.studyDate);
+        const timeLabel = [normalizeText(context && context.startTime), normalizeText(context && context.endTime)].filter(Boolean).join(' - ');
+        const roomLabel = normalizeText(context && context.roomName) !== '' ? normalizeText(context.roomName) : 'Trực tuyến';
+        return resolvedTitle
+            + ' | ' + (studyDateLabel !== '' ? studyDateLabel : 'Chưa xếp ngày')
+            + (timeLabel !== '' ? ' ' + timeLabel : '')
+            + ' | ' + roomLabel;
+    }
+
+    function resolveSlotState(studyDate) {
+        const normalizedStudyDate = normalizeText(studyDate);
+        if (normalizedStudyDate === '') {
+            return 'upcoming';
+        }
+        if (normalizedStudyDate < todayDateValue) {
+            return 'past';
+        }
+        if (normalizedStudyDate === todayDateValue) {
+            return 'today';
+        }
+
+        return 'upcoming';
+    }
+
+    function refreshSlotVisualState(slotElement) {
+        if (!(slotElement instanceof HTMLElement)) {
             return;
         }
 
-        if (!(quickAssignForm instanceof HTMLFormElement)) {
+        const slotState = resolveSlotState(slotElement.getAttribute('data-study-date'));
+        const hasLesson = slotElement.getAttribute('data-has-lesson') === '1';
+        const isFocusedSlot = slotElement.classList.contains('ring-blue-300');
+
+        slotElement.classList.remove(
+            'border-emerald-300',
+            'bg-emerald-50',
+            'text-emerald-800',
+            'border-rose-300',
+            'bg-rose-50',
+            'text-rose-700',
+            'opacity-60',
+            'saturate-[0.85]',
+            'ring-2',
+            'ring-offset-1',
+            'ring-amber-300',
+            'shadow-lg',
+            'shadow-amber-100'
+        );
+
+        slotElement.classList.add(
+            hasLesson ? 'border-emerald-300' : 'border-rose-300',
+            hasLesson ? 'bg-emerald-50' : 'bg-rose-50',
+            hasLesson ? 'text-emerald-800' : 'text-rose-700'
+        );
+
+        if (slotState === 'past') {
+            slotElement.classList.add('opacity-60', 'saturate-[0.85]');
+        } else if (slotState === 'today') {
+            slotElement.classList.add('ring-2', 'ring-offset-1', 'ring-amber-300', 'shadow-lg', 'shadow-amber-100');
+        }
+
+        if (isFocusedSlot) {
+            slotElement.classList.add('ring-2');
+        }
+
+        slotElement.setAttribute('data-slot-state', slotState);
+    }
+
+    function applyAssignedLessonToSlot(slotElement, lessonRecord) {
+        if (!(slotElement instanceof HTMLElement) || !lessonRecord || typeof lessonRecord !== 'object') {
             return;
+        }
+
+        const lessonId = toInt(lessonRecord.id);
+        const lessonTitle = normalizeText(lessonRecord.actual_title) !== '' ? normalizeText(lessonRecord.actual_title) : 'Buổi học';
+        const lessonContent = String(lessonRecord.actual_content || '');
+        const attachmentPath = String(lessonRecord.attachment_file_path || '');
+        const slotContext = getSlotContext(slotElement);
+        const slotLabel = buildSlotLabel(slotContext, lessonTitle);
+
+        slotElement.setAttribute('data-has-lesson', '1');
+        slotElement.setAttribute('data-lesson-id', String(lessonId));
+        slotElement.setAttribute('data-lesson-title', lessonTitle);
+        slotElement.setAttribute('data-lesson-content', lessonContent);
+        slotElement.setAttribute('data-lesson-attachment-path', attachmentPath);
+        slotElement.setAttribute('data-slot-label', slotLabel);
+        slotElement.setAttribute('title', slotLabel);
+        refreshSlotVisualState(slotElement);
+
+        const titleNode = slotElement.querySelector('.break-words');
+        if (titleNode instanceof HTMLElement) {
+            titleNode.textContent = lessonTitle;
+        }
+
+        if (activeSlotElement === slotElement) {
+            activeSlotContext = getSlotContext(slotElement);
+        }
+    }
+
+    function removeLessonDragSource(lessonId) {
+        if (lessonId <= 0) {
+            return;
+        }
+
+        const lessonItem = document.querySelector('[data-draggable-lesson="1"][data-lesson-id="' + String(lessonId) + '"]');
+        if (!(lessonItem instanceof HTMLElement)) {
+            return;
+        }
+
+        const container = lessonItem.parentElement;
+        lessonItem.remove();
+
+        if (container instanceof HTMLElement && container.querySelector('[data-draggable-lesson="1"]') === null) {
+            const emptyState = document.createElement('div');
+            emptyState.className = 'rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-600';
+            emptyState.textContent = 'Tất cả giáo án hiện đã được xếp vào buổi học. Bạn vẫn có thể bấm vào từng buổi trong thời khóa biểu để xem hoặc cập nhật giáo án.';
+            container.appendChild(emptyState);
+        }
+    }
+
+    async function submitQuickLessonAssign(lessonId, scheduleId, slotElement) {
+        if (!canUpdateLesson || lessonId <= 0 || scheduleId <= 0) {
+            return false;
+        }
+
+        if (!(quickAssignForm instanceof HTMLFormElement)) {
+            return false;
         }
 
         const lessonRecord = resolveLessonRecord(lessonId);
         if (!lessonRecord) {
-            return;
+            return false;
         }
 
         const lessonTitle = normalizeText(lessonRecord.actual_title);
         if (lessonTitle === '') {
-            return;
+            return false;
         }
 
         if (quickAssignIdInput instanceof HTMLInputElement) {
@@ -4282,7 +4405,46 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
             quickAssignFocusScheduleInput.value = String(scheduleId);
         }
 
-        quickAssignForm.submit();
+        const formData = new FormData(quickAssignForm);
+        formData.set('format', 'json');
+
+        const response = await fetchJson('/api/lessons/save', {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json',
+            },
+            body: formData,
+        });
+
+        if (!response || response.status !== 'success') {
+            const errorMessage = response && normalizeText(response.message) !== '' ? response.message : 'Không thể xếp giáo án vào khung lịch.';
+            throw new Error(errorMessage);
+        }
+
+        const savedLesson = response.data && typeof response.data === 'object' ? response.data.lesson : null;
+        const normalizedLesson = savedLesson && typeof savedLesson === 'object'
+            ? {
+                id: toInt(savedLesson.id || lessonId),
+                roadmap_id: toInt(savedLesson.roadmap_id || lessonRecord.roadmap_id),
+                actual_title: normalizeText(savedLesson.actual_title || lessonRecord.actual_title),
+                actual_content: String(savedLesson.actual_content || lessonRecord.actual_content || ''),
+                attachment_file_path: String(savedLesson.attachment_file_path || lessonRecord.attachment_file_path || ''),
+                schedule_id: toInt(savedLesson.schedule_id || scheduleId),
+            }
+            : {
+                id: lessonId,
+                roadmap_id: toInt(lessonRecord.roadmap_id),
+                actual_title: lessonTitle,
+                actual_content: String(lessonRecord.actual_content || ''),
+                attachment_file_path: String(lessonRecord.attachment_file_path || ''),
+                schedule_id: scheduleId,
+            };
+
+        lessonsById[String(lessonId)] = normalizedLesson;
+        applyAssignedLessonToSlot(slotElement, normalizedLesson);
+        removeLessonDragSource(lessonId);
+        return true;
     }
 
     function canSlotReceiveDraggedLesson(slotElement) {
@@ -4402,7 +4564,13 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
             lessonTitleInput.value = normalizeText(isEditing ? lessonRecord.actual_title : '');
         }
         if (lessonContentInput instanceof HTMLTextAreaElement) {
-            lessonContentInput.value = String(isEditing ? (lessonRecord.actual_content || '') : '');
+            const lessonContentValue = String(isEditing ? (lessonRecord.actual_content || '') : '');
+            if (window.adminBbcode && typeof window.adminBbcode.setValue === 'function') {
+                window.adminBbcode.setValue(lessonContentInput, lessonContentValue);
+            } else {
+                lessonContentInput.value = lessonContentValue;
+                lessonContentInput.dispatchEvent(new Event('input', { bubbles: true }));
+            }
         }
         const lessonExistingAttachmentInput = document.getElementById('classroom-lesson-existing-attachment-file-path');
         const lessonAttachmentHint = document.getElementById('classroom-lesson-attachment-hint');
@@ -4453,6 +4621,12 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
             lessonTitleInput instanceof HTMLElement ? lessonTitleInput : lessonCloseButton,
             config && config.returnFocusElement instanceof HTMLElement ? config.returnFocusElement : activeSlotElement
         );
+
+        if (lessonContentInput instanceof HTMLTextAreaElement && window.adminBbcode && typeof window.adminBbcode.refreshUi === 'function') {
+            window.requestAnimationFrame(function () {
+                window.adminBbcode.refreshUi(lessonContentInput, false);
+            });
+        }
     }
 
     function openLessonModalFromContext(context) {
@@ -4520,8 +4694,12 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
         if (lessonInfoTitleInput instanceof HTMLInputElement) {
             lessonInfoTitleInput.value = lessonTitle;
         }
-        if (lessonInfoContentInput instanceof HTMLTextAreaElement) {
-            lessonInfoContentInput.value = lessonContent !== '' ? lessonContent : 'Chưa có nội dung giáo án cho buổi học này.';
+        if (lessonInfoContentInput instanceof HTMLElement) {
+            if (window.adminBbcode && typeof window.adminBbcode.renderHtml === 'function' && lessonContent !== '') {
+                lessonInfoContentInput.innerHTML = window.adminBbcode.renderHtml(lessonContent);
+            } else {
+                lessonInfoContentInput.textContent = lessonContent !== '' ? lessonContent : 'Chưa có nội dung giáo án cho buổi học này.';
+            }
         }
         if (lessonInfoDateInput instanceof HTMLInputElement) {
             lessonInfoDateInput.value = studyDateLabel !== '' ? studyDateLabel : '--';
@@ -4762,7 +4940,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
                 : '<span class="text-[11px] text-slate-400">Không thể chấm khi chưa nộp</span>';
 
             const scoreField = hasSubmission
-                ? '<input type="number" name="score[' + submissionId + ']" min="0" max="10" step="0.1" value="' + scoreValue + '" class="h-9 rounded-md border border-slate-300 bg-white px-2 text-sm">'
+                ? '<input type="number" name="score[' + submissionId + ']" min="0" max="10" step="0.01" value="' + scoreValue + '" class="h-9 rounded-md border border-slate-300 bg-white px-2 text-sm">'
                 : '<span class="text-sm text-slate-400">-</span>';
 
             const commentField = hasSubmission
@@ -4894,7 +5072,12 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
             assignmentTitleInput.value = lessonTitle !== '' ? ('Bài tập - ' + lessonTitle) : '';
         }
         if (assignmentDescriptionInput instanceof HTMLTextAreaElement) {
-            assignmentDescriptionInput.value = '';
+            if (window.adminBbcode && typeof window.adminBbcode.setValue === 'function') {
+                window.adminBbcode.setValue(assignmentDescriptionInput, '');
+            } else {
+                assignmentDescriptionInput.value = '';
+                assignmentDescriptionInput.dispatchEvent(new Event('input', { bubbles: true }));
+            }
         }
         if (assignmentDeadlineInput instanceof HTMLInputElement) {
             assignmentDeadlineInput.value = '';
@@ -4905,6 +5088,12 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
 
         closeMenu(false);
         openModal(assignmentModal, assignmentTitleInput instanceof HTMLElement ? assignmentTitleInput : assignmentCloseButton, activeSlotElement);
+
+        if (assignmentDescriptionInput instanceof HTMLTextAreaElement && window.adminBbcode && typeof window.adminBbcode.refreshUi === 'function') {
+            window.requestAnimationFrame(function () {
+                window.adminBbcode.refreshUi(assignmentDescriptionInput, false);
+            });
+        }
     }
 
     function formatAssignmentDeadlineForInput(rawValue) {
@@ -4964,7 +5153,12 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
             assignmentTitleInput.value = title;
         }
         if (assignmentDescriptionInput instanceof HTMLTextAreaElement) {
-            assignmentDescriptionInput.value = description;
+            if (window.adminBbcode && typeof window.adminBbcode.setValue === 'function') {
+                window.adminBbcode.setValue(assignmentDescriptionInput, description);
+            } else {
+                assignmentDescriptionInput.value = description;
+                assignmentDescriptionInput.dispatchEvent(new Event('input', { bubbles: true }));
+            }
         }
         if (assignmentDeadlineInput instanceof HTMLInputElement) {
             assignmentDeadlineInput.value = deadline;
@@ -4980,6 +5174,12 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
             assignmentTitleInput instanceof HTMLElement ? assignmentTitleInput : assignmentCloseButton,
             triggerElement
         );
+
+        if (assignmentDescriptionInput instanceof HTMLTextAreaElement && window.adminBbcode && typeof window.adminBbcode.refreshUi === 'function') {
+            window.requestAnimationFrame(function () {
+                window.adminBbcode.refreshUi(assignmentDescriptionInput, false);
+            });
+        }
     }
 
     function populateGradingAssignments(context) {
@@ -5187,7 +5387,13 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
                 }
 
                 showDragToast('Dang xep giao an vao khung lich...', false);
-                submitQuickLessonAssign(lessonId, slotContext.scheduleId);
+                submitQuickLessonAssign(lessonId, slotContext.scheduleId, slotElement)
+                    .then(function () {
+                        showDragToast('Da xep giao an vao buoi hoc.', false);
+                    })
+                    .catch(function (error) {
+                        showDragToast(error instanceof Error ? error.message : 'Không thể xếp giáo án vào khung lịch.', true);
+                    });
             });
         });
 

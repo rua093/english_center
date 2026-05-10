@@ -2,7 +2,11 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../config.php';
+if (is_file(dirname(__DIR__) . '/vendor/autoload.php')) {
+    require_once dirname(__DIR__) . '/vendor/autoload.php';
+}
 require_once __DIR__ . '/response.php';
+require_once __DIR__ . '/bbcode.php';
 require_once __DIR__ . '/security.php';
 require_once __DIR__ . '/validation.php';
 require_once __DIR__ . '/db_helper.php';

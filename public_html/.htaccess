@@ -4,7 +4,7 @@ RewriteEngine On
 
 # Chặn truy cập trực tiếp tài nguyên nội bộ và file nhạy cảm
 
-RewriteRule ^(?:core|models|pages|storage|config|docs)(?:/|$) - [F,L,NC]
+RewriteRule ^(?:core|models|pages|storage|config|docs|vendor)(?:/|$) - [F,L,NC]
 RewriteRule ^(?:config\.php|abc\.txt|\.env(?:\..*)?|composer\.(?:json|lock))$ - [F,L,NC]
 
 # Chuẩn hóa các route truy cập chính về query param page

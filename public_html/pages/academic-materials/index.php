@@ -59,10 +59,10 @@ $canDeleteMaterial = has_permission('materials.delete');
                     Tiêu đề tài liệu
                     <input type="text" name="title" required value="<?= e((string) ($editingMaterial['title'] ?? '')); ?>">
                 </label>
-                <label>
-                    Mô tả tài liệu
-                    <textarea name="description" rows="3" placeholder="Mô tả ngắn về nội dung tài liệu"><?= e((string) ($editingMaterial['description'] ?? '')); ?></textarea>
-                </label>
+                <div>
+                    <label for="material-description">Mô tả tài liệu</label>
+                    <?= render_bbcode_editor('description', (string) ($editingMaterial['description'] ?? ''), ['id' => 'material-description', 'rows' => 3, 'placeholder' => 'Mô tả ngắn về nội dung tài liệu']); ?>
+                </div>
                 <label>
                     Tải lên file đính kèm
                     <input type="file" name="material_file" accept=".pdf,.mp3,.mp4,.mov,.avi,.doc,.docx,.ppt,.pptx,.jpg,.png">
@@ -109,7 +109,14 @@ $canDeleteMaterial = has_permission('materials.delete');
                         <?php $materialFilePath = normalize_public_file_url((string) ($material['file_path'] ?? '')); ?>
                         <tr>
                             <td><?= e((string) $material['title']); ?></td>
-                            <td><?= e((string) ($material['description'] ?? '-')); ?></td>
+                            <td>
+                                <?php $materialDescription = trim((string) ($material['description'] ?? '')); ?>
+                                <?php if ($materialDescription === ''): ?>
+                                    <span class="text-slate-400">-</span>
+                                <?php else: ?>
+                                    <div class="bbcode-content"><?= bbcode_to_html($materialDescription); ?></div>
+                                <?php endif; ?>
+                            </td>
                             <td>
                                 <span class="inline-flex flex-wrap items-center gap-2">
                                     <?php if ($materialFilePath !== ''): ?>

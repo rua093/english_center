@@ -115,10 +115,10 @@ $canManageNotifications = has_any_permission(['notifications.create', 'notificat
                     <input type="text" name="title" value="<?= e((string) ($editingNotification['title'] ?? '')); ?>" required>
                 </label>
 
-                <label class="md:col-span-2">
-                    Nội dung
-                    <textarea name="message" rows="4" required><?= e((string) ($editingNotification['message'] ?? '')); ?></textarea>
-                </label>
+                <div class="md:col-span-2">
+                    <label for="notification-message">Nội dung</label>
+                    <?= render_bbcode_editor('message', (string) ($editingNotification['message'] ?? ''), ['id' => 'notification-message', 'rows' => 4, 'required' => true]); ?>
+                </div>
 
                 <div class="md:col-span-2 flex flex-wrap items-center gap-2">
                     <button class="<?= ui_btn_primary_classes(); ?>" type="submit">Lưu thông báo</button>
@@ -203,6 +203,7 @@ $canManageNotifications = has_any_permission(['notifications.create', 'notificat
                                 ], $senderLabel);
                             }
                             $fullMessage = (string) ($notification['message'] ?? '');
+                            $messagePreview = bbcode_truncate_plain_text($fullMessage, 80);
                             $totalRecipients = max(0, (int) ($notification['total_recipients'] ?? 0));
                             $readCount = max(0, (int) ($notification['read_count'] ?? 0));
                             ?>
@@ -210,7 +211,7 @@ $canManageNotifications = has_any_permission(['notifications.create', 'notificat
                                 <td><?= e($senderLabel); ?></td>
                                 <td><?= e((string) ($notification['target_summary'] ?? 'Chưa xác định')); ?></td>
                                 <td><?= e((string) ($notification['title'] ?? '')); ?></td>
-                                <td><span data-full-value="<?= e($fullMessage); ?>"><?= e((string) substr($fullMessage, 0, 80)); ?></span></td>
+                                <td><span data-full-value="<?= e(bbcode_to_plain_text($fullMessage)); ?>"><?= e($messagePreview !== '' ? $messagePreview : '-'); ?></span></td>
                                 <td>
                                     <span class="inline-flex items-center rounded-full border border-sky-200 bg-sky-50 px-2.5 py-1 text-xs font-bold text-sky-700">
                                         <?= $readCount; ?>/<?= $totalRecipients; ?>
@@ -309,15 +310,17 @@ $canManageNotifications = has_any_permission(['notifications.create', 'notificat
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const form = document.querySelector('[data-notification-form="1"]');
-    if (!form) {
-        return;
-    }
+    function syncTargetFields(form) {
+        if (!(form instanceof HTMLElement)) {
+            return;
+        }
 
-    const typeSelect = form.querySelector('[data-notification-target-type="1"]');
-    const targetBlocks = form.querySelectorAll('[data-target-select]');
+        const typeSelect = form.querySelector('[data-notification-target-type="1"]');
+        const targetBlocks = form.querySelectorAll('[data-target-select]');
+        if (!(typeSelect instanceof HTMLSelectElement) || targetBlocks.length === 0) {
+            return;
+        }
 
-    function syncTargetFields() {
         const selectedType = typeSelect ? typeSelect.value : 'ALL';
 
         targetBlocks.forEach(function (block) {
@@ -346,10 +349,52 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    if (typeSelect) {
-        typeSelect.addEventListener('change', syncTargetFields);
+    function initNotificationForms(root) {
+        const scope = root instanceof HTMLElement || root instanceof Document ? root : document;
+        scope.querySelectorAll('[data-notification-form="1"]').forEach(function (form) {
+            syncTargetFields(form);
+        });
     }
 
-    syncTargetFields();
+    document.addEventListener('change', function (event) {
+        const target = event.target;
+        if (!(target instanceof HTMLElement)) {
+            return;
+        }
+
+        if (!target.matches('[data-notification-target-type="1"]')) {
+            return;
+        }
+
+        const form = target.closest('[data-notification-form="1"]');
+        if (form) {
+            syncTargetFields(form);
+        }
+    });
+
+    initNotificationForms(document);
+
+    if (document.body instanceof HTMLElement && typeof MutationObserver !== 'undefined') {
+        const observer = new MutationObserver(function (mutations) {
+            mutations.forEach(function (mutation) {
+                mutation.addedNodes.forEach(function (node) {
+                    if (!(node instanceof HTMLElement)) {
+                        return;
+                    }
+
+                    if (node.matches('[data-notification-form="1"]')) {
+                        syncTargetFields(node);
+                        return;
+                    }
+
+                    if (node.querySelector('[data-notification-form="1"]')) {
+                        initNotificationForms(node);
+                    }
+                });
+            });
+        });
+
+        observer.observe(document.body, { childList: true, subtree: true });
+    }
 });
 </script>
