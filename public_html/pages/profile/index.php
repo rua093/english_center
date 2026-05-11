@@ -25,8 +25,10 @@ $createdAt = isset($profileUser['created_at']) && $profileUser['created_at'] !==
     : '';
 $studentCode = trim((string) (($profileUser['role_profile']['student_code'] ?? '') ?: ($profileUser['student_code'] ?? '')));
 $teacherCode = trim((string) (($profileUser['role_profile']['teacher_code'] ?? '') ?: ($profileUser['teacher_code'] ?? '')));
-$studentParentName = trim((string) (($profileUser['role_profile']['student_parent_name'] ?? '') ?: ($profileUser['student_parent_name'] ?? '')));
-$studentParentPhone = trim((string) (($profileUser['role_profile']['student_parent_phone'] ?? '') ?: ($profileUser['student_parent_phone'] ?? '')));
+$studentFatherName = trim((string) (($profileUser['role_profile']['student_father_name'] ?? '') ?: ($profileUser['student_father_name'] ?? '')));
+$studentFatherPhone = trim((string) (($profileUser['role_profile']['student_father_phone'] ?? '') ?: ($profileUser['student_father_phone'] ?? '')));
+$studentMotherName = trim((string) (($profileUser['role_profile']['student_mother_name'] ?? '') ?: ($profileUser['student_mother_name'] ?? '')));
+$studentMotherPhone = trim((string) (($profileUser['role_profile']['student_mother_phone'] ?? '') ?: ($profileUser['student_mother_phone'] ?? '')));
 $studentSchoolName = trim((string) (($profileUser['role_profile']['student_school_name'] ?? '') ?: ($profileUser['student_school_name'] ?? '')));
 $studentCurrentGrade = trim((string) (($profileUser['role_profile']['student_current_grade'] ?? '') ?: ($profileUser['student_current_grade'] ?? '')));
 $teacherCertificates = is_array($profileUser['role_profile']['teacher_certificates'] ?? null) ? $profileUser['role_profile']['teacher_certificates'] : [];
@@ -49,6 +51,7 @@ $teacherIntroVideoUrl = $teacherIntroVideoUrl !== '' && function_exists('normali
     : $teacherIntroVideoUrl;
 $openPasswordModal = !empty($_GET['open_password']);
 $isTeacher = $role === 'teacher';
+$isStudent = $role === 'student';
 $teacherVideoMaxBytes = 64 * 1024 * 1024;
 
 $roleDisplay = match($role) {
@@ -163,8 +166,8 @@ $error = get_flash('error');
                                         <i class="fa-solid fa-people-roof text-lg"></i>
                                     </div>
                                     <div class="flex-1 min-w-0">
-                                        <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1">Tên phụ huynh</p>
-                                        <span class="font-bold text-slate-700 truncate block text-sm"><?= e($studentParentName !== '' ? $studentParentName : 'Chưa cập nhật') ?></span>
+                                        <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1">Tên cha</p>
+                                        <span class="font-bold text-slate-700 truncate block text-sm"><?= e($studentFatherName !== '' ? $studentFatherName : 'Chưa cập nhật') ?></span>
                                     </div>
                                 </div>
 
@@ -173,8 +176,28 @@ $error = get_flash('error');
                                         <i class="fa-solid fa-phone text-lg"></i>
                                     </div>
                                     <div class="flex-1 min-w-0">
-                                        <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1">SĐT phụ huynh</p>
-                                        <span class="font-bold text-slate-700 truncate block text-sm"><?= e($studentParentPhone !== '' ? $studentParentPhone : 'Chưa cập nhật') ?></span>
+                                        <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1">SĐT cha</p>
+                                        <span class="font-bold text-slate-700 truncate block text-sm"><?= e($studentFatherPhone !== '' ? $studentFatherPhone : 'Chưa cập nhật') ?></span>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center gap-4 text-sm font-medium text-slate-600 group">
+                                    <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-fuchsia-50/60 text-fuchsia-600 group-hover:bg-fuchsia-50 group-hover:text-fuchsia-700 transition-all shadow-sm">
+                                        <i class="fa-solid fa-user-group text-lg"></i>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1">Tên mẹ</p>
+                                        <span class="font-bold text-slate-700 truncate block text-sm"><?= e($studentMotherName !== '' ? $studentMotherName : 'Chưa cập nhật') ?></span>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center gap-4 text-sm font-medium text-slate-600 group">
+                                    <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-cyan-50/60 text-cyan-600 group-hover:bg-cyan-50 group-hover:text-cyan-700 transition-all shadow-sm">
+                                        <i class="fa-solid fa-mobile-screen-button text-lg"></i>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1">SĐT mẹ</p>
+                                        <span class="font-bold text-slate-700 truncate block text-sm"><?= e($studentMotherPhone !== '' ? $studentMotherPhone : 'Chưa cập nhật') ?></span>
                                     </div>
                                 </div>
 
@@ -406,7 +429,7 @@ $error = get_flash('error');
                 </div>
                 <?php endif; ?>
 
-                <div id="content-settings" class="<?= $isTeacher ? 'block' : 'hidden'; ?> animate-fade-in">
+                <div id="content-settings" class="<?= ($isTeacher || $isStudent) ? 'block' : 'hidden'; ?> animate-fade-in">
                     <article class="rounded-[2rem] border border-slate-200/60 bg-white p-8 md:p-10 shadow-sm">
                         <div class="mb-8 border-b border-slate-100 pb-6 flex items-center gap-4">
                             <div class="w-12 h-12 rounded-[1rem] bg-emerald-50 text-emerald-500 flex items-center justify-center text-xl"><i class="fa-solid fa-user-pen"></i></div>
@@ -453,6 +476,50 @@ $error = get_flash('error');
                                     </div>
                                 </div>
                             </div>
+
+                            <?php if ($isStudent): ?>
+                            <div class="rounded-[1.75rem] border border-slate-200/70 bg-slate-50 p-5 md:p-6">
+                                <div class="flex items-center gap-3 mb-4">
+                                    <div class="w-11 h-11 rounded-2xl bg-rose-50 text-rose-500 flex items-center justify-center"><i class="fa-solid fa-people-roof"></i></div>
+                                    <div>
+                                        <h3 class="text-base font-black text-slate-800">Thông tin ba mẹ</h3>
+                                        <p class="text-xs font-medium text-slate-500 mt-1">Cập nhật sau khi có tài khoản riêng để trung tâm quản lý hồ sơ đầy đủ hơn.</p>
+                                    </div>
+                                </div>
+
+                                <div class="grid md:grid-cols-2 gap-6">
+                                    <div class="space-y-2">
+                                        <label class="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">Tên cha</label>
+                                        <input type="text" name="student_father_name" value="<?= e($studentFatherName) ?>" class="input-modern w-full px-4 py-4 rounded-2xl bg-white text-slate-800 text-sm font-bold border border-slate-200 transition-all">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">SĐT cha</label>
+                                        <input type="tel" inputmode="numeric" pattern="[0-9]*" name="student_father_phone" value="<?= e($studentFatherPhone) ?>" class="input-modern w-full px-4 py-4 rounded-2xl bg-white text-slate-800 text-sm font-bold border border-slate-200 transition-all">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">CCCD cha</label>
+                                        <input type="text" name="student_father_id_card" value="<?= e((string) (($profileUser['role_profile']['student_father_id_card'] ?? '') ?: ($profileUser['student_father_id_card'] ?? ''))) ?>" class="input-modern w-full px-4 py-4 rounded-2xl bg-white text-slate-800 text-sm font-bold border border-slate-200 transition-all">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">Tên mẹ</label>
+                                        <input type="text" name="student_mother_name" value="<?= e($studentMotherName) ?>" class="input-modern w-full px-4 py-4 rounded-2xl bg-white text-slate-800 text-sm font-bold border border-slate-200 transition-all">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">SĐT mẹ</label>
+                                        <input type="tel" inputmode="numeric" pattern="[0-9]*" name="student_mother_phone" value="<?= e($studentMotherPhone) ?>" class="input-modern w-full px-4 py-4 rounded-2xl bg-white text-slate-800 text-sm font-bold border border-slate-200 transition-all">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">CCCD mẹ</label>
+                                        <input type="text" name="student_mother_id_card" value="<?= e((string) (($profileUser['role_profile']['student_mother_id_card'] ?? '') ?: ($profileUser['student_mother_id_card'] ?? ''))) ?>" class="input-modern w-full px-4 py-4 rounded-2xl bg-white text-slate-800 text-sm font-bold border border-slate-200 transition-all">
+                                    </div>
+                                </div>
+
+                                <div class="mt-6 space-y-2">
+                                    <label class="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">Social links phụ huynh</label>
+                                    <textarea name="student_parent_social_links" rows="4" class="input-modern w-full px-4 py-4 rounded-2xl bg-white text-slate-800 text-sm font-bold border border-slate-200 transition-all" placeholder='Ví dụ: {"father":{"zalo":"https://zalo.me/..."},"mother":{"facebook":"https://facebook.com/..."}}'><?= e((string) (($profileUser['role_profile']['student_parent_social_links'] ?? '') ?: ($profileUser['student_parent_social_links'] ?? ''))) ?></textarea>
+                                </div>
+                            </div>
+                            <?php endif; ?>
 
                             <?php if ($isTeacher): ?>
                             <div class="rounded-[1.75rem] border border-slate-200/70 bg-slate-50 p-5 md:p-6">

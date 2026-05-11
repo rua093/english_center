@@ -48,6 +48,7 @@ $editingUser = $editingUser ?? null;
 $isCreateMode = $editingUser === null;
 $editingRoleName = strtolower((string) ($editingUser['role_name'] ?? ''));
 $editingRoleProfile = is_array($editingUser['role_profile'] ?? null) ? $editingUser['role_profile'] : [];
+$editingStudentEnrollments = is_array($editingRoleProfile['student_class_enrollments'] ?? null) ? $editingRoleProfile['student_class_enrollments'] : [];
 $roleIdToName = [];
 foreach ($roles as $role) {
     $roleIdToName[(int) ($role['id'] ?? 0)] = strtolower((string) ($role['role_name'] ?? ''));
@@ -639,12 +640,28 @@ $isEditingStudent = $editingRoleName === 'student';
             </div>
             <div class="grid gap-3 md:grid-cols-2 <?= $isEditingStudent ? '' : 'hidden'; ?>" data-role-profile="student">
                 <label>
-                    Tên phụ huynh
-                    <input type="text" name="student_parent_name" value="<?= e((string) ($editingRoleProfile['student_parent_name'] ?? '')); ?>" <?= $isEditingStudent ? '' : 'disabled'; ?>>
+                    Tên cha
+                    <input type="text" name="student_father_name" value="<?= e((string) ($editingRoleProfile['student_father_name'] ?? '')); ?>" <?= $isEditingStudent ? '' : 'disabled'; ?>>
                 </label>
                 <label>
-                    Số điện thoại phụ huynh
-                    <input type="tel" inputmode="numeric" pattern="[0-9]*" name="student_parent_phone" value="<?= e((string) ($editingRoleProfile['student_parent_phone'] ?? '')); ?>" <?= $isEditingStudent ? '' : 'disabled'; ?>>
+                    SĐT cha
+                    <input type="tel" inputmode="numeric" pattern="[0-9]*" name="student_father_phone" value="<?= e((string) ($editingRoleProfile['student_father_phone'] ?? '')); ?>" <?= $isEditingStudent ? '' : 'disabled'; ?>>
+                </label>
+                <label>
+                    CCCD cha
+                    <input type="text" name="student_father_id_card" value="<?= e((string) ($editingRoleProfile['student_father_id_card'] ?? '')); ?>" <?= $isEditingStudent ? '' : 'disabled'; ?>>
+                </label>
+                <label>
+                    Tên mẹ
+                    <input type="text" name="student_mother_name" value="<?= e((string) ($editingRoleProfile['student_mother_name'] ?? '')); ?>" <?= $isEditingStudent ? '' : 'disabled'; ?>>
+                </label>
+                <label>
+                    SĐT mẹ
+                    <input type="tel" inputmode="numeric" pattern="[0-9]*" name="student_mother_phone" value="<?= e((string) ($editingRoleProfile['student_mother_phone'] ?? '')); ?>" <?= $isEditingStudent ? '' : 'disabled'; ?>>
+                </label>
+                <label>
+                    CCCD mẹ
+                    <input type="text" name="student_mother_id_card" value="<?= e((string) ($editingRoleProfile['student_mother_id_card'] ?? '')); ?>" <?= $isEditingStudent ? '' : 'disabled'; ?>>
                 </label>
                 <label>
                     Trường học / đơn vị
@@ -654,6 +671,40 @@ $isEditingStudent = $editingRoleName === 'student';
                     Mục tiêu điểm
                     <input type="text" name="student_target_score" value="<?= e((string) ($editingRoleProfile['student_target_score'] ?? '')); ?>" <?= $isEditingStudent ? '' : 'disabled'; ?> placeholder="Ví dụ: IELTS 6.5">
                 </label>
+                <label class="md:col-span-2">
+                    Social links phụ huynh
+                    <textarea name="student_parent_social_links" rows="3" <?= $isEditingStudent ? '' : 'disabled'; ?> placeholder='Ví dụ: {"father":{"zalo":"https://zalo.me/..."}, "mother":{"facebook":"https://facebook.com/..."}}'><?= e((string) ($editingRoleProfile['student_parent_social_links'] ?? '')); ?></textarea>
+                </label>
+                <div class="md:col-span-2 rounded-xl border border-slate-200 bg-white p-4">
+                    <h5 class="text-sm font-extrabold text-slate-800">Lớp học đã và đang tham gia</h5>
+                    <p class="mt-1 text-xs text-slate-500">Hiển thị lớp học mà học viên đã được ghi danh cùng ngày tham gia tương ứng.</p>
+                    <?php if (empty($editingStudentEnrollments)): ?>
+                        <div class="mt-3 rounded-lg border border-dashed border-slate-300 bg-slate-50 p-3 text-sm text-slate-500">Học viên hiện chưa tham gia lớp học nào.</div>
+                    <?php else: ?>
+                        <div class="mt-3 overflow-hidden rounded-lg border border-slate-200">
+                            <table class="min-w-full border-collapse text-sm">
+                                <thead class="bg-slate-50">
+                                    <tr>
+                                        <th class="px-3 py-2 text-left font-bold text-slate-600">Lớp học</th>
+                                        <th class="px-3 py-2 text-left font-bold text-slate-600">Khóa học</th>
+                                        <th class="px-3 py-2 text-left font-bold text-slate-600">Ngày tham gia</th>
+                                        <th class="px-3 py-2 text-left font-bold text-slate-600">Trạng thái lớp</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($editingStudentEnrollments as $enrollment): ?>
+                                        <tr class="border-t border-slate-200">
+                                            <td class="px-3 py-2 text-slate-700"><?= e((string) ($enrollment['class_name'] ?? '')); ?></td>
+                                            <td class="px-3 py-2 text-slate-600"><?= e((string) ($enrollment['course_name'] ?? '')); ?></td>
+                                            <td class="px-3 py-2 text-slate-600"><?= e(ui_format_date((string) ($enrollment['enrollment_date'] ?? ''))); ?></td>
+                                            <td class="px-3 py-2 text-slate-600"><?= e((string) ($enrollment['class_status'] ?? '')); ?></td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    <?php endif; ?>
+                </div>
             </div>
         </div>
         <div class="inline-flex flex-wrap items-center gap-2 md:col-span-2">

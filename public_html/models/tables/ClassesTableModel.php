@@ -31,6 +31,7 @@ final class ClassesTableModel extends BaseTableModel
     {
         $sql = "SELECT c.id, c.class_name, c.start_date, c.end_date, c.status,
                 co.course_name, u.full_name AS teacher_name, tp.teacher_code, c.course_id, c.teacher_id,
+                COALESCE(sc.student_count, 0) AS student_count,
                 COALESCE(lp.total_lessons, 0) AS total_lessons,
                 COALESCE(lp.completed_lessons, 0) AS completed_lessons,
                 CASE
@@ -41,6 +42,12 @@ final class ClassesTableModel extends BaseTableModel
             INNER JOIN courses co ON co.id = c.course_id AND co.deleted_at IS NULL
             INNER JOIN users u ON u.id = c.teacher_id
             LEFT JOIN teacher_profiles tp ON tp.user_id = u.id
+            LEFT JOIN (
+                SELECT cs.class_id,
+                       COUNT(DISTINCT cs.student_id) AS student_count
+                FROM class_students cs
+                GROUP BY cs.class_id
+            ) sc ON sc.class_id = c.id
             LEFT JOIN (
                 SELECT l.class_id,
                        COUNT(*) AS total_lessons,
@@ -60,6 +67,7 @@ final class ClassesTableModel extends BaseTableModel
         $whereClause = $this->buildDetailedWhereClause($teacherId, $searchQuery, $filters, $params);
         $sql = "SELECT c.id, c.class_name, c.start_date, c.end_date, c.status,
                 co.course_name, u.full_name AS teacher_name, tp.teacher_code, c.course_id, c.teacher_id,
+                COALESCE(sc.student_count, 0) AS student_count,
                 COALESCE(lp.total_lessons, 0) AS total_lessons,
                 COALESCE(lp.completed_lessons, 0) AS completed_lessons,
                 CASE
@@ -70,6 +78,12 @@ final class ClassesTableModel extends BaseTableModel
             INNER JOIN courses co ON co.id = c.course_id AND co.deleted_at IS NULL
             INNER JOIN users u ON u.id = c.teacher_id
             LEFT JOIN teacher_profiles tp ON tp.user_id = u.id
+            LEFT JOIN (
+                SELECT cs.class_id,
+                       COUNT(DISTINCT cs.student_id) AS student_count
+                FROM class_students cs
+                GROUP BY cs.class_id
+            ) sc ON sc.class_id = c.id
             LEFT JOIN (
                 SELECT l.class_id,
                        COUNT(*) AS total_lessons,

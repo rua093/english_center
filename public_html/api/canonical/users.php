@@ -57,6 +57,13 @@ function api_users_update_action(): void
 	$email = trim((string) ($_POST['email'] ?? ''));
 	$phone = normalize_phone_string((string) ($_POST['phone'] ?? ''));
 	$teacherIntroVideoUrl = trim((string) ($_POST['teacher_intro_video_url_hidden'] ?? ''));
+	$studentFatherName = trim((string) ($_POST['student_father_name'] ?? ''));
+	$studentFatherPhone = normalize_phone_string((string) ($_POST['student_father_phone'] ?? ''));
+	$studentFatherIdCard = trim((string) ($_POST['student_father_id_card'] ?? ''));
+	$studentMotherName = trim((string) ($_POST['student_mother_name'] ?? ''));
+	$studentMotherPhone = normalize_phone_string((string) ($_POST['student_mother_phone'] ?? ''));
+	$studentMotherIdCard = trim((string) ($_POST['student_mother_id_card'] ?? ''));
+	$studentParentSocialLinks = trim((string) ($_POST['student_parent_social_links'] ?? ''));
 
 	$avatarPath = null;
 	if (isset($_FILES['avatar']) && (int) ($_FILES['avatar']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
@@ -143,14 +150,30 @@ function api_users_update_action(): void
 		]);
 	}
 
+	if ((string) ($existingProfile['role_name'] ?? '') === 'student') {
+		$usersTable->saveRoleProfile($userId, 'student', [
+			'student_father_name' => $studentFatherName,
+			'student_father_phone' => $studentFatherPhone,
+			'student_father_id_card' => $studentFatherIdCard,
+			'student_mother_name' => $studentMotherName,
+			'student_mother_phone' => $studentMotherPhone,
+			'student_mother_id_card' => $studentMotherIdCard,
+			'student_parent_social_links' => $studentParentSocialLinks,
+			'student_school_name' => (string) (($existingProfile['role_profile']['student_school_name'] ?? '') ?: ($existingProfile['student_school_name'] ?? '')),
+			'student_target_score' => (string) (($existingProfile['role_profile']['student_target_score'] ?? '') ?: ($existingProfile['student_target_score'] ?? '')),
+		]);
+	}
+
+	$refreshedProfile = $usersTable->findActiveById($userId);
+
 	if (isset($_SESSION['auth_user']) && is_array($_SESSION['auth_user'])) {
 		$_SESSION['auth_user']['email'] = $email;
 		$_SESSION['auth_user']['phone'] = $phone;
 		if ($avatarPath !== null) {
 			$_SESSION['auth_user']['avatar'] = $avatarPath;
 		}
-		$_SESSION['auth_user']['role_profile'] = is_array($existingProfile['role_profile'] ?? null)
-			? $existingProfile['role_profile']
+		$_SESSION['auth_user']['role_profile'] = is_array($refreshedProfile['role_profile'] ?? null)
+			? $refreshedProfile['role_profile']
 			: [];
 		if ((string) ($existingProfile['role_name'] ?? '') === 'teacher') {
 			$_SESSION['auth_user']['role_profile']['teacher_intro_video_url'] = $teacherIntroVideoUrl;

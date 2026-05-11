@@ -490,38 +490,56 @@ final class UsersTableModel extends BaseTableModel
                 'SELECT sl.id AS student_lead_id,
                         sl.student_name AS student_name,
                         COALESCE(sp.student_code, CONCAT("HV", LPAD(u.id, 5, "0"))) AS student_code,
-                        sl.parent_name AS student_parent_name,
-                        sl.parent_phone AS student_parent_phone,
-                        sl.school_name AS student_school_name,
+                        p.father_name AS student_father_name,
+                        p.father_phone AS student_father_phone,
+                        p.father_id_card AS student_father_id_card,
+                        p.mother_name AS student_mother_name,
+                        p.mother_phone AS student_mother_phone,
+                        p.mother_id_card AS student_mother_id_card,
+                        p.social_links AS student_parent_social_links,
+                        COALESCE(sp.school_name, sl.school_name) AS student_school_name,
                         sl.current_grade AS student_current_grade,
-                        sl.current_level AS student_target_score,
+                        sp.target_score AS student_target_score,
                         sl.study_time AS student_study_time,
                         sl.status AS student_lead_status,
                         sl.converted_at AS student_converted_at
                  FROM student_leads sl
                  INNER JOIN users u ON u.id = sl.converted_user_id
                  LEFT JOIN student_profiles sp ON sp.user_id = u.id
+                 LEFT JOIN parents p ON p.id = sp.parent_id
                  WHERE u.id = :user_id
                  LIMIT 1',
                 ['user_id' => $userId]
             );
 
             if (is_array($studentLeadProfile) && !empty($studentLeadProfile)) {
+                $studentLeadProfile['student_class_enrollments'] = $this->listStudentClassEnrollments($userId);
                 return $studentLeadProfile;
             }
 
-            return $this->fetchOne(
+            $studentProfile = $this->fetchOne(
                 'SELECT student_code AS student_code,
-                        parent_name AS student_parent_name,
-                        parent_phone AS student_parent_phone,
-                        school_name AS student_school_name,
-                        target_score AS student_target_score,
-                        entry_test_id AS student_entry_test_id
-                 FROM student_profiles
+                        p.father_name AS student_father_name,
+                        p.father_phone AS student_father_phone,
+                        p.father_id_card AS student_father_id_card,
+                        p.mother_name AS student_mother_name,
+                        p.mother_phone AS student_mother_phone,
+                        p.mother_id_card AS student_mother_id_card,
+                        p.social_links AS student_parent_social_links,
+                        sp.school_name AS student_school_name,
+                        sp.target_score AS student_target_score
+                 FROM student_profiles sp
+                 LEFT JOIN parents p ON p.id = sp.parent_id
                  WHERE user_id = :user_id
                  LIMIT 1',
                 ['user_id' => $userId]
             ) ?? [];
+
+            if ($studentProfile !== []) {
+                $studentProfile['student_class_enrollments'] = $this->listStudentClassEnrollments($userId);
+            }
+
+            return $studentProfile;
         }
 
         return [];
@@ -573,33 +591,57 @@ final class UsersTableModel extends BaseTableModel
 
     private function saveStudentProfile(int $userId, array $data): void
     {
-        $parentName = trim((string) ($data['student_parent_name'] ?? ''));
-        $parentPhone = $this->normalizePhone($data['student_parent_phone'] ?? '');
+        $fatherName = trim((string) ($data['student_father_name'] ?? ''));
+        $fatherPhone = $this->normalizePhone($data['student_father_phone'] ?? '');
+        $fatherIdCard = trim((string) ($data['student_father_id_card'] ?? ''));
+        $motherName = trim((string) ($data['student_mother_name'] ?? ''));
+        $motherPhone = $this->normalizePhone($data['student_mother_phone'] ?? '');
+        $motherIdCard = trim((string) ($data['student_mother_id_card'] ?? ''));
+        $socialLinks = trim((string) ($data['student_parent_social_links'] ?? ''));
         $schoolName = trim((string) ($data['student_school_name'] ?? ''));
         $targetScore = trim((string) ($data['student_target_score'] ?? ''));
-        $entryTestId = (int) ($data['student_entry_test_id'] ?? 0);
         $studentCode = $this->buildStudentCode($userId);
+        $existingParentId = (int) $this->fetchScalar(
+            'SELECT parent_id AS parent_id
+             FROM student_profiles
+             WHERE user_id = :user_id
+             LIMIT 1',
+            ['user_id' => $userId],
+            'parent_id',
+            0
+        );
+
+        $parentPayload = [
+            'father_name' => $fatherName,
+            'father_phone' => $fatherPhone,
+            'father_id_card' => $fatherIdCard,
+            'mother_name' => $motherName,
+            'mother_phone' => $motherPhone,
+            'mother_id_card' => $motherIdCard,
+            'social_links' => $socialLinks,
+        ];
+        $parentId = $this->saveParentProfile($parentPayload, $existingParentId > 0 ? $existingParentId : null);
 
         $this->executeStatement(
-            'INSERT INTO student_profiles (user_id, student_code, parent_name, parent_phone, school_name, target_score, entry_test_id)
-             VALUES (:user_id, :student_code, :parent_name, :parent_phone, :school_name, :target_score, :entry_test_id)
+            'INSERT INTO student_profiles (user_id, parent_id, student_code, school_name, target_score)
+             VALUES (:user_id, :parent_id, :student_code, :school_name, :target_score)
              ON DUPLICATE KEY UPDATE
+                 parent_id = VALUES(parent_id),
                  student_code = VALUES(student_code),
-                 parent_name = VALUES(parent_name),
-                 parent_phone = VALUES(parent_phone),
                  school_name = VALUES(school_name),
-                 target_score = VALUES(target_score),
-                 entry_test_id = VALUES(entry_test_id)',
+                 target_score = VALUES(target_score)',
             [
                 'user_id' => $userId,
+                'parent_id' => $parentId,
                 'student_code' => $studentCode,
-                'parent_name' => $parentName !== '' ? $parentName : null,
-                'parent_phone' => $parentPhone !== '' ? $parentPhone : null,
                 'school_name' => $schoolName !== '' ? $schoolName : null,
                 'target_score' => $targetScore !== '' ? $targetScore : null,
-                'entry_test_id' => $entryTestId > 0 ? $entryTestId : null,
             ]
         );
+
+        if ($parentId === null && $existingParentId > 0) {
+            $this->deleteParentIfUnused($existingParentId);
+        }
     }
 
     public function removeRoleProfile(int $userId, string $roleName): void
@@ -620,9 +662,126 @@ final class UsersTableModel extends BaseTableModel
         }
 
         if ($normalized === 'student') {
+            $parentId = (int) $this->fetchScalar(
+                'SELECT parent_id AS parent_id
+                 FROM student_profiles
+                 WHERE user_id = :user_id
+                 LIMIT 1',
+                ['user_id' => $userId],
+                'parent_id',
+                0
+            );
             $this->executeStatement('DELETE FROM student_profiles WHERE user_id = :user_id', ['user_id' => $userId]);
+            if ($parentId > 0) {
+                $this->deleteParentIfUnused($parentId);
+            }
             return;
         }
+    }
+
+    private function saveParentProfile(array $data, ?int $existingParentId): ?int
+    {
+        if (!$this->hasParentProfileData($data)) {
+            return null;
+        }
+
+        $params = [
+            'father_name' => $this->nullIfEmpty($data['father_name'] ?? null),
+            'father_phone' => $this->nullIfEmpty($data['father_phone'] ?? null),
+            'father_id_card' => $this->nullIfEmpty($data['father_id_card'] ?? null),
+            'mother_name' => $this->nullIfEmpty($data['mother_name'] ?? null),
+            'mother_phone' => $this->nullIfEmpty($data['mother_phone'] ?? null),
+            'mother_id_card' => $this->nullIfEmpty($data['mother_id_card'] ?? null),
+            'social_links' => $this->nullIfEmpty($data['social_links'] ?? null),
+        ];
+
+        if ($existingParentId !== null && $existingParentId > 0) {
+            $params['id'] = $existingParentId;
+            $this->executeStatement(
+                'UPDATE parents
+                 SET father_name = :father_name,
+                     father_phone = :father_phone,
+                     father_id_card = :father_id_card,
+                     mother_name = :mother_name,
+                     mother_phone = :mother_phone,
+                     mother_id_card = :mother_id_card,
+                     social_links = :social_links
+                 WHERE id = :id',
+                $params
+            );
+
+            return $existingParentId;
+        }
+
+        $this->executeStatement(
+            'INSERT INTO parents (father_name, father_phone, father_id_card, mother_name, mother_phone, mother_id_card, social_links)
+             VALUES (:father_name, :father_phone, :father_id_card, :mother_name, :mother_phone, :mother_id_card, :social_links)',
+            $params
+        );
+
+        return (int) $this->pdo->lastInsertId();
+    }
+
+    private function hasParentProfileData(array $data): bool
+    {
+        foreach (['father_name', 'father_phone', 'father_id_card', 'mother_name', 'mother_phone', 'mother_id_card', 'social_links'] as $key) {
+            if (trim((string) ($data[$key] ?? '')) !== '') {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function deleteParentIfUnused(int $parentId): void
+    {
+        if ($parentId <= 0) {
+            return;
+        }
+
+        $usageCount = (int) $this->fetchScalar(
+            'SELECT COUNT(*) AS total
+             FROM student_profiles
+             WHERE parent_id = :parent_id',
+            ['parent_id' => $parentId],
+            'total',
+            0
+        );
+
+        if ($usageCount === 0) {
+            $this->executeStatement('DELETE FROM parents WHERE id = :id', ['id' => $parentId]);
+        }
+    }
+
+    private function nullIfEmpty(mixed $value): ?string
+    {
+        $normalized = trim((string) $value);
+        return $normalized !== '' ? $normalized : null;
+    }
+
+    private function listStudentClassEnrollments(int $userId): array
+    {
+        if ($userId <= 0) {
+            return [];
+        }
+
+        return $this->fetchAll(
+            'SELECT c.id AS class_id,
+                    c.class_name,
+                    c.status AS class_status,
+                    c.start_date,
+                    c.end_date,
+                    cs.enrollment_date,
+                    co.course_name
+             FROM class_students cs
+             INNER JOIN classes c ON c.id = cs.class_id
+             INNER JOIN users u ON u.id = cs.student_id
+             LEFT JOIN courses co ON co.id = c.course_id
+             WHERE cs.student_id = :user_id
+               AND u.deleted_at IS NULL
+             ORDER BY COALESCE(cs.enrollment_date, c.start_date, c.created_at) DESC, c.class_name ASC',
+            ['user_id' => $userId]
+        );
     }
 
     private function normalizePhone(mixed $value): string

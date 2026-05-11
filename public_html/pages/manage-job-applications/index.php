@@ -223,6 +223,7 @@ $canDeleteApplication = has_permission('job_application.delete');
             $editingStatus = (string) ($editingApplication['status'] ?? 'PENDING');
             $editingStatusLabel = (string) ($statusOptions[$editingStatus] ?? $editingStatus);
             $editingApplicationConverted = (int) ($editingApplication['converted_user_id'] ?? 0) > 0;
+            $editingApplicationLockReason = 'Hồ sơ đã được chuyển đổi thành user nên không thể đổi lại trạng thái cũ.';
             $editingApplicationCanConvertNow = job_application_can_convert_status($editingStatus);
             $editingApplicationUrl = page_url('job-applications-manage', [
                 'edit' => (int) ($editingApplication['id'] ?? 0),
@@ -280,7 +281,7 @@ $canDeleteApplication = has_permission('job_application.delete');
 
                 <div
                     class="rounded-xl border border-slate-200 bg-white p-3"
-                    <?= $editingApplicationConverted ? 'data-process-locked-section="1" title="Hồ sơ đã được chuyển đổi thành user nên không thể chỉnh lại quy trình."' : ''; ?>
+                    <?= $editingApplicationConverted ? 'data-process-locked-section="1" title="' . e($editingApplicationLockReason) . '"' : ''; ?>
                 >
                     <h4 class="mb-2 text-sm font-extrabold text-slate-800">Cập nhật quy trình tuyển dụng</h4>
                     <form class="grid gap-2" method="post" action="/api/applications/update">
@@ -289,20 +290,29 @@ $canDeleteApplication = has_permission('job_application.delete');
                         <fieldset class="grid gap-2" <?= $editingApplicationConverted ? 'disabled aria-disabled="true"' : ''; ?>>
                             <label>
                                 Trạng thái
-                                <select
-                                    name="status"
-                                    required
-                                    data-process-status-select="1"
-                                    data-is-converted="<?= $editingApplicationConverted ? '1' : '0'; ?>"
-                                    data-locked-status="passed"
-                                    <?= $editingApplicationConverted ? 'title="Hồ sơ đã được chuyển đổi nên không thể đổi lại trạng thái cũ."' : ''; ?>
-                                >
-                                    <?php foreach ($statusOptions as $statusValue => $statusLabel): ?>
-                                        <?php $isLockedOutStatus = $editingApplicationConverted && $statusValue !== 'PASSED'; ?>
-                                        <?php $isSelectedStatus = $editingApplicationConverted ? $statusValue === 'PASSED' : $editingStatus === $statusValue; ?>
-                                        <option value="<?= e($statusValue); ?>" <?= $isSelectedStatus ? 'selected' : ''; ?> <?= $isLockedOutStatus ? 'disabled' : ''; ?>><?= e($statusLabel); ?></option>
-                                    <?php endforeach; ?>
-                                </select>
+                                <div class="relative mt-1">
+                                    <select
+                                        name="status"
+                                        required
+                                        data-process-status-select="1"
+                                        data-is-converted="<?= $editingApplicationConverted ? '1' : '0'; ?>"
+                                        data-locked-status="passed"
+                                        <?= $editingApplicationConverted ? 'disabled aria-disabled="true"' : ''; ?>
+                                    >
+                                        <?php foreach ($statusOptions as $statusValue => $statusLabel): ?>
+                                            <?php $isLockedOutStatus = $editingApplicationConverted && $statusValue !== 'PASSED'; ?>
+                                            <?php $isSelectedStatus = $editingApplicationConverted ? $statusValue === 'PASSED' : $editingStatus === $statusValue; ?>
+                                            <option value="<?= e($statusValue); ?>" <?= $isSelectedStatus ? 'selected' : ''; ?> <?= $isLockedOutStatus ? 'disabled' : ''; ?>><?= e($statusLabel); ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                    <?php if ($editingApplicationConverted): ?>
+                                        <span
+                                            class="absolute inset-0 z-10 cursor-not-allowed rounded-xl"
+                                            title="<?= e($editingApplicationLockReason); ?>"
+                                            aria-label="<?= e($editingApplicationLockReason); ?>"
+                                        ></span>
+                                    <?php endif; ?>
+                                </div>
                             </label>
                             <label>
                                 Ghi chú HR

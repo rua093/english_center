@@ -278,29 +278,16 @@ final class AdminModel
         $password = $providedPassword !== '' ? $providedPassword : '123456';
         $adminNote = trim((string) ($options['admin_note'] ?? ''));
 
-        $parentName = trim((string) ($lead['parent_name'] ?? ''));
-        $leadPhone = trim((string) ($lead['parent_phone'] ?? ''));
-        if ($leadPhone === '') {
-            $leadPhone = $this->extractPhoneFromText((string) ($lead['parent_name'] ?? '') . ' ' . (string) ($lead['school_name'] ?? ''));
-        }
-        $leadEmail = trim((string) ($lead['parent_email'] ?? ''));
-        if ($leadEmail === '') {
-            $leadEmail = $this->extractEmailFromText((string) ($lead['parent_name'] ?? '') . ' ' . (string) ($lead['school_name'] ?? ''));
-        }
-
         $payload = [
             'username' => $username,
             'password' => $password,
             'full_name' => trim((string) ($lead['student_name'] ?? '')),
             'role_id' => (int) ($studentRole['id'] ?? 0),
-            'phone' => $leadPhone,
-            'email' => $leadEmail,
+            'phone' => '',
+            'email' => '',
             'status' => 'active',
-            'student_parent_name' => trim((string) $parentName),
-            'student_parent_phone' => $leadPhone,
             'student_school_name' => trim((string) ($lead['school_name'] ?? '')),
-            'student_target_score' => trim((string) (($lead['current_level'] ?? '') !== '' ? $lead['current_level'] : ($lead['study_time'] ?? ''))),
-            'student_entry_test_id' => 0,
+            'student_target_score' => '',
         ];
 
         $createdUserId = 0;

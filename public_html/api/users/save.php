@@ -69,11 +69,15 @@ $payload = [
     'teacher_bio' => trim((string) ($_POST['teacher_bio'] ?? '')),
     // Sử dụng biến $videoUrl đã xử lý ở trên
     'teacher_intro_video_url' => $videoUrl,
-    'student_parent_name' => trim((string) ($_POST['student_parent_name'] ?? '')),
-    'student_parent_phone' => normalize_phone_string((string) ($_POST['student_parent_phone'] ?? '')),
+    'student_father_name' => trim((string) ($_POST['student_father_name'] ?? '')),
+    'student_father_phone' => normalize_phone_string((string) ($_POST['student_father_phone'] ?? '')),
+    'student_father_id_card' => trim((string) ($_POST['student_father_id_card'] ?? '')),
+    'student_mother_name' => trim((string) ($_POST['student_mother_name'] ?? '')),
+    'student_mother_phone' => normalize_phone_string((string) ($_POST['student_mother_phone'] ?? '')),
+    'student_mother_id_card' => trim((string) ($_POST['student_mother_id_card'] ?? '')),
+    'student_parent_social_links' => trim((string) ($_POST['student_parent_social_links'] ?? '')),
     'student_school_name' => trim((string) ($_POST['student_school_name'] ?? '')),
     'student_target_score' => trim((string) ($_POST['student_target_score'] ?? '')),
-    'student_entry_test_id' => (int) ($_POST['student_entry_test_id'] ?? 0),
 ];
 
 if ($payload['username'] === '' || $payload['full_name'] === '' || $payload['role_id'] <= 0) {
@@ -87,7 +91,6 @@ if (!in_array($payload['status'], ['active', 'inactive'], true)) {
 }
 
 $payload['teacher_experience_years'] = max(0, (int) $payload['teacher_experience_years']);
-$payload['student_entry_test_id'] = max(0, (int) $payload['student_entry_test_id']);
 
 $adminModel = new AdminModel();
 $role = $adminModel->findRoleById((int) $payload['role_id']);

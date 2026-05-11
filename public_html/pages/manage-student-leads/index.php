@@ -237,6 +237,7 @@ $canDeleteLead = has_permission('student_lead.delete');
             $editingStatus = (string) ($editingLead['status'] ?? 'new');
             $editingStatusLabel = (string) ($statusOptions[$editingStatus] ?? $editingStatus);
             $editingLeadConverted = (int) ($editingLead['converted_user_id'] ?? 0) > 0;
+            $editingLeadLockReason = 'Lead đã được chuyển đổi thành user nên không thể đổi lại trạng thái cũ.';
             $editingLeadCanConvertNow = student_lead_can_convert_status($editingStatus);
             $editingLeadUrl = page_url('student-leads-manage', [
                 'edit' => (int) ($editingLead['id'] ?? 0),
@@ -282,7 +283,7 @@ $canDeleteLead = has_permission('student_lead.delete');
 
                 <div
                     class="rounded-xl border border-slate-200 bg-white p-3"
-                    <?= $editingLeadConverted ? 'data-process-locked-section="1" title="Lead đã được chuyển đổi thành user nên không thể chỉnh lại quy trình."' : ''; ?>
+                    <?= $editingLeadConverted ? 'data-process-locked-section="1" title="' . e($editingLeadLockReason) . '"' : ''; ?>
                 >
                     <h4 class="mb-2 text-sm font-extrabold text-slate-800">Cập nhật quy trình</h4>
                     <form class="grid gap-2" method="post" action="/api/leads/update">
@@ -291,20 +292,29 @@ $canDeleteLead = has_permission('student_lead.delete');
                         <fieldset class="grid gap-2" <?= $editingLeadConverted ? 'disabled aria-disabled="true"' : ''; ?>>
                             <label>
                                 Trạng thái
-                                <select
-                                    name="status"
-                                    required
-                                    data-process-status-select="1"
-                                    data-is-converted="<?= $editingLeadConverted ? '1' : '0'; ?>"
-                                    data-locked-status="official"
-                                    <?= $editingLeadConverted ? 'title="Lead đã được chuyển đổi nên không thể đổi lại trạng thái cũ."' : ''; ?>
-                                >
-                                    <?php foreach ($statusOptions as $statusValue => $statusLabel): ?>
-                                        <?php $isLockedOutStatus = $editingLeadConverted && $statusValue !== 'official'; ?>
-                                        <?php $isSelectedStatus = $editingLeadConverted ? $statusValue === 'official' : $editingStatus === $statusValue; ?>
-                                        <option value="<?= e($statusValue); ?>" <?= $isSelectedStatus ? 'selected' : ''; ?> <?= $isLockedOutStatus ? 'disabled' : ''; ?>><?= e($statusLabel); ?></option>
-                                    <?php endforeach; ?>
-                                </select>
+                                <div class="relative mt-1">
+                                    <select
+                                        name="status"
+                                        required
+                                        data-process-status-select="1"
+                                        data-is-converted="<?= $editingLeadConverted ? '1' : '0'; ?>"
+                                        data-locked-status="official"
+                                        <?= $editingLeadConverted ? 'disabled aria-disabled="true"' : ''; ?>
+                                    >
+                                        <?php foreach ($statusOptions as $statusValue => $statusLabel): ?>
+                                            <?php $isLockedOutStatus = $editingLeadConverted && $statusValue !== 'official'; ?>
+                                            <?php $isSelectedStatus = $editingLeadConverted ? $statusValue === 'official' : $editingStatus === $statusValue; ?>
+                                            <option value="<?= e($statusValue); ?>" <?= $isSelectedStatus ? 'selected' : ''; ?> <?= $isLockedOutStatus ? 'disabled' : ''; ?>><?= e($statusLabel); ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                    <?php if ($editingLeadConverted): ?>
+                                        <span
+                                            class="absolute inset-0 z-10 cursor-not-allowed rounded-xl"
+                                            title="<?= e($editingLeadLockReason); ?>"
+                                            aria-label="<?= e($editingLeadLockReason); ?>"
+                                        ></span>
+                                    <?php endif; ?>
+                                </div>
                             </label>
                             <label>
                                 Ghi chú xử lý nội bộ

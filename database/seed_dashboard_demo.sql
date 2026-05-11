@@ -123,12 +123,19 @@ BEGIN
             NULL
         );
         SET studentUserId = LAST_INSERT_ID();
-        INSERT INTO student_profiles (user_id, student_code, parent_name, parent_phone, school_name, target_score, entry_test_id, created_at, updated_at)
+        INSERT INTO parents (father_name, father_phone, social_links, created_at, updated_at)
         VALUES (
-            studentUserId,
-            CONCAT('HVDEMO', LPAD(i, 3, '0')),
             CONCAT('Phu huynh demo ', LPAD(i, 3, '0')),
             CONCAT('0933', LPAD(i, 6, '0')),
+            NULL,
+            createdStamp,
+            createdStamp
+        );
+        INSERT INTO student_profiles (user_id, parent_id, student_code, school_name, target_score, entry_test_id, created_at, updated_at)
+        VALUES (
+            studentUserId,
+            LAST_INSERT_ID(),
+            CONCAT('HVDEMO', LPAD(i, 3, '0')),
             CONCAT('Truong demo ', 1 + (i MOD 9)),
             CASE WHEN MOD(i, 2) = 0 THEN 'IELTS 6.5' ELSE 'Giao tiep tu tin' END,
             NULL,
