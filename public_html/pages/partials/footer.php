@@ -16,7 +16,7 @@
                     </div>
                     <div class="flex flex-col">
                         <span class="text-xl font-black text-white tracking-tight uppercase leading-none">Nhuệ Minh</span>
-                        <span class="text-blue-400 font-bold text-[10px] tracking-widest uppercase mt-1">Language Center</span>
+                        <span class="text-blue-400 font-bold text-[10px] tracking-widest uppercase mt-1">Foreign Language Center</span>
                     </div>
                 </a>
                 <p class="text-sm leading-relaxed mb-6 font-medium">

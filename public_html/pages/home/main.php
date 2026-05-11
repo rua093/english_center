@@ -68,7 +68,7 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                 <div class="relative z-10 w-full md:flex-1 text-center md:text-left">
                     <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/90 border border-white text-[10px] font-black uppercase tracking-widest text-slate-800 mb-3 shadow-sm">
                         <span class="w-2 h-2 rounded-full bg-red-600 animate-pulse"></span>
-                        Trung Tâm Tiếng Anh <span class="text-red-600">Nhuệ Minh</span>
+                        Trung tâm Ngoại ngữ <span class="text-red-600">Nhuệ Minh</span>
                     </div>
 
                     <h3 class="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 leading-tight tracking-tight uppercase mb-2.5">
@@ -79,7 +79,7 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                     </h3>
 
                     <p class="text-slate-700 text-xs sm:text-sm leading-relaxed font-semibold max-w-2xl mx-auto md:mx-0">
-                        <strong class="text-slate-900">Xóa bỏ</strong> rào cản. <strong class="text-slate-900">Khai phóng</strong> tiềm năng. Là trung tâm tiếng Anh sở hữu hệ sinh thái <strong class="text-slate-900">độc quyền</strong>, chúng tôi giúp bạn <strong class="text-slate-900">làm chủ</strong> ngôn ngữ ở tầm vóc cao nhất.
+                        <strong class="text-slate-900">Xóa bỏ</strong> rào cản. <strong class="text-slate-900">Khai phóng</strong> tiềm năng. Là Trung tâm Ngoại ngữ sở hữu hệ sinh thái <strong class="text-slate-900">độc quyền</strong>, chúng tôi giúp bạn <strong class="text-slate-900">làm chủ</strong> ngôn ngữ ở tầm vóc cao nhất.
                     </p>
                 </div>
 
@@ -441,7 +441,156 @@ $homeFormatFeedbackDate = static function (?string $value): string {
         </div>
     </section>
 
-    <section id="lien-he" class="relative py-10 sm:py-14 md:py-20 overflow-hidden bg-transparent z-10">
+    <section id="dang-ky-tu-van" class="relative py-20 md:py-32 overflow-hidden">
+        <!-- Background image hero banner -->
+        <div class="absolute inset-0">
+            <img src="/assets/images/consult.jpg" alt="Sinh viên học tập" class="h-full w-full object-cover brightness-110 contrast-105 saturate-105">
+            <!-- Slight horizontal darkening to keep text legible -->
+            <div class="absolute inset-0 bg-gradient-to-r from-slate-900/28 via-slate-900/8 to-transparent"></div>
+            <!-- Top fade: blend the top edge into the page background for smooth transition -->
+            <div class="absolute inset-x-0 top-0 h-28 md:h-36 bg-gradient-to-b from-white/95 to-transparent pointer-events-none"></div>
+            <!-- Bottom fade: blend the bottom edge into the page background for smooth transition -->
+            <div class="absolute inset-x-0 bottom-0 h-28 md:h-36 bg-gradient-to-t from-white/95 to-transparent pointer-events-none"></div>
+            <!-- Subtle light reflection (white psychology - cleanliness, trust) -->
+            <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(255,255,255,0.12),_transparent_45%)]"></div>
+        </div>
+
+        <!-- Content overlay -->
+        <div class="relative z-10 mx-auto max-w-[1450px] px-4 sm:px-6">
+            <div class="grid gap-8 lg:gap-12 lg:grid-cols-2 items-center">
+                <!-- Left side: Text content -->
+                <div class="max-w-2xl" data-aos="fade-right" data-aos-duration="700">
+                    <span class="inline-flex items-center gap-2 rounded-full border border-rose-300/40 bg-gradient-to-r from-rose-600 to-rose-500 px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-white shadow-lg shadow-rose-500/25 backdrop-blur-sm transition-transform hover:-translate-y-0.5">
+                        <span class="h-2 w-2 rounded-full bg-white animate-pulse"></span>
+                        Tư vấn nhanh 1:1
+                    </span>
+
+                    <h2 class="mt-8 text-4xl md:text-5xl lg:text-6xl font-black leading-tight tracking-tight text-white">
+                        Bắt đầu hành trình <br>
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-rose-200 to-orange-200">chinh phục Anh ngữ</span>
+                    </h2>
+                    
+                    <p class="mt-6 max-w-xl text-base md:text-lg leading-relaxed text-white/85">
+                        Hãy để lại thông tin, đội ngũ học thuật của chúng tôi sẽ thiết kế riêng một lộ trình tối ưu nhất dựa trên mục tiêu và năng lực của bạn.
+                    </p>
+
+                    <div class="mt-10 grid gap-4 sm:grid-cols-3 max-w-lg">
+                        <div class="rounded-[1.5rem] border border-white/18 bg-white/10 p-5 backdrop-blur-sm shadow-lg">
+                            <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 text-white">
+                                <i class="fa-regular fa-clock text-sm"></i>
+                            </div>
+                            <p class="text-2xl font-black text-white">15'</p>
+                            <p class="mt-1 text-[9px] font-bold uppercase tracking-widest text-white/70">Liên hệ ngay</p>
+                        </div>
+                        <div class="rounded-[1.5rem] border border-white/18 bg-white/10 p-5 backdrop-blur-sm shadow-lg">
+                            <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 text-white">
+                                <i class="fa-solid fa-user-group text-sm"></i>
+                            </div>
+                            <p class="text-2xl font-black text-white">1:1</p>
+                            <p class="mt-1 text-[9px] font-bold uppercase tracking-widest text-white/70">Chuyên gia</p>
+                        </div>
+                        <div class="rounded-[1.5rem] border border-white/18 bg-white/10 p-5 backdrop-blur-sm shadow-lg">
+                            <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 text-white">
+                                <i class="fa-solid fa-wand-magic-sparkles text-sm"></i>
+                            </div>
+                            <p class="text-2xl font-black text-white">100%</p>
+                            <p class="mt-1 text-[9px] font-bold uppercase tracking-widest text-white/70">Cá nhân hóa</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right side: Form panel overlay - Psychology: White (trust/cleanliness) + Rose (action) + Emerald (growth) -->
+                <div class="relative overflow-hidden rounded-[2.75rem] border border-white/20 bg-transparent p-8 md:p-10 shadow-none backdrop-blur-none" data-aos="fade-left" data-aos-duration="700" data-aos-delay="100">
+                    <!-- Subtle emerald tint (trust, growth psychology) -->
+                    <div class="absolute right-[-10%] top-[-10%] h-56 w-56 rounded-full bg-gradient-to-br from-rose-50/90 to-pink-50/70 blur-3xl pointer-events-none"></div>
+                    <!-- Emerald for confidence/growth psychology -->
+                    <div class="absolute bottom-[-10%] left-[-10%] h-44 w-44 rounded-full bg-emerald-50/85 blur-3xl pointer-events-none"></div>
+
+                    <div class="relative z-10 mb-10 border-b border-white/15 pb-8">
+                        <!-- Heading: White with 3D shadow effect + Rose accent -->
+                        <h3 class="text-3xl md:text-[2rem] font-black text-white tracking-tight mb-3" style="text-shadow: 
+                            2px 2px 0 rgba(15, 23, 42, 0.15),
+                            4px 4px 0 rgba(15, 23, 42, 0.12),
+                            6px 6px 0 rgba(15, 23, 42, 0.08),
+                            0 8px 16px rgba(15, 23, 42, 0.25),
+                            0 0 1px rgba(255, 255, 255, 0.8);
+                        ">
+                            Đăng ký tư vấn
+                            <span class="ml-2 text-transparent bg-clip-text bg-gradient-to-r from-rose-400 to-rose-600" style="text-shadow: 
+                                2px 2px 0 rgba(244, 63, 94, 0.2),
+                                4px 4px 0 rgba(244, 63, 94, 0.15),
+                                0 6px 12px rgba(244, 63, 94, 0.2);
+                            ">miễn phí</span>
+                        </h3>
+                        <!-- Subheading: Trust messaging (emerald psychology) -->
+                        <p class="text-sm font-semibold text-white/85">
+                            <i class="fa-solid fa-check-circle text-emerald-500 mr-2"></i>
+                            Chuyên gia sẽ thiết kế lộ trình phù hợp cho bạn
+                        </p>
+                    </div>
+
+                    <form class="relative z-10 grid gap-6 sm:grid-cols-2">
+                        <!-- Name field: Rose psychology (action/engagement) -->
+                        <div class="sm:col-span-2 group">
+                            <label class="mb-3 flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.16em] text-white group-focus-within:text-rose-300 transition-colors">
+                                <i class="fa-solid fa-user text-rose-500"></i>
+                                Họ và tên <span class="text-rose-500 text-base">*</span>
+                            </label>
+                            <div class="relative">
+                                <span class="absolute left-5 top-1/2 -translate-y-1/2 text-rose-400 group-focus-within:text-rose-500 transition-colors"><i class="fa-regular fa-user"></i></span>
+                                <input type="text" required placeholder="Nhập họ và tên của bạn" class="w-full rounded-2xl border border-slate-200 bg-white py-4 pl-14 pr-5 text-sm font-bold text-slate-900 shadow-sm outline-none transition-all placeholder:text-slate-400 placeholder:font-medium focus:border-rose-400 focus:ring-4 focus:ring-rose-500/15 focus:shadow-lg focus:shadow-rose-500/10">
+                            </div>
+                        </div>
+
+                        <!-- Phone field: Rose for action/contact -->
+                        <div class="group">
+                            <label class="mb-3 flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.16em] text-white group-focus-within:text-rose-300 transition-colors">
+                                <i class="fa-solid fa-phone text-rose-500"></i>
+                                Số điện thoại <span class="text-rose-500 text-base">*</span>
+                            </label>
+                            <div class="relative">
+                                <span class="absolute left-5 top-1/2 -translate-y-1/2 text-rose-400 group-focus-within:text-rose-500 transition-colors"><i class="fa-solid fa-phone"></i></span>
+                                <input type="tel" required placeholder="09xx xxx xxx" class="w-full rounded-2xl border border-slate-200 bg-white py-4 pl-14 pr-5 text-sm font-bold text-slate-900 shadow-sm outline-none transition-all placeholder:text-slate-400 placeholder:font-medium focus:border-rose-400 focus:ring-4 focus:ring-rose-500/15 focus:shadow-lg focus:shadow-rose-500/10">
+                            </div>
+                        </div>
+
+                        <!-- Date field: Emerald for info/optional (growth psychology) -->
+                        <div class="group">
+                            <label class="mb-3 flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.16em] text-white group-focus-within:text-emerald-300 transition-colors">
+                                <i class="fa-solid fa-calendar text-emerald-500"></i>
+                                Ngày sinh
+                            </label>
+                            <div class="relative">
+                                <span class="absolute left-5 top-1/2 -translate-y-1/2 text-emerald-400 group-focus-within:text-emerald-500 transition-colors"><i class="fa-regular fa-calendar"></i></span>
+                                <input type="date" class="w-full rounded-2xl border border-slate-200 bg-white py-4 pl-14 pr-5 text-sm font-bold text-slate-900 shadow-sm outline-none transition-all focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/15 focus:shadow-lg focus:shadow-emerald-500/10">
+                            </div>
+                        </div>
+
+                        <!-- Notes field: Emerald for feedback (confidence in sharing) -->
+                        <div class="sm:col-span-2 group">
+                            <label class="mb-3 flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.16em] text-white group-focus-within:text-emerald-300 transition-colors">
+                                <i class="fa-solid fa-message text-emerald-500"></i>
+                                Ghi chú mong muốn
+                            </label>
+                            <textarea rows="3" placeholder="Bạn muốn học khóa nào, hoặc khung giờ rảnh của bạn là gì?..." class="w-full rounded-2xl border border-slate-200 bg-white p-5 text-sm font-bold text-slate-900 shadow-sm outline-none transition-all placeholder:text-slate-400 placeholder:font-medium focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/15 focus:shadow-lg focus:shadow-emerald-500/10 resize-none"></textarea>
+                        </div>
+
+                        <!-- CTA Button: Rose (urgency/action psychology) + Emerald accent (trust) -->
+                        <button type="submit" class="sm:col-span-2 mt-2 group relative inline-flex items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-rose-500 to-rose-600 px-8 py-4 text-sm font-black uppercase tracking-widest text-white shadow-lg shadow-rose-500/30 transition-all duration-300 hover:-translate-y-1.5 hover:from-rose-600 hover:to-rose-700 hover:shadow-rose-600/50 active:translate-y-0 active:shadow-rose-500/20">
+                            <span class="flex items-center gap-2">
+                                Gửi yêu cầu ngay
+                                <i class="fa-solid fa-arrow-right transition-transform group-hover:translate-x-1"></i>
+                            </span>
+                            <!-- Subtle success indicator (emerald) -->
+                            <span class="absolute -top-1 -right-1 hidden h-3 w-3 rounded-full bg-emerald-400 animate-pulse group-hover:block"></span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- <section id="lien-he" class="relative py-10 sm:py-14 md:py-20 overflow-hidden bg-transparent z-10">
         <div class="mx-auto w-full max-w-[1400px] flex flex-col lg:flex-row">
 
             <div class="w-full lg:w-1/2 flex flex-col justify-center px-4 sm:px-6 py-10 sm:py-16 lg:px-16 xl:px-32 z-10" data-aos="fade-right">
@@ -485,7 +634,7 @@ $homeFormatFeedbackDate = static function (?string $value): string {
             </div>
 
         </div>
-    </section>
+    </section> -->
 
     <section id="gioi-thieu" class="relative py-16 sm:py-20 md:py-28 overflow-hidden bg-transparent">
         <div class="absolute top-[-5%] right-[-5%] w-[250px] sm:w-[400px] lg:w-[500px] h-[250px] sm:h-[400px] lg:h-[500px] bg-gradient-to-br from-blue-300/40 to-sky-200/40 rounded-full blur-2xl sm:blur-3xl mix-blend-multiply pointer-events-none"></div>
@@ -495,7 +644,7 @@ $homeFormatFeedbackDate = static function (?string $value): string {
             <div class="relative px-4 sm:px-0" data-aos="fade-right">
                 <div class="absolute -bottom-4 -right-4 sm:-bottom-6 sm:-right-6 w-full h-full rounded-[2rem] sm:rounded-[2.5rem] bg-gradient-to-br from-blue-600/10 to-cyan-500/10 border border-blue-900/5"></div>
                 <div class="relative rounded-[2rem] sm:rounded-[2.5rem] overflow-hidden shadow-[0_20px_50px_rgba(30,58,138,0.15)] group border-[4px] sm:border-[6px] border-white/80">
-                    <img src="/assets/images/center.jpg" alt="Vị trí trung tâm" class="w-full h-[300px] sm:h-[400px] lg:h-[500px] object-cover transform group-hover:scale-105 transition duration-700 ease-in-out">
+                    <img src="/assets/images/center2.jpg" alt="Vị trí trung tâm" class="w-full h-[300px] sm:h-[400px] lg:h-[500px] object-cover transform group-hover:scale-105 transition duration-700 ease-in-out">
                     <div class="absolute inset-0 bg-gradient-to-t from-blue-950/60 via-blue-950/20 to-transparent opacity-80"></div>
                 </div>
                 <div class="absolute -bottom-6 right-2 sm:-bottom-8 sm:right-4 md:-right-4 bg-white/95 backdrop-blur-md px-4 sm:px-6 py-3 sm:py-4 rounded-2xl shadow-[0_15px_40px_rgba(30,58,138,0.15)] border border-blue-50 hover:-translate-y-1 transition-transform cursor-default z-20">
@@ -520,7 +669,7 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                     <span class="text-blue-900 text-xs sm:text-sm md:text-base font-black uppercase tracking-[0.22em]">Về <span class="text-red-600">Nhuệ Minh </span>Edu</span>
                 </div>
                 <h2 class="text-3xl sm:text-4xl md:text-5xl font-extrabold leading-[1.15] text-blue-950">Nâng tầm ngoại ngữ,<br><span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500">Khơi nguồn tự tin</span></h2>
-                <p class="text-base sm:text-lg text-slate-600 leading-relaxed font-medium">Trung tâm ngoại ngữ hiện đại với không gian học tập truyền cảm hứng, cam kết mang lại giá trị thực tế, giúp học viên phát triển toàn diện 4 kỹ năng và sẵn sàng hội nhập.</p>
+                <p class="text-base sm:text-lg text-slate-600 leading-relaxed font-medium">Trung tâm Ngoại ngữ hiện đại với không gian học tập truyền cảm hứng, cam kết mang lại giá trị thực tế, giúp học viên phát triển toàn diện 4 kỹ năng và sẵn sàng hội nhập.</p>
 
                 <div class="grid sm:grid-cols-2 gap-4 sm:gap-5 mt-4 sm:mt-6">
                     <div class="bg-white/80 backdrop-blur-sm p-5 sm:p-6 rounded-2xl shadow-sm border border-blue-100 hover:-translate-y-1 hover:shadow-lg transition-all duration-300 group">
@@ -543,7 +692,7 @@ $homeFormatFeedbackDate = static function (?string $value): string {
         </div>
     </section>
 
-    <section id="su-menh" class="pt-12 pb-8 md:pt-20 md:pb-10 relative overflow-hidden bg-transparent z-10">
+    <section id="SU-menh" class="pt-12 pb-8 md:pt-20 md:pb-10 relative overflow-hidden bg-transparent z-10">
         <div class="absolute inset-0 pointer-events-none z-0 overflow-hidden hidden sm:block">
             <div class="absolute top-6 left-4 sm:top-10 sm:left-8 md:top-12 md:left-12 flex flex-col gap-4 text-slate-300 rotate-[-8deg]">
                 <i class="fa-solid fa-paper-plane text-4xl md:text-5xl opacity-55"></i>
@@ -644,7 +793,7 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                 </div>
 
                 <div class="relative z-20 w-44 h-44 sm:w-64 sm:h-64 md:w-[450px] md:h-[450px] rounded-full border-[6px] sm:border-[10px] md:border-[14px] border-white shadow-[0_20px_60px_rgba(30,58,138,0.2)] overflow-hidden bg-white flex items-center justify-center group" data-aos="zoom-in">
-                    <img src="assets/images/mission.jpg" alt="Trung tâm" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+                    <img src="assets/images/mission2.jpg" alt="Trung tâm" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
                     <div class="absolute inset-0 bg-blue-900/10 group-hover:bg-transparent transition-colors"></div>
                 </div>
 
@@ -959,7 +1108,156 @@ $homeFormatFeedbackDate = static function (?string $value): string {
         </div>
     </div>
 
-    <section id="lien-he" class="relative py-10 sm:py-14 md:py-20 overflow-hidden bg-transparent z-10">
+    <section id="dang-ky-tu-van" class="relative py-20 md:py-32 overflow-hidden">
+        <!-- Background image hero banner -->
+        <div class="absolute inset-0">
+            <img src="/assets/images/consult.jpg" alt="Sinh viên học tập" class="h-full w-full object-cover brightness-110 contrast-105 saturate-105">
+            <!-- Slight horizontal darkening to keep text legible -->
+            <div class="absolute inset-0 bg-gradient-to-r from-slate-900/28 via-slate-900/8 to-transparent"></div>
+            <!-- Top fade: blend the top edge into the page background for smooth transition -->
+            <div class="absolute inset-x-0 top-0 h-28 md:h-36 bg-gradient-to-b from-white/95 to-transparent pointer-events-none"></div>
+            <!-- Bottom fade: blend the bottom edge into the page background for smooth transition -->
+            <div class="absolute inset-x-0 bottom-0 h-28 md:h-36 bg-gradient-to-t from-white/95 to-transparent pointer-events-none"></div>
+            <!-- Subtle light reflection (white psychology - cleanliness, trust) -->
+            <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(255,255,255,0.12),_transparent_45%)]"></div>
+        </div>
+
+        <!-- Content overlay -->
+        <div class="relative z-10 mx-auto max-w-[1450px] px-4 sm:px-6">
+            <div class="grid gap-8 lg:gap-12 lg:grid-cols-2 items-center">
+                <!-- Left side: Text content -->
+                <div class="max-w-2xl" data-aos="fade-right" data-aos-duration="700">
+                    <span class="inline-flex items-center gap-2 rounded-full border border-rose-300/40 bg-gradient-to-r from-rose-600 to-rose-500 px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-white shadow-lg shadow-rose-500/25 backdrop-blur-sm transition-transform hover:-translate-y-0.5">
+                        <span class="h-2 w-2 rounded-full bg-white animate-pulse"></span>
+                        Tư vấn nhanh 1:1
+                    </span>
+
+                    <h2 class="mt-8 text-4xl md:text-5xl lg:text-6xl font-black leading-tight tracking-tight text-white">
+                        Bắt đầu hành trình <br>
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-rose-200 to-orange-200">chinh phục Anh ngữ</span>
+                    </h2>
+                    
+                    <p class="mt-6 max-w-xl text-base md:text-lg leading-relaxed text-white/85">
+                        Hãy để lại thông tin, đội ngũ học thuật của chúng tôi sẽ thiết kế riêng một lộ trình tối ưu nhất dựa trên mục tiêu và năng lực của bạn.
+                    </p>
+
+                    <div class="mt-10 grid gap-4 sm:grid-cols-3 max-w-lg">
+                        <div class="rounded-[1.5rem] border border-white/18 bg-white/10 p-5 backdrop-blur-sm shadow-lg">
+                            <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 text-white">
+                                <i class="fa-regular fa-clock text-sm"></i>
+                            </div>
+                            <p class="text-2xl font-black text-white">15'</p>
+                            <p class="mt-1 text-[9px] font-bold uppercase tracking-widest text-white/70">Liên hệ ngay</p>
+                        </div>
+                        <div class="rounded-[1.5rem] border border-white/18 bg-white/10 p-5 backdrop-blur-sm shadow-lg">
+                            <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 text-white">
+                                <i class="fa-solid fa-user-group text-sm"></i>
+                            </div>
+                            <p class="text-2xl font-black text-white">1:1</p>
+                            <p class="mt-1 text-[9px] font-bold uppercase tracking-widest text-white/70">Chuyên gia</p>
+                        </div>
+                        <div class="rounded-[1.5rem] border border-white/18 bg-white/10 p-5 backdrop-blur-sm shadow-lg">
+                            <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 text-white">
+                                <i class="fa-solid fa-wand-magic-sparkles text-sm"></i>
+                            </div>
+                            <p class="text-2xl font-black text-white">100%</p>
+                            <p class="mt-1 text-[9px] font-bold uppercase tracking-widest text-white/70">Cá nhân hóa</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right side: Form panel overlay - Psychology: White (trust/cleanliness) + Rose (action) + Emerald (growth) -->
+                <div class="relative overflow-hidden rounded-[2.75rem] border border-white/20 bg-transparent p-8 md:p-10 shadow-none backdrop-blur-none" data-aos="fade-left" data-aos-duration="700" data-aos-delay="100">
+                    <!-- Subtle emerald tint (trust, growth psychology) -->
+                    <div class="absolute right-[-10%] top-[-10%] h-56 w-56 rounded-full bg-gradient-to-br from-rose-50/90 to-pink-50/70 blur-3xl pointer-events-none"></div>
+                    <!-- Emerald for confidence/growth psychology -->
+                    <div class="absolute bottom-[-10%] left-[-10%] h-44 w-44 rounded-full bg-emerald-50/85 blur-3xl pointer-events-none"></div>
+
+                    <div class="relative z-10 mb-10 border-b border-white/15 pb-8">
+                        <!-- Heading: White with 3D shadow effect + Rose accent -->
+                        <h3 class="text-3xl md:text-[2rem] font-black text-white tracking-tight mb-3" style="text-shadow: 
+                            2px 2px 0 rgba(15, 23, 42, 0.15),
+                            4px 4px 0 rgba(15, 23, 42, 0.12),
+                            6px 6px 0 rgba(15, 23, 42, 0.08),
+                            0 8px 16px rgba(15, 23, 42, 0.25),
+                            0 0 1px rgba(255, 255, 255, 0.8);
+                        ">
+                            Đăng ký tư vấn
+                            <span class="ml-2 text-transparent bg-clip-text bg-gradient-to-r from-rose-400 to-rose-600" style="text-shadow: 
+                                2px 2px 0 rgba(244, 63, 94, 0.2),
+                                4px 4px 0 rgba(244, 63, 94, 0.15),
+                                0 6px 12px rgba(244, 63, 94, 0.2);
+                            ">miễn phí</span>
+                        </h3>
+                        <!-- Subheading: Trust messaging (emerald psychology) -->
+                        <p class="text-sm font-semibold text-white/85">
+                            <i class="fa-solid fa-check-circle text-emerald-500 mr-2"></i>
+                            Chuyên gia sẽ thiết kế lộ trình phù hợp cho bạn
+                        </p>
+                    </div>
+
+                    <form class="relative z-10 grid gap-6 sm:grid-cols-2">
+                        <!-- Name field: Rose psychology (action/engagement) -->
+                        <div class="sm:col-span-2 group">
+                            <label class="mb-3 flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.16em] text-white group-focus-within:text-rose-300 transition-colors">
+                                <i class="fa-solid fa-user text-rose-500"></i>
+                                Họ và tên <span class="text-rose-500 text-base">*</span>
+                            </label>
+                            <div class="relative">
+                                <span class="absolute left-5 top-1/2 -translate-y-1/2 text-rose-400 group-focus-within:text-rose-500 transition-colors"><i class="fa-regular fa-user"></i></span>
+                                <input type="text" required placeholder="Nhập họ và tên của bạn" class="w-full rounded-2xl border border-slate-200 bg-white py-4 pl-14 pr-5 text-sm font-bold text-slate-900 shadow-sm outline-none transition-all placeholder:text-slate-400 placeholder:font-medium focus:border-rose-400 focus:ring-4 focus:ring-rose-500/15 focus:shadow-lg focus:shadow-rose-500/10">
+                            </div>
+                        </div>
+
+                        <!-- Phone field: Rose for action/contact -->
+                        <div class="group">
+                            <label class="mb-3 flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.16em] text-white group-focus-within:text-rose-300 transition-colors">
+                                <i class="fa-solid fa-phone text-rose-500"></i>
+                                Số điện thoại <span class="text-rose-500 text-base">*</span>
+                            </label>
+                            <div class="relative">
+                                <span class="absolute left-5 top-1/2 -translate-y-1/2 text-rose-400 group-focus-within:text-rose-500 transition-colors"><i class="fa-solid fa-phone"></i></span>
+                                <input type="tel" required placeholder="09xx xxx xxx" class="w-full rounded-2xl border border-slate-200 bg-white py-4 pl-14 pr-5 text-sm font-bold text-slate-900 shadow-sm outline-none transition-all placeholder:text-slate-400 placeholder:font-medium focus:border-rose-400 focus:ring-4 focus:ring-rose-500/15 focus:shadow-lg focus:shadow-rose-500/10">
+                            </div>
+                        </div>
+
+                        <!-- Date field: Emerald for info/optional (growth psychology) -->
+                        <div class="group">
+                            <label class="mb-3 flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.16em] text-white group-focus-within:text-emerald-300 transition-colors">
+                                <i class="fa-solid fa-calendar text-emerald-500"></i>
+                                Ngày sinh
+                            </label>
+                            <div class="relative">
+                                <span class="absolute left-5 top-1/2 -translate-y-1/2 text-emerald-400 group-focus-within:text-emerald-500 transition-colors"><i class="fa-regular fa-calendar"></i></span>
+                                <input type="date" class="w-full rounded-2xl border border-slate-200 bg-white py-4 pl-14 pr-5 text-sm font-bold text-slate-900 shadow-sm outline-none transition-all focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/15 focus:shadow-lg focus:shadow-emerald-500/10">
+                            </div>
+                        </div>
+
+                        <!-- Notes field: Emerald for feedback (confidence in sharing) -->
+                        <div class="sm:col-span-2 group">
+                            <label class="mb-3 flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.16em] text-white group-focus-within:text-emerald-300 transition-colors">
+                                <i class="fa-solid fa-message text-emerald-500"></i>
+                                Ghi chú mong muốn
+                            </label>
+                            <textarea rows="3" placeholder="Bạn muốn học khóa nào, hoặc khung giờ rảnh của bạn là gì?..." class="w-full rounded-2xl border border-slate-200 bg-white p-5 text-sm font-bold text-slate-900 shadow-sm outline-none transition-all placeholder:text-slate-400 placeholder:font-medium focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/15 focus:shadow-lg focus:shadow-emerald-500/10 resize-none"></textarea>
+                        </div>
+
+                        <!-- CTA Button: Rose (urgency/action psychology) + Emerald accent (trust) -->
+                        <button type="submit" class="sm:col-span-2 mt-2 group relative inline-flex items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-rose-500 to-rose-600 px-8 py-4 text-sm font-black uppercase tracking-widest text-white shadow-lg shadow-rose-500/30 transition-all duration-300 hover:-translate-y-1.5 hover:from-rose-600 hover:to-rose-700 hover:shadow-rose-600/50 active:translate-y-0 active:shadow-rose-500/20">
+                            <span class="flex items-center gap-2">
+                                Gửi yêu cầu ngay
+                                <i class="fa-solid fa-arrow-right transition-transform group-hover:translate-x-1"></i>
+                            </span>
+                            <!-- Subtle success indicator (emerald) -->
+                            <span class="absolute -top-1 -right-1 hidden h-3 w-3 rounded-full bg-emerald-400 animate-pulse group-hover:block"></span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- <section id="lien-he" class="relative py-10 sm:py-14 md:py-20 overflow-hidden bg-transparent z-10">
         <div class="mx-auto w-full max-w-[1400px] flex flex-col lg:flex-row">
 
             <div class="w-full lg:w-1/2 flex flex-col justify-center px-4 sm:px-6 py-10 sm:py-16 lg:px-16 xl:px-32 z-10" data-aos="fade-right">
@@ -1003,6 +1301,6 @@ $homeFormatFeedbackDate = static function (?string $value): string {
             </div>
 
         </div>
-    </section>
+    </section> -->
 
 </main>

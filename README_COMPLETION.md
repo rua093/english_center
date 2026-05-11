@@ -2,7 +2,7 @@
 
 ## Overview
 
-Hệ thống quản lý trung tâm tiếng Anh được hoàn thành toàn bộ, bao gồm: trang web công khai, portal học viên, dashboard giáo viên, quản lý tài chính, phê duyệt, và các tính năng quản trị đầy đủ.
+Hệ thống quản lý Trung tâm Ngoại ngữ được hoàn thành toàn bộ, bao gồm: trang web công khai, portal học viên, dashboard giáo viên, quản lý tài chính, phê duyệt, và các tính năng quản trị đầy đủ.
 
 **Status: 100% HOÀN THÀNH ✓**
 
