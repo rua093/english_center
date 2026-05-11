@@ -81,11 +81,8 @@
                         Hệ thống
                         <i class="fa-solid fa-chevron-down text-[10px] transition-transform duration-300 group-hover:rotate-180 <?= $isActivePage(['register-consultation', 'documents']) ? 'text-blue-600' : 'text-slate-800 group-hover:text-blue-600' ?>"></i>
                     </button>
-                    <div class="absolute left-1/2 -translate-x-1/2 top-full z-50 w-56 opacity-0 invisible translate-y-2 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 transition-all duration-200">
+                        <div class="absolute left-1/2 -translate-x-1/2 top-full z-50 w-56 opacity-0 invisible translate-y-2 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 transition-all duration-200">
                         <div class="rounded-xl border border-slate-100 bg-white shadow-[0_10px_30px_rgba(0,0,0,0.08)] py-2">
-							 <a class="block px-5 py-2.5 text-[15px] font-bold hover:bg-slate-50 transition-colors <?= $isActivePage(['register-consultation']) ? 'text-blue-600 bg-blue-50/50' : 'text-slate-700 hover:text-blue-600' ?>" href="<?= e(page_url('register-consultation')); ?>">
-								Đăng ký tư vấn
-							</a>
                             <!-- <a class="block px-5 py-2.5 text-[15px] font-bold text-slate-700 hover:bg-slate-50 hover:text-[#27318b] transition-colors" href="#portal">Cổng học tập</a> -->
                             <!-- <a class="block px-5 py-2.5 text-[15px] font-bold text-slate-700 hover:bg-slate-50 hover:text-[#27318b] transition-colors" href="#quan-tri">Quản trị vận hành</a> -->
                             <a class="block px-5 py-2.5 text-[15px] font-bold hover:bg-slate-50 transition-colors <?= $isActivePage(['documents']) ? 'text-blue-600 bg-blue-50/50' : 'text-slate-700 hover:text-blue-600' ?>" href="<?= e(page_url('documents')); ?>">Tài liệu học tập</a>
@@ -95,6 +92,10 @@
             </nav>
 
             <div class="hidden items-center gap-6 lg:flex">
+                <a href="<?= e(page_url('register-consultation')); ?>" class="group hidden lg:inline-flex items-center gap-3 rounded-full bg-rose-600 px-6 py-3 text-[15px] font-black uppercase text-white transition-all hover:bg-rose-700 hover:shadow-lg">
+                    Đăng ký tư vấn
+                    <span class="w-2.5 h-2.5 rounded-full bg-white/90"></span>
+                </a>
                 <?php if (is_logged_in()): ?>
                     <div class="relative group py-6">
                         <button class="inline-flex items-center gap-2.5 text-[16px] font-extrabold transition-colors <?= $isActivePage(['feedback', 'dashboard-student', 'classes-my', 'activities-student', 'admin']) || $isStudentProfileActive ? 'text-blue-600' : 'text-slate-800 hover:text-blue-600' ?>">

@@ -2,95 +2,69 @@
 <main class="py-12 md:py-16 font-jakarta">
     <div class="container mx-auto px-4 max-w-7xl">
         
-        <!-- Section Giới thiệu Trung tâm -->
-        <div class="mb-16" data-aos="fade-up">
-            <div class="relative overflow-hidden rounded-3xl">
-                <!-- Background decorative -->
-                <div class="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-blue-50"></div>
-                <div class="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-rose-100 opacity-30 rounded-full -mr-48 -mt-48"></div>
-                <div class="absolute bottom-0 left-0 w-80 h-80 bg-gradient-to-tr from-lime-100 opacity-25 rounded-full -ml-40 -mb-40"></div>
-                <div class="absolute inset-0 pointer-events-none" style="background-image: radial-gradient(circle at 20% 50%, rgba(59, 130, 246, 0.05) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(244, 63, 94, 0.05) 0%, transparent 50%);"></div>
+<section id="gioi-thieu" class="mb-16" data-aos="fade-up">
+            <div class="relative overflow-hidden rounded-[2.5rem] shadow-2xl shadow-slate-200/50">
                 
-                <!-- Content -->
-                <div class="relative z-10 p-8 md:p-12 border border-slate-200 shadow-xl shadow-slate-100/50">
-                    <div class="max-w-4xl mx-auto">
-                        <!-- Tiêu đề -->
-                        <div class="mb-8">
-                            <span class="inline-block text-xs font-black text-rose-600 bg-rose-50 px-4 py-2 rounded-full uppercase tracking-widest mb-4">Về Nhuệ Minh Edu</span>
-                            <h2 class="text-4xl md:text-5xl font-black text-slate-900 leading-tight mb-6">
-                                Nhuệ Minh Edu - Trung tâm giáo dục <span class="text-rose-600">tiêu chuẩn quốc tế</span>
+                <div class="absolute inset-0 z-0">
+                    <img src="/assets/images/recruit.jpg" alt="Giáo dục tiêu chuẩn quốc tế" class="w-full h-full object-cover brightness-110 contrast-105 saturate-110">
+                    <div class="absolute inset-0 bg-gradient-to-br from-slate-900/70 via-slate-800/45 to-rose-900/25 mix-blend-multiply"></div>
+                    <div class="absolute inset-0 bg-gradient-to-t from-white/15 via-transparent to-white/5"></div>
+                </div>
+
+                <div class="relative z-10 p-8 md:p-12 lg:p-16">
+                    <div class="max-w-4xl mx-auto text-center">
+                        
+                        <div class="mb-12">
+                            <span class="inline-flex items-center gap-2 text-[10px] font-black text-rose-200 bg-rose-500/20 border border-rose-400/30 px-4 py-2 rounded-full uppercase tracking-[0.2em] mb-6 backdrop-blur-sm shadow-sm">
+                                <span class="w-2 h-2 rounded-full bg-rose-400 animate-pulse"></span>
+                                Về Nhuệ Minh Edu
+                            </span>
+                            
+                            <h2 class="text-3xl md:text-5xl font-black text-white leading-tight tracking-tight mb-5">
+                                Kiến tạo giá trị, <br class="hidden md:block">
+                                <span class="text-transparent bg-clip-text bg-gradient-to-r from-rose-300 to-rose-500">Lan tỏa tri thức quốc tế</span>
                             </h2>
-                        </div>
-
-                        <!-- Nội dung chính -->
-                        <div class="grid md:grid-cols-2 gap-10 mb-12">
-                            <div>
-                                <p class="text-slate-700 font-bold text-lg leading-relaxed mb-6">
-                                    Là một trong những trung tâm giáo dục <span class="text-rose-600">hàng đầu</span> tại Việt Nam, Nhuệ Minh Edu cam kết cung cấp những <span class="text-rose-600">chương trình học chất lượng cao</span> với phương pháp giảng dạy <span class="text-rose-600">hiệu quả và tiên tiến</span>.
-                                </p>
-                                <p class="text-slate-700 font-bold text-lg leading-relaxed">
-                                    Chúng tôi không chỉ dạy kiến thức, mà còn <span class="text-rose-600">hình thành kỹ năng</span> và <span class="text-rose-600">giá trị nhân văn</span> cho mỗi học viên, tạo nền tảng vững chắc cho sự phát triển bền vững trong tương lai.
-                                </p>
-                            </div>
-
-                            <div>
-                                <p class="text-slate-700 font-bold text-lg leading-relaxed">
-                                    Thành công của Nhuệ Minh Edu được xây dựng trên nền tảng của một <span class="text-rose-600">đội ngũ giáo viên xuất sắc</span> - những chuyên gia tận tâm, giàu kinh nghiệm và luôn sẵn sàng <span class="text-rose-600">góp sức</span> để nâng cao chất lượng giáo dục.
-                                </p>
-                            </div>
-                        </div>
-
-                        <!-- Câu nhấn mạnh chính -->
-                        <div class="mb-12 p-8 md:p-10 bg-gradient-to-r from-rose-600 to-orange-600 rounded-3xl shadow-xl shadow-rose-600/30">
-                            <p class="text-white font-black text-2xl md:text-3xl leading-relaxed text-center">
-                                Chúng tôi đang tìm kiếm những <span class="bg-white text-rose-600 px-3 py-1 rounded-lg inline-block mx-1">nhân tài</span> có <span class="bg-white text-rose-600 px-3 py-1 rounded-lg inline-block mx-1">tâm huyết</span>, <span class="bg-white text-rose-600 px-3 py-1 rounded-lg inline-block mx-1">năng lực</span> và <span class="bg-white text-rose-600 px-3 py-1 rounded-lg inline-block mx-1">đam mê giáo dục</span> để trở thành một phần của <span class="bg-white text-rose-600 px-3 py-1 rounded-lg inline-block mx-1">gia đình Nhuệ Minh Edu</span>.
+                            
+                            <p class="text-slate-300 font-medium text-sm md:text-base leading-relaxed max-w-2xl mx-auto mb-8">
+                                Không chỉ giảng dạy ngôn ngữ, chúng tôi ươm mầm tiềm năng và định hình tư duy. Nhuệ Minh Edu đang tìm kiếm những cộng sự <strong class="text-white">tài năng, nhiệt huyết</strong> để cùng nhau xây dựng hệ sinh thái giáo dục đỉnh cao.
                             </p>
-                        </div>
 
-                        <!-- Nút Ứng Tuyển -->
-                        <div class="text-center mb-4">
-                            <button onclick="document.getElementById('form-section').scrollIntoView({ behavior: 'smooth', block: 'start' })" class="inline-flex items-center justify-center gap-3 bg-gradient-to-r from-lime-500 to-emerald-500 hover:from-lime-600 hover:to-emerald-600 text-white font-black py-4 px-8 rounded-2xl shadow-lg shadow-lime-500/30 transition-all hover:scale-105 hover:-translate-y-1 uppercase tracking-widest text-sm group">
-                                <span>Bắt Đầu Ứng Tuyển</span>
+                            <button onclick="document.getElementById('form-section').scrollIntoView({ behavior: 'smooth', block: 'start' })" class="inline-flex items-center justify-center gap-3 bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white font-black py-4 px-10 rounded-full shadow-lg shadow-rose-500/30 transition-all hover:scale-105 hover:-translate-y-1 uppercase tracking-widest text-xs group border border-rose-400/50">
+                                <span>Gia nhập đội ngũ</span>
                                 <i class="fa-solid fa-arrow-down group-hover:translate-y-1 transition-transform"></i>
                             </button>
                         </div>
 
-                        <!-- Điểm nổi bật -->
-                        <div class="grid md:grid-cols-3 gap-6">
-                            <div class="flex items-start gap-4 p-6 bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
-                                <div class="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                                    <i class="fa-solid fa-award text-emerald-600 text-xl"></i>
+                        <div class="grid md:grid-cols-3 gap-5 md:gap-6 text-left mt-8">
+                            <div class="p-6 bg-white/10 backdrop-blur-md rounded-2xl border border-white/10 shadow-xl transition-all hover:-translate-y-1 hover:bg-white/15">
+                                <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0 mb-4 text-white shadow-inner">
+                                    <i class="fa-solid fa-award text-xl"></i>
                                 </div>
-                                <div>
-                                    <h4 class="font-black text-slate-900 mb-2 uppercase text-sm">Chất lượng công nhân quốc tế</h4>
-                                    <p class="text-slate-600 font-medium text-sm leading-relaxed">Đạt chuẩn giáo dục quốc tế, được công nhận và tín nhiệm từ các tổ chức uy tín toàn cầu</p>
-                                </div>
+                                <h4 class="font-black text-white mb-2 uppercase text-[13px] tracking-wide">Chuẩn Quốc Tế</h4>
+                                <p class="text-slate-300 font-medium text-xs leading-relaxed">Môi trường làm việc đạt chuẩn giáo dục toàn cầu, đề cao sự chuyên nghiệp.</p>
                             </div>
 
-                            <div class="flex items-start gap-4 p-6 bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
-                                <div class="w-12 h-12 bg-sky-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                                    <i class="fa-solid fa-lightbulb text-sky-600 text-xl"></i>
+                            <div class="p-6 bg-white/10 backdrop-blur-md rounded-2xl border border-white/10 shadow-xl transition-all hover:-translate-y-1 hover:bg-white/15">
+                                <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0 mb-4 text-white shadow-inner">
+                                    <i class="fa-solid fa-lightbulb text-xl"></i>
                                 </div>
-                                <div>
-                                    <h4 class="font-black text-slate-900 mb-2 uppercase text-sm">Phương pháp hiệp tác hàng đầu</h4>
-                                    <p class="text-slate-600 font-medium text-sm leading-relaxed">Sử dụng công nghệ và phương pháp giảng dạy tiên tiến nhất, luôn cập nhật xu hướng giáo dục toàn cầu</p>
-                                </div>
+                                <h4 class="font-black text-white mb-2 uppercase text-[13px] tracking-wide">Phương Pháp Đỉnh Cao</h4>
+                                <p class="text-slate-300 font-medium text-xs leading-relaxed">Ứng dụng công nghệ và phương pháp giảng dạy tiên tiến bậc nhất.</p>
                             </div>
 
-                            <div class="flex items-start gap-4 p-6 bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
-                                <div class="w-12 h-12 bg-rose-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                                    <i class="fa-solid fa-hands-helping text-rose-600 text-xl"></i>
+                            <div class="p-6 bg-white/10 backdrop-blur-md rounded-2xl border border-white/10 shadow-xl transition-all hover:-translate-y-1 hover:bg-white/15">
+                                <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0 mb-4 text-white shadow-inner">
+                                    <i class="fa-solid fa-hands-helping text-xl"></i>
                                 </div>
-                                <div>
-                                    <h4 class="font-black text-slate-900 mb-2 uppercase text-sm">Đội ngũ tận tâm</h4>
-                                    <p class="text-slate-600 font-medium text-sm leading-relaxed">Giáo viên và cán bộ nhân viên luôn sẵn sàng góp sức vì sứ mệnh giáo dục cao quý</p>
-                                </div>
+                                <h4 class="font-black text-white mb-2 uppercase text-[13px] tracking-wide">Đội Ngũ Tận Tâm</h4>
+                                <p class="text-slate-300 font-medium text-xs leading-relaxed">Tập thể chuyên gia nhiệt huyết, luôn hỗ trợ và đồng hành phát triển.</p>
                             </div>
                         </div>
+
                     </div>
                 </div>
             </div>
-        </div>
+        </section>
 
         <!-- Divider -->
         <div class="mb-12">

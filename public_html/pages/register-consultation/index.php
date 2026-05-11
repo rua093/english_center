@@ -182,6 +182,18 @@ $error = get_flash('home_error');
                     </div>
                 </div>
 
+                <div class="grid md:grid-cols-2 gap-6 mb-6">
+                    <div class="space-y-2">
+                        <label class="text-xs font-black text-slate-500 uppercase ml-1">CCCD Học sinh</label>
+                        <input type="text" inputmode="numeric" pattern="[0-9]*" name="student_cccd" placeholder="Nhập CCCD/CMND học sinh" class="w-full px-5 py-3.5 rounded-xl bg-slate-50 outline-none focus-lime font-bold text-slate-700">
+                    </div>
+                    <div class="space-y-2">
+                        <!-- intentionally left blank to preserve two-column layout -->
+                        <label class="text-xs font-black text-slate-500 uppercase ml-1">&nbsp;</label>
+                        <div></div>
+                    </div>
+                </div>
+
                 <div class="grid md:grid-cols-12 gap-6 mb-8">
                     <div class="md:col-span-8 space-y-2">
                         <label class="text-xs font-black text-slate-500 uppercase ml-1">Trường học hiện tại</label>
@@ -231,6 +243,17 @@ $error = get_flash('home_error');
                         <div class="space-y-2">
                             <label class="text-xs font-black text-slate-500 uppercase ml-1">Số điện thoại Mẹ</label>
                             <input type="tel" inputmode="numeric" pattern="[0-9]*" name="mother_phone" placeholder="09xx xxx xxx" class="w-full px-5 py-3.5 rounded-xl bg-slate-50 outline-none focus-lime font-bold text-slate-700">
+                        </div>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="space-y-2">
+                            <label class="text-xs font-black text-slate-500 uppercase ml-1">CCCD Ba</label>
+                            <input type="text" inputmode="numeric" pattern="[0-9]*" name="father_cccd" placeholder="Nhập CCCD/CMND Ba" class="w-full px-5 py-3.5 rounded-xl bg-slate-50 outline-none focus-lime font-bold text-slate-700">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-xs font-black text-slate-500 uppercase ml-1">CCCD Mẹ</label>
+                            <input type="text" inputmode="numeric" pattern="[0-9]*" name="mother_cccd" placeholder="Nhập CCCD/CMND Mẹ" class="w-full px-5 py-3.5 rounded-xl bg-slate-50 outline-none focus-lime font-bold text-slate-700">
                         </div>
                     </div>
 

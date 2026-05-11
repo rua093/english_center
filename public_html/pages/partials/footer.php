@@ -49,7 +49,7 @@
 
             <div class="lg:col-span-3">
                 <h4 class="text-white font-black mb-6 text-xs uppercase tracking-widest relative">
-                    Nhanh truy cập
+                    Truy cập nhanh
                     <span class="absolute -bottom-2 left-0 w-6 h-0.5 bg-blue-400"></span>
                 </h4>
                 <ul class="space-y-3 mt-6">

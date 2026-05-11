@@ -115,105 +115,47 @@ $stats = [
 </style>
 
 <main class="bg-[#fbfcfa] text-slate-800 overflow-hidden">
-    <section class="relative overflow-hidden pt-16 pb-14 md:pt-24 md:pb-20">
-        <div class="absolute inset-0 pointer-events-none">
-            <div class="absolute -top-20 right-[-8%] h-72 w-72 rounded-full bg-red-200/35 blur-3xl"></div>
-            <div class="absolute top-24 left-[-10%] h-80 w-80 rounded-full bg-lime-200/40 blur-3xl"></div>
-            <div class="absolute bottom-[-12%] right-1/3 h-64 w-64 rounded-full bg-emerald-200/25 blur-3xl"></div>
+    <section id="gioi-thieu" class="relative py-20 lg:py-32 overflow-hidden">
+        <div class="absolute inset-0 z-0">
+            <img src="/assets/images/course3.jpg" alt="Không gian học tập" class="h-full w-full object-cover">
+            <div class="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-900/80 to-transparent"></div>
         </div>
 
         <div class="mx-auto max-w-[1450px] px-4 sm:px-6 relative z-10">
-            <div class="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] items-center">
-                <div class="space-y-7 rounded-[2.5rem] p-2 md:p-3 bg-white/20 backdrop-blur-sm border border-white/40 shadow-[0_12px_40px_rgba(15,23,42,0.03)]" data-aos="fade-right" data-aos-duration="700">
-                    <div class="morph-content space-y-7 rounded-[2.2rem] bg-white/55 p-5 md:p-6 backdrop-blur-md border border-white/60 shadow-[0_12px_40px_rgba(15,23,42,0.04)]">
-                    <span class="inline-flex items-center gap-2 rounded-full border border-red-200 bg-white/80 px-4 py-2 text-xs font-black uppercase tracking-[0.2em] text-rose-600 shadow-sm backdrop-blur">
-                        <span class="h-2 w-2 rounded-full bg-lime-400"></span>
-                        Chương trình học
-                    </span>
-                    <div class="space-y-5 max-w-3xl">
-                        <h1 class="text-4xl md:text-5xl xl:text-6xl font-black leading-[1.15] md:leading-[1.1] xl:leading-[1.08] text-slate-950">
-                            Khóa học phù hợp cho <br>
-                            <span class="inline-block text-transparent bg-clip-text bg-gradient-to-r from-red-600 via-rose-500 to-lime-600">mọi độ tuổi và mục tiêu</span>
-                        </h1>
-                        <p class="text-base md:text-lg text-slate-600 leading-relaxed max-w-2xl font-medium">
-                            Từ mầm non, tiểu học đến IELTS và tiếng Anh doanh nghiệp, mỗi chương trình đều được thiết kế theo lộ trình rõ ràng, dễ theo dõi và có thể cá nhân hóa theo năng lực học viên.
-                        </p>
-                    </div>
+            <div class="max-w-3xl" data-aos="fade-right" data-aos-duration="800">
+                
+                <span class="inline-flex items-center gap-2 rounded-full border border-rose-400/30 bg-rose-500/20 px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-rose-200 backdrop-blur-md mb-6 shadow-sm">
+                    <span class="h-2 w-2 rounded-full bg-rose-400 animate-pulse"></span>
+                    Chương trình học Nhuệ Minh
+                </span>
 
-                    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                        <?php $statDelay = 0; ?>
-                        <?php foreach ($stats as $stat): ?>
-                            <div class="rounded-3xl border border-white bg-white/80 p-5 shadow-[0_12px_30px_rgba(15,23,42,0.05)] backdrop-blur-md" data-aos="fade-up" data-aos-delay="<?= $statDelay; ?>" data-aos-duration="600">
-                                <div class="text-2xl md:text-3xl font-black text-slate-950"><?= e($stat['value']); ?></div>
-                                <div class="mt-1 text-xs font-bold uppercase tracking-wider text-slate-500"><?= e($stat['label']); ?></div>
-                            </div>
-                            <?php $statDelay += 100; ?>
-                        <?php endforeach; ?>
-                    </div>
+                <h1 class="text-4xl md:text-5xl lg:text-6xl font-black leading-tight text-white mb-6 tracking-tight">
+                    Lộ trình chuẩn quốc tế cho <br class="hidden md:block">
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-rose-400 to-lime-300">mọi độ tuổi & mục tiêu</span>
+                </h1>
 
-                    <div class="flex flex-wrap gap-3 pt-2">
-                        <a href="#danh-sach-khoa-hoc" class="inline-flex items-center gap-3 rounded-full bg-rose-600 px-7 py-3.5 text-sm font-black text-white shadow-lg shadow-rose-600/25 transition-transform hover:-translate-y-1">
-                            Xem danh sách khóa học
-                            <i class="fa-solid fa-arrow-down"></i>
-                        </a>
-                        <a href="#dang-ky-tu-van" class="inline-flex items-center gap-3 rounded-full border border-lime-300 bg-white/80 px-7 py-3.5 text-sm font-black text-emerald-700 shadow-sm transition-transform hover:-translate-y-1">
-                            Đăng ký tư vấn
-                            <i class="fa-solid fa-calendar-check"></i>
-                        </a>
-                    </div>
-                    </div>
+                <p class="text-base md:text-lg text-slate-300 leading-relaxed font-medium mb-10 max-w-2xl">
+                    Từ mầm non, tiểu học đến luyện thi IELTS và tiếng Anh doanh nghiệp, chúng tôi cá nhân hóa lộ trình giúp bạn bứt phá rào cản và làm chủ ngôn ngữ nhanh nhất.
+                </p>
+
+                <div class="flex flex-wrap gap-4 mb-14">
+                    <a href="#danh-sach-khoa-hoc" class="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-rose-500 to-rose-600 px-8 py-4 text-sm font-black uppercase tracking-widest text-white shadow-lg shadow-rose-500/30 transition-transform hover:-translate-y-1">
+                        Xem khóa học <i class="fa-solid fa-arrow-down"></i>
+                    </a>
+                    <a href="#dang-ky-tu-van" class="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-8 py-4 text-sm font-black uppercase tracking-widest text-white backdrop-blur-md transition-all hover:-translate-y-1 hover:bg-white/20">
+                        Đăng ký tư vấn <i class="fa-solid fa-calendar-check"></i>
+                    </a>
                 </div>
 
-                <div class="relative" data-aos="fade-left" data-aos-duration="700">
-                    <div class="absolute inset-0 translate-x-6 translate-y-6 rounded-[2.5rem] bg-gradient-to-br from-red-200/50 to-lime-200/50 blur-2xl"></div>
-                    <div class="relative overflow-hidden rounded-[2.5rem] border border-white bg-white/80 p-4 shadow-[0_24px_80px_rgba(15,23,42,0.12)] backdrop-blur-md" data-aos="zoom-in" data-aos-duration="800">
-                        <div class="morph-content">
-                        <div class="grid gap-4 sm:grid-cols-2">
-                            <div class="rounded-[2rem] bg-gradient-to-br from-red-500 to-rose-500 p-6 text-white shadow-lg transition-transform duration-300 hover:-translate-y-1" data-aos="zoom-in" data-aos-delay="100">
-                                <div class="morph-content">
-                                <div class="mb-10 flex items-center justify-between">
-                                    <span class="rounded-full bg-white/20 px-3 py-1 text-[10px] font-black uppercase tracking-widest">Ưu tiên</span>
-                                    <i class="fa-solid fa-star text-white/70"></i>
-                                </div>
-                                <h2 class="text-2xl font-black leading-tight">Lộ trình rõ ràng, đầu ra dễ kiểm soát.</h2>
-                                </div>
-                            </div>
-                            
-                            <div class="rounded-[2rem] bg-gradient-to-br from-lime-200 to-lime-100 p-6 text-slate-900 shadow-lg transition-transform duration-300 hover:-translate-y-1" data-aos="zoom-in" data-aos-delay="200">
-                                <div class="morph-content">
-                                <div class="mb-8 flex items-center gap-3">
-                                    <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-emerald-600 shadow-sm">
-                                        <i class="fa-solid fa-seedling text-xl"></i>
-                                    </div>
-                                    <div>
-                                        <p class="text-[11px] font-bold uppercase tracking-widest text-emerald-700">Định hướng cốt lõi</p>
-                                        <p class="text-sm font-black text-slate-900">Ươm mầm & Phát triển</p>
-                                    </div>
-                                </div>
-                                <p class="text-sm leading-relaxed text-slate-700 font-medium">
-                                    Chú trọng xây dựng nền tảng tư duy vững chắc, kết hợp kiến thức chuyên sâu và kỹ năng thực chiến giúp học viên bứt phá tiềm năng.
-                                </p>
-                                </div>
-                            </div>
-
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <?php foreach ($stats as $stat): ?>
+                        <div class="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-md transition-colors hover:bg-white/10">
+                            <div class="text-2xl font-black text-white"><?= e($stat['value']); ?></div>
+                            <div class="mt-1 text-[10px] font-bold uppercase tracking-wider text-slate-400"><?= e($stat['label']); ?></div>
                         </div>
-
-                        <div class="mt-4 rounded-[2rem] course-gradient border border-white p-5" data-aos="fade-up" data-aos-delay="250">
-                            <div class="morph-content">
-                            <div class="flex items-center justify-between gap-4">
-                                <div>
-                                    <p class="text-xs font-bold uppercase tracking-[0.2em] text-slate-500">Đăng ký tư vấn nhanh</p>
-                                    <h3 class="mt-1 text-lg font-black text-slate-950">Nhanh chóng chọn chương trình phù hợp</h3>
-                                </div>
-                                <a href="<?= e(page_url('register-consultation')); ?>" class="hidden sm:inline-flex h-12 w-12 items-center justify-center rounded-full bg-slate-900 text-white shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:bg-rose-600 hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-rose-300" aria-label="Đăng ký tư vấn">
-                                    <i class="fa-solid fa-arrow-right"></i>
-                                </a>
-                            </div>
-                            </div>
-                        </div>
-                        </div>
-                    </div>
+                    <?php endforeach; ?>
                 </div>
+
             </div>
         </div>
     </section>
@@ -410,7 +352,7 @@ $stats = [
                 </div>
 
                 <!-- Right side: Form panel overlay - Psychology: White (trust/cleanliness) + Rose (action) + Emerald (growth) -->
-                <div class="relative overflow-hidden rounded-[2.75rem] border border-white/20 bg-transparent p-8 md:p-10 shadow-none backdrop-blur-none" data-aos="fade-left" data-aos-duration="700" data-aos-delay="100">
+                <div class="relative overflow-hidden rounded-[2.75rem] border border-white/32 bg-slate-950/30 p-8 md:p-10 shadow-[0_28px_80px_rgba(15,23,42,0.38)] backdrop-blur-none" data-aos="fade-left" data-aos-duration="700" data-aos-delay="100">
                     <!-- Subtle emerald tint (trust, growth psychology) -->
                     <div class="absolute right-[-10%] top-[-10%] h-56 w-56 rounded-full bg-gradient-to-br from-rose-50/90 to-pink-50/70 blur-3xl pointer-events-none"></div>
                     <!-- Emerald for confidence/growth psychology -->

@@ -470,37 +470,37 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                         <span class="text-transparent bg-clip-text bg-gradient-to-r from-rose-200 to-orange-200">chinh phục Anh ngữ</span>
                     </h2>
                     
-                    <p class="mt-6 max-w-xl text-base md:text-lg leading-relaxed text-white/85">
+                    <p class="mt-6 max-w-xl text-base md:text-lg leading-relaxed text-white/95 drop-shadow-[0_2px_8px_rgba(15,23,42,0.25)]">
                         Hãy để lại thông tin, đội ngũ học thuật của chúng tôi sẽ thiết kế riêng một lộ trình tối ưu nhất dựa trên mục tiêu và năng lực của bạn.
                     </p>
 
                     <div class="mt-10 grid gap-4 sm:grid-cols-3 max-w-lg">
-                        <div class="rounded-[1.5rem] border border-white/18 bg-white/10 p-5 backdrop-blur-sm shadow-lg">
-                            <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 text-white">
+                        <div class="rounded-[1.5rem] border border-white/28 bg-white/22 p-5 shadow-[0_12px_30px_rgba(15,23,42,0.18)] backdrop-blur-sm">
+                            <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-white/25 text-white shadow-sm ring-1 ring-white/20">
                                 <i class="fa-regular fa-clock text-sm"></i>
                             </div>
-                            <p class="text-2xl font-black text-white">15'</p>
-                            <p class="mt-1 text-[9px] font-bold uppercase tracking-widest text-white/70">Liên hệ ngay</p>
+                            <p class="text-2xl font-black text-white drop-shadow-[0_2px_6px_rgba(15,23,42,0.28)]">15'</p>
+                            <p class="mt-1 text-[9px] font-bold uppercase tracking-widest text-white/88">Liên hệ ngay</p>
                         </div>
-                        <div class="rounded-[1.5rem] border border-white/18 bg-white/10 p-5 backdrop-blur-sm shadow-lg">
-                            <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 text-white">
+                        <div class="rounded-[1.5rem] border border-white/28 bg-white/22 p-5 shadow-[0_12px_30px_rgba(15,23,42,0.18)] backdrop-blur-sm">
+                            <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-white/25 text-white shadow-sm ring-1 ring-white/20">
                                 <i class="fa-solid fa-user-group text-sm"></i>
                             </div>
-                            <p class="text-2xl font-black text-white">1:1</p>
-                            <p class="mt-1 text-[9px] font-bold uppercase tracking-widest text-white/70">Chuyên gia</p>
+                            <p class="text-2xl font-black text-white drop-shadow-[0_2px_6px_rgba(15,23,42,0.28)]">1:1</p>
+                            <p class="mt-1 text-[9px] font-bold uppercase tracking-widest text-white/88">Chuyên gia</p>
                         </div>
-                        <div class="rounded-[1.5rem] border border-white/18 bg-white/10 p-5 backdrop-blur-sm shadow-lg">
-                            <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 text-white">
+                        <div class="rounded-[1.5rem] border border-white/28 bg-white/22 p-5 shadow-[0_12px_30px_rgba(15,23,42,0.18)] backdrop-blur-sm">
+                            <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-white/25 text-white shadow-sm ring-1 ring-white/20">
                                 <i class="fa-solid fa-wand-magic-sparkles text-sm"></i>
                             </div>
-                            <p class="text-2xl font-black text-white">100%</p>
-                            <p class="mt-1 text-[9px] font-bold uppercase tracking-widest text-white/70">Cá nhân hóa</p>
+                            <p class="text-2xl font-black text-white drop-shadow-[0_2px_6px_rgba(15,23,42,0.28)]">100%</p>
+                            <p class="mt-1 text-[9px] font-bold uppercase tracking-widest text-white/88">Cá nhân hóa</p>
                         </div>
                     </div>
                 </div>
 
                 <!-- Right side: Form panel overlay - Psychology: White (trust/cleanliness) + Rose (action) + Emerald (growth) -->
-                <div class="relative overflow-hidden rounded-[2.75rem] border border-white/20 bg-transparent p-8 md:p-10 shadow-none backdrop-blur-none" data-aos="fade-left" data-aos-duration="700" data-aos-delay="100">
+                <div class="relative overflow-hidden rounded-[2.75rem] border border-white/32 bg-slate-950/30 p-8 md:p-10 shadow-[0_28px_80px_rgba(15,23,42,0.38)] backdrop-blur-none" data-aos="fade-left" data-aos-duration="700" data-aos-delay="100">
                     <!-- Subtle emerald tint (trust, growth psychology) -->
                     <div class="absolute right-[-10%] top-[-10%] h-56 w-56 rounded-full bg-gradient-to-br from-rose-50/90 to-pink-50/70 blur-3xl pointer-events-none"></div>
                     <!-- Emerald for confidence/growth psychology -->
@@ -1137,26 +1137,26 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                         <span class="text-transparent bg-clip-text bg-gradient-to-r from-rose-200 to-orange-200">chinh phục Anh ngữ</span>
                     </h2>
                     
-                    <p class="mt-6 max-w-xl text-base md:text-lg leading-relaxed text-white/85">
+                    <p class="mt-6 max-w-xl text-base md:text-lg leading-relaxed text-white/95 drop-shadow-[0_2px_8px_rgba(15,23,42,0.25)]">
                         Hãy để lại thông tin, đội ngũ học thuật của chúng tôi sẽ thiết kế riêng một lộ trình tối ưu nhất dựa trên mục tiêu và năng lực của bạn.
                     </p>
 
                     <div class="mt-10 grid gap-4 sm:grid-cols-3 max-w-lg">
-                        <div class="rounded-[1.5rem] border border-white/18 bg-white/10 p-5 backdrop-blur-sm shadow-lg">
+                        <div class="rounded-[1.5rem] border border-white/18 bg-white/14 p-5 shadow-lg">
                             <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 text-white">
                                 <i class="fa-regular fa-clock text-sm"></i>
                             </div>
                             <p class="text-2xl font-black text-white">15'</p>
                             <p class="mt-1 text-[9px] font-bold uppercase tracking-widest text-white/70">Liên hệ ngay</p>
                         </div>
-                        <div class="rounded-[1.5rem] border border-white/18 bg-white/10 p-5 backdrop-blur-sm shadow-lg">
+                        <div class="rounded-[1.5rem] border border-white/18 bg-white/14 p-5 shadow-lg">
                             <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 text-white">
                                 <i class="fa-solid fa-user-group text-sm"></i>
                             </div>
                             <p class="text-2xl font-black text-white">1:1</p>
                             <p class="mt-1 text-[9px] font-bold uppercase tracking-widest text-white/70">Chuyên gia</p>
                         </div>
-                        <div class="rounded-[1.5rem] border border-white/18 bg-white/10 p-5 backdrop-blur-sm shadow-lg">
+                        <div class="rounded-[1.5rem] border border-white/18 bg-white/14 p-5 shadow-lg">
                             <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 text-white">
                                 <i class="fa-solid fa-wand-magic-sparkles text-sm"></i>
                             </div>
@@ -1167,7 +1167,7 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                 </div>
 
                 <!-- Right side: Form panel overlay - Psychology: White (trust/cleanliness) + Rose (action) + Emerald (growth) -->
-                <div class="relative overflow-hidden rounded-[2.75rem] border border-white/20 bg-transparent p-8 md:p-10 shadow-none backdrop-blur-none" data-aos="fade-left" data-aos-duration="700" data-aos-delay="100">
+                <div class="relative overflow-hidden rounded-[2.75rem] border border-white/32 bg-slate-950/30 p-8 md:p-10 shadow-[0_28px_80px_rgba(15,23,42,0.38)] backdrop-blur-none" data-aos="fade-left" data-aos-duration="700" data-aos-delay="100">
                     <!-- Subtle emerald tint (trust, growth psychology) -->
                     <div class="absolute right-[-10%] top-[-10%] h-56 w-56 rounded-full bg-gradient-to-br from-rose-50/90 to-pink-50/70 blur-3xl pointer-events-none"></div>
                     <!-- Emerald for confidence/growth psychology -->
@@ -1190,7 +1190,7 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                             ">miễn phí</span>
                         </h3>
                         <!-- Subheading: Trust messaging (emerald psychology) -->
-                        <p class="text-sm font-semibold text-white/85">
+                        <p class="text-sm font-semibold text-white/95 drop-shadow-[0_2px_8px_rgba(15,23,42,0.22)]">
                             <i class="fa-solid fa-check-circle text-emerald-500 mr-2"></i>
                             Chuyên gia sẽ thiết kế lộ trình phù hợp cho bạn
                         </p>
