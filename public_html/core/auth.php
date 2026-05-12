@@ -192,6 +192,31 @@ function require_admin_or_staff(): void
 	}
 }
 
+function can_use_notification_bell(): bool
+{
+	if (!is_logged_in()) {
+		return false;
+	}
+
+	$user = auth_user();
+	$role = (string) ($user['role'] ?? '');
+
+	if (in_array($role, ['admin', 'staff', 'teacher'], true)) {
+		return true;
+	}
+
+	return has_any_permission(['notifications.view']);
+}
+
+function can_manage_notification_center(): bool
+{
+	if (!is_logged_in()) {
+		return false;
+	}
+
+	return is_admin_or_staff() && has_any_permission(['notifications.view']);
+}
+
 function require_role(array $roles): void
 {
 	require_login();
@@ -301,7 +326,7 @@ function can_access_page(string $page): bool
 		case 'rooms-manage':
 			return has_any_permission(['academic.rooms.view']);
 		case 'notifications-manage':
-			return has_any_permission(['notifications.view']);
+			return can_manage_notification_center();
 		case 'courses-academic':
 			return has_permission('academic.courses.view');
 		case 'roadmaps-academic':

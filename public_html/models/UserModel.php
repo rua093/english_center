@@ -9,6 +9,7 @@ require_once __DIR__ . '/tables/NotificationsTableModel.php';
 require_once __DIR__ . '/tables/SchedulesTableModel.php';
 require_once __DIR__ . '/tables/SubmissionsTableModel.php';
 require_once __DIR__ . '/tables/TuitionFeesTableModel.php';
+require_once __DIR__ . '/BackofficeNotificationService.php';
 
 final class UserModel
 {
@@ -20,6 +21,7 @@ final class UserModel
     private SubmissionsTableModel $submissionsTable;
     private LessonsTableModel $lessonsTable;
     private ClassStudentsTableModel $classStudentsTable;
+    private BackofficeNotificationService $backofficeNotificationService;
 
     public function __construct()
     {
@@ -31,6 +33,7 @@ final class UserModel
         $this->submissionsTable = new SubmissionsTableModel();
         $this->lessonsTable = new LessonsTableModel();
         $this->classStudentsTable = new ClassStudentsTableModel();
+        $this->backofficeNotificationService = new BackofficeNotificationService();
     }
 
     public function studentDashboard(int $studentId): array
@@ -46,7 +49,24 @@ final class UserModel
 
     public function submitAssignment(int $studentId, int $assignmentId, string $fileUrl): void
     {
-        $this->submissionsTable->upsertStudentSubmission($studentId, $assignmentId, $fileUrl);
+        $result = $this->submissionsTable->upsertStudentSubmission($studentId, $assignmentId, $fileUrl);
+        if (!empty($result['created'])) {
+            $detail = $this->submissionsTable->findDetailedByAssignmentAndStudent($assignmentId, $studentId);
+            if (is_array($detail)) {
+                $this->backofficeNotificationService->notifyNewSubmission(
+                    (int) ($detail['id'] ?? 0),
+                    trim((string) ($detail['student_name'] ?? '')),
+                    trim((string) ($detail['class_name'] ?? '')),
+                    trim((string) ($detail['assignment_title'] ?? '')),
+                    (int) ($detail['class_id'] ?? 0),
+                    (int) ($detail['course_id'] ?? 0),
+                    (int) ($detail['schedule_id'] ?? 0),
+                    trim((string) ($detail['study_date'] ?? '')),
+                    (int) ($detail['assignment_id'] ?? 0),
+                    $studentId
+                );
+            }
+        }
     }
 
     public function updateTuitionPayment(int $studentId, int $tuitionId, float $amount): void

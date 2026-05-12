@@ -35,6 +35,9 @@ $selectedClassId = max(0, (int) ($_GET['class_id'] ?? 0));
 $editingLessonId = max(0, (int) ($_GET['lesson_id'] ?? 0));
 $prefillScheduleId = max(0, (int) ($_GET['schedule_id'] ?? 0));
 $focusedScheduleId = max(0, (int) ($_GET['focus_schedule_id'] ?? 0));
+$highlightAssignmentId = max(0, (int) ($_GET['highlight_assignment_id'] ?? 0));
+$highlightSubmissionId = max(0, (int) ($_GET['highlight_submission_id'] ?? 0));
+$autoOpenGrading = (int) ($_GET['open_grading'] ?? 0) === 1;
 $classReturnPage = max(0, (int) ($_GET['class_page'] ?? 0));
 $classReturnPerPage = max(0, (int) ($_GET['class_per_page'] ?? 0));
 
@@ -1323,6 +1326,10 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
                 <span id="classroom-exam-score-total-hint" class="text-xs font-medium text-slate-500">Nhập đủ 4 điểm thành phần để hệ thống tự tính điểm tổng.</span>
             </label>
             <label class="grid gap-1 text-sm font-semibold text-slate-700">
+                Link YouTube bài nói (tùy chọn)
+                <input id="classroom-exam-score-speaking-youtube-url" type="url" name="speaking_youtube_url" placeholder="https://www.youtube.com/watch?v=..." class="h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm font-medium text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100">
+            </label>
+            <label class="grid gap-1 text-sm font-semibold text-slate-700">
                 Nhận xét (tùy chọn)
                 <textarea id="classroom-exam-score-comment" name="teacher_comment" rows="4" placeholder="Nhận xét nhanh về bài kiểm tra..." class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100"></textarea>
             </label>
@@ -1896,6 +1903,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
     const examScoreWritingInput = document.getElementById('classroom-exam-score-writing');
     const examScoreResultInput = document.getElementById('classroom-exam-score-result');
     const examScoreTotalHint = document.getElementById('classroom-exam-score-total-hint');
+    const examScoreSpeakingYoutubeUrlInput = document.getElementById('classroom-exam-score-speaking-youtube-url');
     const examScoreCommentInput = document.getElementById('classroom-exam-score-comment');
 
     const quickAssignForm = document.getElementById('classroom-lesson-quick-assign-form');
@@ -2014,6 +2022,9 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
     const hasSuccessFlash = <?= $success ? 'true' : 'false'; ?>;
     const initialLessonId = <?= (int) ($editingLesson['id'] ?? 0); ?>;
     const initialPrefillScheduleId = <?= (int) $prefillScheduleId; ?>;
+    const initialHighlightAssignmentId = <?= (int) $highlightAssignmentId; ?>;
+    const initialHighlightSubmissionId = <?= (int) $highlightSubmissionId; ?>;
+    const initialAutoOpenGrading = <?= $autoOpenGrading ? 'true' : 'false'; ?>;
 
     if (!contextMenu || !itemLessonInfo || !itemAttendance || !itemDetail || !itemAssignment || !itemGrading) {
         return;
@@ -2186,6 +2197,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
         const reading = normalizeText(scoreData && scoreData.score_reading);
         const writing = normalizeText(scoreData && scoreData.score_writing);
         const result = normalizeText(scoreData && scoreData.result);
+        const speakingYoutubeUrl = normalizeText(scoreData && scoreData.speaking_youtube_url);
         const comment = normalizeText(scoreData && scoreData.teacher_comment);
 
         const hasComponent = listening !== '' || speaking !== '' || reading !== '' || writing !== '';
@@ -2200,6 +2212,10 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
 
         if (comment !== '') {
             lines.push('Nhận xét: ' + comment);
+        }
+
+        if (speakingYoutubeUrl !== '') {
+            lines.push('YouTube: ' + speakingYoutubeUrl);
         }
 
         return lines;
@@ -2852,6 +2868,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
                     exam_id: toInt(cell.exam_id),
                     score_listening: normalizeText(cell.score_listening),
                     score_speaking: normalizeText(cell.score_speaking),
+                    speaking_youtube_url: normalizeText(cell.speaking_youtube_url),
                     score_reading: normalizeText(cell.score_reading),
                     score_writing: normalizeText(cell.score_writing),
                     result: normalizeText(cell.result),
@@ -2921,12 +2938,14 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
         const normalizedComment = normalizeText(scoreData && scoreData.teacher_comment);
         const normalizedListening = normalizeText(scoreData && scoreData.score_listening);
         const normalizedSpeaking = normalizeText(scoreData && scoreData.score_speaking);
+        const normalizedSpeakingYoutubeUrl = normalizeText(scoreData && scoreData.speaking_youtube_url);
         const normalizedReading = normalizeText(scoreData && scoreData.score_reading);
         const normalizedWriting = normalizeText(scoreData && scoreData.score_writing);
         const hasValue = normalizedResult !== '';
         const detailLines = buildExamScoreDetailLines({
             score_listening: normalizedListening,
             score_speaking: normalizedSpeaking,
+            speaking_youtube_url: normalizedSpeakingYoutubeUrl,
             score_reading: normalizedReading,
             score_writing: normalizedWriting,
             result: normalizedResult,
@@ -2937,6 +2956,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
         buttonElement.setAttribute('data-exam-comment', normalizedComment);
         buttonElement.setAttribute('data-score-listening', normalizedListening);
         buttonElement.setAttribute('data-score-speaking', normalizedSpeaking);
+        buttonElement.setAttribute('data-speaking-youtube-url', normalizedSpeakingYoutubeUrl);
         buttonElement.setAttribute('data-score-reading', normalizedReading);
         buttonElement.setAttribute('data-score-writing', normalizedWriting);
         buttonElement.setAttribute('data-has-value', hasValue ? '1' : '0');
@@ -2968,6 +2988,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
         setExamCellButtonContent(button, {
             score_listening: normalizeText(meta.score_listening),
             score_speaking: normalizeText(meta.score_speaking),
+            speaking_youtube_url: normalizeText(meta.speaking_youtube_url),
             score_reading: normalizeText(meta.score_reading),
             score_writing: normalizeText(meta.score_writing),
             result: normalizeText(meta.result),
@@ -3088,6 +3109,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
                 const examId = toInt(cell && cell.exam_id);
                 const scoreListening = normalizeText(cell && cell.score_listening);
                 const scoreSpeaking = normalizeText(cell && cell.score_speaking);
+                const speakingYoutubeUrl = normalizeText(cell && cell.speaking_youtube_url);
                 const scoreReading = normalizeText(cell && cell.score_reading);
                 const scoreWriting = normalizeText(cell && cell.score_writing);
                 const result = normalizeText(cell && cell.result);
@@ -3103,6 +3125,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
                     examKey: key,
                     score_listening: scoreListening,
                     score_speaking: scoreSpeaking,
+                    speaking_youtube_url: speakingYoutubeUrl,
                     score_reading: scoreReading,
                     score_writing: scoreWriting,
                     result: result,
@@ -3193,6 +3216,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
                 examKey: examKey,
                 score_listening: '',
                 score_speaking: '',
+                speaking_youtube_url: '',
                 score_reading: '',
                 score_writing: '',
                 result: '',
@@ -3208,6 +3232,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
                 exam_id: 0,
                 score_listening: '',
                 score_speaking: '',
+                speaking_youtube_url: '',
                 score_reading: '',
                 score_writing: '',
                 result: '',
@@ -3381,6 +3406,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
         const examId = toInt(payload && payload.examId);
         const scoreListening = normalizeText(payload && payload.scoreListening);
         const scoreSpeaking = normalizeText(payload && payload.scoreSpeaking);
+        const speakingYoutubeUrl = normalizeText(payload && payload.speakingYoutubeUrl);
         const scoreReading = normalizeText(payload && payload.scoreReading);
         const scoreWriting = normalizeText(payload && payload.scoreWriting);
         const result = normalizeText(payload && payload.result);
@@ -3412,6 +3438,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
             setExamCellButtonContent(targetButton, {
                 score_listening: scoreListening,
                 score_speaking: scoreSpeaking,
+                speaking_youtube_url: speakingYoutubeUrl,
                 score_reading: scoreReading,
                 score_writing: scoreWriting,
                 result: result,
@@ -3441,6 +3468,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
             exam_id: examId,
             score_listening: scoreListening,
             score_speaking: scoreSpeaking,
+            speaking_youtube_url: speakingYoutubeUrl,
             score_reading: scoreReading,
             score_writing: scoreWriting,
             result: result,
@@ -3591,6 +3619,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
         const examDate = normalizeText(trigger.getAttribute('data-exam-date'));
         const scoreListening = normalizeText(trigger.getAttribute('data-score-listening'));
         const scoreSpeaking = normalizeText(trigger.getAttribute('data-score-speaking'));
+        const speakingYoutubeUrl = normalizeText(trigger.getAttribute('data-speaking-youtube-url'));
         const scoreReading = normalizeText(trigger.getAttribute('data-score-reading'));
         const scoreWriting = normalizeText(trigger.getAttribute('data-score-writing'));
         const result = normalizeText(trigger.getAttribute('data-exam-result'));
@@ -3622,6 +3651,9 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
         }
         if (examScoreSpeakingInput instanceof HTMLInputElement) {
             examScoreSpeakingInput.value = scoreSpeaking;
+        }
+        if (examScoreSpeakingYoutubeUrlInput instanceof HTMLInputElement) {
+            examScoreSpeakingYoutubeUrlInput.value = speakingYoutubeUrl;
         }
         if (examScoreReadingInput instanceof HTMLInputElement) {
             examScoreReadingInput.value = scoreReading;
@@ -4920,6 +4952,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
             );
             const submissionId = toInt(row.submission_id);
             const hasSubmission = submissionId > 0;
+            const isHighlightedSubmission = initialHighlightSubmissionId > 0 && submissionId === initialHighlightSubmissionId;
             const scoreValue = escapeHtml(normalizeText(row.score));
             const commentValue = escapeHtml(normalizeText(row.teacher_comment));
             const fileUrl = normalizePublicFileUrl(row.file_url);
@@ -4953,7 +4986,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
                 : '<span class="text-sm text-slate-400">-</span>';
 
             return '' +
-                '<div class="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">' +
+                '<div class="rounded-xl border border-slate-200 bg-white p-3 shadow-sm' + (isHighlightedSubmission ? ' border-amber-300 bg-amber-50/70 ring-2 ring-amber-200' : '') + '" data-submission-row="1" data-submission-id="' + submissionId + '">' +
                     '<div class="flex flex-wrap items-start justify-between gap-2">' +
                         '<div>' +
                             '<div class="font-semibold text-slate-800">' + studentName + '</div>' +
@@ -4977,6 +5010,14 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
 
         gradingList.innerHTML = html;
         renderGradingState('Đang hiển thị danh sách bài nộp theo bài tập đã chọn.', false);
+        if (initialHighlightSubmissionId > 0) {
+            const highlightedRow = gradingList.querySelector('[data-submission-id="' + String(initialHighlightSubmissionId) + '"]');
+            if (highlightedRow instanceof HTMLElement) {
+                window.requestAnimationFrame(function () {
+                    highlightedRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                });
+            }
+        }
 
         if (gradingSubmitButton instanceof HTMLButtonElement) {
             gradingSubmitButton.disabled = false;
@@ -5252,7 +5293,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
         return toInt(gradingAssignmentSelect.value);
     }
 
-    function openGradingModal(context) {
+    function openGradingModal(context, preferredAssignmentId) {
         if (!canGradeSubmission || context.scheduleId <= 0) {
             return;
         }
@@ -5273,7 +5314,16 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
             gradingContext.textContent = context.slotLabel !== '' ? context.slotLabel : 'Buổi học đã chọn';
         }
 
-        const assignmentId = populateGradingAssignments(context);
+        let assignmentId = populateGradingAssignments(context);
+        const preferredId = toInt(preferredAssignmentId);
+        if (preferredId > 0 && gradingAssignmentSelect instanceof HTMLSelectElement) {
+            if (gradingAssignmentSelect.tomselect) {
+                gradingAssignmentSelect.tomselect.setValue(String(preferredId), true);
+            } else {
+                gradingAssignmentSelect.value = String(preferredId);
+            }
+            assignmentId = preferredId;
+        }
         closeMenu(false);
         openModal(gradingModal, gradingAssignmentSelect instanceof HTMLElement ? gradingAssignmentSelect : gradingCloseButton, activeSlotElement);
 
@@ -6125,6 +6175,11 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
                         ? responseData.score_reading
                         : (examScoreReadingInput instanceof HTMLInputElement ? examScoreReadingInput.value : '')
                 );
+                const speakingYoutubeUrl = normalizeText(
+                    Object.prototype.hasOwnProperty.call(responseData, 'speaking_youtube_url')
+                        ? responseData.speaking_youtube_url
+                        : (examScoreSpeakingYoutubeUrlInput instanceof HTMLInputElement ? examScoreSpeakingYoutubeUrlInput.value : '')
+                );
                 const scoreWriting = normalizeText(
                     Object.prototype.hasOwnProperty.call(responseData, 'score_writing')
                         ? responseData.score_writing
@@ -6159,6 +6214,7 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
                     examId: savedExamId,
                     scoreListening: scoreListening,
                     scoreSpeaking: scoreSpeaking,
+                    speakingYoutubeUrl: speakingYoutubeUrl,
                     scoreReading: scoreReading,
                     scoreWriting: scoreWriting,
                     result: scoreResult,
@@ -6469,6 +6525,20 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
             contextLabel: 'Soạn giáo án cho khung lịch đã chọn.',
             returnFocusElement: null,
         });
+    }
+
+    if (!hasSuccessFlash && initialAutoOpenGrading && initialHighlightAssignmentId > 0) {
+        const targetSlot = document.querySelector('[data-classroom-slot="1"][data-schedule-id="' + String(<?= (int) $focusedScheduleId; ?>) + '"]');
+        if (targetSlot instanceof HTMLElement) {
+            const context = buildSlotContext(targetSlot);
+            if (context) {
+                activeSlotElement = targetSlot;
+                activeSlotContext = context;
+                window.setTimeout(function () {
+                    openGradingModal(context, initialHighlightAssignmentId);
+                }, 120);
+            }
+        }
     }
 })();
 </script>

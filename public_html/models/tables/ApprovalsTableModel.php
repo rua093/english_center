@@ -101,7 +101,7 @@ final class ApprovalsTableModel
         );
     }
 
-    public function save(array $data): void
+    public function save(array $data): int
     {
         if ((int) ($data['id'] ?? 0) > 0) {
             $sql = 'UPDATE approvals SET approver_id = :approver_id, status = :status, content = :content WHERE id = :id';
@@ -111,7 +111,7 @@ final class ApprovalsTableModel
                 'status' => $data['status'],
                 'content' => (string) ($data['reason'] ?? $data['content'] ?? ''),
             ]);
-            return;
+            return (int) $data['id'];
         }
 
         $sql = 'INSERT INTO approvals (requester_id, approver_id, type, content, status)
@@ -123,6 +123,8 @@ final class ApprovalsTableModel
             'content' => (string) ($data['content'] ?? $data['reason'] ?? ''),
             'status' => $data['status'],
         ]);
+
+        return (int) $this->pdo->lastInsertId();
     }
 
     public function updateDecision(int $approvalId, int $approverId, string $status, string $content): void

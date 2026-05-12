@@ -151,6 +151,7 @@ if (!isset($statusOptions[$statusFilter])) {
     $statusFilter = '';
 }
 $searchQuery = trim((string) ($_GET['search'] ?? ''));
+$highlightApplicationId = max(0, (int) ($_GET['highlight_application_id'] ?? 0));
 $filters = [
     'status' => $statusFilter,
 ];
@@ -449,9 +450,11 @@ $canDeleteApplication = has_permission('job_application.delete');
                             <?php
                                 $statusValue = (string) ($application['status'] ?? 'PENDING');
                                 $statusLabel = (string) ($statusOptions[$statusValue] ?? $statusValue);
+                                $applicationId = (int) ($application['id'] ?? 0);
+                                $isHighlightedApplication = $highlightApplicationId > 0 && $highlightApplicationId === $applicationId;
                             ?>
-                            <tr>
-                                <td class="font-semibold">#<?= (int) $application['id']; ?></td>
+                            <tr id="job-application-row-<?= $applicationId; ?>" <?= $isHighlightedApplication ? 'class="bg-amber-50/80"' : ''; ?>>
+                                <td class="font-semibold">#<?= $applicationId; ?></td>
                                 <td>
                                     <div class="font-bold text-slate-800"><?= e(job_application_value_or_dash($application['full_name'] ?? '')); ?></div>
                                     <div class="text-xs text-slate-600">Liên hệ: <?= e(job_application_short_text(trim((string) (($application['email'] ?? '') . ' ' . ($application['phone'] ?? ''))), 50)); ?></div>
@@ -591,6 +594,20 @@ window.addEventListener('load', function () {
         autoOpenLink.dataset.opened = '1';
         window.__openAdminEditModal(autoOpenLink.href);
     }, 0);
+}, { once: true });
+</script>
+<?php endif; ?>
+<?php if ($highlightApplicationId > 0): ?>
+<script>
+window.addEventListener('load', function () {
+    const targetRow = document.getElementById('job-application-row-<?= (int) $highlightApplicationId; ?>');
+    if (!(targetRow instanceof HTMLElement)) {
+        return;
+    }
+
+    window.setTimeout(function () {
+        targetRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 180);
 }, { once: true });
 </script>
 <?php endif; ?>

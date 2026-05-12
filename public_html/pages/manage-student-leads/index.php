@@ -170,6 +170,7 @@ if (!isset($statusOptions[$statusFilter])) {
     $statusFilter = '';
 }
 $searchQuery = trim((string) ($_GET['search'] ?? ''));
+$highlightLeadId = max(0, (int) ($_GET['highlight_lead_id'] ?? 0));
 $filters = [
     'status' => $statusFilter,
 ];
@@ -451,9 +452,11 @@ $canDeleteLead = has_permission('student_lead.delete');
                             <?php
                                 $statusValue = (string) ($lead['status'] ?? 'new');
                                 $statusLabel = (string) ($statusOptions[$statusValue] ?? $statusValue);
+                                $leadId = (int) ($lead['id'] ?? 0);
+                                $isHighlightedLead = $highlightLeadId > 0 && $highlightLeadId === $leadId;
                             ?>
-                            <tr>
-                                <td class="font-semibold">#<?= (int) $lead['id']; ?></td>
+                            <tr id="student-lead-row-<?= $leadId; ?>" <?= $isHighlightedLead ? 'class="bg-amber-50/80"' : ''; ?>>
+                                <td class="font-semibold">#<?= $leadId; ?></td>
                                 <td>
                                     <div class="font-bold text-slate-800"><?= e(student_lead_value_or_dash($lead['student_name'] ?? '')); ?></div>
                                     <div class="text-xs text-slate-600">Liên hệ: <?= e(student_lead_short_text(trim((string) ($lead['parent_name'] ?? '') . ' ' . ($lead['parent_phone'] ?? '')), 60)); ?></div>
@@ -594,6 +597,20 @@ window.addEventListener('load', function () {
         autoOpenLink.dataset.opened = '1';
         window.__openAdminEditModal(autoOpenLink.href);
     }, 0);
+}, { once: true });
+</script>
+<?php endif; ?>
+<?php if ($highlightLeadId > 0): ?>
+<script>
+window.addEventListener('load', function () {
+    const targetRow = document.getElementById('student-lead-row-<?= (int) $highlightLeadId; ?>');
+    if (!(targetRow instanceof HTMLElement)) {
+        return;
+    }
+
+    window.setTimeout(function () {
+        targetRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 180);
 }, { once: true });
 </script>
 <?php endif; ?>

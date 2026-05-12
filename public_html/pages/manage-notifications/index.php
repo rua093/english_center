@@ -1,7 +1,20 @@
 <?php
+require_admin_or_staff();
 require_any_permission(['notifications.view']);
 
 $academicModel = new AcademicModel();
+$currentNotificationUser = auth_user();
+$currentNotificationUserId = (int) ($currentNotificationUser['id'] ?? 0);
+if ($currentNotificationUserId > 0) {
+    foreach ($academicModel->listNotifications($currentNotificationUserId) as $notificationRow) {
+        $notificationId = (int) ($notificationRow['id'] ?? 0);
+        $isRead = (int) ($notificationRow['is_read'] ?? 0) === 1;
+        if ($notificationId > 0 && !$isRead) {
+            $academicModel->markNotificationRead($notificationId, $currentNotificationUserId);
+        }
+    }
+}
+
 $searchQuery = trim((string) ($_GET['search'] ?? ''));
 $targetTypeFilter = strtoupper(trim((string) ($_GET['target_type'] ?? '')));
 if (!in_array($targetTypeFilter, ['ALL', 'ROLE', 'CLASS', 'GROUP', 'USER'], true)) {
@@ -211,6 +224,7 @@ $canManageNotifications = has_any_permission(['notifications.create', 'notificat
                             $messagePreview = bbcode_truncate_plain_text($fullMessage, 80);
                             $totalRecipients = max(0, (int) ($notification['total_recipients'] ?? 0));
                             $readCount = max(0, (int) ($notification['read_count'] ?? 0));
+                            $notificationActionUrl = trim((string) ($notification['action_url'] ?? ''));
                             ?>
                             <tr>
                                 <td><?= e($senderLabel); ?></td>
@@ -225,6 +239,21 @@ $canManageNotifications = has_any_permission(['notifications.create', 'notificat
                                 <td><?= e(ui_format_datetime((string) ($notification['created_at'] ?? ''))); ?></td>
                                 <td>
                                     <span class="inline-flex flex-wrap items-center gap-2">
+                                        <?php if ($notificationActionUrl !== ''): ?>
+                                            <a
+                                                href="<?= e($notificationActionUrl); ?>"
+                                                class="admin-action-icon-btn"
+                                                data-action-kind="detail"
+                                                data-skip-action-icon="1"
+                                                title="Mở record"
+                                                aria-label="Mở record"
+                                            >
+                                                <span class="admin-action-icon-label">Mở record</span>
+                                                <span class="admin-action-icon-glyph" aria-hidden="true">
+                                                    <svg viewBox="0 0 24 24"><path d="M14 3h7v7"></path><path d="M10 14 21 3"></path><path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"></path></svg>
+                                                </span>
+                                            </a>
+                                        <?php endif; ?>
                                         <button
                                             type="button"
                                             class="admin-row-detail-button admin-action-icon-btn"

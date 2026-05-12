@@ -156,7 +156,8 @@ INNER JOIN permissions p ON p.slug IN (
     'academic.submissions.view', 'academic.submissions.grade',
     'academic.exports.view',
     'materials.view', 'materials.create', 'materials.update', 'materials.delete',
-    'approval.request'
+    'approval.request',
+    'notifications.view'
 )
 WHERE r.role_name = 'teacher';
 

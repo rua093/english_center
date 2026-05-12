@@ -5,6 +5,7 @@ require_once __DIR__ . '/../../core/api_helpers.php';
 require_once __DIR__ . '/../../core/file_storage.php';
 require_once __DIR__ . '/../../core/auth.php';
 require_once __DIR__ . '/../../models/AcademicModel.php';
+require_once __DIR__ . '/../../models/BackofficeNotificationService.php';
 require_once __DIR__ . '/../../models/tables/ExtracurricularActivitiesTableModel.php';
 
 function api_activities_save_action(): void
@@ -266,6 +267,13 @@ function api_activities_join_action(): void
 	}
 
 	$model->joinActivity($activityId, $userId);
+    (new BackofficeNotificationService())->notifyNewActivityRegistration(
+        $activityId,
+        trim((string) ($activity['activity_name'] ?? '')),
+        $userId,
+        trim((string) ($user['full_name'] ?? '')),
+        $userId
+    );
 
 	if (api_expects_json()) {
 		api_success('Đăng ký hoạt động ngoại khoá thành công.', [

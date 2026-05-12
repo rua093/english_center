@@ -8,6 +8,7 @@ final class NotificationsTableModel
     use TableModelUtils;
 
     private ?bool $hybridEnabled = null;
+    private ?bool $actionUrlColumnEnabled = null;
 
     public function countDetailed(string $searchQuery = '', array $filters = []): int
     {
@@ -50,6 +51,7 @@ final class NotificationsTableModel
                     n.sender_id,
                     n.title,
                     n.message,
+                    " . $this->notificationActionUrlSelectSql('n') . ",
                     n.created_at,
                     sender.username AS sender_username,
                     sender.full_name AS sender_name,
@@ -87,6 +89,7 @@ final class NotificationsTableModel
                     n.sender_id,
                     n.title,
                     n.message,
+                    " . $this->notificationActionUrlSelectSql('n') . ",
                     n.created_at,
                     sender.username AS sender_username,
                     sender.full_name AS sender_name,
@@ -115,7 +118,9 @@ final class NotificationsTableModel
 
         if (!$this->supportsHybrid()) {
             return $this->fetchAll(
-                'SELECT id, sender_id, title, message, created_at FROM notifications ORDER BY created_at DESC LIMIT ' . $limit
+                'SELECT id, sender_id, title, message, '
+                . $this->notificationActionUrlSelectSql('notifications')
+                . ', created_at FROM notifications ORDER BY created_at DESC LIMIT ' . $limit
             );
         }
 
@@ -132,7 +137,9 @@ final class NotificationsTableModel
 
         if (!$this->supportsHybrid()) {
             return $this->fetchAll(
-                'SELECT id, sender_id, title, message, created_at, 0 AS is_read FROM notifications ORDER BY created_at DESC LIMIT ' . $limit
+                'SELECT id, sender_id, title, message, '
+                . $this->notificationActionUrlSelectSql('notifications')
+                . ', created_at, 0 AS is_read FROM notifications ORDER BY created_at DESC LIMIT ' . $limit
             );
         }
 
@@ -140,6 +147,7 @@ final class NotificationsTableModel
                     n.id,
                     n.title,
                     n.message,
+                    " . $this->notificationActionUrlSelectSql('n') . ",
                     n.created_at,
                     CASE
                         WHEN EXISTS (
@@ -220,32 +228,44 @@ final class NotificationsTableModel
         $senderId = max(0, (int) ($data['sender_id'] ?? 0));
         $title = trim((string) ($data['title'] ?? ''));
         $message = trim((string) ($data['message'] ?? $data['content'] ?? ''));
-        [$targetType, $targetId] = $this->normalizeTargetPayload($data);
+        $hasActionUrl = array_key_exists('action_url', $data);
+        $actionUrl = trim((string) ($data['action_url'] ?? ''));
+        if ($actionUrl === '') {
+            $actionUrl = null;
+        }
+        $targets = $this->normalizeTargetsPayload($data);
 
         if ($title === '' || $message === '') {
             throw new InvalidArgumentException('Vui long nhap day du tieu de va noi dung thong bao.');
         }
 
-        if ($targetType === '') {
+        if ($targets === []) {
             throw new InvalidArgumentException('Vui long chon doi tuong nhan thong bao.');
         }
 
         $notificationId = 0;
-        $this->executeInTransaction(function () use ($id, $senderId, $title, $message, $targetType, $targetId, &$notificationId): void {
+        $supportsActionUrl = $this->supportsActionUrlColumn();
+        $this->executeInTransaction(function () use ($id, $senderId, $title, $message, $hasActionUrl, $actionUrl, $targets, $supportsActionUrl, &$notificationId): void {
             if ($id > 0) {
-                $this->executeStatement(
-                    'UPDATE notifications
+                $params = [
+                    'id' => $id,
+                    'sender_id' => $senderId > 0 ? $senderId : null,
+                    'title' => $title,
+                    'message' => $message,
+                ];
+                $sql = 'UPDATE notifications
                      SET sender_id = :sender_id,
                          title = :title,
-                         message = :message
-                     WHERE id = :id',
-                    [
-                        'id' => $id,
-                        'sender_id' => $senderId > 0 ? $senderId : null,
-                        'title' => $title,
-                        'message' => $message,
-                    ]
-                );
+                         message = :message';
+                if ($supportsActionUrl && $hasActionUrl) {
+                    $sql .= ',
+                         action_url = :action_url';
+                    $params['action_url'] = $actionUrl;
+                }
+                $sql .= '
+                     WHERE id = :id';
+
+                $this->executeStatement($sql, $params);
 
                 $this->executeStatement('DELETE FROM notification_reads WHERE notification_id = :notification_id', [
                     'notification_id' => $id,
@@ -256,28 +276,43 @@ final class NotificationsTableModel
 
                 $notificationId = $id;
             } else {
-                $this->executeStatement(
-                    'INSERT INTO notifications (sender_id, title, message)
-                     VALUES (:sender_id, :title, :message)',
-                    [
-                        'sender_id' => $senderId > 0 ? $senderId : null,
-                        'title' => $title,
-                        'message' => $message,
-                    ]
-                );
+                if ($supportsActionUrl) {
+                    $this->executeStatement(
+                        'INSERT INTO notifications (sender_id, title, message, action_url)
+                         VALUES (:sender_id, :title, :message, :action_url)',
+                        [
+                            'sender_id' => $senderId > 0 ? $senderId : null,
+                            'title' => $title,
+                            'message' => $message,
+                            'action_url' => $actionUrl,
+                        ]
+                    );
+                } else {
+                    $this->executeStatement(
+                        'INSERT INTO notifications (sender_id, title, message)
+                         VALUES (:sender_id, :title, :message)',
+                        [
+                            'sender_id' => $senderId > 0 ? $senderId : null,
+                            'title' => $title,
+                            'message' => $message,
+                        ]
+                    );
+                }
 
                 $notificationId = (int) $this->pdo->lastInsertId();
             }
 
-            $this->executeStatement(
-                'INSERT INTO notification_targets (notification_id, target_type, target_id)
-                 VALUES (:notification_id, :target_type, :target_id)',
-                [
-                    'notification_id' => $notificationId,
-                    'target_type' => $targetType,
-                    'target_id' => $targetId,
-                ]
-            );
+            foreach ($targets as $target) {
+                $this->executeStatement(
+                    'INSERT INTO notification_targets (notification_id, target_type, target_id)
+                     VALUES (:notification_id, :target_type, :target_id)',
+                    [
+                        'notification_id' => $notificationId,
+                        'target_type' => (string) ($target['target_type'] ?? ''),
+                        'target_id' => $target['target_id'] ?? null,
+                    ]
+                );
+            }
         });
 
         return $notificationId;
@@ -419,6 +454,92 @@ final class NotificationsTableModel
                 'user_id' => $userId,
             ]
         );
+    }
+
+    public function countUnreadByUser(int $userId): int
+    {
+        if ($userId <= 0) {
+            return 0;
+        }
+
+        if (!$this->supportsHybrid()) {
+            return (int) $this->fetchScalar(
+                'SELECT COUNT(*) AS total
+                 FROM notifications
+                 WHERE user_id = :user_id
+                   AND is_read = 0',
+                ['user_id' => $userId],
+                'total',
+                0
+            );
+        }
+
+        $sql = "SELECT COUNT(*) AS total
+                FROM (
+                    SELECT DISTINCT n.id
+                    FROM notifications n
+                    WHERE (
+                        EXISTS (
+                            SELECT 1
+                            FROM notification_targets nt_all
+                            WHERE nt_all.notification_id = n.id
+                              AND nt_all.target_type = 'ALL'
+                        )
+                        OR EXISTS (
+                            SELECT 1
+                            FROM notification_targets nt_user
+                            WHERE nt_user.notification_id = n.id
+                              AND nt_user.target_type = 'USER'
+                              AND nt_user.target_id = :user_id_target
+                        )
+                        OR EXISTS (
+                            SELECT 1
+                            FROM notification_targets nt_role
+                            WHERE nt_role.notification_id = n.id
+                              AND nt_role.target_type = 'ROLE'
+                              AND nt_role.target_id = (
+                                  SELECT u.role_id
+                                  FROM users u
+                                  WHERE u.id = :user_id_role
+                                  LIMIT 1
+                              )
+                        )
+                        OR EXISTS (
+                            SELECT 1
+                            FROM notification_targets nt_class
+                            WHERE nt_class.notification_id = n.id
+                              AND nt_class.target_type = 'CLASS'
+                              AND (
+                                  EXISTS (
+                                      SELECT 1
+                                      FROM class_students cs
+                                      WHERE cs.class_id = nt_class.target_id
+                                        AND cs.student_id = :user_id_class_student
+                                  )
+                                  OR EXISTS (
+                                      SELECT 1
+                                      FROM classes c
+                                      WHERE c.id = nt_class.target_id
+                                        AND c.teacher_id = :user_id_class_teacher
+                                  )
+                              )
+                        )
+                    )
+                    AND NOT EXISTS (
+                        SELECT 1
+                        FROM notification_reads nr
+                        WHERE nr.notification_id = n.id
+                          AND nr.user_id = :user_id_read
+                    )
+                ) unread_notifications";
+
+        return (int) $this->fetchScalar($sql, [
+            'user_id_target' => $userId,
+            'user_id_role' => $userId,
+            'user_id_class_student' => $userId,
+            'user_id_class_teacher' => $userId,
+            'user_id_read' => $userId,
+        ], 'total', 0);
     }
 
     public function deleteById(int $id): void
@@ -767,7 +888,52 @@ final class NotificationsTableModel
         );
     }
 
-    private function normalizeTargetPayload(array $data): array
+    private function normalizeTargetsPayload(array $data): array
+    {
+        $normalizedTargets = [];
+        $seen = [];
+
+        $rawTargets = $data['targets'] ?? null;
+        if (is_array($rawTargets)) {
+            foreach ($rawTargets as $rawTarget) {
+                if (!is_array($rawTarget)) {
+                    continue;
+                }
+
+                [$targetType, $targetId] = $this->normalizeSingleTargetPayload($rawTarget);
+                if ($targetType === '') {
+                    continue;
+                }
+
+                $targetKey = $targetType . ':' . ($targetId === null ? 'null' : (string) $targetId);
+                if (isset($seen[$targetKey])) {
+                    continue;
+                }
+
+                $seen[$targetKey] = true;
+                $normalizedTargets[] = [
+                    'target_type' => $targetType,
+                    'target_id' => $targetId,
+                ];
+            }
+        }
+
+        if ($normalizedTargets !== []) {
+            return $normalizedTargets;
+        }
+
+        [$targetType, $targetId] = $this->normalizeSingleTargetPayload($data);
+        if ($targetType === '') {
+            return [];
+        }
+
+        return [[
+            'target_type' => $targetType,
+            'target_id' => $targetId,
+        ]];
+    }
+
+    private function normalizeSingleTargetPayload(array $data): array
     {
         $legacyUserId = (int) ($data['user_id'] ?? 0);
         if ($legacyUserId > 0) {
@@ -865,6 +1031,25 @@ final class NotificationsTableModel
         return $this->hybridEnabled;
     }
 
+    private function supportsActionUrlColumn(): bool
+    {
+        if ($this->actionUrlColumnEnabled !== null) {
+            return $this->actionUrlColumnEnabled;
+        }
+
+        $this->actionUrlColumnEnabled = $this->columnExists('notifications', 'action_url');
+        return $this->actionUrlColumnEnabled;
+    }
+
+    private function notificationActionUrlSelectSql(string $tableAlias = 'n'): string
+    {
+        if (!$this->supportsActionUrlColumn()) {
+            return 'NULL AS action_url';
+        }
+
+        return $tableAlias . '.action_url AS action_url';
+    }
+
     private function tableExists(string $tableName): bool
     {
         $count = (int) $this->fetchScalar(
@@ -926,6 +1111,7 @@ final class NotificationsTableModel
         $whereSql = $this->buildLegacySearchWhereClause($searchQuery, $filters, $params);
 
         $sql = "SELECT n.id, n.user_id, n.title, n.message, n.is_read, n.created_at,
+                    " . $this->notificationActionUrlSelectSql('n') . ",
                     u.username, u.full_name, tp.teacher_code, sp.student_code
                 FROM notifications n
                 INNER JOIN users u ON u.id = n.user_id
@@ -981,6 +1167,7 @@ final class NotificationsTableModel
     {
         return $this->fetchOne(
             "SELECT n.id, n.user_id, n.title, n.message, n.is_read, n.created_at,
+                    " . $this->notificationActionUrlSelectSql('n') . ",
                     u.username, u.full_name, tp.teacher_code, sp.student_code
              FROM notifications n
              INNER JOIN users u ON u.id = n.user_id
@@ -999,34 +1186,57 @@ final class NotificationsTableModel
         $title = trim((string) ($data['title'] ?? ''));
         $message = trim((string) ($data['message'] ?? ''));
         $isRead = (int) ($data['is_read'] ?? 0) === 1 ? 1 : 0;
+        $hasActionUrl = array_key_exists('action_url', $data);
+        $actionUrl = trim((string) ($data['action_url'] ?? ''));
+        if ($actionUrl === '') {
+            $actionUrl = null;
+        }
+        $supportsActionUrl = $this->supportsActionUrlColumn();
 
         if ($userId <= 0 || $title === '' || $message === '') {
             throw new InvalidArgumentException('Vui long chon nguoi nhan va nhap day du tieu de, noi dung thong bao.');
         }
 
         if ($id > 0) {
+            $params = [
+                'id' => $id,
+                'user_id' => $userId,
+                'title' => $title,
+                'message' => $message,
+                'is_read' => $isRead,
+            ];
+            $sql = 'UPDATE notifications SET user_id = :user_id, title = :title, message = :message, is_read = :is_read';
+            if ($supportsActionUrl && $hasActionUrl) {
+                $sql .= ', action_url = :action_url';
+                $params['action_url'] = $actionUrl;
+            }
+            $sql .= ' WHERE id = :id';
+            $this->executeStatement($sql, $params);
+            return $id;
+        }
+
+        if ($supportsActionUrl) {
             $this->executeStatement(
-                'UPDATE notifications SET user_id = :user_id, title = :title, message = :message, is_read = :is_read WHERE id = :id',
+                'INSERT INTO notifications (user_id, title, message, action_url, is_read) VALUES (:user_id, :title, :message, :action_url, :is_read)',
                 [
-                    'id' => $id,
+                    'user_id' => $userId,
+                    'title' => $title,
+                    'message' => $message,
+                    'action_url' => $actionUrl,
+                    'is_read' => $isRead,
+                ]
+            );
+        } else {
+            $this->executeStatement(
+                'INSERT INTO notifications (user_id, title, message, is_read) VALUES (:user_id, :title, :message, :is_read)',
+                [
                     'user_id' => $userId,
                     'title' => $title,
                     'message' => $message,
                     'is_read' => $isRead,
                 ]
             );
-            return $id;
         }
-
-        $this->executeStatement(
-            'INSERT INTO notifications (user_id, title, message, is_read) VALUES (:user_id, :title, :message, :is_read)',
-            [
-                'user_id' => $userId,
-                'title' => $title,
-                'message' => $message,
-                'is_read' => $isRead,
-            ]
-        );
 
         return (int) $this->pdo->lastInsertId();
     }

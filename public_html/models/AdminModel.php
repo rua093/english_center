@@ -8,6 +8,7 @@ require_once __DIR__ . '/tables/RolePermissionsTableModel.php';
 require_once __DIR__ . '/tables/RolesTableModel.php';
 require_once __DIR__ . '/tables/StudentLeadsTableModel.php';
 require_once __DIR__ . '/tables/UsersTableModel.php';
+require_once __DIR__ . '/BackofficeNotificationService.php';
 require_once __DIR__ . '/MailModel.php';
 
 final class AdminModel
@@ -19,6 +20,7 @@ final class AdminModel
     private StudentLeadsTableModel $studentLeadsTable;
     private JobApplicationsTableModel $jobApplicationsTable;
     private MailModel $mailModel;
+    private BackofficeNotificationService $backofficeNotificationService;
 
     public function __construct()
     {
@@ -29,6 +31,7 @@ final class AdminModel
         $this->studentLeadsTable = new StudentLeadsTableModel();
         $this->jobApplicationsTable = new JobApplicationsTableModel();
         $this->mailModel = new MailModel();
+        $this->backofficeNotificationService = new BackofficeNotificationService();
     }
 
     public function listUsers(): array
@@ -214,6 +217,7 @@ final class AdminModel
     {
         $leadId = $this->studentLeadsTable->saveConsultationLead($data);
         $this->mailModel->queueLeadEmails($data);
+        $this->backofficeNotificationService->notifyNewStudentLead($leadId, $data);
         return $leadId;
     }
 
@@ -221,6 +225,7 @@ final class AdminModel
     {
         $leadId = $this->studentLeadsTable->createFromPublic($data);
         $this->mailModel->queueLeadEmails($data);
+        $this->backofficeNotificationService->notifyNewStudentLead($leadId, $data);
         return $leadId;
     }
 
@@ -328,7 +333,9 @@ final class AdminModel
 
     public function submitJobApplication(array $data): int
     {
-        return $this->jobApplicationsTable->createFromPublic($data);
+        $applicationId = $this->jobApplicationsTable->createFromPublic($data);
+        $this->backofficeNotificationService->notifyNewJobApplication($applicationId, $data);
+        return $applicationId;
     }
 
     public function updateJobApplicationReview(int $id, string $status, string $adminNote): void

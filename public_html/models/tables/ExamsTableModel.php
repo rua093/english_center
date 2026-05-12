@@ -27,7 +27,7 @@ final class ExamsTableModel extends BaseTableModel
         }
 
         $sql = "SELECT id, class_id, student_id, exam_name, exam_type, exam_date,
-                score_listening, score_speaking, score_reading, score_writing,
+                score_listening, score_speaking, speaking_youtube_url, score_reading, score_writing,
                 result, teacher_comment
             FROM exams
             WHERE class_id = :class_id
@@ -43,7 +43,7 @@ final class ExamsTableModel extends BaseTableModel
         }
 
         $sql = "SELECT id, class_id, student_id, exam_name, exam_type, exam_date,
-                score_listening, score_speaking, score_reading, score_writing,
+                score_listening, score_speaking, speaking_youtube_url, score_reading, score_writing,
                 result, teacher_comment
             FROM exams
             WHERE class_id = :class_id
@@ -113,7 +113,7 @@ final class ExamsTableModel extends BaseTableModel
 
         return $this->fetchOne(
             'SELECT id, class_id, student_id, exam_name, exam_type, exam_date,
-                    score_listening, score_speaking, score_reading, score_writing,
+                    score_listening, score_speaking, speaking_youtube_url, score_reading, score_writing,
                     result, teacher_comment
              FROM exams
              WHERE id = :id
@@ -130,7 +130,7 @@ final class ExamsTableModel extends BaseTableModel
 
         return $this->fetchOne(
                         'SELECT id, class_id, student_id, exam_name, exam_type, exam_date,
-                                        score_listening, score_speaking, score_reading, score_writing,
+                                        score_listening, score_speaking, speaking_youtube_url, score_reading, score_writing,
                                         result, teacher_comment
              FROM exams
              WHERE class_id = :class_id
@@ -176,6 +176,7 @@ final class ExamsTableModel extends BaseTableModel
         ?string $teacherComment,
         ?float $scoreListening = null,
         ?float $scoreSpeaking = null,
+        ?string $speakingYoutubeUrl = null,
         ?float $scoreReading = null,
         ?float $scoreWriting = null
     ): void
@@ -186,11 +187,13 @@ final class ExamsTableModel extends BaseTableModel
 
         $normalizedResult = $result !== null ? trim($result) : '';
         $normalizedComment = $teacherComment !== null ? trim($teacherComment) : '';
+        $normalizedSpeakingYoutubeUrl = $speakingYoutubeUrl !== null ? trim($speakingYoutubeUrl) : '';
 
         $this->executeStatement(
             'UPDATE exams
              SET score_listening = :score_listening,
                  score_speaking = :score_speaking,
+                 speaking_youtube_url = :speaking_youtube_url,
                  score_reading = :score_reading,
                  score_writing = :score_writing,
                  result = :result,
@@ -200,6 +203,7 @@ final class ExamsTableModel extends BaseTableModel
                 'id' => $examId,
                 'score_listening' => $scoreListening,
                 'score_speaking' => $scoreSpeaking,
+                'speaking_youtube_url' => $normalizedSpeakingYoutubeUrl !== '' ? $normalizedSpeakingYoutubeUrl : null,
                 'score_reading' => $scoreReading,
                 'score_writing' => $scoreWriting,
                 'result' => $normalizedResult !== '' ? $normalizedResult : null,
