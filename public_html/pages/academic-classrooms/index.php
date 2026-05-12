@@ -3532,10 +3532,15 @@ $adminTitle = 'Học vụ - Quản lý lớp học';
                 ['Họ tên', normalizeText(user.full_name)],
                 ['Điện thoại', normalizeText(user.phone)],
                 ['Email', normalizeText(user.email)],
-                ['Phụ huynh', normalizeText(roleProfile.student_parent_name)],
-                ['SĐT phụ huynh', normalizeText(roleProfile.student_parent_phone)],
+                ['Cha', normalizeText(roleProfile.student_father_name)],
+                ['SĐT cha', normalizeText(roleProfile.student_father_phone)],
+                ['CCCD cha', normalizeText(roleProfile.student_father_id_card)],
+                ['Mẹ', normalizeText(roleProfile.student_mother_name)],
+                ['SĐT mẹ', normalizeText(roleProfile.student_mother_phone)],
+                ['CCCD mẹ', normalizeText(roleProfile.student_mother_id_card)],
                 ['Trường', normalizeText(roleProfile.student_school_name)],
                 ['Mục tiêu điểm', normalizeText(roleProfile.student_target_score)],
+                ['Social links', normalizeText(roleProfile.student_parent_social_links)],
             ];
 
             const profileCards = rows.filter(function (pair) {

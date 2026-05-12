@@ -69,8 +69,11 @@ INSERT INTO attendance (schedule_id, student_id, status, note) VALUES
 INSERT INTO exams (class_id, student_id, exam_name, exam_type, exam_date, result, teacher_comment)
 VALUES (NULL, 4, 'Entry Test', 'entry', '2026-03-28', '5.0', 'Can tang cuong speaking va vocab.');
 
-INSERT INTO student_profiles (user_id, student_code, parent_name, parent_phone, school_name, target_score, entry_test_id)
-VALUES (4, 'HV00004', 'Tran Thi Parent', '0909999999', 'THPT Demo', 'IELTS 6.5', 1);
+INSERT INTO parents (father_name, father_phone, social_links)
+VALUES ('Tran Thi Parent', '0909999999', NULL);
+
+INSERT INTO student_profiles (user_id, parent_id, student_code, school_name, target_score, entry_test_id)
+VALUES (4, (SELECT id FROM parents WHERE father_name = 'Tran Thi Parent' AND father_phone = '0909999999' ORDER BY id DESC LIMIT 1), 'HV00004', 'THPT Demo', 'IELTS 6.5', 1);
 
 INSERT INTO student_leads (
 	student_name,
@@ -459,10 +462,15 @@ INSERT INTO exams (class_id, student_id, exam_name, exam_type, exam_date, result
 (NULL, (SELECT id FROM users WHERE username = 'student3@ec.local' LIMIT 1), 'Entry Test Student3', 'entry', '2026-03-02', '5.5', 'Phat am kha tot, can bo sung tu vung hoc thuat.'),
 (NULL, (SELECT id FROM users WHERE username = 'student4@ec.local' LIMIT 1), 'Entry Test Student4', 'entry', '2026-04-01', '3.5', 'Can hoc phat am va mau cau giao tiep co ban.');
 
-INSERT INTO student_profiles (user_id, student_code, parent_name, parent_phone, school_name, target_score, entry_test_id) VALUES
-((SELECT id FROM users WHERE username = 'student2@ec.local' LIMIT 1), CONCAT('HV', LPAD((SELECT id FROM users WHERE username = 'student2@ec.local' LIMIT 1), 5, '0')), 'Pham Thi Lan', '0911111111', 'Dai hoc Kinh te', 'TOEIC 750', (SELECT id FROM exams WHERE exam_name = 'Entry Test Student2' LIMIT 1)),
-((SELECT id FROM users WHERE username = 'student3@ec.local' LIMIT 1), CONCAT('HV', LPAD((SELECT id FROM users WHERE username = 'student3@ec.local' LIMIT 1), 5, '0')), 'Do Van Minh', '0922222222', 'Cong ty ABC', 'Business English B2', (SELECT id FROM exams WHERE exam_name = 'Entry Test Student3' LIMIT 1)),
-((SELECT id FROM users WHERE username = 'student4@ec.local' LIMIT 1), CONCAT('HV', LPAD((SELECT id FROM users WHERE username = 'student4@ec.local' LIMIT 1), 5, '0')), 'Vu Thi Hoa', '0933333333', 'THCS Nguyen Hue', 'TOEIC 550', (SELECT id FROM exams WHERE exam_name = 'Entry Test Student4' LIMIT 1));
+INSERT INTO parents (father_name, father_phone, social_links) VALUES
+('Pham Thi Lan', '0911111111', NULL),
+('Do Van Minh', '0922222222', NULL),
+('Vu Thi Hoa', '0933333333', NULL);
+
+INSERT INTO student_profiles (user_id, parent_id, student_code, school_name, target_score, entry_test_id) VALUES
+((SELECT id FROM users WHERE username = 'student2@ec.local' LIMIT 1), (SELECT id FROM parents WHERE father_name = 'Pham Thi Lan' AND father_phone = '0911111111' ORDER BY id DESC LIMIT 1), CONCAT('HV', LPAD((SELECT id FROM users WHERE username = 'student2@ec.local' LIMIT 1), 5, '0')), 'Dai hoc Kinh te', 'TOEIC 750', (SELECT id FROM exams WHERE exam_name = 'Entry Test Student2' LIMIT 1)),
+((SELECT id FROM users WHERE username = 'student3@ec.local' LIMIT 1), (SELECT id FROM parents WHERE father_name = 'Do Van Minh' AND father_phone = '0922222222' ORDER BY id DESC LIMIT 1), CONCAT('HV', LPAD((SELECT id FROM users WHERE username = 'student3@ec.local' LIMIT 1), 5, '0')), 'Cong ty ABC', 'Business English B2', (SELECT id FROM exams WHERE exam_name = 'Entry Test Student3' LIMIT 1)),
+((SELECT id FROM users WHERE username = 'student4@ec.local' LIMIT 1), (SELECT id FROM parents WHERE father_name = 'Vu Thi Hoa' AND father_phone = '0933333333' ORDER BY id DESC LIMIT 1), CONCAT('HV', LPAD((SELECT id FROM users WHERE username = 'student4@ec.local' LIMIT 1), 5, '0')), 'THCS Nguyen Hue', 'TOEIC 550', (SELECT id FROM exams WHERE exam_name = 'Entry Test Student4' LIMIT 1));
 
 INSERT INTO assignments (lesson_id, title, description, deadline, file_url) VALUES
 ((SELECT id FROM lessons WHERE actual_title = 'Business Pitch Warm-up' LIMIT 1), 'Business Pitch Outline', 'Tao slide pitch 3 phut voi 5 bullet chinh.', '2026-05-12 23:59:00', '/assets/uploads/assignment-business-pitch.pdf'),

@@ -835,6 +835,38 @@ LOCK TABLES `student_portfolios` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `parents`
+--
+
+DROP TABLE IF EXISTS `parents`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `parents` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `father_name` varchar(150) DEFAULT NULL,
+  `father_phone` varchar(20) DEFAULT NULL,
+  `father_id_card` varchar(30) DEFAULT NULL,
+  `mother_name` varchar(150) DEFAULT NULL,
+  `mother_phone` varchar(20) DEFAULT NULL,
+  `mother_id_card` varchar(30) DEFAULT NULL,
+  `social_links` text,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `parents`
+--
+
+LOCK TABLES `parents` WRITE;
+/*!40000 ALTER TABLE `parents` DISABLE KEYS */;
+INSERT INTO `parents` VALUES (1,'Bùi Văn Minh','0123456789',NULL,NULL,NULL,NULL,NULL,'2026-04-30 09:45:25','2026-04-30 09:45:25');
+/*!40000 ALTER TABLE `parents` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `student_profiles`
 --
 
@@ -844,9 +876,8 @@ DROP TABLE IF EXISTS `student_profiles`;
 CREATE TABLE `student_profiles` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `user_id` bigint unsigned NOT NULL,
+  `parent_id` bigint unsigned DEFAULT NULL,
   `student_code` varchar(30) NOT NULL,
-  `parent_name` varchar(150) DEFAULT NULL,
-  `parent_phone` varchar(20) DEFAULT NULL,
   `school_name` varchar(180) DEFAULT NULL,
   `target_score` varchar(50) DEFAULT NULL,
   `entry_test_id` bigint unsigned DEFAULT NULL,
@@ -855,7 +886,9 @@ CREATE TABLE `student_profiles` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `user_id` (`user_id`),
   UNIQUE KEY `student_code` (`student_code`),
+  KEY `idx_student_profiles_parent_id` (`parent_id`),
   KEY `fk_student_profiles_entry_test` (`entry_test_id`),
+  CONSTRAINT `fk_student_profiles_parent` FOREIGN KEY (`parent_id`) REFERENCES `parents` (`id`),
   CONSTRAINT `fk_student_profiles_entry_test` FOREIGN KEY (`entry_test_id`) REFERENCES `exams` (`id`),
   CONSTRAINT `fk_student_profiles_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -867,7 +900,7 @@ CREATE TABLE `student_profiles` (
 
 LOCK TABLES `student_profiles` WRITE;
 /*!40000 ALTER TABLE `student_profiles` DISABLE KEYS */;
-INSERT INTO `student_profiles` VALUES (1,46,'HV00046','Bùi Văn Minh','0123456789','B6','Đạt 730 TOEIC',NULL,'2026-04-30 09:45:25','2026-04-30 09:45:25');
+INSERT INTO `student_profiles` VALUES (1,46,1,'HV00046','B6','Đạt 730 TOEIC',NULL,'2026-04-30 09:45:25','2026-04-30 09:45:25');
 /*!40000 ALTER TABLE `student_profiles` ENABLE KEYS */;
 UNLOCK TABLES;
 

@@ -32,6 +32,7 @@ DROP TABLE IF EXISTS courses;
 DROP TABLE IF EXISTS staff_profiles;
 DROP TABLE IF EXISTS job_applications;
 DROP TABLE IF EXISTS student_leads;
+DROP TABLE IF EXISTS parents;
 DROP TABLE IF EXISTS student_profiles;
 DROP TABLE IF EXISTS teacher_certificates;
 DROP TABLE IF EXISTS teacher_profiles;
@@ -340,17 +341,31 @@ CREATE TABLE exams (
     CONSTRAINT fk_exams_student FOREIGN KEY (student_id) REFERENCES users(id)
 ) ENGINE=InnoDB;
 
+CREATE TABLE parents (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    father_name VARCHAR(150) DEFAULT NULL,
+    father_phone VARCHAR(20) DEFAULT NULL,
+    father_id_card VARCHAR(30) DEFAULT NULL,
+    mother_name VARCHAR(150) DEFAULT NULL,
+    mother_phone VARCHAR(20) DEFAULT NULL,
+    mother_id_card VARCHAR(30) DEFAULT NULL,
+    social_links TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
 CREATE TABLE student_profiles (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     user_id BIGINT UNSIGNED NOT NULL UNIQUE,
+    parent_id BIGINT UNSIGNED DEFAULT NULL,
     student_code VARCHAR(30) NOT NULL UNIQUE,
-    parent_name VARCHAR(150) DEFAULT NULL,
-    parent_phone VARCHAR(20) DEFAULT NULL,
     school_name VARCHAR(180) DEFAULT NULL,
     target_score VARCHAR(50) DEFAULT NULL,
     entry_test_id BIGINT UNSIGNED DEFAULT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    KEY idx_student_profiles_parent_id (parent_id),
+    CONSTRAINT fk_student_profiles_parent FOREIGN KEY (parent_id) REFERENCES parents(id),
     CONSTRAINT fk_student_profiles_user FOREIGN KEY (user_id) REFERENCES users(id),
     CONSTRAINT fk_student_profiles_entry_test FOREIGN KEY (entry_test_id) REFERENCES exams(id)
 ) ENGINE=InnoDB;

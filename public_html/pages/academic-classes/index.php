@@ -133,18 +133,19 @@ $canUpdateMaterial = has_permission('materials.update');
             <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
                 <table class="min-w-full border-collapse text-sm" data-disable-global-filter="1" data-disable-row-detail="1">
                 <thead>
-                    <tr><th>Tên lớp</th><th>Khóa học</th><th>Mã GV</th><th>Giáo viên</th><th>Trạng thái</th><th>Hành động</th></tr>
+                    <tr><th>Tên lớp</th><th>Khóa học</th><th>Mã GV</th><th>Giáo viên</th><th>Số lượng</th><th>Trạng thái</th><th>Hành động</th></tr>
                 </thead>
                 <tbody data-ajax-tbody="1">
                     <?php if (empty($classes)): ?>
-                        <tr><td colspan="6"><div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">Chưa có lớp học nào.</div></td></tr>
+                        <tr><td colspan="7"><div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">Chưa có lớp học nào.</div></td></tr>
                     <?php else: ?>
                     <?php foreach ($classes as $class): ?>
                         <tr>
                             <td><?= e((string) $class['class_name']); ?></td>
                             <td><?= e((string) $class['course_name']); ?></td>
-                            <td><?= e((string) ($class['teacher_code'] ?? '-')); ?></td>
                             <td><?= e((string) ($class['teacher_name'] ?? 'Giáo viên')); ?></td>
+                            <td><?= e((string) ($class['teacher_code'] ?? '-')); ?></td>
+                            <td><?= (int) ($class['student_count'] ?? 0); ?></td>
                             <td><span class="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-bold capitalize is-<?= e((string) $class['status']); ?>"><?= e((string) $class['status']); ?></span></td>
                             <td>
                                 <span class="inline-flex flex-wrap items-center gap-2">
