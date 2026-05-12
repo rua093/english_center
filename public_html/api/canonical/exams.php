@@ -116,19 +116,54 @@ function api_exams_compute_total_score(array $scores): ?float
 
 /**
  * @param array{score_listening:?float,score_speaking:?float,score_reading:?float,score_writing:?float} $scores
- * @return array{exam_id:int,score_listening:string,score_speaking:string,score_reading:string,score_writing:string,result:string,teacher_comment:string}
+ * @return array{exam_id:int,score_listening:string,score_speaking:string,speaking_youtube_url:string,score_reading:string,score_writing:string,result:string,teacher_comment:string}
  */
-function api_exams_build_score_response_payload(int $examId, array $scores, string $result, string $teacherComment): array
+function api_exams_build_score_response_payload(
+    int $examId,
+    array $scores,
+    string $result,
+    string $teacherComment,
+    string $speakingYoutubeUrl
+): array
 {
     return [
         'exam_id' => $examId,
         'score_listening' => api_exams_format_score($scores['score_listening'] ?? null),
         'score_speaking' => api_exams_format_score($scores['score_speaking'] ?? null),
+        'speaking_youtube_url' => trim($speakingYoutubeUrl),
         'score_reading' => api_exams_format_score($scores['score_reading'] ?? null),
         'score_writing' => api_exams_format_score($scores['score_writing'] ?? null),
         'result' => $result,
         'teacher_comment' => trim($teacherComment),
     ];
+}
+
+function api_exams_normalize_speaking_youtube_url(mixed $rawValue): string
+{
+    $url = trim((string) $rawValue);
+    if ($url === '') {
+        return '';
+    }
+
+    if (mb_strlen($url) > 500) {
+        api_error('Link YouTube quá dài.', ['code' => 'INVALID_SPEAKING_YOUTUBE_URL'], 422);
+    }
+
+    if (filter_var($url, FILTER_VALIDATE_URL) === false) {
+        api_error('Link YouTube không hợp lệ.', ['code' => 'INVALID_SPEAKING_YOUTUBE_URL'], 422);
+    }
+
+    $parts = parse_url($url);
+    $host = strtolower((string) ($parts['host'] ?? ''));
+    if ($host === 'www.youtube.com') {
+        $host = 'youtube.com';
+    }
+
+    if (!in_array($host, ['youtube.com', 'm.youtube.com', 'youtu.be'], true)) {
+        api_error('Chỉ chấp nhận link YouTube cho bài thi nói.', ['code' => 'INVALID_SPEAKING_YOUTUBE_URL'], 422);
+    }
+
+    return $url;
 }
 
 function api_exams_class_grid_action(): void
@@ -277,6 +312,7 @@ function api_exams_class_grid_action(): void
             'exam_id' => (int) ($row['id'] ?? 0),
             'score_listening' => (string) ($row['score_listening'] ?? ''),
             'score_speaking' => (string) ($row['score_speaking'] ?? ''),
+            'speaking_youtube_url' => (string) ($row['speaking_youtube_url'] ?? ''),
             'score_reading' => (string) ($row['score_reading'] ?? ''),
             'score_writing' => (string) ($row['score_writing'] ?? ''),
             'result' => (string) ($row['result'] ?? ''),
@@ -495,6 +531,7 @@ function api_exams_save_score_action(): void
         $result = $resultFallback;
     }
     $teacherComment = isset($_POST['teacher_comment']) ? (string) $_POST['teacher_comment'] : '';
+    $speakingYoutubeUrl = api_exams_normalize_speaking_youtube_url($_POST['speaking_youtube_url'] ?? '');
 
     if ($classId <= 0 || $studentId <= 0 || $examName === '' || $examType === '' || $examDate === '') {
         api_error('Dữ liệu không hợp lệ.', ['code' => 'INVALID_PAYLOAD'], 422);
@@ -536,10 +573,11 @@ function api_exams_save_score_action(): void
             $teacherComment,
             $componentScores['score_listening'],
             $componentScores['score_speaking'],
+            $speakingYoutubeUrl,
             $componentScores['score_reading'],
             $componentScores['score_writing']
         );
-        api_success('Đã lưu điểm.', api_exams_build_score_response_payload($examId, $componentScores, $result, $teacherComment));
+        api_success('Đã lưu điểm.', api_exams_build_score_response_payload($examId, $componentScores, $result, $teacherComment, $speakingYoutubeUrl));
     }
 
     $existing = $academicModel->findExamRowByMeta($classId, $studentId, $examName, $examType, $examDate);
@@ -552,12 +590,13 @@ function api_exams_save_score_action(): void
                 $teacherComment,
                 $componentScores['score_listening'],
                 $componentScores['score_speaking'],
+                $speakingYoutubeUrl,
                 $componentScores['score_reading'],
                 $componentScores['score_writing']
             );
             api_success(
                 'Đã lưu điểm.',
-                api_exams_build_score_response_payload($existingId, $componentScores, $result, $teacherComment)
+                api_exams_build_score_response_payload($existingId, $componentScores, $result, $teacherComment, $speakingYoutubeUrl)
             );
         }
     }
@@ -570,10 +609,11 @@ function api_exams_save_score_action(): void
             $teacherComment,
             $componentScores['score_listening'],
             $componentScores['score_speaking'],
+            $speakingYoutubeUrl,
             $componentScores['score_reading'],
             $componentScores['score_writing']
         );
     }
 
-    api_success('Đã lưu điểm.', api_exams_build_score_response_payload($newId, $componentScores, $result, $teacherComment));
+    api_success('Đã lưu điểm.', api_exams_build_score_response_payload($newId, $componentScores, $result, $teacherComment, $speakingYoutubeUrl));
 }

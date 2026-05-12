@@ -85,3 +85,77 @@ function api_notifications_delete_action(): void
     }
     redirect(page_url('notifications-manage'));
 }
+
+function api_notifications_admin_feed_action(): void
+{
+    api_guard_login();
+    if (!can_use_notification_bell()) {
+        api_error('Bạn không có quyền xem thông báo.', ['code' => 'NOTIFICATION_BELL_FORBIDDEN'], 403);
+    }
+
+    $currentUser = auth_user() ?? [];
+    $userId = (int) ($currentUser['id'] ?? 0);
+    if ($userId <= 0) {
+        api_error('Phiên đăng nhập không hợp lệ.', ['code' => 'INVALID_USER'], 401);
+    }
+
+    $limit = max(1, min(10, (int) ($_GET['limit'] ?? 6)));
+    $academicModel = new AcademicModel();
+    $notifications = $academicModel->listNotificationDropdownItems($userId, $limit);
+    $unreadCount = $academicModel->countUnreadNotifications($userId);
+    $moduleCounts = $academicModel->countUnreadNotificationsByModule($userId);
+
+    $items = array_map(static function (array $notification): array {
+        $notificationId = (int) ($notification['id'] ?? 0);
+        $fullMessage = trim((string) ($notification['message'] ?? ''));
+        $preview = $fullMessage;
+        if ($preview !== '') {
+            if (function_exists('mb_strimwidth')) {
+                $preview = mb_strimwidth($preview, 0, 140, '...');
+            } elseif (strlen($preview) > 140) {
+                $preview = substr($preview, 0, 137) . '...';
+            }
+        }
+
+        $actionUrl = trim((string) ($notification['action_url'] ?? ''));
+        if ($actionUrl === '' && can_manage_notification_center()) {
+            $actionUrl = page_url('notifications-manage', ['edit' => $notificationId]);
+        }
+
+        return [
+            'id' => $notificationId,
+            'title' => trim((string) ($notification['title'] ?? 'Thông báo hệ thống')),
+            'message' => $preview,
+            'is_read' => (int) ($notification['is_read'] ?? 0) === 1,
+            'created_at' => (string) ($notification['created_at'] ?? ''),
+            'created_at_display' => ui_format_datetime((string) ($notification['created_at'] ?? '')),
+            'action_url' => $actionUrl,
+        ];
+    }, $notifications);
+
+    api_success('OK', [
+        'unread_count' => $unreadCount,
+        'module_counts' => $moduleCounts,
+        'items' => $items,
+    ]);
+}
+
+function api_notifications_mark_read_action(): void
+{
+    api_guard_login();
+    if (!can_use_notification_bell()) {
+        api_error('Bạn không có quyền xem thông báo.', ['code' => 'NOTIFICATION_BELL_FORBIDDEN'], 403);
+    }
+    api_require_post(page_url('admin'));
+
+    $currentUser = auth_user() ?? [];
+    $userId = (int) ($currentUser['id'] ?? 0);
+    $notificationId = (int) ($_POST['id'] ?? $_GET['id'] ?? 0);
+
+    if ($userId <= 0 || $notificationId <= 0) {
+        api_error('Thông báo không hợp lệ.', ['code' => 'INVALID_NOTIFICATION'], 422);
+    }
+
+    (new AcademicModel())->markNotificationRead($notificationId, $userId);
+    api_success('Đã đánh dấu đã đọc.', ['id' => $notificationId]);
+}

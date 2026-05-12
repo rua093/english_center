@@ -23,6 +23,7 @@ require_once __DIR__ . '/tables/StudentPortfoliosTableModel.php';
 require_once __DIR__ . '/tables/SubmissionsTableModel.php';
 require_once __DIR__ . '/tables/TuitionFeesTableModel.php';
 require_once __DIR__ . '/tables/UsersTableModel.php';
+require_once __DIR__ . '/BackofficeNotificationService.php';
 require_once __DIR__ . '/MailModel.php';
 
 final class AcademicModel
@@ -50,6 +51,7 @@ final class AcademicModel
     private CourseRoadmapsTableModel $courseRoadmapsTable;
     private ExamsTableModel $examsTable;
     private MailModel $mailModel;
+    private BackofficeNotificationService $backofficeNotificationService;
 
     public function __construct()
     {
@@ -76,6 +78,7 @@ final class AcademicModel
         $this->courseRoadmapsTable = new CourseRoadmapsTableModel();
         $this->examsTable = new ExamsTableModel();
         $this->mailModel = new MailModel();
+        $this->backofficeNotificationService = new BackofficeNotificationService();
     }
 
     public function listStudentsForClass(int $classId): array
@@ -139,6 +142,7 @@ final class AcademicModel
         ?string $teacherComment,
         ?float $scoreListening = null,
         ?float $scoreSpeaking = null,
+        ?string $speakingYoutubeUrl = null,
         ?float $scoreReading = null,
         ?float $scoreWriting = null
     ): void
@@ -149,6 +153,7 @@ final class AcademicModel
             $teacherComment,
             $scoreListening,
             $scoreSpeaking,
+            $speakingYoutubeUrl,
             $scoreReading,
             $scoreWriting
         );
@@ -876,6 +881,61 @@ final class AcademicModel
         return $this->notificationsTable->countDetailed($searchQuery, $filters);
     }
 
+    public function countUnreadNotifications(int $userId): int
+    {
+        return $this->notificationsTable->countUnreadByUser($userId);
+    }
+
+    public function listNotificationDropdownItems(int $userId, int $limit = 6): array
+    {
+        if ($userId <= 0) {
+            return [];
+        }
+
+        $normalizedLimit = max(1, min(20, $limit));
+        $notifications = $this->listNotifications($userId);
+        if ($notifications === []) {
+            return [];
+        }
+
+        $unreadItems = [];
+        $readItems = [];
+        foreach ($notifications as $notification) {
+            if ((int) ($notification['is_read'] ?? 0) === 1) {
+                $readItems[] = $notification;
+                continue;
+            }
+
+            $unreadItems[] = $notification;
+        }
+
+        return array_slice(array_merge($unreadItems, $readItems), 0, $normalizedLimit);
+    }
+
+    public function countUnreadNotificationsByModule(int $userId): array
+    {
+        $result = [];
+        if ($userId <= 0) {
+            return $result;
+        }
+
+        foreach ($this->listNotifications($userId) as $notification) {
+            if ((int) ($notification['is_read'] ?? 0) === 1) {
+                continue;
+            }
+
+            $moduleKey = $this->resolveNotificationModuleKey($notification);
+            if ($moduleKey === '') {
+                continue;
+            }
+
+            $result[$moduleKey] = (int) ($result[$moduleKey] ?? 0) + 1;
+        }
+
+        ksort($result);
+        return $result;
+    }
+
     public function listNotificationsPage(int $page, int $perPage, string $searchQuery = '', array $filters = []): array
     {
         return $this->notificationsTable->listDetailedPage($page, $perPage, $searchQuery, $filters);
@@ -904,6 +964,49 @@ final class AcademicModel
         }
 
         return $notificationId;
+    }
+
+    private function resolveNotificationModuleKey(array $notification): string
+    {
+        $actionUrl = trim((string) ($notification['action_url'] ?? ''));
+        if ($actionUrl !== '') {
+            $pageKey = $this->extractPageKeyFromUrl($actionUrl);
+            $moduleKey = match ($pageKey) {
+                'student-leads-manage' => 'student-leads',
+                'job-applications-manage' => 'job-applications',
+                'activities-manage' => 'activities',
+                'approvals-manage' => 'approvals',
+                'classrooms-academic' => 'classes',
+                'notifications-manage' => 'notifications',
+                default => '',
+            };
+
+            if ($moduleKey !== '') {
+                return $moduleKey;
+            }
+        }
+
+        $title = trim((string) ($notification['title'] ?? ''));
+        return match ($title) {
+            'Có học viên đăng ký mới' => 'student-leads',
+            'Có hồ sơ ứng tuyển mới' => 'job-applications',
+            'Có đăng ký ngoại khóa mới' => 'activities',
+            'Có yêu cầu phê duyệt mới' => 'approvals',
+            'Có bài nộp mới' => 'classes',
+            default => '',
+        };
+    }
+
+    private function extractPageKeyFromUrl(string $url): string
+    {
+        $query = (string) parse_url($url, PHP_URL_QUERY);
+        if ($query === '') {
+            return '';
+        }
+
+        parse_str($query, $queryParams);
+        $page = trim((string) ($queryParams['page'] ?? ''));
+        return $page;
     }
 
     public function syncOverdueMonthlyTuitionNotifications(): int
@@ -1138,7 +1241,24 @@ final class AcademicModel
 
     public function saveApproval(array $data): void
     {
-        $this->approvalsTable->save($data);
+        $approvalId = $this->approvalsTable->save($data);
+        if ((int) ($data['id'] ?? 0) > 0 || $approvalId <= 0) {
+            return;
+        }
+
+        $requesterId = (int) ($data['requester_id'] ?? 0);
+        $requester = $requesterId > 0 ? $this->usersTable->findActiveById($requesterId) : null;
+        $requesterName = trim((string) ($requester['full_name'] ?? ''));
+        $content = trim((string) ($data['content'] ?? ''));
+        $preview = $this->extractApprovalPreviewMessage($content);
+
+        $this->backofficeNotificationService->notifyNewApprovalRequest(
+            $approvalId,
+            (string) ($data['type'] ?? ''),
+            $requesterName,
+            $preview,
+            $requesterId
+        );
     }
 
     public function deleteApproval(int $id): void
@@ -1253,6 +1373,40 @@ final class AcademicModel
     {
         $decoded = json_decode($content, true);
         return is_array($decoded) ? $decoded : [];
+    }
+
+    private function extractApprovalPreviewMessage(string $content): string
+    {
+        $normalized = trim($content);
+        if ($normalized === '') {
+            return '';
+        }
+
+        $decoded = $this->decodeApprovalContent($normalized);
+        if ($decoded !== []) {
+            $message = trim((string) ($decoded['message'] ?? ''));
+            if ($message !== '') {
+                return $this->truncateNotificationPreview($message, 180);
+            }
+        }
+
+        return $this->truncateNotificationPreview($normalized, 180);
+    }
+
+    private function truncateNotificationPreview(string $text, int $maxWidth): string
+    {
+        $normalized = trim($text);
+        if ($normalized === '') {
+            return '';
+        }
+
+        if (function_exists('mb_strimwidth')) {
+            return mb_strimwidth($normalized, 0, $maxWidth, '...');
+        }
+
+        return strlen($normalized) > $maxWidth
+            ? substr($normalized, 0, max(0, $maxWidth - 3)) . '...'
+            : $normalized;
     }
 
     public function listActivities(): array

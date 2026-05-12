@@ -1125,6 +1125,326 @@
             transition: transform 160ms ease;
         }
 
+        .admin-notification-shell {
+            position: relative;
+        }
+
+        .admin-notification-toggle {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2.85rem;
+            height: 2.85rem;
+            border-radius: 999px;
+            border: 1px solid rgba(203, 213, 225, 0.9);
+            background: rgba(255, 255, 255, 0.96);
+            color: #0f172a;
+            box-shadow: 0 18px 40px rgba(15, 23, 42, 0.09);
+            transition: transform 150ms ease, box-shadow 150ms ease, border-color 150ms ease, background-color 150ms ease;
+        }
+
+        .admin-notification-toggle:hover,
+        .admin-notification-toggle:focus-visible {
+            transform: translateY(-1px);
+            border-color: rgba(96, 165, 250, 0.9);
+            background: #ffffff;
+            box-shadow: 0 22px 48px rgba(37, 99, 235, 0.16);
+            outline: none;
+        }
+
+        .admin-notification-toggle svg {
+            width: 1.18rem;
+            height: 1.18rem;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .admin-notification-badge {
+            position: absolute;
+            top: -0.1rem;
+            right: -0.1rem;
+            min-width: 1.28rem;
+            height: 1.28rem;
+            padding: 0 0.32rem;
+            border-radius: 999px;
+            background: linear-gradient(135deg, #f43f5e, #ef4444);
+            color: #ffffff;
+            font-size: 0.66rem;
+            font-weight: 900;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 20px rgba(244, 63, 94, 0.35);
+        }
+
+        .admin-notification-dropdown {
+            position: absolute;
+            top: calc(100% + 0.7rem);
+            right: 0;
+            width: min(26rem, calc(100vw - 2rem));
+            border: 1px solid rgba(226, 232, 240, 0.95);
+            border-radius: 1.25rem;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(18px);
+            box-shadow: 0 30px 65px rgba(15, 23, 42, 0.18);
+            overflow: hidden;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-8px);
+            pointer-events: none;
+            transition: opacity 160ms ease, transform 160ms ease, visibility 160ms ease;
+            z-index: 70;
+        }
+
+        .admin-notification-dropdown.is-open {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        .admin-notification-dropdown-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 0.75rem;
+            padding: 1rem 1rem 0.85rem;
+            border-bottom: 1px solid rgba(226, 232, 240, 0.9);
+        }
+
+        .admin-notification-dropdown-title {
+            font-family: "Sora", ui-sans-serif, system-ui, sans-serif;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .admin-notification-dropdown-subtitle {
+            margin-top: 0.18rem;
+            font-size: 0.76rem;
+            font-weight: 700;
+            color: #64748b;
+        }
+
+        .admin-notification-dropdown-list {
+            max-height: 24rem;
+            overflow: auto;
+            padding: 0.45rem;
+        }
+
+        .admin-notification-dropdown-item {
+            display: block;
+            padding: 0.9rem 0.95rem;
+            border-radius: 1rem;
+            color: inherit;
+            text-decoration: none;
+            transition: background-color 140ms ease, transform 140ms ease;
+        }
+
+        .admin-notification-dropdown-item:hover,
+        .admin-notification-dropdown-item:focus-visible {
+            background: #f8fafc;
+            transform: translateY(-1px);
+            outline: none;
+        }
+
+        .admin-notification-dropdown-item.is-unread {
+            background: linear-gradient(135deg, rgba(239, 246, 255, 0.96), rgba(248, 250, 252, 0.96));
+        }
+
+        .admin-notification-item-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 0.75rem;
+        }
+
+        .admin-notification-item-title {
+            font-size: 0.84rem;
+            font-weight: 800;
+            line-height: 1.35;
+            color: #0f172a;
+        }
+
+        .admin-notification-item-meta {
+            margin-top: 0.42rem;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #64748b;
+        }
+
+        .admin-notification-item-message {
+            margin-top: 0.48rem;
+            font-size: 0.77rem;
+            line-height: 1.45;
+            color: #475569;
+        }
+
+        .admin-notification-item-dot {
+            flex: 0 0 auto;
+            width: 0.58rem;
+            height: 0.58rem;
+            border-radius: 999px;
+            background: #f43f5e;
+            box-shadow: 0 0 0 5px rgba(244, 63, 94, 0.12);
+            margin-top: 0.24rem;
+        }
+
+        .admin-notification-empty {
+            padding: 1.2rem 1rem 1.35rem;
+            text-align: center;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #64748b;
+        }
+
+        .admin-notification-dropdown-footer {
+            padding: 0.85rem 1rem 1rem;
+            border-top: 1px solid rgba(226, 232, 240, 0.9);
+            background: rgba(248, 250, 252, 0.72);
+        }
+
+        .admin-notification-dropdown-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            min-height: 2.65rem;
+            border-radius: 0.95rem;
+            background: #0f172a;
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 0.82rem;
+            font-weight: 800;
+            transition: background-color 140ms ease, transform 140ms ease;
+        }
+
+        .admin-notification-dropdown-link:hover,
+        .admin-notification-dropdown-link:focus-visible {
+            background: #1d4ed8;
+            transform: translateY(-1px);
+            outline: none;
+        }
+
+        .admin-notification-toast-stack {
+            position: fixed;
+            right: 1.1rem;
+            bottom: 1.1rem;
+            z-index: 120;
+            display: grid;
+            gap: 0.7rem;
+            width: min(24rem, calc(100vw - 1.5rem));
+            pointer-events: none;
+        }
+
+        .admin-notification-toast {
+            pointer-events: auto;
+            display: grid;
+            gap: 0.45rem;
+            border: 1px solid rgba(191, 219, 254, 0.95);
+            border-radius: 1.15rem;
+            background: rgba(255, 255, 255, 0.98);
+            box-shadow: 0 22px 50px rgba(15, 23, 42, 0.18);
+            padding: 0.95rem 1rem 1rem;
+            transform: translateY(14px);
+            opacity: 0;
+            transition: opacity 180ms ease, transform 180ms ease;
+        }
+
+        .admin-notification-toast.is-visible {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .admin-notification-toast-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 0.75rem;
+        }
+
+        .admin-notification-toast-kicker {
+            font-size: 0.68rem;
+            font-weight: 900;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #2563eb;
+        }
+
+        .admin-notification-toast-title {
+            margin-top: 0.18rem;
+            font-size: 0.87rem;
+            font-weight: 800;
+            line-height: 1.35;
+            color: #0f172a;
+        }
+
+        .admin-notification-toast-message {
+            font-size: 0.78rem;
+            line-height: 1.5;
+            color: #475569;
+        }
+
+        .admin-notification-toast-actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+        }
+
+        .admin-notification-toast-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 2.2rem;
+            padding: 0 0.95rem;
+            border-radius: 0.85rem;
+            background: #0f172a;
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 0.74rem;
+            font-weight: 800;
+            transition: background-color 140ms ease, transform 140ms ease;
+        }
+
+        .admin-notification-toast-link:hover,
+        .admin-notification-toast-link:focus-visible {
+            background: #1d4ed8;
+            transform: translateY(-1px);
+            outline: none;
+        }
+
+        .admin-notification-toast-time {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #64748b;
+        }
+
+        .admin-notification-toast-close {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.9rem;
+            height: 1.9rem;
+            border-radius: 999px;
+            border: 1px solid rgba(226, 232, 240, 0.95);
+            background: #ffffff;
+            color: #64748b;
+            transition: background-color 140ms ease, color 140ms ease, border-color 140ms ease;
+        }
+
+        .admin-notification-toast-close:hover,
+        .admin-notification-toast-close:focus-visible {
+            background: #eff6ff;
+            border-color: #bfdbfe;
+            color: #1d4ed8;
+            outline: none;
+        }
+
         .admin-sidebar-profile {
             border: 1px solid #dbe4f0;
             border-radius: 0.95rem;
@@ -1454,7 +1774,26 @@
 </head>
 <body class="min-h-screen bg-slate-100 admin-font leading-relaxed text-slate-900">
 <?php
+require_once __DIR__ . '/../../models/AcademicModel.php';
 $adminUser = auth_user();
+$adminNotificationModel = new AcademicModel();
+$adminRecentNotifications = [];
+$adminUnreadNotificationCount = 0;
+$adminUnreadNotificationModules = [];
+$canUseNotificationBell = can_use_notification_bell();
+$canManageNotificationCenter = can_manage_notification_center();
+$adminNotificationFallbackUrl = $canManageNotificationCenter ? page_url('notifications-manage') : '#';
+if (is_array($adminUser) && (int) ($adminUser['id'] ?? 0) > 0) {
+    try {
+        $adminUnreadNotificationCount = $adminNotificationModel->countUnreadNotifications((int) $adminUser['id']);
+        $adminUnreadNotificationModules = $adminNotificationModel->countUnreadNotificationsByModule((int) $adminUser['id']);
+        $adminRecentNotifications = $adminNotificationModel->listNotificationDropdownItems((int) $adminUser['id'], 6);
+    } catch (Throwable) {
+        $adminRecentNotifications = [];
+        $adminUnreadNotificationCount = 0;
+        $adminUnreadNotificationModules = [];
+    }
+}
 $activeModule = (string) ($module ?? '');
 $pageSlug = resolve_page_slug((string) ($_GET['page'] ?? 'dashboard-admin'));
 if ($activeModule === '') {
@@ -1628,6 +1967,13 @@ if ($displayAdminDescription === '') {
                         <svg viewBox="0 0 24 24"><path d="M12 3 5 6v6c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6Z"></path><path d="m9 12 2 2 4-4"></path></svg>
                     </span>
                     <span class="admin-sidebar-link-label">Phê duyệt</span>
+                    <span
+                        id="adminSidebarModuleBadge-approvals"
+                        class="ml-auto inline-flex min-w-[1.5rem] items-center justify-center rounded-full bg-rose-500 px-2 py-0.5 text-[10px] font-black text-white shadow-sm"
+                        <?= ((int) ($adminUnreadNotificationModules['approvals'] ?? 0)) > 0 ? '' : 'hidden'; ?>
+                    >
+                        <?= e((string) ((((int) ($adminUnreadNotificationModules['approvals'] ?? 0)) > 99) ? '99+' : ((int) ($adminUnreadNotificationModules['approvals'] ?? 0)))); ?>
+                    </span>
                 </a>
             <?php endif; ?>
 
@@ -1646,6 +1992,13 @@ if ($displayAdminDescription === '') {
                         <svg viewBox="0 0 24 24"><circle cx="10" cy="8" r="3"></circle><path d="M4 19a6 6 0 0 1 12 0"></path><path d="M16 8h5"></path><path d="M18.5 5.5v5"></path></svg>
                     </span>
                     <span class="admin-sidebar-link-label">Học viên đăng ký</span>
+                    <span
+                        id="adminSidebarModuleBadge-student-leads"
+                        class="ml-auto inline-flex min-w-[1.5rem] items-center justify-center rounded-full bg-rose-500 px-2 py-0.5 text-[10px] font-black text-white shadow-sm"
+                        <?= ((int) ($adminUnreadNotificationModules['student-leads'] ?? 0)) > 0 ? '' : 'hidden'; ?>
+                    >
+                        <?= e((string) ((((int) ($adminUnreadNotificationModules['student-leads'] ?? 0)) > 99) ? '99+' : ((int) ($adminUnreadNotificationModules['student-leads'] ?? 0)))); ?>
+                    </span>
                 </a>
             <?php endif; ?>
 
@@ -1655,6 +2008,13 @@ if ($displayAdminDescription === '') {
                         <svg viewBox="0 0 24 24"><path d="M3 6h18v12H3z"></path><path d="m3 7 9 6 9-6"></path><path d="M7 11h2"></path><path d="M7 14h4"></path></svg>
                     </span>
                     <span class="admin-sidebar-link-label">Giáo viên ứng tuyển</span>
+                    <span
+                        id="adminSidebarModuleBadge-job-applications"
+                        class="ml-auto inline-flex min-w-[1.5rem] items-center justify-center rounded-full bg-rose-500 px-2 py-0.5 text-[10px] font-black text-white shadow-sm"
+                        <?= ((int) ($adminUnreadNotificationModules['job-applications'] ?? 0)) > 0 ? '' : 'hidden'; ?>
+                    >
+                        <?= e((string) ((((int) ($adminUnreadNotificationModules['job-applications'] ?? 0)) > 99) ? '99+' : ((int) ($adminUnreadNotificationModules['job-applications'] ?? 0)))); ?>
+                    </span>
                 </a>
             <?php endif; ?>
 
@@ -1664,6 +2024,13 @@ if ($displayAdminDescription === '') {
                         <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"></rect><path d="M8 2v4"></path><path d="M16 2v4"></path><path d="M3 10h18"></path><path d="m9 15 2 2 4-4"></path></svg>
                     </span>
                     <span class="admin-sidebar-link-label">Hoạt động ngoại khóa</span>
+                    <span
+                        id="adminSidebarModuleBadge-activities"
+                        class="ml-auto inline-flex min-w-[1.5rem] items-center justify-center rounded-full bg-rose-500 px-2 py-0.5 text-[10px] font-black text-white shadow-sm"
+                        <?= ((int) ($adminUnreadNotificationModules['activities'] ?? 0)) > 0 ? '' : 'hidden'; ?>
+                    >
+                        <?= e((string) ((((int) ($adminUnreadNotificationModules['activities'] ?? 0)) > 99) ? '99+' : ((int) ($adminUnreadNotificationModules['activities'] ?? 0)))); ?>
+                    </span>
                 </a>
             <?php endif; ?>
 
@@ -1676,12 +2043,19 @@ if ($displayAdminDescription === '') {
                 </a>
             <?php endif; ?>
 
-            <?php if (can_access_page('notifications-manage')): ?>
+            <?php if ($canManageNotificationCenter): ?>
                 <a class="admin-sidebar-link<?= $activeModule === 'notifications' ? ' is-active' : ''; ?>" href="<?= e(page_url('notifications-manage')); ?>" title="Thông báo">
                     <span class="admin-sidebar-link-icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 7h18s-3 0-3-7"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
                     </span>
                     <span class="admin-sidebar-link-label">Thông báo</span>
+                    <span
+                        id="adminSidebarNotificationBadge"
+                        class="ml-auto inline-flex min-w-[1.5rem] items-center justify-center rounded-full bg-rose-500 px-2 py-0.5 text-[10px] font-black text-white shadow-sm"
+                        <?= $adminUnreadNotificationCount > 0 ? '' : 'hidden'; ?>
+                    >
+                        <?= e((string) ($adminUnreadNotificationCount > 99 ? '99+' : $adminUnreadNotificationCount)); ?>
+                    </span>
                 </a>
             <?php endif; ?>
 
@@ -1710,6 +2084,13 @@ if ($displayAdminDescription === '') {
                         <svg viewBox="0 0 24 24"><path d="M3 5a3 3 0 0 1 3-3h6v18H6a3 3 0 0 0-3 3z"></path><path d="M21 5a3 3 0 0 0-3-3h-6v18h6a3 3 0 0 1 3 3z"></path></svg>
                     </span>
                     <span class="admin-sidebar-link-label">Danh mục lớp học</span>
+                    <span
+                        id="adminSidebarModuleBadge-classes"
+                        class="ml-auto inline-flex min-w-[1.5rem] items-center justify-center rounded-full bg-rose-500 px-2 py-0.5 text-[10px] font-black text-white shadow-sm"
+                        <?= ((int) ($adminUnreadNotificationModules['classes'] ?? 0)) > 0 ? '' : 'hidden'; ?>
+                    >
+                        <?= e((string) ((((int) ($adminUnreadNotificationModules['classes'] ?? 0)) > 99) ? '99+' : ((int) ($adminUnreadNotificationModules['classes'] ?? 0)))); ?>
+                    </span>
                 </a>
             <?php endif; ?>
 
@@ -1967,8 +2348,394 @@ if ($displayAdminDescription === '') {
             </div>
 
             <div class="admin-page-hero-actions">
+                <?php if ($canUseNotificationBell): ?>
+                    <div class="admin-notification-shell" data-admin-notification-shell="1">
+                        <button
+                            type="button"
+                            class="admin-notification-toggle"
+                            id="adminNotificationToggle"
+                            aria-label="Mở thông báo"
+                            aria-haspopup="dialog"
+                            aria-expanded="false"
+                        >
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 7h18s-3 0-3-7"></path>
+                                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                            </svg>
+                            <span id="adminNotificationBadge" class="admin-notification-badge" <?= $adminUnreadNotificationCount > 0 ? '' : 'hidden'; ?>><?= e((string) ($adminUnreadNotificationCount > 99 ? '99+' : $adminUnreadNotificationCount)); ?></span>
+                        </button>
+
+                        <div class="admin-notification-dropdown" id="adminNotificationDropdown" role="dialog" aria-label="Thông báo admin">
+                            <div class="admin-notification-dropdown-header">
+                                <div>
+                                    <div class="admin-notification-dropdown-title">Thông báo mới</div>
+                                    <div class="admin-notification-dropdown-subtitle" id="adminNotificationSubtitle">
+                                        <?= e($adminUnreadNotificationCount > 0
+                                            ? ('Có ' . ($adminUnreadNotificationCount > 99 ? '99+' : $adminUnreadNotificationCount) . ' thông báo chưa đọc')
+                                            : 'Bạn đã xem hết thông báo'); ?>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="admin-notification-dropdown-list" id="adminNotificationDropdownList">
+                                <?php if ($adminRecentNotifications === []): ?>
+                                    <div class="admin-notification-empty">Chưa có thông báo nào.</div>
+                                <?php else: ?>
+                                    <?php foreach ($adminRecentNotifications as $notification): ?>
+                                        <?php
+                                        $notificationId = (int) ($notification['id'] ?? 0);
+                                        $notificationTitle = trim((string) ($notification['title'] ?? 'Thông báo hệ thống'));
+                                        $notificationMessage = trim((string) ($notification['message'] ?? ''));
+                                        if ($notificationMessage !== '') {
+                                            if (function_exists('mb_strimwidth')) {
+                                                $notificationMessage = mb_strimwidth($notificationMessage, 0, 140, '...');
+                                            } elseif (strlen($notificationMessage) > 140) {
+                                                $notificationMessage = substr($notificationMessage, 0, 137) . '...';
+                                            }
+                                        }
+                                        $notificationIsRead = (int) ($notification['is_read'] ?? 0) === 1;
+                                        $notificationActionUrl = trim((string) ($notification['action_url'] ?? ''));
+                                        if ($notificationActionUrl === '') {
+                                            $notificationActionUrl = $adminNotificationFallbackUrl;
+                                        }
+                                        ?>
+                                        <a
+                                            class="admin-notification-dropdown-item<?= $notificationIsRead ? '' : ' is-unread'; ?>"
+                                            href="<?= e($notificationActionUrl); ?>"
+                                            data-notification-id="<?= $notificationId; ?>"
+                                        >
+                                            <div class="admin-notification-item-head">
+                                                <div class="min-w-0">
+                                                    <div class="admin-notification-item-title"><?= e($notificationTitle); ?></div>
+                                                    <div class="admin-notification-item-meta"><?= e(ui_format_datetime((string) ($notification['created_at'] ?? ''))); ?></div>
+                                                </div>
+                                                <?php if (!$notificationIsRead): ?>
+                                                    <span class="admin-notification-item-dot" aria-hidden="true"></span>
+                                                <?php endif; ?>
+                                            </div>
+                                            <?php if ($notificationMessage !== ''): ?>
+                                                <div class="admin-notification-item-message"><?= e($notificationMessage); ?></div>
+                                            <?php endif; ?>
+                                        </a>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </div>
+
+                            <?php if ($canManageNotificationCenter): ?>
+                                <div class="admin-notification-dropdown-footer">
+                                    <a class="admin-notification-dropdown-link" href="<?= e(page_url('notifications-manage')); ?>">Xem tất cả thông báo</a>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                <?php endif; ?>
+
                 <a class="admin-page-profile-link" href="<?= e(page_url('profile')); ?>">Hồ sơ</a>
             </div>
         </header>
+
+        <div id="adminNotificationToastStack" class="admin-notification-toast-stack" aria-live="polite" aria-atomic="true"></div>
+
+        <script>
+            (function () {
+                const toggle = document.getElementById('adminNotificationToggle');
+                const dropdown = document.getElementById('adminNotificationDropdown');
+                const shell = document.querySelector('[data-admin-notification-shell="1"]');
+                const list = document.getElementById('adminNotificationDropdownList');
+                const subtitle = document.getElementById('adminNotificationSubtitle');
+                const bellBadge = document.getElementById('adminNotificationBadge');
+                const sidebarBadge = document.getElementById('adminSidebarNotificationBadge');
+                const moduleBadgeElements = {
+                    approvals: document.getElementById('adminSidebarModuleBadge-approvals'),
+                    'student-leads': document.getElementById('adminSidebarModuleBadge-student-leads'),
+                    'job-applications': document.getElementById('adminSidebarModuleBadge-job-applications'),
+                    activities: document.getElementById('adminSidebarModuleBadge-activities'),
+                    classes: document.getElementById('adminSidebarModuleBadge-classes'),
+                };
+                const csrfToken = <?= json_encode(csrf_token(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
+                const feedUrl = <?= json_encode('/api/index.php?resource=notifications&method=admin-feed&format=json&limit=6', JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
+                const markReadUrl = <?= json_encode('/api/index.php?resource=notifications&method=mark-read&format=json', JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
+                const allNotificationsUrl = <?= json_encode($adminNotificationFallbackUrl, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
+                const pollIntervalMs = 45000;
+                const toastStack = document.getElementById('adminNotificationToastStack');
+                const knownNotificationIds = new Set();
+                let didHydrateNotifications = false;
+
+                if (!(toggle instanceof HTMLButtonElement) || !(dropdown instanceof HTMLElement) || !(shell instanceof HTMLElement) || !(list instanceof HTMLElement) || !(subtitle instanceof HTMLElement)) {
+                    return;
+                }
+
+                function setDropdownOpen(isOpen) {
+                    dropdown.classList.toggle('is-open', isOpen);
+                    toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+                }
+
+                function escapeHtml(value) {
+                    return String(value || '')
+                        .replace(/&/g, '&amp;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;')
+                        .replace(/"/g, '&quot;')
+                        .replace(/'/g, '&#039;');
+                }
+
+                function unreadBadgeText(count) {
+                    return count > 99 ? '99+' : String(Math.max(0, count));
+                }
+
+                function updateBadgeElement(badgeElement, count, className) {
+                    if (!(badgeElement instanceof HTMLElement)) {
+                        return;
+                    }
+
+                    if (count > 0) {
+                        badgeElement.textContent = unreadBadgeText(count);
+                        badgeElement.className = className;
+                        badgeElement.hidden = false;
+                        return;
+                    }
+
+                    badgeElement.hidden = true;
+                }
+
+                function updateUnreadDisplay(unreadCount) {
+                    const normalizedCount = Math.max(0, Number(unreadCount || 0));
+                    subtitle.textContent = normalizedCount > 0
+                        ? 'Có ' + unreadBadgeText(normalizedCount) + ' thông báo chưa đọc'
+                        : 'Bạn đã xem hết thông báo';
+
+                    updateBadgeElement(
+                        bellBadge,
+                        normalizedCount,
+                        'admin-notification-badge'
+                    );
+
+                    updateBadgeElement(
+                        sidebarBadge,
+                        normalizedCount,
+                        'ml-auto inline-flex min-w-[1.5rem] items-center justify-center rounded-full bg-rose-500 px-2 py-0.5 text-[10px] font-black text-white shadow-sm'
+                    );
+                }
+
+                function updateModuleBadges(moduleCounts) {
+                    const counts = moduleCounts && typeof moduleCounts === 'object' ? moduleCounts : {};
+                    Object.keys(moduleBadgeElements).forEach(function (moduleKey) {
+                        updateBadgeElement(
+                            moduleBadgeElements[moduleKey],
+                            Number(counts[moduleKey] || 0),
+                            'ml-auto inline-flex min-w-[1.5rem] items-center justify-center rounded-full bg-rose-500 px-2 py-0.5 text-[10px] font-black text-white shadow-sm'
+                        );
+                    });
+                }
+
+                function renderNotifications(items) {
+                    if (!Array.isArray(items) || items.length === 0) {
+                        list.innerHTML = '<div class="admin-notification-empty">Chưa có thông báo nào.</div>';
+                        return;
+                    }
+
+                    list.innerHTML = items.map(function (item) {
+                        const notificationId = Number(item && item.id ? item.id : 0);
+                        const title = escapeHtml(item && item.title ? item.title : 'Thông báo hệ thống');
+                        const message = escapeHtml(item && item.message ? item.message : '');
+                        const createdAt = escapeHtml(item && item.created_at_display ? item.created_at_display : '');
+                        const actionUrl = escapeHtml(item && item.action_url ? item.action_url : allNotificationsUrl);
+                        const isRead = Boolean(item && item.is_read);
+
+                        return ''
+                            + '<a class="admin-notification-dropdown-item' + (isRead ? '' : ' is-unread') + '" href="' + actionUrl + '" data-notification-id="' + notificationId + '">'
+                            + '<div class="admin-notification-item-head">'
+                            + '<div class="min-w-0">'
+                            + '<div class="admin-notification-item-title">' + title + '</div>'
+                            + '<div class="admin-notification-item-meta">' + createdAt + '</div>'
+                            + '</div>'
+                            + (isRead ? '' : '<span class="admin-notification-item-dot" aria-hidden="true"></span>')
+                            + '</div>'
+                            + (message !== '' ? '<div class="admin-notification-item-message">' + message + '</div>' : '')
+                            + '</a>';
+                    }).join('');
+                }
+
+                function dismissToast(toastElement) {
+                    if (!(toastElement instanceof HTMLElement)) {
+                        return;
+                    }
+
+                    toastElement.classList.remove('is-visible');
+                    window.setTimeout(function () {
+                        toastElement.remove();
+                    }, 220);
+                }
+
+                function showNotificationToast(item) {
+                    if (!(toastStack instanceof HTMLElement) || !item || typeof item !== 'object') {
+                        return;
+                    }
+
+                    const notificationId = Number(item.id || 0);
+                    if (notificationId <= 0 || toastStack.querySelector('[data-toast-notification-id="' + String(notificationId) + '"]')) {
+                        return;
+                    }
+
+                    const title = escapeHtml(item.title || 'Thông báo hệ thống');
+                    const message = escapeHtml(item.message || '');
+                    const createdAt = escapeHtml(item.created_at_display || '');
+                    const actionUrl = item.action_url || allNotificationsUrl;
+
+                    const toastElement = document.createElement('article');
+                    toastElement.className = 'admin-notification-toast';
+                    toastElement.setAttribute('data-toast-notification-id', String(notificationId));
+                    toastElement.innerHTML = ''
+                        + '<div class="admin-notification-toast-head">'
+                        + '<div>'
+                        + '<div class="admin-notification-toast-kicker">Thông báo mới</div>'
+                        + '<div class="admin-notification-toast-title">' + title + '</div>'
+                        + '</div>'
+                        + '<button type="button" class="admin-notification-toast-close" aria-label="Đóng thông báo">×</button>'
+                        + '</div>'
+                        + (message !== '' ? '<div class="admin-notification-toast-message">' + message + '</div>' : '')
+                        + '<div class="admin-notification-toast-actions">'
+                        + '<span class="admin-notification-toast-time">' + createdAt + '</span>'
+                        + '<a class="admin-notification-toast-link" href="' + escapeHtml(actionUrl) + '" data-notification-id="' + notificationId + '">Mở chi tiết</a>'
+                        + '</div>';
+
+                    const closeButton = toastElement.querySelector('.admin-notification-toast-close');
+                    if (closeButton instanceof HTMLButtonElement) {
+                        closeButton.addEventListener('click', function () {
+                            dismissToast(toastElement);
+                        });
+                    }
+
+                    const actionLink = toastElement.querySelector('.admin-notification-toast-link');
+                    if (actionLink instanceof HTMLAnchorElement) {
+                        actionLink.addEventListener('click', function () {
+                            markNotificationRead(notificationId);
+                        });
+                    }
+
+                    toastStack.prepend(toastElement);
+                    while (toastStack.children.length > 3) {
+                        toastStack.lastElementChild?.remove();
+                    }
+
+                    window.requestAnimationFrame(function () {
+                        toastElement.classList.add('is-visible');
+                    });
+
+                    window.setTimeout(function () {
+                        dismissToast(toastElement);
+                    }, 7000);
+                }
+
+                async function refreshNotifications() {
+                    try {
+                        const response = await fetch(feedUrl, {
+                            method: 'GET',
+                            credentials: 'same-origin',
+                            headers: {
+                                Accept: 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest',
+                            },
+                        });
+                        const payload = await response.json();
+
+                        if (!response.ok || !payload || payload.status !== 'success') {
+                            return;
+                        }
+
+                        const data = payload.data && typeof payload.data === 'object' ? payload.data : {};
+                        const items = Array.isArray(data.items) ? data.items : [];
+                        const incomingIds = items
+                            .map(function (item) { return Number(item && item.id ? item.id : 0); })
+                            .filter(function (id) { return id > 0; });
+
+                        if (!didHydrateNotifications) {
+                            incomingIds.forEach(function (id) {
+                                knownNotificationIds.add(id);
+                            });
+                            didHydrateNotifications = true;
+                        } else {
+                            items.forEach(function (item) {
+                                const notificationId = Number(item && item.id ? item.id : 0);
+                                if (notificationId <= 0 || knownNotificationIds.has(notificationId)) {
+                                    return;
+                                }
+
+                                knownNotificationIds.add(notificationId);
+                                showNotificationToast(item);
+                            });
+                        }
+
+                        updateUnreadDisplay(Number(data.unread_count || 0));
+                        updateModuleBadges(data.module_counts || {});
+                        renderNotifications(items);
+                    } catch (error) {
+                        // Keep existing dropdown content if polling fails.
+                    }
+                }
+
+                function markNotificationRead(notificationId) {
+                    const resolvedId = Math.max(0, Number(notificationId || 0));
+                    if (resolvedId <= 0) {
+                        return;
+                    }
+
+                    const body = new URLSearchParams();
+                    body.set('_csrf', csrfToken);
+                    body.set('id', String(resolvedId));
+
+                    fetch(markReadUrl, {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        headers: {
+                            Accept: 'application/json',
+                            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                        body: body.toString(),
+                        keepalive: true,
+                    }).catch(function () {
+                        // Ignore mark-read transport errors and let the next poll fix the badge.
+                    });
+                }
+
+                toggle.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    setDropdownOpen(!dropdown.classList.contains('is-open'));
+                    if (!dropdown.classList.contains('is-open')) {
+                        return;
+                    }
+
+                    refreshNotifications();
+                });
+
+                document.addEventListener('click', function (event) {
+                    if (!(event.target instanceof Node)) {
+                        return;
+                    }
+
+                    const notificationLink = event.target instanceof HTMLElement
+                        ? event.target.closest('[data-notification-id]')
+                        : null;
+                    if (notificationLink instanceof HTMLAnchorElement) {
+                        markNotificationRead(notificationLink.getAttribute('data-notification-id'));
+                    }
+
+                    if (!shell.contains(event.target)) {
+                        setDropdownOpen(false);
+                    }
+                });
+
+                document.addEventListener('keydown', function (event) {
+                    if (event.key === 'Escape') {
+                        setDropdownOpen(false);
+                    }
+                });
+
+                refreshNotifications();
+                window.setInterval(refreshNotifications, pollIntervalMs);
+            })();
+        </script>
 
         <div class="admin-ui min-w-0 grid gap-4">

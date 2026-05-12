@@ -111,8 +111,61 @@ final class SubmissionsTableModel
         ]);
     }
 
-    public function upsertStudentSubmission(int $studentId, int $assignmentId, string $fileUrl): void
+    public function findByAssignmentAndStudent(int $assignmentId, int $studentId): ?array
     {
+        if ($assignmentId <= 0 || $studentId <= 0) {
+            return null;
+        }
+
+        return $this->fetchOne(
+            'SELECT id, assignment_id, student_id, file_url, submitted_at, score, teacher_comment
+             FROM submissions
+             WHERE assignment_id = :assignment_id
+               AND student_id = :student_id
+             LIMIT 1',
+            [
+                'assignment_id' => $assignmentId,
+                'student_id' => $studentId,
+            ]
+        );
+    }
+
+    public function findDetailedByAssignmentAndStudent(int $assignmentId, int $studentId): ?array
+    {
+        if ($assignmentId <= 0 || $studentId <= 0) {
+            return null;
+        }
+
+        return $this->fetchOne(
+            "SELECT s.id, s.assignment_id, s.student_id, s.file_url, s.submitted_at, s.score, s.teacher_comment,
+                    a.title AS assignment_title,
+                    a.schedule_id,
+                    sch.class_id,
+                    sch.study_date,
+                    c.course_id,
+                    c.class_name,
+                    u.full_name AS student_name,
+                    sp.student_code
+             FROM submissions s
+             INNER JOIN assignments a ON a.id = s.assignment_id
+             INNER JOIN schedules sch ON sch.id = a.schedule_id
+             INNER JOIN classes c ON c.id = sch.class_id
+             INNER JOIN users u ON u.id = s.student_id
+             LEFT JOIN student_profiles sp ON sp.user_id = u.id
+             WHERE s.assignment_id = :assignment_id
+               AND s.student_id = :student_id
+             LIMIT 1",
+            [
+                'assignment_id' => $assignmentId,
+                'student_id' => $studentId,
+            ]
+        );
+    }
+
+    public function upsertStudentSubmission(int $studentId, int $assignmentId, string $fileUrl): array
+    {
+        $existing = $this->findByAssignmentAndStudent($assignmentId, $studentId);
+
         $sql = "INSERT INTO submissions (assignment_id, student_id, file_url, submitted_at)
             VALUES (:assignment_id, :student_id, :file_url, NOW())
             ON DUPLICATE KEY UPDATE file_url = VALUES(file_url), submitted_at = NOW()";
@@ -121,6 +174,13 @@ final class SubmissionsTableModel
             'student_id' => $studentId,
             'file_url' => $fileUrl,
         ]);
+
+        $saved = $this->findByAssignmentAndStudent($assignmentId, $studentId);
+
+        return [
+            'created' => !is_array($existing),
+            'submission_id' => (int) ($saved['id'] ?? 0),
+        ];
     }
 
     public function listRosterByClassAndAssignment(int $classId, int $assignmentId): array

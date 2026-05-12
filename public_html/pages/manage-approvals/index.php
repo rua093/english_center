@@ -8,6 +8,7 @@ $approvalPerPage = ui_pagination_resolve_per_page('approval_per_page', 10);
 $searchQuery = trim((string) ($_GET['search'] ?? ''));
 $statusFilter = strtolower(trim((string) ($_GET['status'] ?? '')));
 $typeFilter = strtolower(trim((string) ($_GET['type'] ?? '')));
+$highlightApprovalId = max(0, (int) ($_GET['highlight_approval_id'] ?? 0));
 $approvalFilters = ['status' => $statusFilter, 'type' => $typeFilter];
 $approvalTotal = $academicModel->countApprovals($searchQuery, $approvalFilters);
 $approvalTotalPages = max(1, (int) ceil($approvalTotal / $approvalPerPage));
@@ -177,12 +178,14 @@ $error = get_flash('error');
                                 $decoded = json_decode($rawContent, true);
                                 $displayType = (string) ($app['content_type'] ?? '');
                                 $displayContent = $rawContent;
+                                $approvalId = (int) ($app['id'] ?? 0);
+                                $isHighlightedApproval = $highlightApprovalId > 0 && $highlightApprovalId === $approvalId;
                                 if (is_array($decoded)) {
                                     $displayType = (string) ($decoded['action'] ?? $displayType);
                                     $displayContent = (string) ($decoded['message'] ?? $displayContent);
                                 }
                             ?>
-                            <tr>
+                            <tr id="approval-row-<?= $approvalId; ?>" <?= $isHighlightedApproval ? 'class="bg-amber-50/80"' : ''; ?>>
                                 <td><?= e((string) ($approvalTypeOptions[$displayType] ?? $displayType)); ?></td>
                                 <td><?= e($displayContent); ?></td>
                                 <td><span class="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-bold capitalize is-<?= e((string) $app['status']); ?>"><?= e((string) $app['status']); ?></span></td>
@@ -276,6 +279,20 @@ $error = get_flash('error');
         </div>
     </article>
 </div>
+<?php if ($highlightApprovalId > 0): ?>
+<script>
+window.addEventListener('load', function () {
+    const targetRow = document.getElementById('approval-row-<?= (int) $highlightApprovalId; ?>');
+    if (!(targetRow instanceof HTMLElement)) {
+        return;
+    }
+
+    window.setTimeout(function () {
+        targetRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 180);
+}, { once: true });
+</script>
+<?php endif; ?>
 
 
 

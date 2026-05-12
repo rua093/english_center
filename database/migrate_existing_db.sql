@@ -1409,6 +1409,22 @@ PREPARE stmt FROM @ddl;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
 
+SET @speaking_youtube_url_exists := (
+    SELECT COUNT(*)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'exams'
+      AND column_name = 'speaking_youtube_url'
+);
+SET @ddl := IF(
+    @speaking_youtube_url_exists = 0,
+    'ALTER TABLE exams ADD COLUMN speaking_youtube_url VARCHAR(500) DEFAULT NULL AFTER score_speaking',
+    'SELECT ''skip speaking_youtube_url'''
+);
+PREPARE stmt FROM @ddl;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
 SET @score_reading_exists := (
     SELECT COUNT(*)
     FROM information_schema.columns
@@ -2084,6 +2100,79 @@ PREPARE stmt FROM @sql;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
 
+SET @has_notifications := (
+    SELECT COUNT(*)
+    FROM information_schema.tables
+    WHERE table_schema = DATABASE()
+      AND table_name = 'notifications'
+);
+
+SET @has_notification_targets := (
+    SELECT COUNT(*)
+    FROM information_schema.tables
+    WHERE table_schema = DATABASE()
+      AND table_name = 'notification_targets'
+);
+
+SET @has_classes := (
+    SELECT COUNT(*)
+    FROM information_schema.tables
+    WHERE table_schema = DATABASE()
+      AND table_name = 'classes'
+);
+
+SET @teacher_role_id := (
+    SELECT id
+    FROM roles
+    WHERE role_name = 'teacher'
+    LIMIT 1
+);
+
+SET @notifications_view_permission_id := (
+    SELECT id
+    FROM permissions
+    WHERE slug = 'notifications.view'
+    LIMIT 1
+);
+
+INSERT IGNORE INTO role_permissions (role_id, permission_id)
+SELECT @teacher_role_id, @notifications_view_permission_id
+WHERE @has_role_permissions = 1
+  AND @teacher_role_id IS NOT NULL
+  AND @notifications_view_permission_id IS NOT NULL;
+
+SET @sql := IF(
+    @has_notifications = 1 AND @has_notification_targets = 1 AND @has_classes = 1,
+    "INSERT IGNORE INTO notification_targets (notification_id, target_type, target_id)
+     SELECT n.id, 'USER', c.teacher_id
+     FROM notifications n
+     INNER JOIN notification_targets nt
+         ON nt.notification_id = n.id
+        AND nt.target_type = 'CLASS'
+     INNER JOIN classes c
+         ON c.id = CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(n.action_url, 'class_id=', -1), '&', 1) AS UNSIGNED)
+     WHERE n.title = 'Có bài nộp mới'
+       AND n.action_url LIKE '%class_id=%'
+       AND c.teacher_id > 0",
+    "SELECT 'Skip: submission notification teacher target backfill not required' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @sql := IF(
+    @has_notifications = 1 AND @has_notification_targets = 1,
+    "DELETE nt
+     FROM notification_targets nt
+     INNER JOIN notifications n ON n.id = nt.notification_id
+     WHERE nt.target_type = 'CLASS'
+       AND n.title = 'Có bài nộp mới'",
+    "SELECT 'Skip: submission notification CLASS target cleanup not required' AS info"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
 SET @job_applications_has_contact_info := (
         SELECT COUNT(*)
         FROM information_schema.columns
@@ -2348,6 +2437,14 @@ INNER JOIN permissions p ON p.slug IN (
     'academic.portfolios.view'
 )
 WHERE r.role_name = 'staff';
+
+INSERT IGNORE INTO role_permissions (role_id, permission_id)
+SELECT r.id, p.id
+FROM roles r
+INNER JOIN permissions p ON p.slug IN (
+    'notifications.view'
+)
+WHERE r.role_name = 'teacher';
 
 -- Remove deprecated grouped permissions and their grants after CRUD rollout.
 DELETE rp

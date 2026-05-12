@@ -28,6 +28,7 @@ $registrationLookups = $academicModel->registrationLookups();
 $registrationStudents = is_array($registrationLookups['students'] ?? null) ? $registrationLookups['students'] : [];
 $selectedRegistrationActivityId = max(0, (int) ($_GET['registrations_activity'] ?? 0));
 $selectedRegistrationStudentId = max(0, (int) ($_GET['registration_student'] ?? 0));
+$highlightRegistrationStudentId = max(0, (int) ($_GET['highlight_registration_student'] ?? 0));
 $selectedRegistrationActivity = null;
 $selectedRegistrations = [];
 $editingRegistration = null;
@@ -446,8 +447,9 @@ $editingThumbnailUrl = normalize_public_file_url((string) ($editingActivity['ima
                                     $badgeLabel = 'Đã đóng đủ';
                                     $statusBadgeClass = 'border-emerald-200 bg-emerald-50 text-emerald-700';
                                 }
+                                $isHighlightedRegistration = $highlightRegistrationStudentId > 0 && $highlightRegistrationStudentId === $studentId;
                                 ?>
-                                <tr>
+                                <tr id="activity-registration-row-<?= $studentId; ?>" <?= $isHighlightedRegistration ? 'class="bg-amber-50/80"' : ''; ?>>
                                     <td><?= e((string) ($registration['student_code'] ?? '-')); ?></td>
                                     <td>
                                         <div class="font-semibold text-slate-800"><?= e((string) ($registration['full_name'] ?? ('Học viên #' . $studentId))); ?></div>
@@ -508,6 +510,13 @@ $editingThumbnailUrl = normalize_public_file_url((string) ($editingActivity['ima
         // Nếu có tham số registrations_activity trong URL, tiến hành scroll
         if (params.has('registrations_activity')) {
             scrollToRegistrationList();
+        }
+
+        const highlightedRow = document.getElementById('activity-registration-row-<?= (int) $highlightRegistrationStudentId; ?>');
+        if (highlightedRow instanceof HTMLElement) {
+            window.setTimeout(function () {
+                highlightedRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 420);
         }
     });
 
