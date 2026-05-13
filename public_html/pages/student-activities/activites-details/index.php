@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require_role(['student', 'admin']);
 
+require_once __DIR__ . '/../../../core/bbcode.php';
 require_once __DIR__ . '/../../../models/tables/ExtracurricularActivitiesTableModel.php';
 
 $studentDashboardActiveTab = 'activities-student';
@@ -54,6 +55,8 @@ $detailText = trim((string) ($activity['content'] ?? ''));
 if ($detailText === '') {
 	$detailText = trim((string) ($activity['description'] ?? ''));
 }
+$detailTextHtml = bbcode_to_html($detailText);
+$descriptionHtml = bbcode_to_html((string) ($activity['description'] ?? ''));
 
 $showConfirmTestButtons = false;
 ?>
@@ -82,7 +85,9 @@ $showConfirmTestButtons = false;
 							</div>
 							<div class="absolute bottom-6 left-6 right-6 text-white">
 								<h2 class="text-2xl font-black leading-tight md:text-4xl"><?= e((string) ($activity['activity_name'] ?? '')); ?></h2>
-								<p class="mt-2 max-w-2xl text-sm text-white/85 md:text-base"><?= e((string) ($activity['description'] ?? '')); ?></p>
+								<div class="mt-2 max-w-2xl text-sm text-white/85 md:text-base leading-7 [&_a]:underline [&_a]:decoration-white/70 [&_a]:underline-offset-2 [&_strong]:font-bold [&_em]:italic [&_p]:mb-3 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5">
+									<?= $detailTextHtml !== '' ? $detailTextHtml : $descriptionHtml; ?>
+								</div>
 							</div>
 						</div>
 
@@ -104,7 +109,9 @@ $showConfirmTestButtons = false;
 						<div class="px-6 pb-6">
 							<div class="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5">
 								<h3 class="text-lg font-black text-slate-800">Mô tả chi tiết</h3>
-								<p class="mt-3 leading-7 text-slate-600"><?= e($detailText !== '' ? $detailText : 'Chưa có mô tả chi tiết.'); ?></p>
+								<div class="mt-3 leading-7 text-slate-600 [&_a]:text-blue-600 [&_a]:underline [&_a]:underline-offset-2 [&_strong]:font-bold [&_em]:italic [&_p]:mb-3 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_img]:max-w-full [&_img]:rounded-xl">
+									<?= $detailTextHtml !== '' ? $detailTextHtml : e('Chưa có mô tả chi tiết.'); ?>
+								</div>
 							</div>
 
 							<div class="mt-4 rounded-2xl border px-4 py-3 text-sm font-semibold <?= e($statusNoteClass); ?>">

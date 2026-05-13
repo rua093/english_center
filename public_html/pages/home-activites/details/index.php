@@ -49,6 +49,8 @@ if ($benefitItems === []) {
 	$benefitItems = [$activityDescription !== '' ? $activityDescription : 'Chưa có mô tả chi tiết từ database.'];
 }
 $activityImage = $resolveActivityImagePath((string) ($actDetail['image_thumbnail'] ?? ''));
+$activityDescriptionHtml = $activityDescription !== '' ? ui_render_bbcode($activityDescription) : '';
+$activityContentHtml = $activityContent !== '' ? ui_render_bbcode($activityContent) : '';
 ?>
 
 <main class="pb-16 bg-slate-50">
@@ -66,7 +68,9 @@ $activityImage = $resolveActivityImagePath((string) ($actDetail['image_thumbnail
                     <?= e($activityTitle); ?>
                 </h1>
                 <p class="mt-4 max-w-2xl text-sm md:text-base text-slate-100/95 font-medium leading-relaxed">
-                    <?= e($activityDescription !== '' ? $activityDescription : 'Trải nghiệm kết hợp học thuật và vận động ngoài trời, giúp học viên rèn tiếng Anh tự nhiên trong một không gian an toàn và giàu cảm hứng.'); ?>
+                    <?= $activityDescriptionHtml !== ''
+                        ? $activityDescriptionHtml
+                        : e('Trải nghiệm kết hợp học thuật và vận động ngoài trời, giúp học viên rèn tiếng Anh tự nhiên trong một không gian an toàn và giàu cảm hứng.'); ?>
                 </p>
             </div>
         </div>
@@ -82,7 +86,11 @@ $activityImage = $resolveActivityImagePath((string) ($actDetail['image_thumbnail
                         Thông tin chương trình
                     </h2>
                     <p class="text-slate-600 leading-relaxed mb-6 font-medium text-sm md:text-base max-w-3xl">
-                        <?= e($activityDescription !== '' ? $activityDescription : ($activityContent !== '' ? $activityContent : 'Chưa có mô tả chi tiết từ database.')); ?>
+                        <?= $activityContentHtml !== ''
+                            ? $activityContentHtml
+                            : ($activityDescriptionHtml !== ''
+                                ? $activityDescriptionHtml
+                                : e('Chưa có mô tả chi tiết từ database.')); ?>
                     </p>
                     
                     <h3 class="text-base md:text-lg font-black text-slate-800 mb-4">Bạn sẽ nhận được gì?</h3>
@@ -92,20 +100,20 @@ $activityImage = $resolveActivityImagePath((string) ($actDetail['image_thumbnail
                             <div class="w-7 h-7 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-sm">
                                 <i class="fa-solid fa-check text-xs"></i>
                             </div>
-                            <span class="font-bold text-emerald-800 text-xs md:text-sm"><?= e($b); ?></span>
+                            <span class="font-bold text-emerald-800 text-xs md:text-sm"><?= ui_render_bbcode($b); ?></span>
                         </div>
                         <?php endforeach; ?>
                     </div>
                 </div>
 
-                <div class="rounded-[2rem] border border-slate-100 bg-white p-6 md:p-8 shadow-[0_18px_45px_rgba(15,23,42,0.08)]">
+                <!-- <div class="rounded-[2rem] border border-slate-100 bg-white p-6 md:p-8 shadow-[0_18px_45px_rgba(15,23,42,0.08)]">
                     <h2 class="text-lg md:text-xl font-black text-slate-800 mb-5">Hình ảnh hoạt động</h2>
                     <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
                         <img src="https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=300" class="rounded-2xl h-28 md:h-36 w-full object-cover hover:scale-[1.03] transition-all">
                         <img src="https://images.unsplash.com/photo-1526726533690-069a7974e643?w=300" class="rounded-2xl h-28 md:h-36 w-full object-cover hover:scale-[1.03] transition-all">
                         <img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=300" class="rounded-2xl h-28 md:h-36 w-full object-cover hover:scale-[1.03] transition-all">
                     </div>
-                </div>
+                </div> -->
             </div>
 
             <div class="lg:col-span-4">
@@ -140,7 +148,7 @@ $activityImage = $resolveActivityImagePath((string) ($actDetail['image_thumbnail
                             <?= csrf_input(); ?>
                             <input type="hidden" name="activity_id" value="<?= (int) $activity['id']; ?>">
                             <button type="submit" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-black py-4 rounded-2xl shadow-xl shadow-rose-600/20 transition-all hover:-translate-y-1 uppercase tracking-widest text-sm disabled:cursor-not-allowed disabled:opacity-50">
-                                Đăng ký tham gia ngay
+                                <?= e('Đăng ký tham gia ngay'); ?>
                             </button>
                         </form>
 
