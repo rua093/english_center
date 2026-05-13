@@ -2,8 +2,6 @@
 declare(strict_types=1);
 
 require_role(['student', 'admin']);
-
-require_once __DIR__ . '/../../models/tables/ClassStudentsTableModel.php';
 require_once __DIR__ . '/../../models/tables/AttendanceTableModel.php';
 require_once __DIR__ . '/../../models/tables/TuitionFeesTableModel.php';
 require_once __DIR__ . '/../../models/tables/AssignmentsTableModel.php';
@@ -255,9 +253,6 @@ $pagedClasses = array_slice($myClasses, $classOffset, $classPerPage);
 
 				<?php if ($classTotalPages > 1): ?>
 					<div class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
-						<div class="text-xs font-semibold text-slate-500">
-							Trang <?= (int) $classPage; ?>/<?= (int) $classTotalPages; ?> · Tổng <?= (int) $classTotal; ?> lớp
-						</div>
 						<form class="flex items-center gap-2" method="get" action="<?= e(page_url('classes-my')); ?>">
 							<input type="hidden" name="page" value="classes-my">
 							<input type="hidden" name="class_page" value="1">
@@ -274,6 +269,10 @@ $pagedClasses = array_slice($myClasses, $classOffset, $classPerPage);
 							<?php else: ?>
 								<span class="inline-flex h-8 items-center rounded-md border border-slate-200 bg-slate-100 px-3 text-xs font-semibold text-slate-400">Trước</span>
 							<?php endif; ?>
+
+							<span class="inline-flex h-8 items-center rounded-md border border-slate-200 bg-white px-4 text-xs font-bold text-slate-700">
+								Trang <?= (int) $classPage; ?>/<?= (int) $classTotalPages; ?>
+							</span>
 
 							<?php if ($classPage < $classTotalPages): ?>
 								<a class="inline-flex h-8 items-center rounded-md border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('classes-my', ['class_page' => $classPage + 1, 'class_per_page' => $classPerPage])); ?>">Sau</a>
@@ -362,6 +361,14 @@ $pagedClasses = array_slice($myClasses, $classOffset, $classPerPage);
 			const noteInput = document.getElementById('homework-note');
 			const noteDisplay = document.getElementById('homework-note-display');
 			const fileInput = document.getElementById('homework-file');
+			const homeworkForm = modal.querySelector('form');
+			const submitButton = homeworkForm ? homeworkForm.querySelector('button[type="submit"]') : null;
+
+			function notify(type, message) {
+				if (typeof showNotify === 'function') {
+					showNotify(type, message);
+				}
+			}
 
 			function openModal(button) {
 				if (classInput && button.dataset.homeworkClass) {
@@ -405,6 +412,56 @@ $pagedClasses = array_slice($myClasses, $classOffset, $classPerPage);
 				document.body.classList.remove('overflow-hidden');
 			}
 
+			async function submitHomework(event) {
+				event.preventDefault();
+
+				if (!(homeworkForm instanceof HTMLFormElement)) {
+					return;
+				}
+
+				if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+					notify('warning', 'Vui lòng tải lên file bài làm.');
+					return;
+				}
+
+				if (submitButton instanceof HTMLButtonElement) {
+					submitButton.disabled = true;
+					submitButton.dataset.originalText = submitButton.textContent || '';
+					submitButton.textContent = 'Đang nộp...';
+				}
+
+				try {
+					const response = await fetch(homeworkForm.action, {
+						method: 'POST',
+						credentials: 'same-origin',
+						headers: {
+							'X-Requested-With': 'XMLHttpRequest',
+							'Accept': 'application/json'
+						},
+						body: new FormData(homeworkForm)
+					});
+
+					const payload = await response.json().catch(function () {
+						return null;
+					});
+
+					if (!response.ok || !payload || payload.status !== 'success') {
+						throw new Error((payload && payload.message) || 'Nộp bài thất bại. Vui lòng thử lại.');
+					}
+
+					closeModal();
+					notify('success', payload.message || 'Đã nộp bài thành công.');
+				} catch (error) {
+					notify('error', error instanceof Error ? error.message : 'Nộp bài thất bại. Vui lòng thử lại.');
+				} finally {
+					if (submitButton instanceof HTMLButtonElement) {
+						submitButton.disabled = false;
+						submitButton.textContent = submitButton.dataset.originalText || 'Nộp bài';
+						delete submitButton.dataset.originalText;
+					}
+				}
+			}
+
 			document.querySelectorAll('[data-homework-open="1"]').forEach(function (button) {
 				button.addEventListener('click', function () {
 						if (button.dataset.homeworkEmpty === '1') {
@@ -418,6 +475,10 @@ $pagedClasses = array_slice($myClasses, $classOffset, $classPerPage);
 			document.querySelectorAll('[data-homework-close="1"]').forEach(function (button) {
 				button.addEventListener('click', closeModal);
 			});
+
+			if (homeworkForm instanceof HTMLFormElement) {
+				homeworkForm.addEventListener('submit', submitHomework);
+			}
 
 			modal.addEventListener('click', function (event) {
 				if (event.target === modal) {

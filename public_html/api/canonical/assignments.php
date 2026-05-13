@@ -199,8 +199,13 @@ function api_assignments_submit_action(): void
 	$user = auth_user();
 	$userRole = (string) ($user['role'] ?? '');
 	$canSubmitAssignment = has_permission('student.assignment.submit') || in_array($userRole, ['student', 'admin'], true);
+	$expectsJson = api_expects_json();
 
 	if (!$canSubmitAssignment) {
+		if ($expectsJson) {
+			api_error('Bạn không có quyền nộp bài tập.', ['code' => 'FORBIDDEN'], 403);
+		}
+
 		set_flash('error', 'Bạn không có quyền nộp bài tập.');
 		redirect($redirectTo);
 	}
@@ -210,6 +215,10 @@ function api_assignments_submit_action(): void
 		if (!empty($_FILES['submission_file']['name'])) {
 			$fileUpload = store_uploaded_file($_FILES['submission_file'], sprintf('submission-%d-%d', (int) $user['id'], $assignmentId), 'homeworks');
 			if ($fileUpload === null) {
+				if ($expectsJson) {
+					api_error('Tải lên bài làm thất bại. Vui lòng thử lại.', ['code' => 'UPLOAD_FAILED'], 400);
+				}
+
 				set_flash('error', 'Tải lên bài làm thất bại. Vui lòng thử lại.');
 				redirect($redirectTo);
 			}
@@ -218,10 +227,24 @@ function api_assignments_submit_action(): void
 
 		if ($uploadPath !== '') {
 			(new UserModel())->submitAssignment((int) $user['id'], $assignmentId, $uploadPath);
-			set_flash('success', 'Đã gửi bài tập thành công.');
+			$successMessage = 'Đã nộp bài thành công.';
+			if ($expectsJson) {
+				api_success($successMessage, [
+					'assignment_id' => $assignmentId,
+					'file_url' => $uploadPath,
+				]);
+			}
+
+			set_flash('success', $successMessage);
 		} else {
+			if ($expectsJson) {
+				api_error('Vui lòng tải lên file hoặc nhập đường dẫn bài làm.', ['code' => 'EMPTY_PAYLOAD'], 400);
+			}
+
 			set_flash('error', 'Vui lòng tải lên file hoặc nhập đường dẫn bài làm.');
 		}
+	} elseif ($expectsJson) {
+		api_error('Không thể nộp bài vào thời điểm này. Vui lòng thử lại.', ['code' => 'INVALID_ASSIGNMENT'], 400);
 	}
 
 	redirect($redirectTo);

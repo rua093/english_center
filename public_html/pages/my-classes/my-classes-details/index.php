@@ -2,8 +2,6 @@
 declare(strict_types=1);
 
 require_login();
-
-require_once __DIR__ . '/../../../models/tables/ClassStudentsTableModel.php';
 require_once __DIR__ . '/../../../models/tables/AttendanceTableModel.php';
 require_once __DIR__ . '/../../../models/tables/TuitionFeesTableModel.php';
 require_once __DIR__ . '/../../../models/tables/AssignmentsTableModel.php';
@@ -624,28 +622,35 @@ foreach ($examRows as $examRow) {
                         <div class="text-xs font-semibold text-slate-500">
                             Trang <?= (int) $assignmentPage; ?>/<?= (int) $assignmentTotalPages; ?> · Tổng <?= (int) $assignmentTotal; ?> bài tập
                         </div>
-                        <form class="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2" method="get" action="<?= e(page_url('classes-my-details', ['class_id' => $selectedClassId])); ?>" data-assignment-per-page-form="1">
-                            <input type="hidden" name="class_id" value="<?= (int) $selectedClassId; ?>">
-                            <input type="hidden" name="assignment_page" value="1">
-                            <label for="assignment-per-page" class="text-xs font-semibold text-slate-500">Số dòng</label>
-                            <select id="assignment-per-page" name="assignment_per_page" class="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 shadow-sm sm:w-auto" data-assignment-per-page="1">
-                                <?php foreach ($assignmentPerPageOptions as $option): ?>
-                                    <option value="<?= (int) $option; ?>" <?= $assignmentPerPage === (int) $option ? 'selected' : ''; ?>><?= (int) $option; ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                        </form>
-                        <div class="grid grid-cols-2 gap-2 text-xs font-semibold text-slate-600 sm:flex sm:flex-wrap sm:items-center">
-                            <?php if ($assignmentPage > 1): ?>
-                                <a class="inline-flex h-10 items-center justify-center rounded-md border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 sm:h-8" href="<?= e(page_url('classes-my-details', ['class_id' => $selectedClassId, 'assignment_page' => $assignmentPage - 1, 'assignment_per_page' => $assignmentPerPage])); ?>" data-assignment-page-link="1">Trước</a>
-                            <?php else: ?>
-                                <span class="inline-flex h-10 items-center justify-center rounded-md border border-slate-200 bg-slate-100 px-3 text-xs font-semibold text-slate-400 sm:h-8">Trước</span>
-                            <?php endif; ?>
+                        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end sm:gap-4">
+                            <form class="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2" method="get" action="<?= e(page_url('classes-my-details', ['class_id' => $selectedClassId])); ?>" data-assignment-per-page-form="1">
+                                <input type="hidden" name="class_id" value="<?= (int) $selectedClassId; ?>">
+                                <input type="hidden" name="assignment_page" value="1">
+                                <label for="assignment-per-page" class="text-xs font-semibold text-slate-500">Số dòng</label>
+                                <select id="assignment-per-page" name="assignment_per_page" class="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 shadow-sm sm:w-auto" data-assignment-per-page="1">
+                                    <?php foreach ($assignmentPerPageOptions as $option): ?>
+                                        <option value="<?= (int) $option; ?>" <?= $assignmentPerPage === (int) $option ? 'selected' : ''; ?>><?= (int) $option; ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </form>
 
-                            <?php if ($assignmentPage < $assignmentTotalPages): ?>
-                                <a class="inline-flex h-10 items-center justify-center rounded-md border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 sm:h-8" href="<?= e(page_url('classes-my-details', ['class_id' => $selectedClassId, 'assignment_page' => $assignmentPage + 1, 'assignment_per_page' => $assignmentPerPage])); ?>" data-assignment-page-link="1">Sau</a>
-                            <?php else: ?>
-                                <span class="inline-flex h-10 items-center justify-center rounded-md border border-slate-200 bg-slate-100 px-3 text-xs font-semibold text-slate-400 sm:h-8">Sau</span>
-                            <?php endif; ?>
+                            <div class="flex flex-wrap items-center justify-center gap-2 text-xs font-semibold text-slate-600">
+                                <?php if ($assignmentPage > 1): ?>
+                                    <a class="inline-flex h-10 items-center justify-center rounded-md border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 sm:h-8" href="<?= e(page_url('classes-my-details', ['class_id' => $selectedClassId, 'assignment_page' => $assignmentPage - 1, 'assignment_per_page' => $assignmentPerPage])); ?>" data-assignment-page-link="1">Trước</a>
+                                <?php else: ?>
+                                    <span class="inline-flex h-10 items-center justify-center rounded-md border border-slate-200 bg-slate-100 px-3 text-xs font-semibold text-slate-400 sm:h-8">Trước</span>
+                                <?php endif; ?>
+
+                                <span class="inline-flex h-10 items-center justify-center rounded-md border border-slate-200 bg-white px-4 text-xs font-bold text-slate-700 sm:h-8">
+                                    Trang <?= (int) $assignmentPage; ?>/<?= (int) $assignmentTotalPages; ?>
+                                </span>
+
+                                <?php if ($assignmentPage < $assignmentTotalPages): ?>
+                                    <a class="inline-flex h-10 items-center justify-center rounded-md border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 sm:h-8" href="<?= e(page_url('classes-my-details', ['class_id' => $selectedClassId, 'assignment_page' => $assignmentPage + 1, 'assignment_per_page' => $assignmentPerPage])); ?>" data-assignment-page-link="1">Sau</a>
+                                <?php else: ?>
+                                    <span class="inline-flex h-10 items-center justify-center rounded-md border border-slate-200 bg-slate-100 px-3 text-xs font-semibold text-slate-400 sm:h-8">Sau</span>
+                                <?php endif; ?>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -783,6 +788,14 @@ foreach ($examRows as $examRow) {
                 const noteInput = document.getElementById('homework-note');
                 const noteDisplay = document.getElementById('homework-note-display');
                 const fileInput = document.getElementById('homework-file');
+                const homeworkForm = modal.querySelector('form');
+                const submitButton = homeworkForm ? homeworkForm.querySelector('button[type="submit"]') : null;
+
+                function notify(type, message) {
+                    if (typeof showNotify === 'function') {
+                        showNotify(type, message);
+                    }
+                }
 
                 let assignmentRequestId = 0;
                 let assignmentRequestController = null;
@@ -827,6 +840,56 @@ foreach ($examRows as $examRow) {
                     modal.classList.add('hidden');
                     modal.classList.remove('flex');
                     document.body.classList.remove('overflow-hidden');
+                }
+
+                async function submitHomework(event) {
+                    event.preventDefault();
+
+                    if (!(homeworkForm instanceof HTMLFormElement)) {
+                        return;
+                    }
+
+                    if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+                        notify('warning', 'Vui lòng tải lên file bài làm.');
+                        return;
+                    }
+
+                    if (submitButton instanceof HTMLButtonElement) {
+                        submitButton.disabled = true;
+                        submitButton.dataset.originalText = submitButton.textContent || '';
+                        submitButton.textContent = 'Đang nộp...';
+                    }
+
+                    try {
+                        const response = await fetch(homeworkForm.action, {
+                            method: 'POST',
+                            credentials: 'same-origin',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Accept': 'application/json'
+                            },
+                            body: new FormData(homeworkForm)
+                        });
+
+                        const payload = await response.json().catch(function () {
+                            return null;
+                        });
+
+                        if (!response.ok || !payload || payload.status !== 'success') {
+                            throw new Error((payload && payload.message) || 'Nộp bài thất bại. Vui lòng thử lại.');
+                        }
+
+                        closeModal();
+                        notify('success', payload.message || 'Đã nộp bài thành công.');
+                    } catch (error) {
+                        notify('error', error instanceof Error ? error.message : 'Nộp bài thất bại. Vui lòng thử lại.');
+                    } finally {
+                        if (submitButton instanceof HTMLButtonElement) {
+                            submitButton.disabled = false;
+                            submitButton.textContent = submitButton.dataset.originalText || 'Nộp bài';
+                            delete submitButton.dataset.originalText;
+                        }
+                    }
                 }
 
                 function setAssignmentPanelLoading(isLoading) {
@@ -970,6 +1033,10 @@ foreach ($examRows as $examRow) {
 
                     loadAssignmentPanel(url, true);
                 });
+
+                if (homeworkForm instanceof HTMLFormElement) {
+                    homeworkForm.addEventListener('submit', submitHomework);
+                }
 
                 modal.addEventListener('click', function (event) {
                     if (event.target === modal) {
