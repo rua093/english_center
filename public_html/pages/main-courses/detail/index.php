@@ -425,9 +425,11 @@ $relatedCourses = array_slice($relatedCourses, 0, 4);
                         </div>
                     </div>
                 </div>
+                
+                <div class="relative overflow-hidden rounded-[2.75rem] border border-white/32 bg-slate-950/18 p-8 md:p-10 shadow-[0_28px_80px_rgba(15,23,42,0.34)] backdrop-blur-2xl" data-aos="fade-left" data-aos-duration="700" data-aos-delay="100">
 
                 <!-- Right side: Form panel overlay - Psychology: White (trust/cleanliness) + Rose (action) + Emerald (growth) -->
-                <div class="relative overflow-hidden rounded-[2.75rem] border border-white/20 bg-transparent p-8 md:p-10 shadow-none backdrop-blur-none" data-aos="fade-left" data-aos-duration="700" data-aos-delay="100">
+                <!-- <div class="relative overflow-hidden rounded-[2.75rem] border border-white/20 bg-transparent p-8 md:p-10 shadow-none backdrop-blur-none" data-aos="fade-left" data-aos-duration="700" data-aos-delay="100"> -->
                     <!-- Subtle emerald tint (trust, growth psychology) -->
                     <div class="absolute right-[-10%] top-[-10%] h-56 w-56 rounded-full bg-gradient-to-br from-rose-50/90 to-pink-50/70 blur-3xl pointer-events-none"></div>
                     <!-- Emerald for confidence/growth psychology -->

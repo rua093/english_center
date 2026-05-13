@@ -114,7 +114,9 @@ $stats = [
     }
 </style>
 
-<main class="bg-[#fbfcfa] text-slate-800 overflow-hidden">
+<main class="relative bg-lime-100 text-slate-800 overflow-hidden">
+    <div class="absolute inset-0 z-0 pointer-events-none opacity-[0.08]" style="background-image: radial-gradient(#475569 1.5px, transparent 1.5px); background-size: 24px 24px;"></div>
+    <div class="absolute inset-x-0 top-0 z-0 h-72 pointer-events-none bg-gradient-to-b from-lime-200/75 via-lime-100/45 to-transparent"></div>
     <section id="gioi-thieu" class="relative py-20 lg:py-32 overflow-hidden">
         <div class="absolute inset-0 z-0">
             <img src="/assets/images/course3.jpg" alt="<?= e(t('courses.image_alt')); ?>" class="h-full w-full object-cover">
@@ -351,8 +353,10 @@ $stats = [
                     </div>
                 </div>
 
+                <div class="relative overflow-hidden rounded-[2.75rem] border border-white/32 bg-slate-950/18 p-8 md:p-10 shadow-[0_28px_80px_rgba(15,23,42,0.34)] backdrop-blur-2xl" data-aos="fade-left" data-aos-duration="700" data-aos-delay="100">
+
                 <!-- Right side: Form panel overlay - Psychology: White (trust/cleanliness) + Rose (action) + Emerald (growth) -->
-                <div class="relative overflow-hidden rounded-[2.75rem] border border-white/32 bg-slate-950/30 p-8 md:p-10 shadow-[0_28px_80px_rgba(15,23,42,0.38)] backdrop-blur-none" data-aos="fade-left" data-aos-duration="700" data-aos-delay="100">
+                <!-- <div class="relative overflow-hidden rounded-[2.75rem] border border-white/32 bg-slate-950/30 p-8 md:p-10 shadow-[0_28px_80px_rgba(15,23,42,0.38)] backdrop-blur-none" data-aos="fade-left" data-aos-duration="700" data-aos-delay="100"> -->
                     <!-- Subtle emerald tint (trust, growth psychology) -->
                     <div class="absolute right-[-10%] top-[-10%] h-56 w-56 rounded-full bg-gradient-to-br from-rose-50/90 to-pink-50/70 blur-3xl pointer-events-none"></div>
                     <!-- Emerald for confidence/growth psychology -->

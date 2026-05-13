@@ -84,7 +84,7 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                 </div>
 
                 <div class="relative z-10 shrink-0 w-full md:w-auto flex justify-center mt-2 md:mt-0">
-                    <a href="<?= e(page_url('register-consultation')); ?>" class="group inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-amber-400 to-yellow-400 hover:scale-105 transition-all duration-300 text-blue-950 font-black uppercase text-[11px] sm:text-xs px-8 py-3.5 shadow-lg border-[3px] border-white whitespace-nowrap w-full md:w-auto">
+                    <a href="#dang-ky-tu-van" class="group inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-amber-400 to-yellow-400 hover:scale-105 transition-all duration-300 text-blue-950 font-black uppercase text-[11px] sm:text-xs px-8 py-3.5 shadow-lg border-[3px] border-white whitespace-nowrap w-full md:w-auto">
                         <i class="fa-solid fa-bolt text-red-600"></i>
                         <?= e(t('home.test_cta')); ?>
                     </a>
@@ -500,7 +500,7 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                 </div>
 
                 <!-- Right side: Form panel overlay - Psychology: White (trust/cleanliness) + Rose (action) + Emerald (growth) -->
-                <div class="relative overflow-hidden rounded-[2.75rem] border border-white/32 bg-slate-950/30 p-8 md:p-10 shadow-[0_28px_80px_rgba(15,23,42,0.38)] backdrop-blur-none" data-aos="fade-left" data-aos-duration="700" data-aos-delay="100">
+                <div class="relative overflow-hidden rounded-[2.75rem] border border-white/32 bg-slate-950/18 p-8 md:p-10 shadow-[0_28px_80px_rgba(15,23,42,0.34)] backdrop-blur-2xl" data-aos="fade-left" data-aos-duration="700" data-aos-delay="100">
                     <!-- Subtle emerald tint (trust, growth psychology) -->
                     <div class="absolute right-[-10%] top-[-10%] h-56 w-56 rounded-full bg-gradient-to-br from-rose-50/90 to-pink-50/70 blur-3xl pointer-events-none"></div>
                     <!-- Emerald for confidence/growth psychology -->
@@ -516,10 +516,10 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                             0 0 1px rgba(255, 255, 255, 0.8);
                         ">
                             <?= e(t('public.common.free_consultation')); ?>
-                            <span class="ml-2 text-transparent bg-clip-text bg-gradient-to-r from-rose-400 to-rose-600" style="text-shadow: 
-                                2px 2px 0 rgba(244, 63, 94, 0.2),
-                                4px 4px 0 rgba(244, 63, 94, 0.15),
-                                0 6px 12px rgba(244, 63, 94, 0.2);
+                            <span class="ml-2 text-transparent bg-clip-text bg-gradient-to-r from-lime-300 to-emerald-300" style="text-shadow: 
+                                2px 2px 0 rgba(190, 242, 100, 0.22),
+                                4px 4px 0 rgba(132, 204, 22, 0.16),
+                                0 6px 12px rgba(101, 163, 13, 0.18);
                             "><?= e(t('public.common.free')); ?></span>
                         </h3>
                         <!-- Subheading: Trust messaging (emerald psychology) -->
@@ -1167,7 +1167,9 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                 </div>
 
                 <!-- Right side: Form panel overlay - Psychology: White (trust/cleanliness) + Rose (action) + Emerald (growth) -->
-                <div class="relative overflow-hidden rounded-[2.75rem] border border-white/32 bg-slate-950/30 p-8 md:p-10 shadow-[0_28px_80px_rgba(15,23,42,0.38)] backdrop-blur-none" data-aos="fade-left" data-aos-duration="700" data-aos-delay="100">
+                <div class="relative overflow-hidden rounded-[2.75rem] border border-white/32 bg-slate-950/18 p-8 md:p-10 shadow-[0_28px_80px_rgba(15,23,42,0.34)] backdrop-blur-2xl" data-aos="fade-left" data-aos-duration="700" data-aos-delay="100">
+
+                <!-- <div class="relative overflow-hidden rounded-[2.75rem] border border-white/32 bg-slate-950/30 p-8 md:p-10 shadow-[0_28px_80px_rgba(15,23,42,0.38)] backdrop-blur-none" data-aos="fade-left" data-aos-duration="700" data-aos-delay="100"> -->
                     <!-- Subtle emerald tint (trust, growth psychology) -->
                     <div class="absolute right-[-10%] top-[-10%] h-56 w-56 rounded-full bg-gradient-to-br from-rose-50/90 to-pink-50/70 blur-3xl pointer-events-none"></div>
                     <!-- Emerald for confidence/growth psychology -->
@@ -1183,10 +1185,10 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                             0 0 1px rgba(255, 255, 255, 0.8);
                         ">
                             <?= e(t('public.common.free_consultation')); ?>
-                            <span class="ml-2 text-transparent bg-clip-text bg-gradient-to-r from-rose-400 to-rose-600" style="text-shadow: 
-                                2px 2px 0 rgba(244, 63, 94, 0.2),
-                                4px 4px 0 rgba(244, 63, 94, 0.15),
-                                0 6px 12px rgba(244, 63, 94, 0.2);
+                            <span class="ml-2 text-transparent bg-clip-text bg-gradient-to-r from-lime-300 to-emerald-300" style="text-shadow: 
+                                2px 2px 0 rgba(190, 242, 100, 0.22),
+                                4px 4px 0 rgba(132, 204, 22, 0.16),
+                                0 6px 12px rgba(101, 163, 13, 0.18);
                             "><?= e(t('public.common.free')); ?></span>
                         </h3>
                         <!-- Subheading: Trust messaging (emerald psychology) -->

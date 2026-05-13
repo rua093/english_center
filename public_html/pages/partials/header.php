@@ -14,16 +14,50 @@
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #bae6fd; border-radius: 10px; } 
+
+        @keyframes headerBellShake {
+            0%, 100% { transform: rotate(0deg) translateX(0); }
+            15% { transform: rotate(-10deg) translateX(-1px); }
+            30% { transform: rotate(12deg) translateX(1px); }
+            45% { transform: rotate(-8deg) translateX(-1px); }
+            60% { transform: rotate(10deg) translateX(1px); }
+            75% { transform: rotate(-4deg) translateX(0); }
+        }
+
+        @keyframes headerBellGlow {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.25); }
+            70% { box-shadow: 0 0 0 8px rgba(244, 63, 94, 0); }
+        }
+
+        .header-bell-alert {
+            animation: headerBellShake 1.8s ease-in-out infinite, headerBellGlow 2.2s ease-out infinite;
+            transform-origin: top center;
+        }
     </style>
 </head>
 <body class="min-h-screen bg-slate-50 font-jakarta leading-relaxed text-slate-800 antialiased flex flex-col">
     <?php
+    require_once __DIR__ . '/../../models/AcademicModel.php';
+
     $headerUser = auth_user() ?? [];
     $currentUserRole = (string) ($headerUser['role'] ?? '');
     $isStudentUser = $currentUserRole === 'student';
     $currentPage = resolve_page_slug((string) ($_GET['page'] ?? 'home'));
     $studentDashboardActiveTabValue = (string) ($studentDashboardActiveTab ?? '');
     $isStudentProfileActive = $currentPage === resolve_page_slug('profile');
+    $headerUnreadNotificationCount = 0;
+    $headerRecentNotifications = [];
+
+    if (is_logged_in() && (int) ($headerUser['id'] ?? 0) > 0) {
+        try {
+            $headerNotificationModel = new AcademicModel();
+            $headerUnreadNotificationCount = $headerNotificationModel->countUnreadNotifications((int) $headerUser['id']);
+            $headerRecentNotifications = $headerNotificationModel->listNotificationDropdownItems((int) $headerUser['id'], 5);
+        } catch (Throwable) {
+            $headerUnreadNotificationCount = 0;
+            $headerRecentNotifications = [];
+        }
+    }
     $currentLocale = current_locale();
 
     $isActivePage = static function (array $pageSlugs) use ($currentPage): bool {
@@ -46,7 +80,7 @@
     ?>
     
     <header class="sticky top-0 z-50 w-full bg-white shadow-[0_2px_15px_rgba(0,0,0,0.04)]" id="top">    
-        <div class="mx-auto w-full max-w-[1450px] px-4 sm:px-6 flex min-h-[85px] items-center justify-between gap-4">
+        <div class="mx-auto w-full max-w-[1450px] px-4 sm:px-6 flex min-h-[85px] items-center justify-between gap-3">
             
             <div class="flex-none flex items-center overflow-visible">
                 <a href="/" class="inline-flex items-center overflow-visible -my-3">
@@ -54,8 +88,8 @@
                 </a>
             </div>
 
-            <nav class="hidden flex-1 items-center justify-center gap-8 lg:flex lg:gap-10" aria-label="<?= e(t('nav.main')); ?>">
-                <a class="text-[16px] font-extrabold transition-colors <?= $isActivePage(['home']) ? 'text-blue-600' : 'text-slate-800 hover:text-blue-600' ?>" href="/">
+            <nav class="hidden min-w-0 flex-1 items-center justify-center gap-6 lg:flex lg:gap-8" aria-label="Menu chính">
+                <a class="whitespace-nowrap text-[16px] font-extrabold transition-colors <?= $isActivePage(['home']) ? 'text-blue-600' : 'text-slate-800 hover:text-blue-600' ?>" href="/">
                     <?= e(t('nav.home')); ?>
                 </a>
                 
@@ -66,19 +100,19 @@
                     </a>
                 </div>
 
-                <a class="text-[16px] font-extrabold transition-colors <?= $isActivePage(['teacher-introduce', 'teacher-detail']) ? 'text-blue-600' : 'text-slate-800 hover:text-blue-600' ?>" href="<?= e(page_url('teacher-introduce')); ?>">
+                <a class="whitespace-nowrap text-[16px] font-extrabold transition-colors <?= $isActivePage(['teacher-introduce', 'teacher-detail']) ? 'text-blue-600' : 'text-slate-800 hover:text-blue-600' ?>" href="<?= e(page_url('teacher-introduce')); ?>">
                     <?= e(t('nav.teachers')); ?>
                 </a>
-                <a class="text-[16px] font-extrabold transition-colors <?= $isActivePage(['activities-home', 'activities-home-detail']) ? 'text-blue-600' : 'text-slate-800 hover:text-blue-600' ?>" href="<?= e(page_url('activities-home')); ?>">
+                <a class="whitespace-nowrap text-[16px] font-extrabold transition-colors <?= $isActivePage(['activities-home', 'activities-home-detail']) ? 'text-blue-600' : 'text-slate-800 hover:text-blue-600' ?>" href="<?= e(page_url('activities-home')); ?>">
                     <?= e(t('nav.activities')); ?>
                 </a>
-                <a class="text-[16px] font-extrabold transition-colors <?= $isActivePage(['job-apply']) ? 'text-blue-600' : 'text-slate-800 hover:text-blue-600' ?>" href="<?= e(page_url('job-apply')); ?>">
+                <a class="whitespace-nowrap text-[16px] font-extrabold transition-colors <?= $isActivePage(['job-apply']) ? 'text-blue-600' : 'text-slate-800 hover:text-blue-600' ?>" href="<?= e(page_url('job-apply')); ?>">
                     <?= e(t('nav.jobs')); ?>
                 </a>
                
                 
                 <div class="relative group py-6">
-                    <button class="inline-flex items-center gap-1.5 text-[16px] font-extrabold transition-colors <?= $isActivePage(['register-consultation', 'documents']) ? 'text-blue-600' : 'text-slate-800 hover:text-blue-600' ?>" type="button">
+                    <button class="inline-flex items-center gap-1.5 whitespace-nowrap text-[16px] font-extrabold transition-colors <?= $isActivePage(['register-consultation', 'documents']) ? 'text-blue-600' : 'text-slate-800 hover:text-blue-600' ?>" type="button">
                         <?= e(t('nav.system')); ?>
                         <i class="fa-solid fa-chevron-down text-[10px] transition-transform duration-300 group-hover:rotate-180 <?= $isActivePage(['register-consultation', 'documents']) ? 'text-blue-600' : 'text-slate-800 group-hover:text-blue-600' ?>"></i>
                     </button>
@@ -92,7 +126,7 @@
                 </div>
             </nav>
 
-            <div class="hidden items-center gap-6 lg:flex">
+            <div class="hidden min-w-0 flex-none items-center gap-4 lg:gap-5 lg:flex">
                 <div class="inline-flex rounded-full border border-slate-200 bg-white p-1 text-xs font-black shadow-sm" aria-label="<?= e(t('locale.language')); ?>">
                     <a class="rounded-full px-2.5 py-1 <?= $currentLocale === 'vi' ? 'bg-blue-600 text-white' : 'text-slate-500 hover:text-blue-700'; ?>" href="<?= e(localized_current_url('vi')); ?>" title="<?= e(t('locale.switch_to', ['language' => 'Tiếng Việt'])); ?>"><?= e(t('locale.vi')); ?></a>
                     <a class="rounded-full px-2.5 py-1 <?= $currentLocale === 'en' ? 'bg-blue-600 text-white' : 'text-slate-500 hover:text-blue-700'; ?>" href="<?= e(localized_current_url('en')); ?>" title="<?= e(t('locale.switch_to', ['language' => 'English'])); ?>"><?= e(t('locale.en')); ?></a>
@@ -102,12 +136,78 @@
                     <span class="w-2.5 h-2.5 rounded-full bg-white/90"></span>
                 </a>
                 <?php if (is_logged_in()): ?>
-                    <div class="relative group py-6">
-                        <button class="inline-flex items-center gap-2.5 text-[16px] font-extrabold transition-colors <?= $isActivePage(['feedback', 'dashboard-student', 'classes-my', 'activities-student', 'admin']) || $isStudentProfileActive ? 'text-blue-600' : 'text-slate-800 hover:text-blue-600' ?>">
+                    <div class="relative group py-4">
+                        <button type="button" class="<?= $headerUnreadNotificationCount > 0 ? 'header-bell-alert ' : ''; ?>relative inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-gradient-to-br from-white to-slate-50 text-slate-700 shadow-sm transition-all hover:-translate-y-0.5 hover:border-blue-200 hover:text-blue-600 hover:shadow-md" aria-label="Thông báo" aria-haspopup="true" aria-expanded="false" title="Thông báo">
+                            <span class="absolute inset-0 rounded-full bg-blue-50/70 opacity-0 transition-opacity duration-300 group-hover:opacity-100"></span>
+                            <span class="absolute inset-[3px] rounded-full bg-gradient-to-br from-rose-500/8 via-white to-blue-500/8"></span>
+                            <i class="fa-solid fa-bell relative z-10 text-[16px] <?= $headerUnreadNotificationCount > 0 ? 'text-rose-600' : 'text-slate-700'; ?>"></i>
+                            <span class="absolute -right-1 -top-1 inline-flex min-w-5 items-center justify-center rounded-full bg-rose-600 px-1.5 py-0.5 text-[10px] font-black leading-none text-white shadow-sm shadow-rose-600/25 <?= $headerUnreadNotificationCount > 0 ? '' : 'hidden'; ?>"><?= e((string) ($headerUnreadNotificationCount > 99 ? '99+' : $headerUnreadNotificationCount)); ?></span>
+                            <?php if ($headerUnreadNotificationCount > 0): ?>
+                                <span class="absolute -inset-1 rounded-full border border-rose-400/30 animate-pulse"></span>
+                            <?php endif; ?>
+                        </button>
+
+                        <div class="absolute right-0 top-full z-50 mt-3 w-80 opacity-0 invisible translate-y-2 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 transition-all duration-200">
+                            <div class="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-[0_18px_50px_rgba(15,23,42,0.12)]">
+                                <div class="border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white px-5 py-4">
+                                    <div class="flex items-center gap-2 text-sm font-black text-slate-900">
+                                        <span class="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-rose-500 to-red-500 text-white shadow-sm shadow-rose-500/20">
+                                            <i class="fa-solid fa-bell text-[13px]"></i>
+                                        </span>
+                                        Thông báo
+                                    </div>
+                                    <div class="mt-1 text-xs font-medium text-slate-500">
+                                        <?= e($headerUnreadNotificationCount > 0
+                                            ? ('Có ' . ($headerUnreadNotificationCount > 99 ? '99+' : $headerUnreadNotificationCount) . ' thông báo chưa đọc')
+                                            : 'Bạn đã xem hết thông báo'); ?>
+                                    </div>
+                                </div>
+
+                                <div class="max-h-80 overflow-y-auto custom-scrollbar">
+                                    <?php if ($headerRecentNotifications === []): ?>
+                                        <div class="px-5 py-6 text-sm text-slate-500">Chưa có thông báo nào.</div>
+                                    <?php else: ?>
+                                        <?php foreach ($headerRecentNotifications as $notification): ?>
+                                            <?php
+                                            $notificationId = (int) ($notification['id'] ?? 0);
+                                            $notificationTitle = trim((string) ($notification['title'] ?? 'Thông báo hệ thống'));
+                                            $notificationMessage = trim((string) ($notification['message'] ?? ''));
+                                            if ($notificationMessage !== '') {
+                                                if (function_exists('bbcode_truncate_plain_text')) {
+                                                    $notificationMessage = bbcode_truncate_plain_text($notificationMessage, 120);
+                                                } elseif (function_exists('mb_strimwidth')) {
+                                                    $notificationMessage = mb_strimwidth(strip_tags($notificationMessage), 0, 120, '...');
+                                                } elseif (strlen($notificationMessage) > 120) {
+                                                    $notificationMessage = substr(strip_tags($notificationMessage), 0, 117) . '...';
+                                                }
+                                            }
+                                            $notificationActionUrl = page_url('student-notification', ['highlight_notification_id' => $notificationId]);
+                                            $notificationIsRead = (int) ($notification['is_read'] ?? 0) === 1;
+                                            ?>
+                                            <a href="<?= e($notificationActionUrl); ?>" data-notification-id="<?= $notificationId; ?>" onclick="try { sessionStorage.setItem('studentNotificationHighlightId', '<?= $notificationId; ?>'); } catch (error) {}" class="block border-b border-slate-50 px-5 py-4 transition-colors hover:bg-slate-50 <?= $notificationIsRead ? 'text-slate-700' : 'bg-blue-50/40 text-slate-900'; ?>">
+                                                <div class="flex items-start gap-3">
+                                                    <span class="mt-1 inline-flex h-2.5 w-2.5 shrink-0 rounded-full <?= $notificationIsRead ? 'bg-slate-300' : 'bg-rose-500'; ?>"></span>
+                                                    <div class="min-w-0">
+                                                        <div class="text-sm leading-snug <?= $notificationIsRead ? 'font-semibold' : 'font-black'; ?>"><?= e($notificationTitle); ?></div>
+                                                        <?php if ($notificationMessage !== ''): ?>
+                                                            <div class="mt-1 text-xs leading-relaxed <?= $notificationIsRead ? 'font-normal text-slate-500' : 'font-semibold text-slate-700'; ?>"><?= e($notificationMessage); ?></div>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                </div>
+                                            </a>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="relative group py-4">
+                        <button class="inline-flex flex-none items-center gap-2.5 whitespace-nowrap text-[16px] font-extrabold transition-colors <?= $isActivePage(['feedback', 'dashboard-student', 'classes-my', 'activities-student', 'admin']) || $isStudentProfileActive ? 'text-blue-600' : 'text-slate-800 hover:text-blue-600' ?>">
                             <div class="w-8 h-8 rounded-full bg-gradient-to-r from-red-500 to-green-500 text-white flex items-center justify-center text-sm font-black">
                                 <?= substr($headerUser['full_name'] ?? 'U', 0, 1) ?>
                             </div>
-                            <span class="max-w-[120px] truncate"><?= e($headerUser['full_name'] ?? t('nav.profile')) ?></span>
+                            <span class="text-left">Tài khoản</span>
                             <i class="fa-solid fa-chevron-down text-[10px] transition-transform duration-300 group-hover:rotate-180 <?= $isActivePage(['feedback', 'dashboard-student', 'classes-my', 'activities-student', 'admin']) || $isStudentProfileActive ? 'text-blue-600' : 'text-slate-800 group-hover:text-blue-600' ?>"></i>
                         </button>
                         
@@ -129,7 +229,7 @@
                         </div>
                     </div>
                 <?php else: ?>
-                    <a href="<?= e(page_url('login')); ?>" class="group inline-flex items-center gap-3 rounded-full bg-red-600 px-7 py-3 text-[15px] font-black uppercase text-white transition-all hover:bg-red-700 hover:shadow-lg">
+                    <a href="<?= e(page_url('login')); ?>" class="group inline-flex items-center justify-center gap-3 whitespace-nowrap rounded-full bg-red-600 px-7 py-3 text-[15px] font-black uppercase text-white transition-all hover:bg-red-700 hover:shadow-lg">
                         <?= e(t('nav.login')); ?>
                         <span class="w-2.5 h-2.5 rounded-full bg-white/90"></span>
                     </a>

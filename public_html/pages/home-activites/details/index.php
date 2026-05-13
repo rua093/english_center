@@ -27,6 +27,10 @@ $activityStatusLabel = match ($activityStatus) {
 	default => 'Sắp diễn ra',
 };
 
+$currentUser = function_exists('auth_user') ? (auth_user() ?? []) : [];
+$isLoggedIn = (int) ($currentUser['id'] ?? 0) > 0;
+$canRegisterActivity = $isLoggedIn;
+
 $resolveActivityImagePath = static function (string $imagePath): string {
     $imagePath = trim($imagePath);
     if ($imagePath === '') {
@@ -132,10 +136,18 @@ $activityImage = $resolveActivityImagePath((string) ($actDetail['image_thumbnail
                             </div>
                         </div>
 
-                        <button class="w-full bg-rose-600 hover:bg-rose-700 text-white font-black py-4 rounded-2xl shadow-xl shadow-rose-600/20 transition-all hover:-translate-y-1 uppercase tracking-widest text-sm">
-                            Đăng ký tham gia ngay
-                        </button>
-                        
+                        <form method="post" action="/api/index.php?action=do-register-activity" class="space-y-3" <?= $canRegisterActivity ? 'onsubmit="event.preventDefault(); showConfirm(\'success\', \'Đăng ký hoạt động?\', \'Bạn chắc chắn muốn đăng ký tham gia hoạt động này chứ?\', () => this.submit());"' : ''; ?>>
+                            <?= csrf_input(); ?>
+                            <input type="hidden" name="activity_id" value="<?= (int) $activity['id']; ?>">
+                            <button type="submit" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-black py-4 rounded-2xl shadow-xl shadow-rose-600/20 transition-all hover:-translate-y-1 uppercase tracking-widest text-sm disabled:cursor-not-allowed disabled:opacity-50">
+                                Đăng ký tham gia ngay
+                            </button>
+                        </form>
+
+                        <?php if (!$isLoggedIn): ?>
+                            <p class="text-center text-[10px] text-slate-400 font-bold uppercase">Bạn sẽ được chuyển đến trang đăng nhập để tiếp tục.</p>
+                        <?php endif; ?>
+
                         <p class="text-center text-[10px] text-slate-400 font-bold uppercase">Ưu đãi 10% khi đăng ký nhóm 3 người</p>
                     </div>
                 </div>
@@ -144,3 +156,5 @@ $activityImage = $resolveActivityImagePath((string) ($actDetail['image_thumbnail
         </div>
     </div>
 </main>
+
+<?php require __DIR__ . '/../../notification/confirm_modal.php'; ?>

@@ -300,6 +300,7 @@ function can_access_page(string $page): bool
 		case 'classes-my':
 		case 'assignments-my':
 		case 'feedback':
+		case 'student-notification':
 			return true;
 		case 'admin':
 			return in_array($role, ['admin', 'staff', 'teacher'], true);
