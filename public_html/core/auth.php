@@ -66,6 +66,7 @@ function login_attempt(string $username, string $password): bool
 
 function logout_user(): void
 {
+	$locale = current_locale();
 	$_SESSION = [];
 	if (ini_get('session.use_cookies')) {
 		$params = session_get_cookie_params();
@@ -73,6 +74,7 @@ function logout_user(): void
 	}
 	session_destroy();
 	session_start();
+	set_locale($locale);
 	rotate_csrf_token();
 }
 
@@ -163,7 +165,7 @@ function require_any_permission(array $slugs): void
 function require_login(): void
 {
 	if (!is_logged_in()) {
-		set_flash('error', 'Vui lòng đăng nhập để tiếp tục.');
+		set_flash('error', t('flash.login_required'));
 		redirect('/?page=login');
 	}
 }
@@ -187,7 +189,7 @@ function require_admin_or_staff(): void
 	require_login();
 
 	if (!is_admin_or_staff()) {
-		set_flash('error', 'Bạn không có quyền truy cập khu vực quản trị.');
+		set_flash('error', t('flash.admin_forbidden'));
 		redirect('/?page=home');
 	}
 }
@@ -260,10 +262,14 @@ function teacher_can_manage_class(AcademicModel $academicModel, int $classId): b
 	return (int) ($classRow['teacher_id'] ?? 0) === $teacherId;
 }
 
-function teacher_assert_class_scope(AcademicModel $academicModel, int $classId, string $redirectPath, string $message = 'Ban chi co the quan ly lop hoc minh dang day.', string $code = 'CLASS_ACCESS_DENIED'): void
+function teacher_assert_class_scope(AcademicModel $academicModel, int $classId, string $redirectPath, string $message = '', string $code = 'CLASS_ACCESS_DENIED'): void
 {
 	if (teacher_can_manage_class($academicModel, $classId)) {
 		return;
+	}
+
+	if ($message === '') {
+		$message = t('flash.class_scope_denied');
 	}
 
 	if (api_expects_json()) {

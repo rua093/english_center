@@ -154,7 +154,7 @@ $canDeleteMaterial = has_permission('materials.delete');
                                         </a>
                                     <?php endif; ?>
                                     <?php if ($canDeleteMaterial): ?>
-                                        <form class="inline-block" method="post" action="/api/materials/delete?id=<?= (int) $material['id']; ?>">
+                                        <form class="inline-block" method="post" action="/api/materials/delete?id=<?= (int) $material['id']; ?>" onsubmit="return confirm('Bạn có chắc muốn xóa tài liệu này không?');">
                                             <?= csrf_input(); ?>
                                             <button
                                                 class="<?= ui_btn_danger_classes('sm'); ?> admin-action-icon-btn"

@@ -180,7 +180,7 @@ $canUpdateMaterial = has_permission('materials.update');
                                         </a>
                                     <?php endif; ?>
                                     <?php if ($canDeleteClass): ?>
-                                        <form class="inline-block" method="post" action="/api/classes/delete?id=<?= (int) $class['id']; ?>">
+                                        <form class="inline-block" method="post" action="/api/classes/delete?id=<?= (int) $class['id']; ?>" onsubmit="return confirm('Bạn có chắc muốn xóa lớp học này không?');">
                                             <?= csrf_input(); ?>
                                             <button
                                                 class="<?= ui_btn_danger_classes('sm'); ?> admin-action-icon-btn"

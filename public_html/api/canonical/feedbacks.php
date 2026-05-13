@@ -36,7 +36,7 @@ function api_feedbacks_save_action(): void
 	$_POST['sender_id'] = $userId;
 	$_POST['is_public_web'] = $isPublicWeb;
 	(new AcademicModel())->saveFeedback($_POST);
-	set_flash('success', 'Đã lưu feedback thành công.');
+	set_flash('success', 'Đã lưu đánh giá thành công.');
 
 	redirect($redirectTo);
 }
@@ -48,9 +48,9 @@ function api_feedbacks_delete_action(): void
 
 	try {
 		(new AcademicModel())->deleteFeedback((int) ($_GET['id'] ?? 0));
-		set_flash('success', 'Đã xóa feedback.');
+		set_flash('success', 'Đã xóa đánh giá.');
 	} catch (Throwable) {
-		set_flash('error', 'Không thể xóa feedback. Vui lòng thử lại.');
+		set_flash('error', 'Không thể xóa đánh giá. Vui lòng thử lại.');
 	}
 	redirect(page_url('feedbacks-manage'));
 }

@@ -1,6 +1,7 @@
 <?php
 $error = $error ?? get_flash('error');
 $success = get_flash('success');
+$authLocale = current_locale();
 ?>
 
 <style>
@@ -40,6 +41,17 @@ $success = get_flash('success');
 </style>
 
 <section class="login-background min-h-screen flex items-center justify-center p-4 sm:p-6 relative overflow-hidden font-jakarta">
+    <div class="absolute right-4 top-4 z-20 inline-flex rounded-full border border-white/60 bg-white/80 p-1 text-xs font-black shadow-lg shadow-slate-900/10 backdrop-blur">
+        <?php foreach (APP_SUPPORTED_LOCALES as $localeOption): ?>
+            <a
+                href="<?= e(localized_current_url($localeOption)); ?>"
+                class="rounded-full px-3 py-1.5 transition <?= $authLocale === $localeOption ? 'bg-rose-600 text-white shadow-sm' : 'text-slate-600 hover:bg-white hover:text-rose-700'; ?>"
+                aria-label="<?= e(t('locale.switch_to', ['language' => t('locale.' . $localeOption)])); ?>"
+            >
+                <?= e(t('locale.' . $localeOption)); ?>
+            </a>
+        <?php endforeach; ?>
+    </div>
     
     <div class="absolute inset-0 z-0 overflow-hidden pointer-events-none">
         <div class="absolute top-[-10%] left-[-10%] w-[460px] h-[460px] rounded-full bg-slate-950/25 blur-[90px] animate-blob"></div>
@@ -52,7 +64,7 @@ $success = get_flash('success');
         
         <aside class="relative hidden lg:flex flex-col justify-end overflow-hidden group lg:col-span-5 bg-slate-950/70">
             <img src="/assets/images/login3.jpg" 
-                alt="Educational Background" 
+                alt="<?= e(t('login.image_alt')); ?>"
                 class="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105 opacity-90">
             <div class="absolute inset-0 bg-gradient-to-t from-slate-950/55 via-emerald-950/18 to-slate-900/8"></div>
             <div class="absolute inset-0 bg-gradient-to-br from-slate-950/6 via-white/2 to-emerald-100/6"></div>
@@ -63,16 +75,16 @@ $success = get_flash('success');
                         <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-lime-400 opacity-75"></span>
                         <span class="relative inline-flex rounded-full h-3 w-3 bg-lime-500"></span>
                     </span>
-                    <span class="text-xs font-bold tracking-widest uppercase text-lime-200">Hệ thống học tập Nhuệ Minh</span>
+                    <span class="text-xs font-bold tracking-widest uppercase text-lime-200"><?= e(t('login.kicker')); ?></span>
                 </div>
                 
                 <h2 class="text-4xl font-black mb-4 leading-tight tracking-tight text-white drop-shadow-md">
-                    Chào mừng <br>
-                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-lime-300 to-white">Trở lại lớp học!</span>
+                    <?= e(t('login.welcome')); ?> <br>
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-lime-300 to-white"><?= e(t('login.welcome_highlight')); ?></span>
                 </h2>
                 
                 <p class="text-emerald-100/90 text-sm leading-relaxed font-medium max-w-sm border-l-2 border-rose-500 pl-4">
-                    Đăng nhập để tiếp tục lộ trình học tập, theo dõi tiến độ và kết nối với giảng viên của bạn.
+                    <?= e(t('login.intro')); ?>
                 </p>
             </div>
         </aside>
@@ -84,8 +96,8 @@ $success = get_flash('success');
                     <!-- <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-rose-50 text-rose-600 mb-6 shadow-inner">
                         <i class="fa-solid fa-user-graduate text-3xl"></i>
                     </div> -->
-                    <h1 class="text-3xl font-black text-slate-800 mb-2">Đăng Nhập</h1>
-                    <p class="text-slate-500 text-sm font-medium">Vui lòng điền thông tin tài khoản của bạn.</p>
+                    <h1 class="text-3xl font-black text-slate-800 mb-2"><?= e(t('login.title')); ?></h1>
+                    <p class="text-slate-500 text-sm font-medium"><?= e(t('login.subtitle')); ?></p>
                 </div>
 
                 <?php if ($error): ?>
@@ -110,7 +122,7 @@ $success = get_flash('success');
                     <?= csrf_input(); ?>
                     
                     <div class="group">
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2 ml-1">Tên đăng nhập / Email</label>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2 ml-1"><?= e(t('login.username_label')); ?></label>
                         <div class="relative flex items-center input-focus-ring rounded-2xl bg-slate-50 border border-slate-200 transition-all duration-300">
                             <div class="pl-5 pr-3 icon-input text-slate-400 transition-colors">
                                 <i class="fa-regular fa-envelope text-lg"></i>
@@ -122,7 +134,7 @@ $success = get_flash('success');
 
                     <div class="group">
                         <div class="flex justify-between items-center mb-2 ml-1 mr-1">
-                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide">Mật khẩu</label>
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide"><?= e(t('login.password_label')); ?></label>
                         </div>
                         <div class="relative flex items-center input-focus-ring rounded-2xl bg-slate-50 border border-slate-200 transition-all duration-300">
                             <div class="pl-5 pr-3 icon-input text-slate-400 transition-colors">
@@ -146,16 +158,16 @@ $success = get_flash('success');
                                     <i class="fa-solid fa-check text-white text-[10px] opacity-100 peer-checked:opacity-100"></i>
                                 </div>
                             </div>
-                            <span class="ml-3 text-sm font-semibold text-slate-600 group-hover:text-slate-800 transition-colors">Ghi nhớ đăng nhập</span>
+                            <span class="ml-3 text-sm font-semibold text-slate-600 group-hover:text-slate-800 transition-colors"><?= e(t('login.remember')); ?></span>
                         </label>
 
                         <a href="<?= e(page_url('forgot-password')); ?>" class="text-xs font-bold text-emerald-600 hover:text-rose-600 transition-colors whitespace-nowrap">
-                            Quên mật khẩu?
+                            <?= e(t('login.forgot_password')); ?>
                         </a>
                     </div>
 
                     <button type="submit" class="group w-full relative inline-flex items-center justify-center gap-3 rounded-2xl bg-rose-600 hover:bg-rose-700 px-4 py-4 text-sm font-black text-white uppercase tracking-widest shadow-[0_10px_20px_rgba(225,29,72,0.3)] transition-all hover:-translate-y-1 hover:shadow-[0_15px_30px_rgba(225,29,72,0.4)] overflow-hidden">
-                        <span class="relative z-10">Tiếp tục đăng nhập</span>
+                        <span class="relative z-10"><?= e(t('login.submit')); ?></span>
                         <div class="relative z-10 w-2 h-2 rounded-full bg-lime-400 group-hover:scale-150 transition-transform"></div>
                         <div class="absolute inset-0 h-full w-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></div>
                     </button>

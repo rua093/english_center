@@ -17,7 +17,7 @@ redirect(page_url('users-admin'));
 
 if ($userId > 0) {
 (new AdminModel())->softDeleteUser($userId);
-set_flash('success', 'Đã khóa/xóa mềm tài khoản người dùng.');
+set_flash('success', 'Đã khóa hoặc xóa mềm tài khoản người dùng.');
 }
 
 redirect(page_url('users-admin'));

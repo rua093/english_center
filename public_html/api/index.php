@@ -105,9 +105,9 @@ try {
     ]);
 
     if (api_expects_json()) {
-        api_error('Internal server error.', ['code' => 'SERVER_ERROR'], 500);
+        api_error(t('api.internal_server_error'), ['code' => 'SERVER_ERROR'], 500);
     }
 
-    set_flash('error', 'Co loi he thong. Vui long thu lai.');
+    set_flash('error', t('flash.system_error'));
     redirect(page_url('home'));
 }

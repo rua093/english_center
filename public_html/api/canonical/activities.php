@@ -82,15 +82,15 @@ function api_activities_remove_student_action(): void
 	}
 
 	if ($activityId <= 0 || $studentId <= 0) {
-		set_flash('error', 'Du lieu hoc vien hoac hoat dong khong hop le.');
+		set_flash('error', 'Dữ liệu học viên hoặc hoạt động không hợp lệ.');
 		redirect(page_url('activities-manage', $redirectQuery) . '#activity-registration-list');
 	}
 
 	$removed = (new AcademicModel())->removeActivityRegistration($activityId, $studentId);
 	if ($removed) {
-		set_flash('success', 'Da xoa hoc vien khoi danh sach dang ky hoat dong.');
+		set_flash('success', 'Đã xóa học viên khỏi danh sách đăng ký hoạt động.');
 	} else {
-		set_flash('error', 'Khong tim thay dang ky de xoa.');
+		set_flash('error', 'Không tìm thấy đăng ký để xóa.');
 	}
 
 	redirect(page_url('activities-manage', $redirectQuery) . '#activity-registration-list');
@@ -130,7 +130,7 @@ function api_activities_update_registration_action(): void
 	}
 
 	if ($activityId <= 0 || $studentId <= 0) {
-		set_flash('error', 'Du lieu dang ky hoat dong khong hop le.');
+		set_flash('error', 'Dữ liệu đăng ký hoạt động không hợp lệ.');
 		redirect(page_url('activities-manage', $redirectQuery) . '#activity-registration-list');
 	}
 
@@ -192,7 +192,7 @@ function api_activities_add_student_action(): void
 	}
 
 	if ($activityId <= 0 || $studentId <= 0) {
-		set_flash('error', 'Du lieu dang ky hoat dong khong hop le.');
+		set_flash('error', 'Dữ liệu đăng ký hoạt động không hợp lệ.');
 		redirect(page_url('activities-manage', $redirectQuery) . '#activity-registration-list');
 	}
 
@@ -201,24 +201,24 @@ function api_activities_add_student_action(): void
 	$student = $academicModel->findActiveUser($studentId);
 
 	if (!is_array($activity)) {
-		set_flash('error', 'Khong tim thay hoat dong ngoai khoa.');
+		set_flash('error', 'Không tìm thấy hoạt động ngoại khóa.');
 		redirect(page_url('activities-manage', $redirectQuery) . '#activity-registration-list');
 	}
 
 	if (!is_array($student) || strtolower(trim((string) ($student['role_name'] ?? $student['role'] ?? ''))) !== 'student') {
-		set_flash('error', 'Hoc vien khong hop le hoac khong con hoat dong.');
+		set_flash('error', 'Học viên không hợp lệ hoặc không còn hoạt động.');
 		redirect(page_url('activities-manage', $redirectQuery) . '#activity-registration-list');
 	}
 
 	$model = new ExtracurricularActivitiesTableModel();
 	$existingRegistration = $model->findStudentRegistration($activityId, $studentId);
 	if (is_array($existingRegistration)) {
-		set_flash('info', 'Hoc vien nay da dang ky hoat dong truoc do.');
+		set_flash('info', 'Học viên này đã đăng ký hoạt động trước đó.');
 		redirect(page_url('activities-manage', $redirectQuery) . '#activity-registration-list');
 	}
 
 	$model->joinActivity($activityId, $studentId);
-	set_flash('success', 'Da dang ky hoat dong cho hoc vien thanh cong.');
+	set_flash('success', 'Đã đăng ký hoạt động cho học viên thành công.');
 	redirect(page_url('activities-manage', $redirectQuery) . '#activity-registration-list');
 }
 

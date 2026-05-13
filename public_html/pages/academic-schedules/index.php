@@ -391,7 +391,7 @@ $scheduleConflictDataset = array_map(static function (array $schedule): array {
                                         </a>
                                     <?php endif; ?>
                                     <?php if ($canDeleteSchedule): ?>
-                                        <form class="inline-block" method="post" action="/api/schedules/delete?id=<?= (int) $schedule['id']; ?>">
+                                        <form class="inline-block" method="post" action="/api/schedules/delete?id=<?= (int) $schedule['id']; ?>" onsubmit="return confirm('Bạn có chắc muốn xóa lịch dạy này không?');">
                                             <?= csrf_input(); ?>
                                             <button
                                                 class="<?= ui_btn_danger_classes('sm'); ?> admin-action-icon-btn"

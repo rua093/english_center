@@ -11,7 +11,12 @@ $activityStatusFilter = strtolower(trim((string) ($_GET['status'] ?? 'all')));
 
 $activities = $academicModel->listActivities();
 
-$activityStatuses = ['all' => 'Tất cả', 'upcoming' => 'Sắp diễn ra', 'ongoing' => 'Đang diễn ra', 'finished' => 'Đã kết thúc'];
+$activityStatuses = [
+	'all' => t('activities.status.all'),
+	'upcoming' => t('activities.status.upcoming'),
+	'ongoing' => t('activities.status.ongoing'),
+	'finished' => t('activities.status.finished'),
+];
 if (!array_key_exists($activityStatusFilter, $activityStatuses)) {
 	$activityStatusFilter = 'all';
 }
@@ -59,11 +64,11 @@ $pageActivities = array_slice($activities, ($activityPage - 1) * $activityPerPag
     <div class="container mx-auto px-4 max-w-[1400px]">
         
         <div class="text-center mb-12" data-aos="fade-up">
-            <span class="px-4 py-1.5 rounded-full bg-rose-50 text-rose-600 text-[10px] font-black uppercase tracking-widest border border-rose-100">Học mà chơi - Chơi mà học</span>
+            <span class="px-4 py-1.5 rounded-full bg-rose-50 text-rose-600 text-[10px] font-black uppercase tracking-widest border border-rose-100"><?= e(t('activities.kicker')); ?></span>
             <h1 class="text-3xl md:text-4xl font-black text-slate-900 mt-5 mb-3 uppercase">
-                Hoạt động <span class="text-gradient-red-green">Ngoại khóa</span>
+                <?= e(t('activities.title')); ?> <span class="text-gradient-red-green"><?= e(t('activities.highlight')); ?></span>
             </h1>
-            <p class="text-slate-500 max-w-xl mx-auto font-medium text-sm md:text-base">Khám phá thế giới, rèn luyện kỹ năng mềm và tự tin giao tiếp cùng bạn bè quốc tế.</p>
+            <p class="text-slate-500 max-w-xl mx-auto font-medium text-sm md:text-base"><?= e(t('activities.copy')); ?></p>
         </div>
 
         <div class="mb-10 flex flex-wrap justify-center gap-3" data-aos="fade-up" data-aos-delay="100">
@@ -76,7 +81,7 @@ $pageActivities = array_slice($activities, ($activityPage - 1) * $activityPerPag
 
         <?php if ($pageActivities === []): ?>
             <div class="rounded-[2rem] border border-dashed border-slate-200 bg-white p-10 text-center text-sm font-semibold text-slate-500 shadow-sm" data-aos="fade-up" data-aos-delay="150">
-                Chưa có hoạt động ngoại khoá nào phù hợp với bộ lọc hiện tại.
+                <?= e(t('activities.empty')); ?>
             </div>
         <?php else: ?>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -87,9 +92,9 @@ $pageActivities = array_slice($activities, ($activityPage - 1) * $activityPerPag
                     $activityLocation = (string) ($act['location'] ?? '');
                     $activityStatus = (string) ($act['status'] ?? 'upcoming');
                     $activityTag = match ($activityStatus) {
-                        'ongoing' => 'Đang diễn ra',
-                        'finished' => 'Đã kết thúc',
-                        default => 'Sắp diễn ra',
+                        'ongoing' => t('activities.status.ongoing'),
+                        'finished' => t('activities.status.finished'),
+                        default => t('activities.status.upcoming'),
                     };
                     $activityImage = $resolveActivityImagePath((string) ($act['image_thumbnail'] ?? ''));
                     $activityFee = (float) ($act['fee'] ?? 0);
@@ -116,10 +121,10 @@ $pageActivities = array_slice($activities, ($activityPage - 1) * $activityPerPag
                         <i class="fa-solid fa-location-dot"></i> <?= e($activityLocation !== '' ? $activityLocation : '---'); ?>
                     </p>
                     <p class="mb-5 text-xs font-semibold text-slate-500">
-                        Phí tham gia: <?= $activityFee > 0 ? number_format($activityFee) . ' đ' : 'Miễn phí'; ?>
+                        <?= e(t('activities.fee')); ?>: <?= $activityFee > 0 ? e(number_format($activityFee) . ' đ') : e(t('activities.free_fee')); ?>
                     </p>
                     <div class="inline-flex items-center gap-2 font-black text-slate-900 text-sm">
-                        Xem chi tiết
+                        <?= e(t('public.common.view_detail')); ?>
                         <span class="w-7 h-7 rounded-full border-2 border-slate-100 flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-white group-hover:border-emerald-500 transition-all">
                             <i class="fa-solid fa-arrow-right text-[10px]"></i>
                         </span>
@@ -134,7 +139,7 @@ $pageActivities = array_slice($activities, ($activityPage - 1) * $activityPerPag
         <?php if ($activityTotalPages > 1): ?>
             <div class="mt-14 flex flex-wrap items-center justify-center gap-2" data-aos="fade-up" data-aos-delay="100">
                 <?php if ($activityPage > 1): ?>
-                    <a class="flex h-11 items-center justify-center rounded-2xl bg-white border border-slate-100 px-4 text-sm font-bold text-slate-500 hover:text-rose-600 transition-all" href="<?= e(page_url('activities-home', ['status' => $activityStatusFilter, 'activity_page' => $activityPage - 1, 'activity_per_page' => $activityPerPage])); ?>">Trước</a>
+                    <a class="flex h-11 items-center justify-center rounded-2xl bg-white border border-slate-100 px-4 text-sm font-bold text-slate-500 hover:text-rose-600 transition-all" href="<?= e(page_url('activities-home', ['status' => $activityStatusFilter, 'activity_page' => $activityPage - 1, 'activity_per_page' => $activityPerPage])); ?>"><?= e(t('activities.previous')); ?></a>
                 <?php endif; ?>
 
                 <?php for ($page = max(1, $activityPage - 1); $page <= min($activityTotalPages, $activityPage + 1); $page++): ?>
@@ -144,7 +149,7 @@ $pageActivities = array_slice($activities, ($activityPage - 1) * $activityPerPag
                 <?php endfor; ?>
 
                 <?php if ($activityPage < $activityTotalPages): ?>
-                    <a class="flex h-11 items-center justify-center rounded-2xl bg-white border border-slate-100 px-4 text-sm font-bold text-slate-500 hover:text-rose-600 transition-all" href="<?= e(page_url('activities-home', ['status' => $activityStatusFilter, 'activity_page' => $activityPage + 1, 'activity_per_page' => $activityPerPage])); ?>">Sau</a>
+                    <a class="flex h-11 items-center justify-center rounded-2xl bg-white border border-slate-100 px-4 text-sm font-bold text-slate-500 hover:text-rose-600 transition-all" href="<?= e(page_url('activities-home', ['status' => $activityStatusFilter, 'activity_page' => $activityPage + 1, 'activity_per_page' => $activityPerPage])); ?>"><?= e(t('activities.next')); ?></a>
                 <?php endif; ?>
             </div>
         <?php endif; ?>

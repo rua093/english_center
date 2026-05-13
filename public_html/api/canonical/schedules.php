@@ -103,7 +103,7 @@ function api_schedules_delete_action(): void
 	if ($scheduleId > 0) {
 		$schedule = $academicModel->findSchedule($scheduleId);
 		if (!is_array($schedule)) {
-			set_flash('error', 'Khong tim thay lich day can xoa.');
+			set_flash('error', 'Không tìm thấy lịch dạy cần xóa.');
 			redirect(page_url('schedules-academic'));
 		}
 

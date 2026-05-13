@@ -141,15 +141,15 @@ function api_applications_update_action(): void
     }
 
     if ($applicationId <= 0) {
-        set_flash('error', 'Ho so ung tuyen khong hop le.');
+        set_flash('error', 'Hồ sơ ứng tuyển không hợp lệ.');
         redirect(page_url('job-applications-manage'));
     }
 
     try {
         (new AdminModel())->updateJobApplicationReview($applicationId, $status, $adminNote);
-        set_flash('success', 'Da cap nhat trang thai ho so ung tuyen.');
+        set_flash('success', 'Đã cập nhật trạng thái hồ sơ ứng tuyển.');
     } catch (Throwable $exception) {
-        set_flash('error', 'Khong the cap nhat ho so: ' . $exception->getMessage());
+        set_flash('error', 'Không thể cập nhật hồ sơ: ' . $exception->getMessage());
     }
 
     redirect(page_url('job-applications-manage', ['edit' => $applicationId]));
@@ -169,7 +169,7 @@ function api_applications_convert_action(): void
     }
 
     if ($applicationId <= 0) {
-        set_flash('error', 'Ho so ung tuyen khong hop le.');
+        set_flash('error', 'Hồ sơ ứng tuyển không hợp lệ.');
         redirect(page_url('job-applications-manage'));
     }
 
@@ -180,14 +180,14 @@ function api_applications_convert_action(): void
             'admin_note' => $adminNote,
         ]);
 
-        $successMessage = 'Da tao tai khoan giao vien: ' . (string) ($result['username'] ?? '');
+        $successMessage = 'Đã tạo tài khoản giáo viên: ' . (string) ($result['username'] ?? '');
         if (!empty($result['used_default_password'])) {
-            $successMessage .= ' (mat khau tam: ' . (string) ($result['password'] ?? '') . ').';
+            $successMessage .= ' (mật khẩu tạm: ' . (string) ($result['password'] ?? '') . ').';
         }
 
         set_flash('success', $successMessage);
     } catch (Throwable $exception) {
-        set_flash('error', 'Khong the tao tai khoan giao vien: ' . $exception->getMessage());
+        set_flash('error', 'Không thể tạo tài khoản giáo viên: ' . $exception->getMessage());
     }
 
     redirect(page_url('job-applications-manage', ['edit' => $applicationId]));
@@ -200,15 +200,15 @@ function api_applications_delete_action(): void
 
     $applicationId = (int) ($_GET['id'] ?? 0);
     if ($applicationId <= 0) {
-        set_flash('error', 'Ho so ung tuyen khong hop le.');
+        set_flash('error', 'Hồ sơ ứng tuyển không hợp lệ.');
         redirect(page_url('job-applications-manage'));
     }
 
     try {
         (new AdminModel())->deleteJobApplication($applicationId);
-        set_flash('success', 'Da xoa ho so ung tuyen.');
+        set_flash('success', 'Đã xóa hồ sơ ứng tuyển.');
     } catch (Throwable $exception) {
-        set_flash('error', 'Khong the xoa ho so ung tuyen nay.');
+        set_flash('error', 'Không thể xóa hồ sơ ứng tuyển này.');
     }
 
     redirect(page_url('job-applications-manage'));

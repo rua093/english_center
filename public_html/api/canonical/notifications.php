@@ -32,12 +32,12 @@ function api_notifications_save_action(): void
 
     $allowedTargetTypes = ['ALL', 'ROLE', 'CLASS', 'USER'];
     if (!in_array($targetType, $allowedTargetTypes, true) || $title === '' || $message === '') {
-        set_flash('error', 'Vui long chon doi tuong nhan va nhap day du tieu de, noi dung.');
+        set_flash('error', 'Vui lòng chọn đối tượng nhận và nhập đầy đủ tiêu đề, nội dung.');
         redirect(page_url('notifications-manage', $redirectQuery));
     }
 
     if ($targetType !== 'ALL' && $targetId <= 0) {
-        set_flash('error', 'Vui long chon doi tuong nhan cu the cho thong bao.');
+        set_flash('error', 'Vui lòng chọn đối tượng nhận cụ thể cho thông báo.');
         redirect(page_url('notifications-manage', $redirectQuery));
     }
 
@@ -52,11 +52,11 @@ function api_notifications_save_action(): void
             'send_email' => $sendEmail,
         ]);
     } catch (Throwable $exception) {
-        set_flash('error', 'Khong the luu thong bao. Vui long thu lai.');
+        set_flash('error', 'Không thể lưu thông báo. Vui lòng thử lại.');
         redirect(page_url('notifications-manage', $redirectQuery));
     }
 
-    set_flash('success', 'Da luu thong bao thanh cong.');
+    set_flash('success', 'Đã lưu thông báo thành công.');
     redirect(page_url('notifications-manage'));
 }
 
@@ -73,15 +73,15 @@ function api_notifications_delete_action(): void
 
     $notificationId = (int) ($_GET['id'] ?? 0);
     if ($notificationId <= 0) {
-        set_flash('error', 'Thong bao khong hop le.');
+        set_flash('error', 'Thông báo không hợp lệ.');
         redirect(page_url('notifications-manage'));
     }
 
     try {
         (new AcademicModel())->deleteNotification($notificationId);
-        set_flash('success', 'Da xoa thong bao.');
+        set_flash('success', 'Đã xóa thông báo.');
     } catch (Throwable) {
-        set_flash('error', 'Khong the xoa thong bao. Vui long thu lai.');
+        set_flash('error', 'Không thể xóa thông báo. Vui lòng thử lại.');
     }
     redirect(page_url('notifications-manage'));
 }

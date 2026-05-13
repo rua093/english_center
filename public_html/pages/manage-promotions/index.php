@@ -282,7 +282,7 @@ $today = date('Y-m-d');
                                             </a>
                                         <?php endif; ?>
                                         <?php if ($canDeletePromotion): ?>
-                                            <form class="inline-block" method="post" action="/api/promotions/delete?id=<?= $promotionId; ?>&promotion_page=<?= (int) $promotionPage; ?>&promotion_per_page=<?= (int) $promotionPerPage; ?>&search=<?= urlencode($searchQuery); ?>&promo_type=<?= urlencode($promoTypeFilter); ?>" onsubmit="return confirm('Có chắc không?')">
+                                            <form class="inline-block" method="post" action="/api/promotions/delete?id=<?= $promotionId; ?>&promotion_page=<?= (int) $promotionPage; ?>&promotion_per_page=<?= (int) $promotionPerPage; ?>&search=<?= urlencode($searchQuery); ?>&promo_type=<?= urlencode($promoTypeFilter); ?>" onsubmit="return confirm('Bạn có chắc muốn xóa ưu đãi này không?')">
                                                 <?= csrf_input(); ?>
                                                 <button class="<?= ui_btn_danger_classes('sm'); ?> admin-action-icon-btn" data-action-kind="delete" data-skip-action-icon="1" type="submit" title="Xóa" aria-label="Xóa">
                                                     <span class="admin-action-icon-label">Xóa</span>

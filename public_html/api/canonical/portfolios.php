@@ -25,14 +25,14 @@ function api_portfolios_save_action(): void
 	if (!empty($_FILES['portfolio_file']['name'])) {
 		$fileUpload = store_uploaded_file($_FILES['portfolio_file'], 'portfolio');
 		if ($fileUpload === null) {
-			set_flash('error', 'Tải lên media portfolio thất bại.');
+			set_flash('error', 'Tải lên tệp hồ sơ tiến bộ thất bại.');
 			redirect(page_url('portfolios-academic'));
 		}
 		$uploadPath = $fileUpload;
 	}
 
 	if ($uploadPath === '') {
-		set_flash('error', 'Vui lòng tải lên media cho portfolio.');
+		set_flash('error', 'Vui lòng tải lên tệp cho hồ sơ tiến bộ.');
 		if ($portfolioId > 0) {
 			redirect(page_url('portfolios-academic', ['edit' => $portfolioId]));
 		}
@@ -42,7 +42,7 @@ function api_portfolios_save_action(): void
 
 	$_POST['media_url'] = $uploadPath;
 	$academicModel->savePortfolio($_POST);
-	set_flash('success', 'Đã lưu portfolio thành công.');
+	set_flash('success', 'Đã lưu hồ sơ tiến bộ thành công.');
 
 	redirect(page_url('portfolios-academic'));
 }
@@ -69,9 +69,9 @@ function api_portfolios_delete_action(): void
 
 	try {
 		(new AcademicModel())->deletePortfolio($portfolioId);
-		set_flash('success', 'Đã xóa portfolio.');
+		set_flash('success', 'Đã xóa hồ sơ tiến bộ.');
 	} catch (Throwable) {
-		set_flash('error', 'Không thể xóa portfolio. Vui lòng thử lại.');
+		set_flash('error', 'Không thể xóa hồ sơ tiến bộ. Vui lòng thử lại.');
 	}
 	redirect(page_url('portfolios-academic'));
 }

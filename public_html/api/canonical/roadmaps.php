@@ -44,7 +44,7 @@ function api_roadmaps_save_action(): void
     }
 
     if ($courseId <= 0 || $topicTitle === '') {
-        set_flash('error', 'Vui lòng chọn khóa học và nhập chủ đề roadmap.');
+        set_flash('error', 'Vui lòng chọn khóa học và nhập chủ đề lộ trình.');
 
         if ($roadmapId > 0) {
             $redirectQuery['edit'] = $roadmapId;
@@ -71,7 +71,7 @@ function api_roadmaps_save_action(): void
         redirect(page_url('roadmaps-academic', $redirectQuery));
     }
 
-    set_flash('success', $roadmapId > 0 ? 'Đã cập nhật roadmap.' : 'Đã tạo roadmap mới.');
+    set_flash('success', $roadmapId > 0 ? 'Đã cập nhật lộ trình.' : 'Đã tạo lộ trình mới.');
     redirect(page_url('roadmaps-academic', $redirectQuery));
 }
 
@@ -92,15 +92,15 @@ function api_roadmaps_delete_action(): void
 
     $roadmapId = (int) ($_GET['id'] ?? 0);
     if ($roadmapId <= 0) {
-        set_flash('error', 'Roadmap không hợp lệ.');
+        set_flash('error', 'Lộ trình không hợp lệ.');
         redirect(page_url('roadmaps-academic', roadmaps_manage_redirect_query($_GET)));
     }
 
     try {
         (new AcademicModel())->deleteRoadmap($roadmapId);
-        set_flash('success', 'Đã xóa roadmap.');
+        set_flash('success', 'Đã xóa lộ trình.');
     } catch (Throwable) {
-        set_flash('error', 'Không thể xóa roadmap. Chủ đề này có thể đã được gắn với buổi học.');
+        set_flash('error', 'Không thể xóa lộ trình. Chủ đề này có thể đã được gắn với buổi học.');
     }
 
     redirect(page_url('roadmaps-academic', roadmaps_manage_redirect_query($_GET)));
