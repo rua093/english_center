@@ -95,10 +95,10 @@ function lessons_assert_teacher_class_access(AcademicModel $academicModel, int $
     }
 
     if (api_expects_json()) {
-        api_error('Ban chi co the quan ly lop hoc minh dang day.', ['code' => 'CLASS_ACCESS_DENIED'], 403);
+        api_error('Bạn chỉ có thể quản lý lớp học mình đang dạy.', ['code' => 'CLASS_ACCESS_DENIED'], 403);
     }
 
-    set_flash('error', 'Ban chi co the quan ly lop hoc minh dang day.');
+    set_flash('error', 'Bạn chỉ có thể quản lý lớp học mình đang dạy.');
     redirect($redirectPath);
 }
 
@@ -137,9 +137,9 @@ function api_lessons_save_action(): void
         $schedule = $academicModel->findSchedule($scheduleId);
         if (!is_array($schedule) || (int) ($schedule['class_id'] ?? 0) !== $classId) {
             if (api_expects_json()) {
-                api_error('Lich hoc duoc chon khong thuoc lop hoc nay.', ['code' => 'SCHEDULE_CLASS_MISMATCH'], 422);
+                api_error('Lịch học được chọn không thuộc lớp học này.', ['code' => 'SCHEDULE_CLASS_MISMATCH'], 422);
             }
-            set_flash('error', 'Lich hoc duoc chon khong thuoc lop hoc nay.');
+            set_flash('error', 'Lịch học được chọn không thuộc lớp học này.');
             redirect($redirectPath);
         }
 
@@ -317,7 +317,7 @@ function api_lessons_attendance_action(): void
     $academicModel = new AcademicModel();
     $schedule = $academicModel->findSchedule($scheduleId);
     if (!is_array($schedule)) {
-        set_flash('error', 'Khong tim thay lich hoc can diem danh.');
+        set_flash('error', 'Không tìm thấy lịch học cần điểm danh.');
         redirect($redirectPath);
     }
 

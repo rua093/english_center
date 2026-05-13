@@ -2,9 +2,12 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/logger.php';
+require_once __DIR__ . '/i18n.php';
 require_once __DIR__ . '/response.php';
 require_once __DIR__ . '/security.php';
 require_once __DIR__ . '/validation.php';
+
+i18n_bootstrap();
 
 function api_expects_json(): bool
 {
@@ -51,7 +54,7 @@ function api_require_post(string $redirectPath): void
 	}
 
 	if (api_expects_json()) {
-		api_error('Method not allowed.', ['code' => 'METHOD_NOT_ALLOWED'], 405);
+		api_error(t('api.method_not_allowed'), ['code' => 'METHOD_NOT_ALLOWED'], 405);
 	}
 
 	redirect($redirectPath);
@@ -60,10 +63,10 @@ function api_require_post(string $redirectPath): void
 function api_fail_invalid_csrf(string $redirectPath = '/?page=home'): never
 {
 	if (api_expects_json()) {
-		api_error('Invalid CSRF token.', ['code' => 'INVALID_CSRF'], 419);
+		api_error(t('api.invalid_csrf'), ['code' => 'INVALID_CSRF'], 419);
 	}
 
-	set_flash('error', 'Yeu cau khong hop le. Vui long thu lai.');
+	set_flash('error', t('flash.invalid_request'));
 	$refererPath = safe_referer_path((string) ($_SERVER['HTTP_REFERER'] ?? ''));
 	if ($refererPath !== '') {
 		redirect($refererPath);
@@ -103,10 +106,10 @@ function api_run_action(string $actionName, callable $handler, string $fallbackR
 		]);
 
 		if (api_expects_json()) {
-			api_error('Internal server error.', ['code' => 'SERVER_ERROR'], 500);
+			api_error(t('api.internal_server_error'), ['code' => 'SERVER_ERROR'], 500);
 		}
 
-		set_flash('error', 'Co loi xay ra. Vui long thu lai.');
+		set_flash('error', t('flash.internal_error'));
 		redirect($fallbackRedirect);
 	}
 

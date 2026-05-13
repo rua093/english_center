@@ -31,7 +31,7 @@ foreach ($teacherRows as $teacherRow) {
     $teacherAvatar = trim((string) ($teacherUser['avatar'] ?? ''));
 
     if ($teacherAvatar === '') {
-        $teacherAvatar = 'https://ui-avatars.com/api/?name=' . urlencode((string) ($teacherUser['full_name'] ?? 'Teacher')) . '&background=10b981&color=fff&size=600&bold=true';
+        $teacherAvatar = 'https://ui-avatars.com/api/?name=' . urlencode((string) ($teacherUser['full_name'] ?? t('teachers.default_name'))) . '&background=10b981&color=fff&size=600&bold=true';
     } elseif (function_exists('normalize_public_file_url')) {
         $teacherAvatar = normalize_public_file_url($teacherAvatar);
     }
@@ -41,7 +41,7 @@ foreach ($teacherRows as $teacherRow) {
         $highlights[] = $teacherDegree;
     }
     if ($teacherExperience > 0) {
-        $highlights[] = $teacherExperience . ' năm kinh nghiệm';
+        $highlights[] = t('teachers.years_experience', ['count' => $teacherExperience]);
     }
     if ($teacherBio !== '') {
         $highlights[] = mb_strimwidth($teacherBio, 0, 40, '...');
@@ -49,12 +49,12 @@ foreach ($teacherRows as $teacherRow) {
 
     $teachers[] = [
         'id' => $teacherId,
-        'name' => (string) ($teacherUser['full_name'] ?? 'Giáo viên'),
+        'name' => (string) ($teacherUser['full_name'] ?? t('teachers.default_name')),
         'avatar' => $teacherAvatar,
-        'role' => 'Giảng viên',
-        'degree' => $teacherDegree !== '' ? $teacherDegree : 'Đang cập nhật',
+        'role' => t('teachers.default_role'),
+        'degree' => $teacherDegree !== '' ? $teacherDegree : t('courses.updating'),
         'experience' => $teacherExperience,
-        'highlights' => $highlights !== [] ? array_slice($highlights, 0, 3) : ['Giảng viên'],
+        'highlights' => $highlights !== [] ? array_slice($highlights, 0, 3) : [t('teachers.default_highlight')],
     ];
 }
 ?>
@@ -83,20 +83,20 @@ foreach ($teacherRows as $teacherRow) {
     <div class="absolute inset-x-0 top-0 z-0 h-72 pointer-events-none bg-gradient-to-b from-lime-200/75 via-lime-100/45 to-transparent"></div>
     <div class="relative z-10 bg-lime-100 pt-24 pb-32 overflow-hidden">
     <div class="absolute inset-0">
-        <img src="<?= e('/assets/images/teacher_page_banner.jpg'); ?>" alt="Banner đội ngũ giảng viên" class="w-full h-full object-cover object-center opacity-100">
+        <img src="<?= e('/assets/images/teacher_page_banner.jpg'); ?>" alt="<?= e(t('teachers.banner_alt')); ?>" class="w-full h-full object-cover object-center opacity-100">
     </div>
     
     <div class="container mx-auto px-4 max-w-6xl relative z-10 text-left">
         
-        <span class="inline-block px-4 py-1.5 rounded-full bg-black/30 text-white text-xs font-bold uppercase tracking-widest border border-white/40 shadow-sm mb-6 backdrop-blur-md">Niềm tự hào của Nhuệ Minh</span>
+        <span class="inline-block px-4 py-1.5 rounded-full bg-black/30 text-white text-xs font-bold uppercase tracking-widest border border-white/40 shadow-sm mb-6 backdrop-blur-md"><?= e(t('teachers.kicker')); ?></span>
         
         <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tight mb-6">
-            <span class="inline-block [text-shadow:0px_5px_15px_rgba(0,0,0,0.85)]">Đội ngũ Giảng viên</span>
-            <span class="block mt-2 [text-shadow:0px_5px_15px_rgba(0,0,0,0.85)]">Tinh hoa</span>
+            <span class="inline-block [text-shadow:0px_5px_15px_rgba(0,0,0,0.85)]"><?= e(t('teachers.hero_line_1')); ?></span>
+            <span class="block mt-2 [text-shadow:0px_5px_15px_rgba(0,0,0,0.85)]"><?= e(t('teachers.hero_line_2')); ?></span>
         </h1>
         
         <p class="text-white text-lg md:text-xl max-w-2xl font-medium leading-relaxed [text-shadow:0px_3px_8px_rgba(0,0,0,0.9)]">
-            100% Giảng viên sở hữu chứng chỉ giảng dạy quốc tế (TESOL, CELTA), tận tâm đồng hành cùng sự phát triển của học viên.
+            <?= e(t('teachers.hero_copy')); ?>
         </p>
         
     </div>
@@ -113,13 +113,13 @@ foreach ($teacherRows as $teacherRow) {
                         <div class="absolute inset-0 bg-gradient-to-t from-slate-950/75 via-slate-950/10 to-transparent opacity-80 transition-opacity duration-500 group-hover:opacity-90"></div>
 
                         <div class="absolute left-4 top-4 rounded-full bg-white/90 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-emerald-600 shadow-sm backdrop-blur-sm">
-                            Hồ sơ giảng viên
+                            <?= e(t('teachers.profile_badge')); ?>
                         </div>
 
                         <div class="absolute bottom-4 left-4 right-4 flex items-end justify-between gap-3">
                             <div class="rounded-2xl bg-white/90 px-3 py-2 backdrop-blur-sm shadow-sm">
-                                <p class="text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">Kinh nghiệm</p>
-                                <p class="text-sm font-black text-slate-900"><?= $teacher['experience'] ?> năm</p>
+                                <p class="text-[10px] font-black uppercase tracking-[0.18em] text-slate-400"><?= e(t('teachers.experience')); ?></p>
+                                <p class="text-sm font-black text-slate-900"><?= e(t('teachers.years_short', ['count' => $teacher['experience']])); ?></p>
                             </div>
                             <div class="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500 text-white shadow-lg shadow-emerald-500/25 transition-transform duration-300 group-hover:-translate-y-1">
                                 <i class="fa-solid fa-arrow-right"></i>
@@ -146,7 +146,7 @@ foreach ($teacherRows as $teacherRow) {
                     </div>
 
                     <div class="w-full py-3.5 rounded-xl bg-slate-50 text-slate-600 font-black text-xs uppercase tracking-widest text-center group-hover:bg-emerald-500 group-hover:text-white transition-all duration-300 flex items-center justify-center gap-2">
-                        Xem hồ sơ chi tiết <i class="fa-solid fa-arrow-right"></i>
+                        <?= e(t('teachers.view_profile')); ?> <i class="fa-solid fa-arrow-right"></i>
                     </div>
                 </div>
             </div>
@@ -158,17 +158,17 @@ foreach ($teacherRows as $teacherRow) {
             <div class="mt-10 rounded-[2rem] border border-white bg-white/85 p-4 shadow-[0_12px_30px_rgba(15,23,42,0.06)] backdrop-blur-md">
                 <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <p class="text-sm md:text-base font-medium text-slate-600">
-                        Đang hiển thị <?= count($teachers); ?> / <?= number_format($teacherTotal, 0, ',', '.'); ?> giảng viên
+                        <?= e(t('teachers.showing', ['shown' => count($teachers), 'total' => number_format($teacherTotal, 0, ',', '.')])); ?>
                     </p>
                     <p class="text-xs md:text-sm font-bold uppercase tracking-[0.18em] text-emerald-600">
-                        Trang <?= $currentTeacherPage; ?> / <?= $totalTeacherPages; ?>
+                        <?= e(t('teachers.page_status', ['current' => $currentTeacherPage, 'total' => $totalTeacherPages])); ?>
                     </p>
                 </div>
 
                 <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
              
 
-                <nav class="flex flex-wrap items-center justify-center gap-2" aria-label="Phân trang giảng viên">
+                <nav class="flex flex-wrap items-center justify-center gap-2" aria-label="<?= e(t('teachers.pagination_label')); ?>">
                     <a href="<?= e($buildTeacherPageUrl(max(1, $currentTeacherPage - 1))); ?>" class="inline-flex h-11 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-black text-slate-700 shadow-sm transition-all hover:-translate-y-0.5 hover:border-emerald-300 hover:text-emerald-600 <?= $currentTeacherPage === 1 ? 'pointer-events-none opacity-40' : ''; ?>">
                         <i class="fa-solid fa-chevron-left"></i>
                     </a>

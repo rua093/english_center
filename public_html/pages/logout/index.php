@@ -2,5 +2,5 @@
 declare(strict_types=1);
 
 logout_user();
-set_flash('success', 'Bạn đã đăng xuất thành công.');
+set_flash('success', t('auth.logout_success'));
 redirect(page_url('login'));

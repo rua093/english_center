@@ -24,7 +24,7 @@ $_GET['page'] = $page;
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 	$csrfToken = request_csrf_token();
 	if (!validate_csrf_token($csrfToken)) {
-		set_flash('error', 'Yêu cầu không hợp lệ. Vui lòng thử lại.');
+		set_flash('error', t('flash.invalid_request'));
 		$refererPath = safe_referer_path((string) ($_SERVER['HTTP_REFERER'] ?? ''));
 		if ($refererPath !== '') {
 			header('Location: ' . $refererPath);

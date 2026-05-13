@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="vi">
+<html lang="<?= e(current_locale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= e((string) ($adminTitle ?? 'Khu vực quản trị')); ?> | Trung tâm Anh ngữ</title>
-    <meta name="description" content="Khu vực điều hành nội bộ dành cho quản trị viên và nhân sự trung tâm.">
+    <title><?= e((string) ($adminTitle ?? t('app.admin_default_title'))); ?> | <?= e(t('app.admin_suffix')); ?></title>
+    <meta name="description" content="<?= e(t('app.admin_description')); ?>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
@@ -1875,10 +1875,10 @@ $adminPageDescriptionMap = [
     'portfolios' => 'Tổng hợp hồ sơ tiến bộ của học viên, lưu minh chứng tiến bộ theo giai đoạn học.',
 ];
 
-$displayAdminTitle = (string) ($adminPageTitleMap[$activeModule] ?? ($adminTitle ?? 'Khu vực quản trị'));
+$displayAdminTitle = (string) ($adminPageTitleMap[$activeModule] ?? ($adminTitle ?? t('app.admin_default_title')));
 $displayAdminDescription = trim((string) ($adminDescription ?? ''));
 if ($displayAdminDescription === '') {
-    $displayAdminDescription = (string) ($adminPageDescriptionMap[$activeModule] ?? 'Quản lý dữ liệu theo từng phân hệ của hệ thống.');
+    $displayAdminDescription = (string) ($adminPageDescriptionMap[$activeModule] ?? t('admin.generic_description'));
 }
 ?>
 <div class="admin-shell">
@@ -1967,13 +1967,14 @@ if ($displayAdminDescription === '') {
                         <svg viewBox="0 0 24 24"><path d="M12 3 5 6v6c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6Z"></path><path d="m9 12 2 2 4-4"></path></svg>
                     </span>
                     <span class="admin-sidebar-link-label">Phê duyệt</span>
-                    <span
-                        id="adminSidebarModuleBadge-approvals"
-                        class="ml-auto inline-flex min-w-[1.5rem] items-center justify-center rounded-full bg-rose-500 px-2 py-0.5 text-[10px] font-black text-white shadow-sm"
-                        <?= ((int) ($adminUnreadNotificationModules['approvals'] ?? 0)) > 0 ? '' : 'hidden'; ?>
-                    >
-                        <?= e((string) ((((int) ($adminUnreadNotificationModules['approvals'] ?? 0)) > 99) ? '99+' : ((int) ($adminUnreadNotificationModules['approvals'] ?? 0)))); ?>
-                    </span>
+                    <?php if (((int) ($adminUnreadNotificationModules['approvals'] ?? 0)) > 0): ?>
+                        <span
+                            id="adminSidebarModuleBadge-approvals"
+                            class="ml-auto inline-flex min-w-[1.5rem] items-center justify-center rounded-full bg-rose-500 px-2 py-0.5 text-[10px] font-black text-white shadow-sm"
+                        >
+                            <?= e((string) ((((int) ($adminUnreadNotificationModules['approvals'] ?? 0)) > 99) ? '99+' : ((int) ($adminUnreadNotificationModules['approvals'] ?? 0)))); ?>
+                        </span>
+                    <?php endif; ?>
                 </a>
             <?php endif; ?>
 
@@ -1992,13 +1993,14 @@ if ($displayAdminDescription === '') {
                         <svg viewBox="0 0 24 24"><circle cx="10" cy="8" r="3"></circle><path d="M4 19a6 6 0 0 1 12 0"></path><path d="M16 8h5"></path><path d="M18.5 5.5v5"></path></svg>
                     </span>
                     <span class="admin-sidebar-link-label">Học viên đăng ký</span>
-                    <span
-                        id="adminSidebarModuleBadge-student-leads"
-                        class="ml-auto inline-flex min-w-[1.5rem] items-center justify-center rounded-full bg-rose-500 px-2 py-0.5 text-[10px] font-black text-white shadow-sm"
-                        <?= ((int) ($adminUnreadNotificationModules['student-leads'] ?? 0)) > 0 ? '' : 'hidden'; ?>
-                    >
-                        <?= e((string) ((((int) ($adminUnreadNotificationModules['student-leads'] ?? 0)) > 99) ? '99+' : ((int) ($adminUnreadNotificationModules['student-leads'] ?? 0)))); ?>
-                    </span>
+                    <?php if (((int) ($adminUnreadNotificationModules['student-leads'] ?? 0)) > 0): ?>
+                        <span
+                            id="adminSidebarModuleBadge-student-leads"
+                            class="ml-auto inline-flex min-w-[1.5rem] items-center justify-center rounded-full bg-rose-500 px-2 py-0.5 text-[10px] font-black text-white shadow-sm"
+                        >
+                            <?= e((string) ((((int) ($adminUnreadNotificationModules['student-leads'] ?? 0)) > 99) ? '99+' : ((int) ($adminUnreadNotificationModules['student-leads'] ?? 0)))); ?>
+                        </span>
+                    <?php endif; ?>
                 </a>
             <?php endif; ?>
 
@@ -2008,13 +2010,14 @@ if ($displayAdminDescription === '') {
                         <svg viewBox="0 0 24 24"><path d="M3 6h18v12H3z"></path><path d="m3 7 9 6 9-6"></path><path d="M7 11h2"></path><path d="M7 14h4"></path></svg>
                     </span>
                     <span class="admin-sidebar-link-label">Giáo viên ứng tuyển</span>
-                    <span
-                        id="adminSidebarModuleBadge-job-applications"
-                        class="ml-auto inline-flex min-w-[1.5rem] items-center justify-center rounded-full bg-rose-500 px-2 py-0.5 text-[10px] font-black text-white shadow-sm"
-                        <?= ((int) ($adminUnreadNotificationModules['job-applications'] ?? 0)) > 0 ? '' : 'hidden'; ?>
-                    >
-                        <?= e((string) ((((int) ($adminUnreadNotificationModules['job-applications'] ?? 0)) > 99) ? '99+' : ((int) ($adminUnreadNotificationModules['job-applications'] ?? 0)))); ?>
-                    </span>
+                    <?php if (((int) ($adminUnreadNotificationModules['job-applications'] ?? 0)) > 0): ?>
+                        <span
+                            id="adminSidebarModuleBadge-job-applications"
+                            class="ml-auto inline-flex min-w-[1.5rem] items-center justify-center rounded-full bg-rose-500 px-2 py-0.5 text-[10px] font-black text-white shadow-sm"
+                        >
+                            <?= e((string) ((((int) ($adminUnreadNotificationModules['job-applications'] ?? 0)) > 99) ? '99+' : ((int) ($adminUnreadNotificationModules['job-applications'] ?? 0)))); ?>
+                        </span>
+                    <?php endif; ?>
                 </a>
             <?php endif; ?>
 
@@ -2024,13 +2027,14 @@ if ($displayAdminDescription === '') {
                         <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"></rect><path d="M8 2v4"></path><path d="M16 2v4"></path><path d="M3 10h18"></path><path d="m9 15 2 2 4-4"></path></svg>
                     </span>
                     <span class="admin-sidebar-link-label">Hoạt động ngoại khóa</span>
-                    <span
-                        id="adminSidebarModuleBadge-activities"
-                        class="ml-auto inline-flex min-w-[1.5rem] items-center justify-center rounded-full bg-rose-500 px-2 py-0.5 text-[10px] font-black text-white shadow-sm"
-                        <?= ((int) ($adminUnreadNotificationModules['activities'] ?? 0)) > 0 ? '' : 'hidden'; ?>
-                    >
-                        <?= e((string) ((((int) ($adminUnreadNotificationModules['activities'] ?? 0)) > 99) ? '99+' : ((int) ($adminUnreadNotificationModules['activities'] ?? 0)))); ?>
-                    </span>
+                    <?php if (((int) ($adminUnreadNotificationModules['activities'] ?? 0)) > 0): ?>
+                        <span
+                            id="adminSidebarModuleBadge-activities"
+                            class="ml-auto inline-flex min-w-[1.5rem] items-center justify-center rounded-full bg-rose-500 px-2 py-0.5 text-[10px] font-black text-white shadow-sm"
+                        >
+                            <?= e((string) ((((int) ($adminUnreadNotificationModules['activities'] ?? 0)) > 99) ? '99+' : ((int) ($adminUnreadNotificationModules['activities'] ?? 0)))); ?>
+                        </span>
+                    <?php endif; ?>
                 </a>
             <?php endif; ?>
 
@@ -2049,13 +2053,14 @@ if ($displayAdminDescription === '') {
                         <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 7h18s-3 0-3-7"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
                     </span>
                     <span class="admin-sidebar-link-label">Thông báo</span>
-                    <span
-                        id="adminSidebarNotificationBadge"
-                        class="ml-auto inline-flex min-w-[1.5rem] items-center justify-center rounded-full bg-rose-500 px-2 py-0.5 text-[10px] font-black text-white shadow-sm"
-                        <?= $adminUnreadNotificationCount > 0 ? '' : 'hidden'; ?>
-                    >
-                        <?= e((string) ($adminUnreadNotificationCount > 99 ? '99+' : $adminUnreadNotificationCount)); ?>
-                    </span>
+                    <?php if ($adminUnreadNotificationCount > 0): ?>
+                        <span
+                            id="adminSidebarNotificationBadge"
+                            class="ml-auto inline-flex min-w-[1.5rem] items-center justify-center rounded-full bg-rose-500 px-2 py-0.5 text-[10px] font-black text-white shadow-sm"
+                        >
+                            <?= e((string) ($adminUnreadNotificationCount > 99 ? '99+' : $adminUnreadNotificationCount)); ?>
+                        </span>
+                    <?php endif; ?>
                 </a>
             <?php endif; ?>
 
@@ -2084,13 +2089,14 @@ if ($displayAdminDescription === '') {
                         <svg viewBox="0 0 24 24"><path d="M3 5a3 3 0 0 1 3-3h6v18H6a3 3 0 0 0-3 3z"></path><path d="M21 5a3 3 0 0 0-3-3h-6v18h6a3 3 0 0 1 3 3z"></path></svg>
                     </span>
                     <span class="admin-sidebar-link-label">Danh mục lớp học</span>
-                    <span
-                        id="adminSidebarModuleBadge-classes"
-                        class="ml-auto inline-flex min-w-[1.5rem] items-center justify-center rounded-full bg-rose-500 px-2 py-0.5 text-[10px] font-black text-white shadow-sm"
-                        <?= ((int) ($adminUnreadNotificationModules['classes'] ?? 0)) > 0 ? '' : 'hidden'; ?>
-                    >
-                        <?= e((string) ((((int) ($adminUnreadNotificationModules['classes'] ?? 0)) > 99) ? '99+' : ((int) ($adminUnreadNotificationModules['classes'] ?? 0)))); ?>
-                    </span>
+                    <?php if (((int) ($adminUnreadNotificationModules['classes'] ?? 0)) > 0): ?>
+                        <span
+                            id="adminSidebarModuleBadge-classes"
+                            class="ml-auto inline-flex min-w-[1.5rem] items-center justify-center rounded-full bg-rose-500 px-2 py-0.5 text-[10px] font-black text-white shadow-sm"
+                        >
+                            <?= e((string) ((((int) ($adminUnreadNotificationModules['classes'] ?? 0)) > 99) ? '99+' : ((int) ($adminUnreadNotificationModules['classes'] ?? 0)))); ?>
+                        </span>
+                    <?php endif; ?>
                 </a>
             <?php endif; ?>
 
@@ -2142,8 +2148,8 @@ if ($displayAdminDescription === '') {
         </nav>
 
         <div class="admin-sidebar-actions">
-            <a class="<?= ui_btn_secondary_classes('sm'); ?>" href="<?= e(page_url('home')); ?>">Về trang chủ</a>
-            <a class="<?= ui_btn_primary_classes('sm'); ?>" href="<?= e(page_url('logout')); ?>">Đăng xuất</a>
+            <a class="<?= ui_btn_secondary_classes('sm'); ?>" href="<?= e(page_url('home')); ?>"><?= e(t('admin.back_home')); ?></a>
+            <a class="<?= ui_btn_primary_classes('sm'); ?>" href="<?= e(page_url('logout')); ?>"><?= e(t('nav.logout')); ?></a>
         </div>
     </aside>
 
@@ -2268,7 +2274,7 @@ if ($displayAdminDescription === '') {
                 document.documentElement.classList.toggle('admin-sidebar-collapsed', collapsed);
 
                 const expandedText = collapsed ? 'false' : 'true';
-                const labelText = collapsed ? 'Mở sidebar' : 'Thu gọn sidebar';
+                const labelText = collapsed ? <?= json_encode(t('admin.sidebar.open'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?> : <?= json_encode(t('admin.sidebar.collapse'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
                 ['adminSidebarToggle', 'adminMainSidebarToggle'].forEach(function (id) {
                     const button = document.getElementById(id);
                     if (!(button instanceof HTMLButtonElement)) {
@@ -2336,7 +2342,7 @@ if ($displayAdminDescription === '') {
                         type="button"
                         class="admin-main-sidebar-toggle"
                         id="adminMainSidebarToggle"
-                        aria-label="Đóng mở sidebar"
+                        aria-label="<?= e(t('admin.sidebar.toggle')); ?>"
                         aria-controls="adminSidebar"
                         aria-expanded="true"
                     >
@@ -2348,13 +2354,18 @@ if ($displayAdminDescription === '') {
             </div>
 
             <div class="admin-page-hero-actions">
+                <div class="inline-flex rounded-full border border-slate-200 bg-white p-1 text-xs font-black shadow-sm" aria-label="<?= e(t('locale.language')); ?>">
+                    <?php $adminCurrentLocale = current_locale(); ?>
+                    <a class="rounded-full px-2.5 py-1 <?= $adminCurrentLocale === 'vi' ? 'bg-blue-600 text-white' : 'text-slate-500 hover:text-blue-700'; ?>" href="<?= e(localized_current_url('vi')); ?>" title="<?= e(t('locale.switch_to', ['language' => 'Tiếng Việt'])); ?>"><?= e(t('locale.vi')); ?></a>
+                    <a class="rounded-full px-2.5 py-1 <?= $adminCurrentLocale === 'en' ? 'bg-blue-600 text-white' : 'text-slate-500 hover:text-blue-700'; ?>" href="<?= e(localized_current_url('en')); ?>" title="<?= e(t('locale.switch_to', ['language' => 'English'])); ?>"><?= e(t('locale.en')); ?></a>
+                </div>
                 <?php if ($canUseNotificationBell): ?>
                     <div class="admin-notification-shell" data-admin-notification-shell="1">
                         <button
                             type="button"
                             class="admin-notification-toggle"
                             id="adminNotificationToggle"
-                            aria-label="Mở thông báo"
+                            aria-label="<?= e(t('admin.notifications.open')); ?>"
                             aria-haspopup="dialog"
                             aria-expanded="false"
                         >
@@ -2365,26 +2376,26 @@ if ($displayAdminDescription === '') {
                             <span id="adminNotificationBadge" class="admin-notification-badge" <?= $adminUnreadNotificationCount > 0 ? '' : 'hidden'; ?>><?= e((string) ($adminUnreadNotificationCount > 99 ? '99+' : $adminUnreadNotificationCount)); ?></span>
                         </button>
 
-                        <div class="admin-notification-dropdown" id="adminNotificationDropdown" role="dialog" aria-label="Thông báo admin">
+                        <div class="admin-notification-dropdown" id="adminNotificationDropdown" role="dialog" aria-label="<?= e(t('admin.notifications.dialog')); ?>">
                             <div class="admin-notification-dropdown-header">
                                 <div>
-                                    <div class="admin-notification-dropdown-title">Thông báo mới</div>
+                                    <div class="admin-notification-dropdown-title"><?= e(t('admin.notifications.new')); ?></div>
                                     <div class="admin-notification-dropdown-subtitle" id="adminNotificationSubtitle">
                                         <?= e($adminUnreadNotificationCount > 0
-                                            ? ('Có ' . ($adminUnreadNotificationCount > 99 ? '99+' : $adminUnreadNotificationCount) . ' thông báo chưa đọc')
-                                            : 'Bạn đã xem hết thông báo'); ?>
+                                            ? t('admin.notifications.unread', ['count' => ($adminUnreadNotificationCount > 99 ? '99+' : $adminUnreadNotificationCount)])
+                                            : t('admin.notifications.all_read')); ?>
                                     </div>
                                 </div>
                             </div>
 
                             <div class="admin-notification-dropdown-list" id="adminNotificationDropdownList">
                                 <?php if ($adminRecentNotifications === []): ?>
-                                    <div class="admin-notification-empty">Chưa có thông báo nào.</div>
+                                    <div class="admin-notification-empty"><?= e(t('admin.notifications.empty')); ?></div>
                                 <?php else: ?>
                                     <?php foreach ($adminRecentNotifications as $notification): ?>
                                         <?php
                                         $notificationId = (int) ($notification['id'] ?? 0);
-                                        $notificationTitle = trim((string) ($notification['title'] ?? 'Thông báo hệ thống'));
+                                        $notificationTitle = trim((string) ($notification['title'] ?? t('admin.notifications.system_title')));
                                         $notificationMessage = trim((string) ($notification['message'] ?? ''));
                                         if ($notificationMessage !== '') {
                                             if (function_exists('mb_strimwidth')) {
@@ -2423,14 +2434,14 @@ if ($displayAdminDescription === '') {
 
                             <?php if ($canManageNotificationCenter): ?>
                                 <div class="admin-notification-dropdown-footer">
-                                    <a class="admin-notification-dropdown-link" href="<?= e(page_url('notifications-manage')); ?>">Xem tất cả thông báo</a>
+                                    <a class="admin-notification-dropdown-link" href="<?= e(page_url('notifications-manage')); ?>"><?= e(t('admin.notifications.view_all')); ?></a>
                                 </div>
                             <?php endif; ?>
                         </div>
                     </div>
                 <?php endif; ?>
 
-                <a class="admin-page-profile-link" href="<?= e(page_url('profile')); ?>">Hồ sơ</a>
+                <a class="admin-page-profile-link" href="<?= e(page_url('profile')); ?>"><?= e(t('nav.profile')); ?></a>
             </div>
         </header>
 
@@ -2456,6 +2467,15 @@ if ($displayAdminDescription === '') {
                 const feedUrl = <?= json_encode('/api/index.php?resource=notifications&method=admin-feed&format=json&limit=6', JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
                 const markReadUrl = <?= json_encode('/api/index.php?resource=notifications&method=mark-read&format=json', JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
                 const allNotificationsUrl = <?= json_encode($adminNotificationFallbackUrl, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
+                const notificationText = {
+                    unread: <?= json_encode(t('admin.notifications.unread', ['count' => '__COUNT__']), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
+                    allRead: <?= json_encode(t('admin.notifications.all_read'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
+                    empty: <?= json_encode(t('admin.notifications.empty'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
+                    systemTitle: <?= json_encode(t('admin.notifications.system_title'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
+                    newTitle: <?= json_encode(t('admin.notifications.new'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
+                    close: <?= json_encode(t('admin.notifications.close'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
+                    openDetail: <?= json_encode(t('admin.notifications.open_detail'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
+                };
                 const pollIntervalMs = 45000;
                 const toastStack = document.getElementById('adminNotificationToastStack');
                 const knownNotificationIds = new Set();
@@ -2501,8 +2521,8 @@ if ($displayAdminDescription === '') {
                 function updateUnreadDisplay(unreadCount) {
                     const normalizedCount = Math.max(0, Number(unreadCount || 0));
                     subtitle.textContent = normalizedCount > 0
-                        ? 'Có ' + unreadBadgeText(normalizedCount) + ' thông báo chưa đọc'
-                        : 'Bạn đã xem hết thông báo';
+                        ? notificationText.unread.replace('__COUNT__', unreadBadgeText(normalizedCount))
+                        : notificationText.allRead;
 
                     updateBadgeElement(
                         bellBadge,
@@ -2530,13 +2550,13 @@ if ($displayAdminDescription === '') {
 
                 function renderNotifications(items) {
                     if (!Array.isArray(items) || items.length === 0) {
-                        list.innerHTML = '<div class="admin-notification-empty">Chưa có thông báo nào.</div>';
+                        list.innerHTML = '<div class="admin-notification-empty">' + escapeHtml(notificationText.empty) + '</div>';
                         return;
                     }
 
                     list.innerHTML = items.map(function (item) {
                         const notificationId = Number(item && item.id ? item.id : 0);
-                        const title = escapeHtml(item && item.title ? item.title : 'Thông báo hệ thống');
+                        const title = escapeHtml(item && item.title ? item.title : notificationText.systemTitle);
                         const message = escapeHtml(item && item.message ? item.message : '');
                         const createdAt = escapeHtml(item && item.created_at_display ? item.created_at_display : '');
                         const actionUrl = escapeHtml(item && item.action_url ? item.action_url : allNotificationsUrl);
@@ -2577,7 +2597,7 @@ if ($displayAdminDescription === '') {
                         return;
                     }
 
-                    const title = escapeHtml(item.title || 'Thông báo hệ thống');
+                    const title = escapeHtml(item.title || notificationText.systemTitle);
                     const message = escapeHtml(item.message || '');
                     const createdAt = escapeHtml(item.created_at_display || '');
                     const actionUrl = item.action_url || allNotificationsUrl;
@@ -2588,15 +2608,15 @@ if ($displayAdminDescription === '') {
                     toastElement.innerHTML = ''
                         + '<div class="admin-notification-toast-head">'
                         + '<div>'
-                        + '<div class="admin-notification-toast-kicker">Thông báo mới</div>'
+                        + '<div class="admin-notification-toast-kicker">' + escapeHtml(notificationText.newTitle) + '</div>'
                         + '<div class="admin-notification-toast-title">' + title + '</div>'
                         + '</div>'
-                        + '<button type="button" class="admin-notification-toast-close" aria-label="Đóng thông báo">×</button>'
+                        + '<button type="button" class="admin-notification-toast-close" aria-label="' + escapeHtml(notificationText.close) + '">×</button>'
                         + '</div>'
                         + (message !== '' ? '<div class="admin-notification-toast-message">' + message + '</div>' : '')
                         + '<div class="admin-notification-toast-actions">'
                         + '<span class="admin-notification-toast-time">' + createdAt + '</span>'
-                        + '<a class="admin-notification-toast-link" href="' + escapeHtml(actionUrl) + '" data-notification-id="' + notificationId + '">Mở chi tiết</a>'
+                        + '<a class="admin-notification-toast-link" href="' + escapeHtml(actionUrl) + '" data-notification-id="' + notificationId + '">' + escapeHtml(notificationText.openDetail) + '</a>'
                         + '</div>';
 
                     const closeButton = toastElement.querySelector('.admin-notification-toast-close');

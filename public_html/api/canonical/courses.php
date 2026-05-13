@@ -105,7 +105,7 @@ function api_courses_delete_action(): void
         (new AcademicModel())->deleteCourse($courseId);
         set_flash('success', 'Đã chuyển khóa học vào trạng thái xóa mềm.');
     } catch (Throwable) {
-        set_flash('error', 'Không thể xóa khóa học. Dữ liệu có thể đang được tham chiếu bởi lớp học hoặc roadmap.');
+        set_flash('error', 'Không thể xóa khóa học. Dữ liệu có thể đang được tham chiếu bởi lớp học hoặc lộ trình.');
     }
 
     redirect(page_url('courses-academic', courses_manage_redirect_query($_GET)));

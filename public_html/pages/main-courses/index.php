@@ -50,18 +50,18 @@ foreach ($courseRows as $row) {
     $courses[] = [
         'slug' => $slug,
         'title' => $courseName,
-        'tag' => 'Khóa học',
-        'short_desc' => (string) ($row['description'] ?? 'Chương trình học được xây dựng theo lộ trình rõ ràng, phù hợp cho từng học viên.'),
+        'tag' => t('courses.default_tag'),
+        'short_desc' => (string) ($row['description'] ?? t('courses.default_desc')),
         'price' => $priceValue,
         'original_price' => $priceValue,
-        'duration' => ((int) ($row['total_sessions'] ?? 0)) . ' buổi',
-        'level' => 'Đang cập nhật',
+        'duration' => t('courses.sessions', ['count' => (int) ($row['total_sessions'] ?? 0)]),
+        'level' => t('courses.updating'),
         'lessons_count' => (int) ($row['total_sessions'] ?? 0),
         'rating' => 5.0,
         'students' => 0,
         'image' => $image,
         'instructor' => [
-            'name' => 'Đội ngũ giáo viên',
+            'name' => t('courses.instructor_team'),
             'role' => 'Academic Team',
         ],
         'benefits' => [],
@@ -72,10 +72,10 @@ foreach ($courseRows as $row) {
 }
 
 $stats = [
-    ['value' => number_format($courseTotal, 0, ',', '.') . '+', 'label' => 'Chương trình học'],
-    ['value' => '100+', 'label' => 'Học viên đang theo học'],
-    ['value' => '99%', 'label' => 'Hài lòng sau khóa học'],
-    ['value' => '100%', 'label' => 'Lộ trình được cá nhân hóa'],
+    ['value' => number_format($courseTotal, 0, ',', '.') . '+', 'label' => t('courses.stats_programs')],
+    ['value' => '100+', 'label' => t('courses.stats_students')],
+    ['value' => '99%', 'label' => t('courses.stats_satisfaction')],
+    ['value' => '100%', 'label' => t('courses.stats_personalized')],
 ];
 
 // $highlights = [
@@ -119,7 +119,7 @@ $stats = [
     <div class="absolute inset-x-0 top-0 z-0 h-72 pointer-events-none bg-gradient-to-b from-lime-200/75 via-lime-100/45 to-transparent"></div>
     <section id="gioi-thieu" class="relative py-20 lg:py-32 overflow-hidden">
         <div class="absolute inset-0 z-0">
-            <img src="/assets/images/course3.jpg" alt="Không gian học tập" class="h-full w-full object-cover">
+            <img src="/assets/images/course3.jpg" alt="<?= e(t('courses.image_alt')); ?>" class="h-full w-full object-cover">
             <div class="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-900/80 to-transparent"></div>
         </div>
 
@@ -128,24 +128,24 @@ $stats = [
                 
                 <span class="inline-flex items-center gap-2 rounded-full border border-rose-400/30 bg-rose-500/20 px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-rose-200 backdrop-blur-md mb-6 shadow-sm">
                     <span class="h-2 w-2 rounded-full bg-rose-400 animate-pulse"></span>
-                    Chương trình học Nhuệ Minh
+                    <?= e(t('courses.kicker')); ?>
                 </span>
 
                 <h1 class="text-4xl md:text-5xl lg:text-6xl font-black leading-tight text-white mb-6 tracking-tight">
-                    Lộ trình chuẩn quốc tế cho <br class="hidden md:block">
-                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-rose-400 to-lime-300">mọi độ tuổi & mục tiêu</span>
+                    <?= e(t('courses.hero_title')); ?> <br class="hidden md:block">
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-rose-400 to-lime-300"><?= e(t('courses.hero_highlight')); ?></span>
                 </h1>
 
                 <p class="text-base md:text-lg text-slate-300 leading-relaxed font-medium mb-10 max-w-2xl">
-                    Từ mầm non, tiểu học đến luyện thi IELTS và tiếng Anh doanh nghiệp, chúng tôi cá nhân hóa lộ trình giúp bạn bứt phá rào cản và làm chủ ngôn ngữ nhanh nhất.
+                    <?= e(t('courses.hero_copy')); ?>
                 </p>
 
                 <div class="flex flex-wrap gap-4 mb-14">
                     <a href="#danh-sach-khoa-hoc" class="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-rose-500 to-rose-600 px-8 py-4 text-sm font-black uppercase tracking-widest text-white shadow-lg shadow-rose-500/30 transition-transform hover:-translate-y-1">
-                        Xem khóa học <i class="fa-solid fa-arrow-down"></i>
+                        <?= e(t('courses.view_courses')); ?> <i class="fa-solid fa-arrow-down"></i>
                     </a>
                     <a href="#dang-ky-tu-van" class="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-8 py-4 text-sm font-black uppercase tracking-widest text-white backdrop-blur-md transition-all hover:-translate-y-1 hover:bg-white/20">
-                        Đăng ký tư vấn <i class="fa-solid fa-calendar-check"></i>
+                        <?= e(t('public.common.consultation')); ?> <i class="fa-solid fa-calendar-check"></i>
                     </a>
                 </div>
 
@@ -186,9 +186,9 @@ $stats = [
         <div class="mx-auto max-w-[1450px] px-4 sm:px-6">
             <div class="mb-10 flex flex-col gap-4 md:flex-row md:items-end md:justify-between" data-aos="fade-up">
                 <div class="max-w-2xl">
-                    <h2 class="mt-4 text-3xl md:text-4xl font-black text-slate-950">Nhiều khóa học, chia theo từng nhu cầu học tập</h2>
+                    <h2 class="mt-4 text-3xl md:text-4xl font-black text-slate-950"><?= e(t('courses.list_title')); ?></h2>
                     <p class="mt-3 text-slate-600 leading-relaxed">
-                        Chọn một nhóm khóa học để xây nền, tăng tốc IELTS hoặc học giao tiếp ứng dụng cho học sinh và người đi làm.
+                        <?= e(t('courses.list_copy')); ?>
                     </p>
                 </div>
 
@@ -215,11 +215,11 @@ $stats = [
                             </div>
                             <div class="absolute bottom-4 left-4 right-4 flex items-center justify-between gap-3 text-white">
                                 <div>
-                                    <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-white/75">Mức học</p>
+                                    <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-white/75"><?= e(t('courses.level')); ?></p>
                                     <p class="text-sm font-black"><?= e($course['level']); ?></p>
                                 </div>
                                 <div class="rounded-2xl bg-white/20 px-3 py-2 text-right backdrop-blur-sm">
-                                    <p class="text-[10px] font-bold uppercase tracking-widest text-white/70">Thời lượng</p>
+                                    <p class="text-[10px] font-bold uppercase tracking-widest text-white/70"><?= e(t('courses.duration')); ?></p>
                                     <p class="text-sm font-black"><?= e($course['duration']); ?></p>
                                 </div>
                             </div>
@@ -229,16 +229,16 @@ $stats = [
                         <div class="p-6">
                             <h3 class="text-xl font-black leading-tight text-slate-950 transition-colors group-hover:text-rose-600"><?= e($course['title']); ?></h3>
                             <p class="mt-3 text-sm leading-relaxed text-slate-600">
-                                Giáo trình cô đọng, thực hành nhiều và có kiểm tra định kỳ để theo dõi tiến bộ rõ ràng.
+                                <?= e(t('courses.card_desc')); ?>
                             </p>
 
                             <div class="mt-5 flex items-center justify-between border-t border-slate-100 pt-4">
                                 <div>
-                                    <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Học phí từ</p>
+                                    <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400"><?= e(t('courses.price_from')); ?></p>
                                     <p class="text-xl font-black text-slate-950"><?= e($course['price']); ?></p>
                                 </div>
                                 <a href="<?= e(page_url('course-detail', ['course' => $course['slug']])); ?>" class="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-4 py-2 text-sm font-black text-emerald-600 transition-all hover:bg-emerald-600 hover:text-white">
-                                    Xem chi tiết
+                                    <?= e(t('public.common.view_detail')); ?>
                                     <i class="fa-solid fa-arrow-right"></i>
                                 </a>
                             </div>
@@ -251,10 +251,10 @@ $stats = [
             <?php if ($totalCoursePages > 1): ?>
                 <div class="mt-10 flex flex-col gap-4 rounded-[2rem] border border-white bg-white/80 p-4 shadow-[0_12px_30px_rgba(15,23,42,0.05)] backdrop-blur-md sm:flex-row sm:items-center sm:justify-between">
                     <p class="text-sm font-medium text-slate-600">
-                        Đang hiển thị <?= count($courses); ?> / <?= number_format($courseTotal, 0, ',', '.'); ?> khóa học
+                        <?= e(t('courses.showing', ['shown' => count($courses), 'total' => number_format($courseTotal, 0, ',', '.')])); ?>
                     </p>
 
-                    <nav class="flex flex-wrap items-center justify-center gap-2" aria-label="Phân trang khóa học">
+                    <nav class="flex flex-wrap items-center justify-center gap-2" aria-label="<?= e(t('courses.pagination_label')); ?>">
                         <a href="<?= e($buildCoursePageUrl(max(1, $currentCoursePage - 1))); ?>" class="inline-flex h-11 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-black text-slate-700 shadow-sm transition-all hover:-translate-y-0.5 hover:border-rose-300 hover:text-rose-600 <?= $currentCoursePage === 1 ? 'pointer-events-none opacity-40' : ''; ?>">
                             <i class="fa-solid fa-chevron-left"></i>
                         </a>
@@ -298,7 +298,7 @@ $stats = [
     <section id="dang-ky-tu-van" class="relative py-20 md:py-32 overflow-hidden">
         <!-- Background image hero banner -->
         <div class="absolute inset-0">
-            <img src="/assets/images/consult2.jpg" alt="Sinh viên học tập" class="h-full w-full object-cover brightness-110 contrast-105 saturate-105">
+            <img src="/assets/images/consult2.jpg" alt="<?= e(t('courses.image_alt')); ?>" class="h-full w-full object-cover brightness-110 contrast-105 saturate-105">
             <!-- Lighter overlay so the banner stays bright and open -->
             <div class="absolute inset-0 bg-gradient-to-r from-slate-900/35 via-slate-900/12 to-transparent"></div>
             <!-- Vertical edge fade: soften the top and bottom edges like the side fade reference -->
@@ -316,16 +316,16 @@ $stats = [
                 <div class="max-w-2xl" data-aos="fade-right" data-aos-duration="700">
                     <span class="inline-flex items-center gap-2 rounded-full border border-rose-300/40 bg-gradient-to-r from-rose-600 to-rose-500 px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-white shadow-lg shadow-rose-500/25 backdrop-blur-sm transition-transform hover:-translate-y-0.5">
                         <span class="h-2 w-2 rounded-full bg-white animate-pulse"></span>
-                        Tư vấn nhanh 1:1
+                        <?= e(t('public.common.quick_consultation')); ?>
                     </span>
 
                     <h2 class="mt-8 text-4xl md:text-5xl lg:text-6xl font-black leading-tight tracking-tight text-white">
-                        Bắt đầu hành trình <br>
-                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-rose-200 to-orange-200">chinh phục Anh ngữ</span>
+                        <?= e(t('public.common.start_english_journey')); ?> <br>
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-rose-200 to-orange-200"><?= e(t('public.common.conquer_english')); ?></span>
                     </h2>
                     
                     <p class="mt-6 max-w-xl text-base md:text-lg leading-relaxed text-white/85">
-                        Hãy để lại thông tin, đội ngũ học thuật của chúng tôi sẽ thiết kế riêng một lộ trình tối ưu nhất dựa trên mục tiêu và năng lực của bạn.
+                        <?= e(t('public.common.consultation_copy')); ?>
                     </p>
 
                     <div class="mt-10 grid gap-4 sm:grid-cols-3 max-w-lg">
@@ -334,21 +334,21 @@ $stats = [
                                 <i class="fa-regular fa-clock text-sm"></i>
                             </div>
                             <p class="text-2xl font-black text-white">15'</p>
-                            <p class="mt-1 text-[9px] font-bold uppercase tracking-widest text-white/70">Liên hệ ngay</p>
+                            <p class="mt-1 text-[9px] font-bold uppercase tracking-widest text-white/70"><?= e(t('public.common.contact_now')); ?></p>
                         </div>
                         <div class="rounded-[1.5rem] border border-white/18 bg-white/10 p-5 backdrop-blur-sm shadow-lg">
                             <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 text-white">
                                 <i class="fa-solid fa-user-group text-sm"></i>
                             </div>
                             <p class="text-2xl font-black text-white">1:1</p>
-                            <p class="mt-1 text-[9px] font-bold uppercase tracking-widest text-white/70">Chuyên gia</p>
+                            <p class="mt-1 text-[9px] font-bold uppercase tracking-widest text-white/70"><?= e(t('public.common.expert')); ?></p>
                         </div>
                         <div class="rounded-[1.5rem] border border-white/18 bg-white/10 p-5 backdrop-blur-sm shadow-lg">
                             <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 text-white">
                                 <i class="fa-solid fa-wand-magic-sparkles text-sm"></i>
                             </div>
                             <p class="text-2xl font-black text-white">100%</p>
-                            <p class="mt-1 text-[9px] font-bold uppercase tracking-widest text-white/70">Cá nhân hóa</p>
+                            <p class="mt-1 text-[9px] font-bold uppercase tracking-widest text-white/70"><?= e(t('public.common.personalized')); ?></p>
                         </div>
                     </div>
                 </div>
@@ -371,17 +371,17 @@ $stats = [
                             0 8px 16px rgba(15, 23, 42, 0.25),
                             0 0 1px rgba(255, 255, 255, 0.8);
                         ">
-                            Đăng ký tư vấn
+                            <?= e(t('public.common.free_consultation')); ?>
                             <span class="ml-2 text-transparent bg-clip-text bg-gradient-to-r from-rose-400 to-rose-600" style="text-shadow: 
                                 2px 2px 0 rgba(244, 63, 94, 0.2),
                                 4px 4px 0 rgba(244, 63, 94, 0.15),
                                 0 6px 12px rgba(244, 63, 94, 0.2);
-                            ">miễn phí</span>
+                            "><?= e(t('public.common.free')); ?></span>
                         </h3>
                         <!-- Subheading: Trust messaging (emerald psychology) -->
                         <p class="text-sm font-semibold text-white/85">
                             <i class="fa-solid fa-check-circle text-emerald-500 mr-2"></i>
-                            Chuyên gia sẽ thiết kế lộ trình phù hợp cho bạn
+                            <?= e(t('public.common.route_for_you')); ?>
                         </p>
                     </div>
 
@@ -390,11 +390,11 @@ $stats = [
                         <div class="sm:col-span-2 group">
                             <label class="mb-3 flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.16em] text-white group-focus-within:text-rose-300 transition-colors">
                                 <i class="fa-solid fa-user text-rose-500"></i>
-                                Họ và tên <span class="text-rose-500 text-base">*</span>
+                                <?= e(t('public.common.full_name')); ?> <span class="text-rose-500 text-base">*</span>
                             </label>
                             <div class="relative">
                                 <span class="absolute left-5 top-1/2 -translate-y-1/2 text-rose-400 group-focus-within:text-rose-500 transition-colors"><i class="fa-regular fa-user"></i></span>
-                                <input type="text" required placeholder="Nhập họ và tên của bạn" class="w-full rounded-2xl border border-slate-200 bg-white py-4 pl-14 pr-5 text-sm font-bold text-slate-900 shadow-sm outline-none transition-all placeholder:text-slate-400 placeholder:font-medium focus:border-rose-400 focus:ring-4 focus:ring-rose-500/15 focus:shadow-lg focus:shadow-rose-500/10">
+                                <input type="text" required placeholder="<?= e(t('public.common.full_name_placeholder')); ?>" class="w-full rounded-2xl border border-slate-200 bg-white py-4 pl-14 pr-5 text-sm font-bold text-slate-900 shadow-sm outline-none transition-all placeholder:text-slate-400 placeholder:font-medium focus:border-rose-400 focus:ring-4 focus:ring-rose-500/15 focus:shadow-lg focus:shadow-rose-500/10">
                             </div>
                         </div>
 
@@ -402,7 +402,7 @@ $stats = [
                         <div class="group">
                             <label class="mb-3 flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.16em] text-white group-focus-within:text-rose-300 transition-colors">
                                 <i class="fa-solid fa-phone text-rose-500"></i>
-                                Số điện thoại <span class="text-rose-500 text-base">*</span>
+                                <?= e(t('public.common.phone')); ?> <span class="text-rose-500 text-base">*</span>
                             </label>
                             <div class="relative">
                                 <span class="absolute left-5 top-1/2 -translate-y-1/2 text-rose-400 group-focus-within:text-rose-500 transition-colors"><i class="fa-solid fa-phone"></i></span>
@@ -414,7 +414,7 @@ $stats = [
                         <div class="group">
                             <label class="mb-3 flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.16em] text-white group-focus-within:text-emerald-300 transition-colors">
                                 <i class="fa-solid fa-calendar text-emerald-500"></i>
-                                Ngày sinh
+                                <?= e(t('public.common.birthdate')); ?>
                             </label>
                             <div class="relative">
                                 <span class="absolute left-5 top-1/2 -translate-y-1/2 text-emerald-400 group-focus-within:text-emerald-500 transition-colors"><i class="fa-regular fa-calendar"></i></span>
@@ -426,15 +426,15 @@ $stats = [
                         <div class="sm:col-span-2 group">
                             <label class="mb-3 flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.16em] text-white group-focus-within:text-emerald-300 transition-colors">
                                 <i class="fa-solid fa-message text-emerald-500"></i>
-                                Ghi chú mong muốn
+                                <?= e(t('public.common.note')); ?>
                             </label>
-                            <textarea rows="3" placeholder="Bạn muốn học khóa nào, hoặc khung giờ rảnh của bạn là gì?..." class="w-full rounded-2xl border border-slate-200 bg-white p-5 text-sm font-bold text-slate-900 shadow-sm outline-none transition-all placeholder:text-slate-400 placeholder:font-medium focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/15 focus:shadow-lg focus:shadow-emerald-500/10 resize-none"></textarea>
+                            <textarea rows="3" placeholder="<?= e(t('public.common.note_placeholder')); ?>" class="w-full rounded-2xl border border-slate-200 bg-white p-5 text-sm font-bold text-slate-900 shadow-sm outline-none transition-all placeholder:text-slate-400 placeholder:font-medium focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/15 focus:shadow-lg focus:shadow-emerald-500/10 resize-none"></textarea>
                         </div>
 
                         <!-- CTA Button: Rose (urgency/action psychology) + Emerald accent (trust) -->
                         <button type="submit" class="sm:col-span-2 mt-2 group relative inline-flex items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-rose-500 to-rose-600 px-8 py-4 text-sm font-black uppercase tracking-widest text-white shadow-lg shadow-rose-500/30 transition-all duration-300 hover:-translate-y-1.5 hover:from-rose-600 hover:to-rose-700 hover:shadow-rose-600/50 active:translate-y-0 active:shadow-rose-500/20">
                             <span class="flex items-center gap-2">
-                                Gửi yêu cầu ngay
+                                <?= e(t('public.common.send_request')); ?>
                                 <i class="fa-solid fa-arrow-right transition-transform group-hover:translate-x-1"></i>
                             </span>
                             <!-- Subtle success indicator (emerald) -->

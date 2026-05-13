@@ -113,7 +113,7 @@ $error = get_flash('error');
                                             <a href="<?= e(page_url('bank-manage', ['edit' => (int) $bank['id'], 'bank_page' => $bankPage, 'bank_per_page' => $bankPerPage])); ?>">Sửa</a>
                                         <?php endif; ?>
                                         <?php if ($canDeleteBank): ?>
-                                            <form class="inline-block" method="post" action="/api/banks/delete?id=<?= (int) $bank['id']; ?>" onsubmit="return confirm('Có chắc không?')">
+                                            <form class="inline-block" method="post" action="/api/banks/delete?id=<?= (int) $bank['id']; ?>" onsubmit="return confirm('Bạn có chắc muốn xóa tài khoản ngân hàng này không?')">
                                                 <?= csrf_input(); ?>
                                                 <button class="<?= ui_btn_danger_classes('sm'); ?>" type="submit">Xóa</button>
                                             </form>

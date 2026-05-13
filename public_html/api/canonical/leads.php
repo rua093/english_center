@@ -187,15 +187,15 @@ function api_leads_update_action(): void
     $adminNote = input_string($_POST, 'admin_note');
 
     if ($leadId <= 0) {
-        set_flash('error', 'Lead hoc vien khong hop le.');
+        set_flash('error', 'Hồ sơ học viên đăng ký không hợp lệ.');
         redirect(page_url('student-leads-manage'));
     }
 
     try {
         (new AdminModel())->updateStudentLeadReview($leadId, $status, $adminNote);
-        set_flash('success', 'Da cap nhat trang thai lead hoc vien.');
+        set_flash('success', 'Đã cập nhật trạng thái học viên đăng ký.');
     } catch (Throwable $exception) {
-        set_flash('error', 'Khong the cap nhat lead: ' . $exception->getMessage());
+        set_flash('error', 'Không thể cập nhật học viên đăng ký: ' . $exception->getMessage());
     }
 
     redirect(page_url('student-leads-manage', ['edit' => $leadId]));
@@ -212,7 +212,7 @@ function api_leads_convert_action(): void
     $adminNote = input_string($_POST, 'admin_note');
 
     if ($leadId <= 0) {
-        set_flash('error', 'Lead hoc vien khong hop le.');
+        set_flash('error', 'Hồ sơ học viên đăng ký không hợp lệ.');
         redirect(page_url('student-leads-manage'));
     }
 
@@ -223,14 +223,14 @@ function api_leads_convert_action(): void
             'admin_note' => $adminNote,
         ]);
 
-        $successMessage = 'Da tao tai khoan hoc vien: ' . (string) ($result['username'] ?? '');
+        $successMessage = 'Đã tạo tài khoản học viên: ' . (string) ($result['username'] ?? '');
         if (!empty($result['used_default_password'])) {
-            $successMessage .= ' (mat khau tam: ' . (string) ($result['password'] ?? '') . ').';
+            $successMessage .= ' (mật khẩu tạm: ' . (string) ($result['password'] ?? '') . ').';
         }
 
         set_flash('success', $successMessage);
     } catch (Throwable $exception) {
-        set_flash('error', 'Khong the tao tai khoan hoc vien: ' . $exception->getMessage());
+        set_flash('error', 'Không thể tạo tài khoản học viên: ' . $exception->getMessage());
     }
 
     redirect(page_url('student-leads-manage', ['edit' => $leadId]));
@@ -243,15 +243,15 @@ function api_leads_delete_action(): void
 
     $leadId = (int) ($_GET['id'] ?? 0);
     if ($leadId <= 0) {
-        set_flash('error', 'Lead hoc vien khong hop le.');
+        set_flash('error', 'Hồ sơ học viên đăng ký không hợp lệ.');
         redirect(page_url('student-leads-manage'));
     }
 
     try {
         (new AdminModel())->deleteStudentLead($leadId);
-        set_flash('success', 'Da xoa lead hoc vien.');
+        set_flash('success', 'Đã xóa học viên đăng ký.');
     } catch (Throwable $exception) {
-        set_flash('error', 'Khong the xoa lead hoc vien nay.');
+        set_flash('error', 'Không thể xóa học viên đăng ký này.');
     }
 
     redirect(page_url('student-leads-manage'));

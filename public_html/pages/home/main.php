@@ -7,7 +7,7 @@ $homeCourses = $homeCourses ?? [];
 $homeFormatFeedbackDate = static function (?string $value): string {
     $value = trim((string) $value);
     if ($value === '') {
-        return 'Không rõ thời gian';
+        return t('home.time_unknown');
     }
 
     $timestamp = strtotime($value);
@@ -47,10 +47,10 @@ $homeFormatFeedbackDate = static function (?string $value): string {
             <div class="max-w-2xl" data-aos="fade-right">
                 <h1 class="text-3xl sm:text-4xl md:text-5xl font-black text-white leading-tight uppercase drop-shadow-lg">
                     GREATER YOU EVERYDAY <br>
-                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-sky-300 to-white">TRƯỞNG THÀNH HƠN</span> MỖI NGÀY
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-sky-300 to-white"><?= e(t('home.hero_growth')); ?></span> <?= e(t('home.hero_everyday')); ?>
                 </h1>
                 <p class="mt-3 sm:mt-4 text-sm sm:text-base md:text-lg text-sky-100 font-medium max-w-lg drop-shadow-md">
-                    Đồng hành cùng mỗi học viên để khơi dậy tiềm năng và đam mê trên hành trình học tập trọn đời.
+                    <?= e(t('home.hero_copy')); ?>
                 </p>
             </div>
         </div>
@@ -68,25 +68,25 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                 <div class="relative z-10 w-full md:flex-1 text-center md:text-left">
                     <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/90 border border-white text-[10px] font-black uppercase tracking-widest text-slate-800 mb-3 shadow-sm">
                         <span class="w-2 h-2 rounded-full bg-red-600 animate-pulse"></span>
-                        Trung tâm Ngoại ngữ <span class="text-red-600">Nhuệ Minh</span>
+                        <?= e(t('home.center_badge')); ?> <span class="text-red-600"><?= e(t('home.center_name')); ?></span>
                     </div>
 
                     <h3 class="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 leading-tight tracking-tight uppercase mb-2.5">
-                        Bứt Phá Giới Hạn <span class="hidden md:inline">-</span> <br class="md:hidden">
+                        <?= e(t('home.test_title')); ?> <span class="hidden md:inline">-</span> <br class="md:hidden">
                         <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-rose-600">
-                            Chinh Phục Ngôn Ngữ
+                            <?= e(t('home.test_highlight')); ?>
                         </span>
                     </h3>
 
                     <p class="text-slate-700 text-xs sm:text-sm leading-relaxed font-semibold max-w-2xl mx-auto md:mx-0">
-                        <strong class="text-slate-900">Xóa bỏ</strong> rào cản. <strong class="text-slate-900">Khai phóng</strong> tiềm năng. Là Trung tâm Ngoại ngữ sở hữu hệ sinh thái <strong class="text-slate-900">độc quyền</strong>, chúng tôi giúp bạn <strong class="text-slate-900">làm chủ</strong> ngôn ngữ ở tầm vóc cao nhất.
+                        <strong class="text-slate-900"><?= e(t('home.test_copy_prefix_1')); ?></strong> <?= e(t('home.test_copy_1')); ?> <strong class="text-slate-900"><?= e(t('home.test_copy_prefix_2')); ?></strong> <?= e(t('home.test_copy_2')); ?> <strong class="text-slate-900"><?= e(t('home.test_copy_prefix_3')); ?></strong><?= e(t('home.test_copy_3')); ?> <strong class="text-slate-900"><?= e(t('home.test_copy_prefix_4')); ?></strong> <?= e(t('home.test_copy_4')); ?>
                     </p>
                 </div>
 
                 <div class="relative z-10 shrink-0 w-full md:w-auto flex justify-center mt-2 md:mt-0">
                     <a href="#dang-ky-tu-van" class="group inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-amber-400 to-yellow-400 hover:scale-105 transition-all duration-300 text-blue-950 font-black uppercase text-[11px] sm:text-xs px-8 py-3.5 shadow-lg border-[3px] border-white whitespace-nowrap w-full md:w-auto">
                         <i class="fa-solid fa-bolt text-red-600"></i>
-                        Đăng ký Test Trình Độ
+                        <?= e(t('home.test_cta')); ?>
                     </a>
                 </div>
 
@@ -110,7 +110,7 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                 <div class="absolute bottom-10 left-1/2 -translate-x-1/2 w-[90%] h-[80%] bg-gradient-to-t from-blue-300/40 to-transparent rounded-[3rem] blur-[60px] -z-10"></div>
 
                 <img src="assets/images/student_girl.png"
-                    alt="Học sinh tiêu biểu"
+                    alt="<?= e(t('home.student_alt')); ?>"
                     class="w-full max-w-[540px] object-contain relative z-10 drop-shadow-[0_20px_40px_rgba(30,58,138,0.25)]">
 
                 <!-- Floating Badge -->
@@ -125,11 +125,11 @@ $homeFormatFeedbackDate = static function (?string $value): string {
 
                         <div>
                             <h4 class="text-sm font-black text-blue-950 uppercase">
-                                Chất lượng
+                                <?= e(t('home.quality')); ?>
                             </h4>
 
                             <p class="text-[11px] font-bold text-slate-500">
-                                Chuẩn quốc tế
+                                <?= e(t('home.international_standard')); ?>
                             </p>
                         </div>
                     </div>
@@ -176,8 +176,8 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                                     font-black leading-[1.08]
                                     text-white drop-shadow-lg">
 
-                                Khát Vọng <br>
-                                Là Khởi Đầu
+                                <?= e(t('home.aspiration_line_1')); ?> <br>
+                                <?= e(t('home.aspiration_line_2')); ?>
                             </h1>
                         </div>
                         <!-- FLOATING SMALL CARD - Inside Banner -->
@@ -219,16 +219,16 @@ $homeFormatFeedbackDate = static function (?string $value): string {
 
                                         <div class="text-xs uppercase tracking-[0.18em]
                                                     text-slate-500 font-black mb-2">
-                                            Thành Tựu
+                                            <?= e(t('home.achievement')); ?>
                                         </div>
 
                                         <h2 class="text-xl sm:text-2xl md:text-3xl font-black leading-tight text-blue-950">
-                                            Của Mọi <br>
-                                            Thành Công
+                                            <?= e(t('home.success_line_1')); ?> <br>
+                                            <?= e(t('home.success_line_2')); ?>
                                         </h2>
 
                                         <p class="mt-2 text-xs sm:text-sm text-slate-600 leading-relaxed font-medium">
-                                            Mỗi bước tiến hôm nay sẽ mở ra cơ hội tương lai.
+                                            <?= e(t('home.success_copy')); ?>
                                         </p>
 
                                     </div>
@@ -250,7 +250,7 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                                     text-xs font-black px-4 py-1.5
                                     rounded-full uppercase shadow-md">
 
-                            Đánh Giá
+                            <?= e(t('home.assessment')); ?>
                         </div>
 
                         <i class="fa-solid fa-chalkboard-user
@@ -260,11 +260,11 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                         <div class="relative z-10">
 
                             <h3 class="text-2xl font-black text-white mb-2">
-                                Kiểm Tra Năng Lực
+                                <?= e(t('home.placement_test')); ?>
                             </h3>
 
                             <p class="text-sm text-rose-100 leading-relaxed">
-                                Đánh giá chính xác trình độ tiếng Anh theo chuẩn quốc tế hiện đại.
+                                <?= e(t('home.placement_copy')); ?>
                             </p>
                         </div>
                     </div>
@@ -282,11 +282,11 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                         <div class="relative z-10">
 
                             <h3 class="text-2xl font-black text-white mb-2">
-                                Học Liệu Chuyên Sâu
+                                <?= e(t('home.materials')); ?>
                             </h3>
 
                             <p class="text-sm text-blue-100 leading-relaxed">
-                                Giáo trình chọn lọc và cập nhật liên tục theo xu hướng giáo dục toàn cầu.
+                                <?= e(t('home.materials_copy')); ?>
                             </p>
                         </div>
                     </div>
@@ -302,11 +302,11 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                         </div>
 
                         <h4 class="font-extrabold text-blue-950 text-sm">
-                            Giao Tiếp Tự Tin
+                            <?= e(t('home.value_confidence')); ?>
                         </h4>
 
                         <span class="text-[10px] text-slate-500 font-semibold">
-                            Phản xạ tiếng Anh tự nhiên
+                            <?= e(t('home.value_confidence_copy')); ?>
                         </span>
                     </div>
 
@@ -317,11 +317,11 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                         </div>
 
                         <h4 class="font-extrabold text-blue-950 text-sm">
-                            Hội Nhập Quốc Tế
+                            <?= e(t('home.value_global')); ?>
                         </h4>
 
                         <span class="text-[10px] text-slate-500 font-semibold">
-                            Tư duy công dân toàn cầu
+                            <?= e(t('home.value_global_copy')); ?>
                         </span>
                     </div>
 
@@ -332,11 +332,11 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                         </div>
 
                         <h4 class="font-extrabold text-blue-950 text-sm">
-                            Tư Duy Hiện Đại
+                            <?= e(t('home.value_modern')); ?>
                         </h4>
 
                         <span class="text-[10px] text-slate-500 font-semibold">
-                            Học tập chủ động
+                            <?= e(t('home.value_modern_copy')); ?>
                         </span>
                     </div>
 
@@ -347,11 +347,11 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                         </div>
 
                         <h4 class="font-extrabold text-blue-950 text-sm">
-                            Bứt Phá Tương Lai
+                            <?= e(t('home.value_future')); ?>
                         </h4>
 
                         <span class="text-[10px] text-slate-500 font-semibold">
-                            Sẵn sàng cho mọi hành trình
+                            <?= e(t('home.value_future_copy')); ?>
                         </span>
                     </div>
 
@@ -366,17 +366,17 @@ $homeFormatFeedbackDate = static function (?string $value): string {
         <div class="mx-auto w-full max-w-7xl px-4 sm:px-6 relative z-10">
             <div class="mb-10 sm:mb-14 text-center" data-aos="fade-up">
                 <h2 class="text-2xl sm:text-3xl md:text-5xl font-black text-[#2e3192] uppercase tracking-tight">
-                    KHOÁ HỌC DÀNH CHO <span class="inline-block mt-2 md:mt-0 rounded-full bg-red-600 px-4 sm:px-6 py-1.5 sm:py-2 text-white shadow-lg transform -rotate-2">MỌI MỤC TIÊU</span>
+                    <?= e(t('home.courses_title')); ?> <span class="inline-block mt-2 md:mt-0 rounded-full bg-red-600 px-4 sm:px-6 py-1.5 sm:py-2 text-white shadow-lg transform -rotate-2"><?= e(t('home.courses_highlight')); ?></span>
                 </h2>
                 <p class="mt-4 sm:mt-6 text-sm sm:text-base md:text-lg text-slate-700 max-w-3xl mx-auto font-semibold">
-                    Dễ dàng lựa chọn khóa học tiếng Anh phù hợp cho riêng mình với chương trình học đa dạng, được thiết kế phù hợp với nhu cầu và trình độ thực tế.
+                    <?= e(t('home.courses_copy')); ?>
                 </p>
             </div>
 
             <div class="rounded-[2rem] sm:rounded-[3rem] bg-white/40 backdrop-blur-md border border-white p-4 sm:p-6 md:p-8 lg:p-10 shadow-[0_15px_40px_rgba(30,58,138,0.06)] overflow-hidden" data-aos="zoom-in">
                 <?php if (empty($homeCourses)): ?>
                     <div class="rounded-[2rem] border border-dashed border-slate-300 bg-white/70 px-6 py-14 text-center text-slate-500 font-medium">
-                        Hiện chưa có khóa học nào trong hệ thống.
+                        <?= e(t('home.courses_empty')); ?>
                     </div>
                 <?php else: ?>
                     <div class="grid gap-5 sm:gap-6 sm:grid-cols-2 lg:grid-cols-4 mobile-swipe-track">
@@ -399,37 +399,37 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                                                 <div class="mx-auto mb-3 flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-full bg-white/90 shadow-lg ring-1 ring-rose-100">
                                                     <i class="fa-solid fa-book-open text-2xl sm:text-3xl text-red-400"></i>
                                                 </div>
-                                                <div class="text-[10px] sm:text-xs font-black uppercase tracking-[0.22em] text-slate-700">Ảnh khóa học</div>
+                                                <div class="text-[10px] sm:text-xs font-black uppercase tracking-[0.22em] text-slate-700"><?= e(t('home.course_image')); ?></div>
                                             </div>
                                         </div>
                                         <div class="absolute inset-0 bg-gradient-to-t from-red-500/12 via-rose-400/8 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                                     <?php endif; ?>
                                     <div class="absolute top-3 sm:top-4 right-3 sm:right-4 bg-gradient-to-r from-red-500 to-emerald-500 text-white rounded-xl sm:rounded-2xl px-2 sm:px-3 py-1.5 sm:py-2 text-center shadow-md backdrop-blur-sm ring-1 ring-white/70">
-                                        <span class="block text-[8px] sm:text-[10px] uppercase font-bold opacity-90">Buổi học</span>
+                                        <span class="block text-[8px] sm:text-[10px] uppercase font-bold opacity-90"><?= e(t('home.course_sessions')); ?></span>
                                         <span class="block text-xl sm:text-2xl font-black leading-none"><?= (int) ($course['total_sessions'] ?? 0); ?></span>
                                     </div>
                                 </div>
                                 <div class="flex flex-1 flex-col p-5 sm:p-6">
                                     <div class="inline-flex w-fit rounded-full bg-gradient-to-r from-emerald-50 to-rose-50 px-2.5 py-1 text-[9px] sm:text-[10px] font-black uppercase tracking-[0.18em] text-emerald-700 ring-1 ring-emerald-100/80">
-                                        <?= e((string) ($course['level'] ?? 'Khóa học')); ?>
+                                        <?= e((string) ($course['level'] ?? t('courses.default_tag'))); ?>
                                     </div>
                                     <h3 class="mt-2 sm:mt-3 text-lg sm:text-xl font-extrabold uppercase leading-tight text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-rose-500 to-emerald-500 transition-colors"><?= e($courseTitle); ?></h3>
                                     <p class="mt-2 sm:mt-3 text-xs sm:text-sm font-semibold text-slate-700 flex-1 leading-relaxed">
-                                        <?= e($courseDesc !== '' ? $courseDesc : 'Chương trình học được xây dựng theo lộ trình rõ ràng, phù hợp cho từng học viên.'); ?>
+                                        <?= e($courseDesc !== '' ? $courseDesc : t('courses.default_desc')); ?>
                                     </p>
                                     <div class="mt-4 sm:mt-5 pt-3 sm:pt-4 border-t-2 border-slate-100 flex flex-col gap-3 sm:gap-4">
                                         <div class="flex items-end justify-between gap-3 sm:gap-4">
                                             <div>
-                                                <span class="block text-[10px] sm:text-xs font-bold text-slate-700 uppercase tracking-wide">Học phí từ</span>
+                                                <span class="block text-[10px] sm:text-xs font-bold text-slate-700 uppercase tracking-wide"><?= e(t('courses.price_from')); ?></span>
                                                 <span class="text-lg sm:text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-emerald-500"><?= e((string) ($course['price'] ?? '0đ')); ?></span>
                                             </div>
                                             <div class="text-right text-[10px] sm:text-xs font-semibold text-slate-700">
-                                                <div><?= (int) ($course['roadmap_count'] ?? 0); ?> lộ trình</div>
-                                                <div><?= (int) ($course['class_count'] ?? 0); ?> lớp học</div>
+                                                <div><?= e(t('home.roadmaps_count', ['count' => (int) ($course['roadmap_count'] ?? 0)])); ?></div>
+                                                <div><?= e(t('home.classes_count', ['count' => (int) ($course['class_count'] ?? 0)])); ?></div>
                                             </div>
                                         </div>
                                         <a href="<?= e($courseLink); ?>" class="inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-red-500 via-rose-500 to-emerald-500 px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-bold text-white shadow-md transition-all hover:-translate-y-0.5 hover:from-red-600 hover:to-emerald-600 hover:shadow-lg">
-                                            Xem chi tiết <i class="fa-solid fa-arrow-right text-[10px] sm:text-xs"></i>
+                                            <?= e(t('public.common.view_detail')); ?> <i class="fa-solid fa-arrow-right text-[10px] sm:text-xs"></i>
                                         </a>
                                     </div>
                                 </div>
@@ -444,7 +444,7 @@ $homeFormatFeedbackDate = static function (?string $value): string {
     <section id="dang-ky-tu-van" class="relative py-20 md:py-32 overflow-hidden">
         <!-- Background image hero banner -->
         <div class="absolute inset-0">
-            <img src="/assets/images/consult.jpg" alt="Sinh viên học tập" class="h-full w-full object-cover brightness-110 contrast-105 saturate-105">
+            <img src="/assets/images/consult.jpg" alt="<?= e(t('courses.image_alt')); ?>" class="h-full w-full object-cover brightness-110 contrast-105 saturate-105">
             <!-- Slight horizontal darkening to keep text legible -->
             <div class="absolute inset-0 bg-gradient-to-r from-slate-900/28 via-slate-900/8 to-transparent"></div>
             <!-- Top fade: blend the top edge into the page background for smooth transition -->
@@ -462,16 +462,16 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                 <div class="max-w-2xl" data-aos="fade-right" data-aos-duration="700">
                     <span class="inline-flex items-center gap-2 rounded-full border border-rose-300/40 bg-gradient-to-r from-rose-600 to-rose-500 px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-white shadow-lg shadow-rose-500/25 backdrop-blur-sm transition-transform hover:-translate-y-0.5">
                         <span class="h-2 w-2 rounded-full bg-white animate-pulse"></span>
-                        Tư vấn nhanh 1:1
+                        <?= e(t('public.common.quick_consultation')); ?>
                     </span>
 
                     <h2 class="mt-8 text-4xl md:text-5xl lg:text-6xl font-black leading-tight tracking-tight text-white">
-                        Bắt đầu hành trình <br>
-                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-rose-200 to-orange-200">chinh phục Anh ngữ</span>
+                        <?= e(t('public.common.start_english_journey')); ?> <br>
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-rose-200 to-orange-200"><?= e(t('public.common.conquer_english')); ?></span>
                     </h2>
                     
                     <p class="mt-6 max-w-xl text-base md:text-lg leading-relaxed text-white/95 drop-shadow-[0_2px_8px_rgba(15,23,42,0.25)]">
-                        Hãy để lại thông tin, đội ngũ học thuật của chúng tôi sẽ thiết kế riêng một lộ trình tối ưu nhất dựa trên mục tiêu và năng lực của bạn.
+                        <?= e(t('public.common.consultation_copy')); ?>
                     </p>
 
                     <div class="mt-10 grid gap-4 sm:grid-cols-3 max-w-lg">
@@ -480,21 +480,21 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                                 <i class="fa-regular fa-clock text-sm"></i>
                             </div>
                             <p class="text-2xl font-black text-white drop-shadow-[0_2px_6px_rgba(15,23,42,0.28)]">15'</p>
-                            <p class="mt-1 text-[9px] font-bold uppercase tracking-widest text-white/88">Liên hệ ngay</p>
+                            <p class="mt-1 text-[9px] font-bold uppercase tracking-widest text-white/88"><?= e(t('public.common.contact_now')); ?></p>
                         </div>
                         <div class="rounded-[1.5rem] border border-white/28 bg-white/22 p-5 shadow-[0_12px_30px_rgba(15,23,42,0.18)] backdrop-blur-sm">
                             <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-white/25 text-white shadow-sm ring-1 ring-white/20">
                                 <i class="fa-solid fa-user-group text-sm"></i>
                             </div>
                             <p class="text-2xl font-black text-white drop-shadow-[0_2px_6px_rgba(15,23,42,0.28)]">1:1</p>
-                            <p class="mt-1 text-[9px] font-bold uppercase tracking-widest text-white/88">Chuyên gia</p>
+                            <p class="mt-1 text-[9px] font-bold uppercase tracking-widest text-white/88"><?= e(t('public.common.expert')); ?></p>
                         </div>
                         <div class="rounded-[1.5rem] border border-white/28 bg-white/22 p-5 shadow-[0_12px_30px_rgba(15,23,42,0.18)] backdrop-blur-sm">
                             <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-white/25 text-white shadow-sm ring-1 ring-white/20">
                                 <i class="fa-solid fa-wand-magic-sparkles text-sm"></i>
                             </div>
                             <p class="text-2xl font-black text-white drop-shadow-[0_2px_6px_rgba(15,23,42,0.28)]">100%</p>
-                            <p class="mt-1 text-[9px] font-bold uppercase tracking-widest text-white/88">Cá nhân hóa</p>
+                            <p class="mt-1 text-[9px] font-bold uppercase tracking-widest text-white/88"><?= e(t('public.common.personalized')); ?></p>
                         </div>
                     </div>
                 </div>
@@ -515,17 +515,17 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                             0 8px 16px rgba(15, 23, 42, 0.25),
                             0 0 1px rgba(255, 255, 255, 0.8);
                         ">
-                            Đăng ký tư vấn
+                            <?= e(t('public.common.free_consultation')); ?>
                             <span class="ml-2 text-transparent bg-clip-text bg-gradient-to-r from-lime-300 to-emerald-300" style="text-shadow: 
                                 2px 2px 0 rgba(190, 242, 100, 0.22),
                                 4px 4px 0 rgba(132, 204, 22, 0.16),
                                 0 6px 12px rgba(101, 163, 13, 0.18);
-                            ">miễn phí</span>
+                            "><?= e(t('public.common.free')); ?></span>
                         </h3>
                         <!-- Subheading: Trust messaging (emerald psychology) -->
                         <p class="text-sm font-semibold text-white/85">
                             <i class="fa-solid fa-check-circle text-emerald-500 mr-2"></i>
-                            Chuyên gia sẽ thiết kế lộ trình phù hợp cho bạn
+                            <?= e(t('public.common.route_for_you')); ?>
                         </p>
                     </div>
 
@@ -534,11 +534,11 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                         <div class="sm:col-span-2 group">
                             <label class="mb-3 flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.16em] text-white group-focus-within:text-rose-300 transition-colors">
                                 <i class="fa-solid fa-user text-rose-500"></i>
-                                Họ và tên <span class="text-rose-500 text-base">*</span>
+                                <?= e(t('public.common.full_name')); ?> <span class="text-rose-500 text-base">*</span>
                             </label>
                             <div class="relative">
                                 <span class="absolute left-5 top-1/2 -translate-y-1/2 text-rose-400 group-focus-within:text-rose-500 transition-colors"><i class="fa-regular fa-user"></i></span>
-                                <input type="text" required placeholder="Nhập họ và tên của bạn" class="w-full rounded-2xl border border-slate-200 bg-white py-4 pl-14 pr-5 text-sm font-bold text-slate-900 shadow-sm outline-none transition-all placeholder:text-slate-400 placeholder:font-medium focus:border-rose-400 focus:ring-4 focus:ring-rose-500/15 focus:shadow-lg focus:shadow-rose-500/10">
+                                <input type="text" required placeholder="<?= e(t('public.common.full_name_placeholder')); ?>" class="w-full rounded-2xl border border-slate-200 bg-white py-4 pl-14 pr-5 text-sm font-bold text-slate-900 shadow-sm outline-none transition-all placeholder:text-slate-400 placeholder:font-medium focus:border-rose-400 focus:ring-4 focus:ring-rose-500/15 focus:shadow-lg focus:shadow-rose-500/10">
                             </div>
                         </div>
 
@@ -546,7 +546,7 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                         <div class="group">
                             <label class="mb-3 flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.16em] text-white group-focus-within:text-rose-300 transition-colors">
                                 <i class="fa-solid fa-phone text-rose-500"></i>
-                                Số điện thoại <span class="text-rose-500 text-base">*</span>
+                                <?= e(t('public.common.phone')); ?> <span class="text-rose-500 text-base">*</span>
                             </label>
                             <div class="relative">
                                 <span class="absolute left-5 top-1/2 -translate-y-1/2 text-rose-400 group-focus-within:text-rose-500 transition-colors"><i class="fa-solid fa-phone"></i></span>
@@ -558,7 +558,7 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                         <div class="group">
                             <label class="mb-3 flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.16em] text-white group-focus-within:text-emerald-300 transition-colors">
                                 <i class="fa-solid fa-calendar text-emerald-500"></i>
-                                Ngày sinh
+                                <?= e(t('public.common.birthdate')); ?>
                             </label>
                             <div class="relative">
                                 <span class="absolute left-5 top-1/2 -translate-y-1/2 text-emerald-400 group-focus-within:text-emerald-500 transition-colors"><i class="fa-regular fa-calendar"></i></span>
@@ -570,15 +570,15 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                         <div class="sm:col-span-2 group">
                             <label class="mb-3 flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.16em] text-white group-focus-within:text-emerald-300 transition-colors">
                                 <i class="fa-solid fa-message text-emerald-500"></i>
-                                Ghi chú mong muốn
+                                <?= e(t('public.common.note')); ?>
                             </label>
-                            <textarea rows="3" placeholder="Bạn muốn học khóa nào, hoặc khung giờ rảnh của bạn là gì?..." class="w-full rounded-2xl border border-slate-200 bg-white p-5 text-sm font-bold text-slate-900 shadow-sm outline-none transition-all placeholder:text-slate-400 placeholder:font-medium focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/15 focus:shadow-lg focus:shadow-emerald-500/10 resize-none"></textarea>
+                            <textarea rows="3" placeholder="<?= e(t('public.common.note_placeholder')); ?>" class="w-full rounded-2xl border border-slate-200 bg-white p-5 text-sm font-bold text-slate-900 shadow-sm outline-none transition-all placeholder:text-slate-400 placeholder:font-medium focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/15 focus:shadow-lg focus:shadow-emerald-500/10 resize-none"></textarea>
                         </div>
 
                         <!-- CTA Button: Rose (urgency/action psychology) + Emerald accent (trust) -->
                         <button type="submit" class="sm:col-span-2 mt-2 group relative inline-flex items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-rose-500 to-rose-600 px-8 py-4 text-sm font-black uppercase tracking-widest text-white shadow-lg shadow-rose-500/30 transition-all duration-300 hover:-translate-y-1.5 hover:from-rose-600 hover:to-rose-700 hover:shadow-rose-600/50 active:translate-y-0 active:shadow-rose-500/20">
                             <span class="flex items-center gap-2">
-                                Gửi yêu cầu ngay
+                                <?= e(t('public.common.send_request')); ?>
                                 <i class="fa-solid fa-arrow-right transition-transform group-hover:translate-x-1"></i>
                             </span>
                             <!-- Subtle success indicator (emerald) -->
@@ -644,7 +644,7 @@ $homeFormatFeedbackDate = static function (?string $value): string {
             <div class="relative px-4 sm:px-0" data-aos="fade-right">
                 <div class="absolute -bottom-4 -right-4 sm:-bottom-6 sm:-right-6 w-full h-full rounded-[2rem] sm:rounded-[2.5rem] bg-gradient-to-br from-blue-600/10 to-cyan-500/10 border border-blue-900/5"></div>
                 <div class="relative rounded-[2rem] sm:rounded-[2.5rem] overflow-hidden shadow-[0_20px_50px_rgba(30,58,138,0.15)] group border-[4px] sm:border-[6px] border-white/80">
-                    <img src="/assets/images/center2.jpg" alt="Vị trí trung tâm" class="w-full h-[300px] sm:h-[400px] lg:h-[500px] object-cover transform group-hover:scale-105 transition duration-700 ease-in-out">
+                    <img src="/assets/images/center2.jpg" alt="<?= e(t('home.center_location_alt')); ?>" class="w-full h-[300px] sm:h-[400px] lg:h-[500px] object-cover transform group-hover:scale-105 transition duration-700 ease-in-out">
                     <div class="absolute inset-0 bg-gradient-to-t from-blue-950/60 via-blue-950/20 to-transparent opacity-80"></div>
                 </div>
                 <div class="absolute -bottom-6 right-2 sm:-bottom-8 sm:right-4 md:-right-4 bg-white/95 backdrop-blur-md px-4 sm:px-6 py-3 sm:py-4 rounded-2xl shadow-[0_15px_40px_rgba(30,58,138,0.15)] border border-blue-50 hover:-translate-y-1 transition-transform cursor-default z-20">
@@ -656,8 +656,8 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                             </div>
                         </div>
                         <div>
-                            <p class="text-[9px] sm:text-[10px] uppercase tracking-widest text-blue-600 font-black mb-0.5 flex items-center gap-1.5">Vị trí trung tâm</p>
-                            <h4 class="text-xs sm:text-sm font-black text-blue-950">Quảng Phú – Đà Nẵng</h4>
+                            <p class="text-[9px] sm:text-[10px] uppercase tracking-widest text-blue-600 font-black mb-0.5 flex items-center gap-1.5"><?= e(t('home.location_label')); ?></p>
+                            <h4 class="text-xs sm:text-sm font-black text-blue-950"><?= e(t('home.location_name')); ?></h4>
                         </div>
                     </div>
                 </div>
@@ -666,26 +666,26 @@ $homeFormatFeedbackDate = static function (?string $value): string {
             <div class="space-y-5 sm:space-y-7 mt-8 lg:mt-0" data-aos="fade-left">
                 <div class="inline-flex items-center gap-2 sm:gap-3 px-4 sm:px-5 py-2 sm:py-3 rounded-full bg-gradient-to-r from-white to-blue-50 border border-blue-200 shadow-md shadow-blue-100/60 ring-1 ring-white/70">
                     <span class="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-blue-500 animate-pulse shadow-[0_0_0_6px_rgba(59,130,246,0.12)]"></span>
-                    <span class="text-blue-900 text-xs sm:text-sm md:text-base font-black uppercase tracking-[0.22em]">Về <span class="text-red-600">Nhuệ Minh </span>Edu</span>
+                    <span class="text-blue-900 text-xs sm:text-sm md:text-base font-black uppercase tracking-[0.22em]"><?= e(t('home.about_badge')); ?> <span class="text-red-600"><?= e(t('home.center_name')); ?> </span>Edu</span>
                 </div>
-                <h2 class="text-3xl sm:text-4xl md:text-5xl font-extrabold leading-[1.15] text-blue-950">Nâng tầm ngoại ngữ,<br><span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500">Khơi nguồn tự tin</span></h2>
-                <p class="text-base sm:text-lg text-slate-600 leading-relaxed font-medium">Trung tâm Ngoại ngữ hiện đại với không gian học tập truyền cảm hứng, cam kết mang lại giá trị thực tế, giúp học viên phát triển toàn diện 4 kỹ năng và sẵn sàng hội nhập.</p>
+                <h2 class="text-3xl sm:text-4xl md:text-5xl font-extrabold leading-[1.15] text-blue-950"><?= e(t('home.about_title')); ?><br><span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500"><?= e(t('home.about_highlight')); ?></span></h2>
+                <p class="text-base sm:text-lg text-slate-600 leading-relaxed font-medium"><?= e(t('home.about_copy')); ?></p>
 
                 <div class="grid sm:grid-cols-2 gap-4 sm:gap-5 mt-4 sm:mt-6">
                     <div class="bg-white/80 backdrop-blur-sm p-5 sm:p-6 rounded-2xl shadow-sm border border-blue-100 hover:-translate-y-1 hover:shadow-lg transition-all duration-300 group">
                         <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-blue-400 to-blue-600 text-white flex items-center justify-center mb-3 sm:mb-4 shadow-sm group-hover:scale-110 transition-transform"><i class="fa-solid fa-map-location-dot"></i></div>
-                        <h4 class="font-extrabold text-blue-950 mb-1 text-sm sm:text-base">Vị trí thuận lợi</h4>
-                        <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">Dễ dàng di chuyển, gần khu dân cư & trường học.</p>
+                        <h4 class="font-extrabold text-blue-950 mb-1 text-sm sm:text-base"><?= e(t('home.about_location_title')); ?></h4>
+                        <p class="text-xs sm:text-sm text-slate-600 leading-relaxed"><?= e(t('home.about_location_copy')); ?></p>
                     </div>
                     <div class="bg-white/80 backdrop-blur-sm p-5 sm:p-6 rounded-2xl shadow-sm border border-teal-100 hover:-translate-y-1 hover:shadow-lg transition-all duration-300 group">
                         <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-teal-400 to-teal-600 text-white flex items-center justify-center mb-3 sm:mb-4 shadow-sm group-hover:scale-110 transition-transform"><i class="fa-solid fa-shield-halved"></i></div>
-                        <h4 class="font-extrabold text-teal-950 mb-1 text-sm sm:text-base">Môi trường an toàn</h4>
-                        <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">Không gian học tập hiện đại, thân thiện và an ninh.</p>
+                        <h4 class="font-extrabold text-teal-950 mb-1 text-sm sm:text-base"><?= e(t('home.about_safe_title')); ?></h4>
+                        <p class="text-xs sm:text-sm text-slate-600 leading-relaxed"><?= e(t('home.about_safe_copy')); ?></p>
                     </div>
                 </div>
                 <div class="pt-2 sm:pt-4">
                     <a href="#lien-he" class="inline-flex items-center justify-center gap-2 sm:gap-3 px-6 sm:px-8 py-3 sm:py-4 rounded-full bg-gradient-to-r from-blue-600 to-sky-500 text-white font-bold text-sm sm:text-base shadow-[0_10px_20px_rgba(37,99,235,0.3)] transition-all hover:-translate-y-1 hover:shadow-[0_15px_25px_rgba(37,99,235,0.4)]">
-                        Khám phá ngay <i class="fa-solid fa-arrow-right"></i>
+                        <?= e(t('home.discover_now')); ?> <i class="fa-solid fa-arrow-right"></i>
                     </a>
                 </div>
             </div>
@@ -728,8 +728,8 @@ $homeFormatFeedbackDate = static function (?string $value): string {
         
         <div class="mx-auto max-w-7xl px-4 sm:px-6 relative z-10">
             <div class="text-center mb-8 md:mb-10" data-aos="fade-up">
-                <h2 class="text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tight text-[#2e3192]">Sứ Mệnh <span class="text-red-600">Toàn Cầu</span></h2>
-                <p class="mt-3 sm:mt-4 text-slate-600 font-medium max-w-2xl mx-auto text-base sm:text-lg">Kiến tạo thế hệ công dân làm chủ tương lai thông qua ngôn ngữ và kỹ năng toàn diện.</p>
+                <h2 class="text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tight text-[#2e3192]"><?= e(t('home.mission_title')); ?> <span class="text-red-600"><?= e(t('home.mission_highlight')); ?></span></h2>
+                <p class="mt-3 sm:mt-4 text-slate-600 font-medium max-w-2xl mx-auto text-base sm:text-lg"><?= e(t('home.mission_copy')); ?></p>
             </div>
             
             <div class="relative w-full max-w-[1260px] mx-auto min-h-[400px] sm:min-h-[620px] md:min-h-[940px] flex items-center justify-center orbit-wrapper mt-6 sm:mt-10 md:mt-2" style="transform: scale(0.95);">
@@ -740,9 +740,9 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                             <div class="flex items-center gap-2 sm:gap-4 bg-white/95 backdrop-blur-md p-2 sm:p-3 pr-4 sm:pr-6 rounded-full shadow-lg border border-slate-200 transition-all duration-300 hover:shadow-2xl hover:border-amber-300">
                                 <div class="w-10 h-10 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center text-xl sm:text-3xl shrink-0 bg-amber-50 text-amber-500 shadow-inner">💡</div>
                                 <div class="overflow-hidden transition-[max-width,max-height] duration-500 ease-in-out max-w-[100px] sm:max-w-[140px] max-h-[28px] sm:max-h-[36px] group-hover:max-w-[280px] sm:group-hover:max-w-[340px] group-hover:max-h-[140px] sm:group-hover:max-h-[170px]">
-                                    <h4 class="font-black text-[#2e3192] text-xs sm:text-sm md:text-lg whitespace-nowrap">Sáng Tạo</h4>
+                                    <h4 class="font-black text-[#2e3192] text-xs sm:text-sm md:text-lg whitespace-nowrap"><?= e(t('home.mission_creative')); ?></h4>
                                     <p class="text-[10px] sm:text-xs md:text-sm text-slate-600 font-medium mt-1 w-[200px] sm:w-[260px] opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100 leading-relaxed">
-                                        Xây dựng không gian học ngoại ngữ thân thiện, hiệu quả và đầy cảm hứng.
+                                        <?= e(t('home.mission_creative_copy')); ?>
                                     </p>
                                 </div>
                             </div>
@@ -754,9 +754,9 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                             <div class="flex items-center gap-2 sm:gap-4 bg-white/95 backdrop-blur-md p-2 sm:p-3 pr-4 sm:pr-6 rounded-full shadow-lg border border-slate-200 transition-all duration-300 hover:shadow-2xl hover:border-blue-300">
                                 <div class="w-10 h-10 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center text-xl sm:text-3xl shrink-0 bg-blue-50 text-blue-500 shadow-inner">🗣️</div>
                                 <div class="overflow-hidden transition-[max-width,max-height] duration-500 ease-in-out max-w-[100px] sm:max-w-[140px] max-h-[28px] sm:max-h-[36px] group-hover:max-w-[280px] sm:group-hover:max-w-[340px] group-hover:max-h-[140px] sm:group-hover:max-h-[170px]">
-                                    <h4 class="font-black text-[#2e3192] text-xs sm:text-sm md:text-lg whitespace-nowrap">Tự Tin</h4>
+                                    <h4 class="font-black text-[#2e3192] text-xs sm:text-sm md:text-lg whitespace-nowrap"><?= e(t('home.mission_confident')); ?></h4>
                                     <p class="text-[10px] sm:text-xs md:text-sm text-slate-600 font-medium mt-1 w-[200px] sm:w-[260px] opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100 leading-relaxed">
-                                        Làm chủ tiếng Anh từ những câu đơn giản đến hội thoại thực tế đời sống.
+                                        <?= e(t('home.mission_confident_copy')); ?>
                                     </p>
                                 </div>
                             </div>
@@ -768,9 +768,9 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                             <div class="flex items-center gap-2 sm:gap-4 bg-white/95 backdrop-blur-md p-2 sm:p-3 pr-4 sm:pr-6 rounded-full shadow-lg border border-slate-200 transition-all duration-300 hover:shadow-2xl hover:border-emerald-300">
                                 <div class="w-10 h-10 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center text-xl sm:text-3xl shrink-0 bg-emerald-50 text-emerald-500 shadow-inner">🎯</div>
                                 <div class="overflow-hidden transition-[max-width,max-height] duration-500 ease-in-out max-w-[100px] sm:max-w-[140px] max-h-[28px] sm:max-h-[36px] group-hover:max-w-[280px] sm:group-hover:max-w-[340px] group-hover:max-h-[140px] sm:group-hover:max-h-[170px]">
-                                    <h4 class="font-black text-[#2e3192] text-xs sm:text-sm md:text-lg whitespace-nowrap">Toàn Diện</h4>
+                                    <h4 class="font-black text-[#2e3192] text-xs sm:text-sm md:text-lg whitespace-nowrap"><?= e(t('home.mission_complete')); ?></h4>
                                     <p class="text-[10px] sm:text-xs md:text-sm text-slate-600 font-medium mt-1 w-[200px] sm:w-[260px] opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100 leading-relaxed">
-                                        Đào tạo bài bản 4 kỹ năng Nghe – Nói – Đọc – Viết cho mọi lứa tuổi.
+                                        <?= e(t('home.mission_complete_copy')); ?>
                                     </p>
                                 </div>
                             </div>
@@ -782,9 +782,9 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                             <div class="flex items-center gap-2 sm:gap-4 bg-white/95 backdrop-blur-md p-2 sm:p-3 pr-4 sm:pr-6 rounded-full shadow-lg border border-slate-200 transition-all duration-300 hover:shadow-2xl hover:border-purple-300">
                                 <div class="w-10 h-10 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center text-xl sm:text-3xl shrink-0 bg-purple-50 text-purple-500 shadow-inner">🤝</div>
                                 <div class="overflow-hidden transition-[max-width,max-height] duration-500 ease-in-out max-w-[100px] sm:max-w-[140px] max-h-[28px] sm:max-h-[36px] group-hover:max-w-[280px] sm:group-hover:max-w-[340px] group-hover:max-h-[140px] sm:group-hover:max-h-[170px]">
-                                    <h4 class="font-black text-[#2e3192] text-xs sm:text-sm md:text-lg whitespace-nowrap">Cam Kết</h4>
+                                    <h4 class="font-black text-[#2e3192] text-xs sm:text-sm md:text-lg whitespace-nowrap"><?= e(t('home.mission_commitment')); ?></h4>
                                     <p class="text-[10px] sm:text-xs md:text-sm text-slate-600 font-medium mt-1 w-[200px] sm:w-[260px] opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100 leading-relaxed">
-                                        Theo sát lộ trình, khơi dậy niềm yêu thích với phương châm "Dám nói".
+                                        <?= e(t('home.mission_commitment_copy')); ?>
                                     </p>
                                 </div>
                             </div>
@@ -793,7 +793,7 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                 </div>
 
                 <div class="relative z-20 w-44 h-44 sm:w-64 sm:h-64 md:w-[450px] md:h-[450px] rounded-full border-[6px] sm:border-[10px] md:border-[14px] border-white shadow-[0_20px_60px_rgba(30,58,138,0.2)] overflow-hidden bg-white flex items-center justify-center group" data-aos="zoom-in">
-                    <img src="assets/images/mission2.jpg" alt="Trung tâm" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+                    <img src="assets/images/mission2.jpg" alt="<?= e(t('home.center_alt')); ?>" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
                     <div class="absolute inset-0 bg-blue-900/10 group-hover:bg-transparent transition-colors"></div>
                 </div>
 
@@ -805,9 +805,9 @@ $homeFormatFeedbackDate = static function (?string $value): string {
         <div class="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 relative z-10">
             <div class="mb-10 sm:mb-12 text-center md:text-left" data-aos="fade-up">
                 <h2 class="text-2xl md:text-3xl lg:text-4xl font-extrabold tracking-tight text-slate-800 mb-2">
-                    Có những mùa hè trôi qua, có những mùa hè con mang theo mãi mãi...
+                    <?= e(t('home.activities_title')); ?>
                 </h2>
-                <p class="text-slate-600 font-medium text-sm md:text-base">Khám phá các hoạt động ngoại khóa nổi bật trong tháng này.</p>
+                <p class="text-slate-600 font-medium text-sm md:text-base"><?= e(t('home.activities_copy')); ?></p>
             </div>
 
             <?php $activities = $homeActivities ?? []; ?>
@@ -815,7 +815,7 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                 <div class="grid gap-5 sm:gap-6 lg:gap-8 sm:grid-cols-2 lg:grid-cols-4 mobile-swipe-track">
                     <?php if (empty($activities)): ?>
                         <div class="sm:col-span-2 lg:col-span-4 rounded-[2rem] border border-dashed border-slate-300 bg-white/70 px-6 py-14 text-center text-slate-500 font-medium">
-                            Hiện chưa có hoạt động ngoại khoá nào trong hệ thống.
+                            <?= e(t('home.activities_empty')); ?>
                         </div>
                     <?php else: ?>
                         <?php foreach ($activities as $act): ?>
@@ -838,7 +838,7 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                                 <div class="px-2 pb-2 sm:pb-3 text-center flex-1 flex flex-col justify-start">
                                     <h3 class="text-[#0d3b66] font-bold text-base sm:text-lg leading-tight mb-1.5 sm:mb-2 group-hover:text-blue-600 transition-colors"><?= e($activityTitle); ?></h3>
                                     <p class="text-slate-500 text-xs sm:text-sm font-medium leading-snug px-1 line-clamp-2">
-                                        <?= e($activityDesc !== '' ? $activityDesc : 'Khám phá hoạt động ngoại khoá hấp dẫn dành cho học viên.'); ?>
+                                        <?= e($activityDesc !== '' ? $activityDesc : t('home.activity_default_desc')); ?>
                                     </p>
                                 </div>
                             </a>
@@ -849,7 +849,7 @@ $homeFormatFeedbackDate = static function (?string $value): string {
 
             <div class="mt-6 sm:mt-8 flex justify-center" data-aos="fade-up">
                 <a href="<?= e(page_url('activities-home')); ?>" class="inline-flex items-center justify-center gap-2 rounded-full bg-[#2e3192] px-6 py-3 sm:py-3.5 text-xs sm:text-sm font-bold text-white shadow-md transition-transform hover:-translate-y-0.5 hover:bg-blue-600">
-                    Xem thêm <i class="fa-solid fa-arrow-right text-[10px] sm:text-xs"></i>
+                    <?= e(t('home.view_more')); ?> <i class="fa-solid fa-arrow-right text-[10px] sm:text-xs"></i>
                 </a>
             </div>
         </div>
@@ -862,14 +862,14 @@ $homeFormatFeedbackDate = static function (?string $value): string {
             
             <div class="lg:w-1/2 max-w-2xl">
                 <h2 class="text-2xl sm:text-3xl md:text-5xl font-black text-blue-800 leading-[1.18] md:leading-[1.12] tracking-tight max-w-xl">
-                    Hơn 3.100 Giáo viên và trợ giảng <br>
-                    <span class="text-blue-600">Chuẩn quốc tế</span>
+                    <?= e(t('home.teachers_title')); ?> <br>
+                    <span class="text-blue-600"><?= e(t('home.teachers_highlight')); ?></span>
                 </h2>
             </div>
             
             <div class="lg:w-1/2 flex items-start sm:items-center gap-4 sm:gap-6">
                 <p class="text-slate-600 font-medium text-xs sm:text-sm leading-relaxed border-l-2 border-slate-300 pl-3 sm:pl-4 md:pl-6 text-left">
-                    100% giáo viên nước ngoài được đảm bảo bởi International House - tổ chức uy tín hàng đầu thế giới về chuẩn đào tạo giáo viên nghiêm ngặt (như CELTA, DELTA)
+                    <?= e(t('home.teachers_copy')); ?>
                 </p>
                 <div class="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 shrink-0 bg-[#2e3192] rounded-full flex items-center justify-center text-white font-bold text-lg sm:text-xl md:text-2xl shadow-md">
                     ih
@@ -886,14 +886,14 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                     ?>
                     <div class="swiper-slide h-auto">
                         <div class="rounded-2xl sm:rounded-3xl border border-dashed border-slate-200 bg-white/80 p-6 sm:p-8 text-center text-slate-500 font-medium text-sm sm:text-base">
-                            Hiện chưa có giáo viên nào trong hệ thống.
+                            <?= e(t('home.teachers_empty')); ?>
                         </div>
                     </div>
                     <?php else: ?>
                     <?php foreach ($teachers as $teacher): ?>
                     <?php
                     $teacherName = (string) ($teacher['full_name'] ?? '');
-                    $teacherRole = 'Giáo viên';
+                    $teacherRole = t('home.teacher_role');
                     $teacherAvatar = trim((string) ($teacher['avatar'] ?? ''));
                     if ($teacherAvatar !== '' && function_exists('normalize_public_file_url')) {
                         $teacherAvatar = normalize_public_file_url($teacherAvatar);
@@ -924,7 +924,7 @@ $homeFormatFeedbackDate = static function (?string $value): string {
 
         <div class="mt-6 sm:mt-8 flex justify-center">
             <a href="<?= e(page_url('dashboard-teacher')); ?>" class="inline-flex items-center justify-center gap-2 rounded-full bg-[#2e3192] px-5 sm:px-6 py-3 sm:py-3.5 text-xs sm:text-sm font-bold text-white shadow-md transition-transform hover:-translate-y-0.5 hover:bg-blue-600">
-                Xem thêm <i class="fa-solid fa-arrow-right text-[10px] sm:text-xs"></i>
+                <?= e(t('home.view_more')); ?> <i class="fa-solid fa-arrow-right text-[10px] sm:text-xs"></i>
             </a>
         </div>
 
@@ -940,10 +940,10 @@ $homeFormatFeedbackDate = static function (?string $value): string {
             <div class="mb-8 sm:mb-10" data-aos="fade-up">
                 <div class="max-w-2xl">
                     <div class="inline-flex items-center gap-1.5 sm:gap-2 rounded-full border border-emerald-100 bg-white/80 px-3 sm:px-4 py-1.5 sm:py-2 text-[9px] sm:text-[10px] font-black uppercase tracking-[0.35em] text-emerald-600 shadow-sm">
-                        <i class="fa-regular fa-comment-dots"></i> Đánh giá từ người dùng
+                        <i class="fa-regular fa-comment-dots"></i> <?= e(t('home.feedback_badge')); ?>
                     </div>
-                    <h2 class="mt-3 sm:mt-4 text-2xl sm:text-3xl md:text-5xl font-black tracking-tight text-slate-900">Học viên nói gì về <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-cyan-500">trung tâm</span></h2>
-                    <p class="mt-3 sm:mt-4 text-slate-600 font-medium text-sm sm:text-base md:text-lg leading-relaxed">Những phản hồi thật từ học viên và phụ huynh là thước đo rõ nhất cho chất lượng đào tạo và trải nghiệm học tập tại trung tâm.</p>
+                    <h2 class="mt-3 sm:mt-4 text-2xl sm:text-3xl md:text-5xl font-black tracking-tight text-slate-900"><?= e(t('home.feedback_title')); ?> <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-cyan-500"><?= e(t('home.feedback_highlight')); ?></span></h2>
+                    <p class="mt-3 sm:mt-4 text-slate-600 font-medium text-sm sm:text-base md:text-lg leading-relaxed"><?= e(t('home.feedback_copy')); ?></p>
                 </div>
             </div>
 
@@ -952,13 +952,13 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                     <?php if (empty($homeFeedbacks)): ?>
                         <div class="swiper-slide h-auto">
                             <div class="rounded-2xl sm:rounded-[2rem] border border-dashed border-slate-300 bg-white/80 p-6 sm:p-8 text-center text-slate-500 font-medium text-sm sm:text-base">
-                                Hiện chưa có đánh giá nào được duyệt để hiển thị.
+                                <?= e(t('home.feedback_empty')); ?>
                             </div>
                         </div>
                     <?php else: ?>
                         <?php foreach ($homeFeedbacks as $feedback): ?>
                             <?php
-                            $feedbackName = (string) ($feedback['full_name'] ?? 'Học viên');
+                            $feedbackName = (string) ($feedback['full_name'] ?? t('home.student'));
                             $feedbackClass = (string) ($feedback['course_name'] ?? '');
                             $feedbackTeacher = (string) ($feedback['teacher_name'] ?? '');
                             $feedbackContent = trim((string) ($feedback['comment'] ?? ''));
@@ -972,7 +972,7 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                                             <img src="<?= e($avatarUrl); ?>" alt="<?= e($feedbackName); ?>" class="h-10 w-10 sm:h-12 sm:w-12 rounded-xl object-cover ring-2 ring-emerald-50 shrink-0">
                                             <div class="min-w-0">
                                                 <h3 class="truncate text-sm sm:text-base font-black text-slate-900"><?= e($feedbackName); ?></h3>
-                                                <p class="text-[9px] sm:text-[10px] md:text-[11px] font-semibold uppercase tracking-[0.2em] text-emerald-600">Học viên / Phụ huynh</p>
+                                                <p class="text-[9px] sm:text-[10px] md:text-[11px] font-semibold uppercase tracking-[0.2em] text-emerald-600"><?= e(t('home.student_parent')); ?></p>
                                             </div>
                                         </div>
                                         <div class="flex flex-col items-end gap-1 shrink-0">
@@ -989,7 +989,7 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                                     </div>
 
                                     <p class="mt-3 sm:mt-4 flex-1 text-xs sm:text-sm md:text-base leading-relaxed text-slate-600 line-clamp-3">
-                                        “<?= e($feedbackContent !== '' ? $feedbackContent : 'Trải nghiệm học tập tại trung tâm rất tốt.'); ?>”
+                                        “<?= e($feedbackContent !== '' ? $feedbackContent : t('home.feedback_default')); ?>”
                                     </p>
 
                                     <div class="mt-3 sm:mt-4 flex flex-wrap items-center gap-1.5 sm:gap-2 text-[9px] sm:text-[10px] md:text-[11px] font-bold uppercase tracking-widest text-slate-500">
@@ -997,7 +997,7 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                                             <span class="rounded-full bg-emerald-50 px-2 sm:px-3 py-0.5 sm:py-1 text-emerald-700"><?= e($feedbackClass); ?></span>
                                         <?php endif; ?>
                                         <?php if ($feedbackTeacher !== ''): ?>
-                                            <span class="rounded-full bg-cyan-50 px-2 sm:px-3 py-0.5 sm:py-1 text-cyan-700">GV: <?= e($feedbackTeacher); ?></span>
+                                            <span class="rounded-full bg-cyan-50 px-2 sm:px-3 py-0.5 sm:py-1 text-cyan-700"><?= e(t('home.teacher_abbr')); ?>: <?= e($feedbackTeacher); ?></span>
                                         <?php endif; ?>
                                     </div>
                                 </article>
@@ -1020,10 +1020,10 @@ $homeFormatFeedbackDate = static function (?string $value): string {
             <div class="mb-8 sm:mb-10" data-aos="fade-up">
                 <div class="max-w-2xl">
                     <div class="inline-flex items-center gap-1.5 sm:gap-2 rounded-full border border-lime-100 bg-white/80 px-3 sm:px-4 py-1.5 sm:py-2 text-[9px] sm:text-[10px] font-black uppercase tracking-[0.35em] text-lime-600 shadow-sm">
-                        <i class="fa-solid fa-video"></i> Kết quả đạt được
+                        <i class="fa-solid fa-video"></i> <?= e(t('home.portfolio_badge')); ?>
                     </div>
-                    <h2 class="mt-3 sm:mt-4 text-2xl sm:text-3xl md:text-5xl font-black tracking-tight text-slate-900">Kết quả nhận được <span class="text-transparent bg-clip-text bg-gradient-to-r from-lime-600 to-emerald-500">học viên</span></h2>
-                    <p class="mt-3 sm:mt-4 text-slate-600 font-medium text-sm sm:text-base md:text-lg leading-relaxed">Những video kết quả nhận được thực tế từ học viên về những kết quả tuyệt vời họ đã đạt được sau khi học tập tại trung tâm.</p>
+                    <h2 class="mt-3 sm:mt-4 text-2xl sm:text-3xl md:text-5xl font-black tracking-tight text-slate-900"><?= e(t('home.portfolio_title')); ?> <span class="text-transparent bg-clip-text bg-gradient-to-r from-lime-600 to-emerald-500"><?= e(t('home.portfolio_highlight')); ?></span></h2>
+                    <p class="mt-3 sm:mt-4 text-slate-600 font-medium text-sm sm:text-base md:text-lg leading-relaxed"><?= e(t('home.portfolio_copy')); ?></p>
                 </div>
             </div>
 
@@ -1035,17 +1035,17 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                     ?>
                         <div class="swiper-slide h-auto">
                             <div class="rounded-2xl sm:rounded-[2rem] border border-dashed border-slate-300 bg-white/80 p-6 sm:p-8 text-center text-slate-500 font-medium text-sm sm:text-base">
-                                Hiện chưa có phản hồi video nào được duyệt để hiển thị.
+                                <?= e(t('home.portfolio_empty')); ?>
                             </div>
                         </div>
                     <?php else: ?>
                         <?php foreach ($studentPortfolios as $portfolio): ?>
                             <?php
-                            $portfolioName = (string) ($portfolio['full_name'] ?? $portfolio['student_name'] ?? 'Học viên');
+                            $portfolioName = (string) ($portfolio['full_name'] ?? $portfolio['student_name'] ?? t('home.student'));
                             $portfolioAvatar = (string) ($portfolio['avatar_url'] ?? $portfolio['avatar'] ?? '');
                             $portfolioMedia = (string) ($portfolio['media_url'] ?? '');
                             $portfolioDescription = trim((string) ($portfolio['description'] ?? ''));
-                            $portfolioResult = trim((string) ($portfolio['result'] ?? 'Kết quả đạt được'));
+                            $portfolioResult = trim((string) ($portfolio['result'] ?? t('home.portfolio_badge')));
                             
                             // Nếu không có avatar, dùng avatar mặc định
                             if (empty($portfolioAvatar)) {
@@ -1074,7 +1074,7 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                                             <img src="<?= e($portfolioAvatar); ?>" alt="<?= e($portfolioName); ?>" class="h-10 w-10 sm:h-12 sm:w-12 rounded-lg object-cover ring-2 ring-lime-50 shrink-0">
                                             <div class="min-w-0">
                                                 <h3 class="truncate text-sm sm:text-base font-black text-slate-900"><?= e($portfolioName); ?></h3>
-                                                <p class="text-[9px] sm:text-[10px] md:text-[11px] font-semibold uppercase tracking-[0.2em] text-lime-600">Học viên</p>
+                                                <p class="text-[9px] sm:text-[10px] md:text-[11px] font-semibold uppercase tracking-[0.2em] text-lime-600"><?= e(t('home.student')); ?></p>
                                             </div>
                                         </div>
 
@@ -1111,7 +1111,7 @@ $homeFormatFeedbackDate = static function (?string $value): string {
     <section id="dang-ky-tu-van" class="relative py-20 md:py-32 overflow-hidden">
         <!-- Background image hero banner -->
         <div class="absolute inset-0">
-            <img src="/assets/images/consult.jpg" alt="Sinh viên học tập" class="h-full w-full object-cover brightness-110 contrast-105 saturate-105">
+            <img src="/assets/images/consult.jpg" alt="<?= e(t('courses.image_alt')); ?>" class="h-full w-full object-cover brightness-110 contrast-105 saturate-105">
             <!-- Slight horizontal darkening to keep text legible -->
             <div class="absolute inset-0 bg-gradient-to-r from-slate-900/28 via-slate-900/8 to-transparent"></div>
             <!-- Top fade: blend the top edge into the page background for smooth transition -->
@@ -1129,16 +1129,16 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                 <div class="max-w-2xl" data-aos="fade-right" data-aos-duration="700">
                     <span class="inline-flex items-center gap-2 rounded-full border border-rose-300/40 bg-gradient-to-r from-rose-600 to-rose-500 px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-white shadow-lg shadow-rose-500/25 backdrop-blur-sm transition-transform hover:-translate-y-0.5">
                         <span class="h-2 w-2 rounded-full bg-white animate-pulse"></span>
-                        Tư vấn nhanh 1:1
+                        <?= e(t('public.common.quick_consultation')); ?>
                     </span>
 
                     <h2 class="mt-8 text-4xl md:text-5xl lg:text-6xl font-black leading-tight tracking-tight text-white">
-                        Bắt đầu hành trình <br>
-                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-rose-200 to-orange-200">chinh phục Anh ngữ</span>
+                        <?= e(t('public.common.start_english_journey')); ?> <br>
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-rose-200 to-orange-200"><?= e(t('public.common.conquer_english')); ?></span>
                     </h2>
                     
                     <p class="mt-6 max-w-xl text-base md:text-lg leading-relaxed text-white/95 drop-shadow-[0_2px_8px_rgba(15,23,42,0.25)]">
-                        Hãy để lại thông tin, đội ngũ học thuật của chúng tôi sẽ thiết kế riêng một lộ trình tối ưu nhất dựa trên mục tiêu và năng lực của bạn.
+                        <?= e(t('public.common.consultation_copy')); ?>
                     </p>
 
                     <div class="mt-10 grid gap-4 sm:grid-cols-3 max-w-lg">
@@ -1147,21 +1147,21 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                                 <i class="fa-regular fa-clock text-sm"></i>
                             </div>
                             <p class="text-2xl font-black text-white">15'</p>
-                            <p class="mt-1 text-[9px] font-bold uppercase tracking-widest text-white/70">Liên hệ ngay</p>
+                            <p class="mt-1 text-[9px] font-bold uppercase tracking-widest text-white/70"><?= e(t('public.common.contact_now')); ?></p>
                         </div>
                         <div class="rounded-[1.5rem] border border-white/18 bg-white/14 p-5 shadow-lg">
                             <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 text-white">
                                 <i class="fa-solid fa-user-group text-sm"></i>
                             </div>
                             <p class="text-2xl font-black text-white">1:1</p>
-                            <p class="mt-1 text-[9px] font-bold uppercase tracking-widest text-white/70">Chuyên gia</p>
+                            <p class="mt-1 text-[9px] font-bold uppercase tracking-widest text-white/70"><?= e(t('public.common.expert')); ?></p>
                         </div>
                         <div class="rounded-[1.5rem] border border-white/18 bg-white/14 p-5 shadow-lg">
                             <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 text-white">
                                 <i class="fa-solid fa-wand-magic-sparkles text-sm"></i>
                             </div>
                             <p class="text-2xl font-black text-white">100%</p>
-                            <p class="mt-1 text-[9px] font-bold uppercase tracking-widest text-white/70">Cá nhân hóa</p>
+                            <p class="mt-1 text-[9px] font-bold uppercase tracking-widest text-white/70"><?= e(t('public.common.personalized')); ?></p>
                         </div>
                     </div>
                 </div>
@@ -1184,21 +1184,17 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                             0 8px 16px rgba(15, 23, 42, 0.25),
                             0 0 1px rgba(255, 255, 255, 0.8);
                         ">
-                            Đăng ký tư vấn
-                            <!-- <span class="ml-2 text-transparent bg-clip-text bg-gradient-to-r from-rose-400 to-rose-600" style="text-shadow: 
-                                2px 2px 0 rgba(244, 63, 94, 0.2),
-                                4px 4px 0 rgba(244, 63, 94, 0.15),
-                                0 6px 12px rgba(244, 63, 94, 0.2); -->
-                             <span class="ml-2 text-transparent bg-clip-text bg-gradient-to-r from-lime-300 to-emerald-300" style="text-shadow: 
+                            <?= e(t('public.common.free_consultation')); ?>
+                            <span class="ml-2 text-transparent bg-clip-text bg-gradient-to-r from-lime-300 to-emerald-300" style="text-shadow: 
                                 2px 2px 0 rgba(190, 242, 100, 0.22),
                                 4px 4px 0 rgba(132, 204, 22, 0.16),
                                 0 6px 12px rgba(101, 163, 13, 0.18);
-                            ">miễn phí</span>
+                            "><?= e(t('public.common.free')); ?></span>
                         </h3>
                         <!-- Subheading: Trust messaging (emerald psychology) -->
                         <p class="text-sm font-semibold text-white/95 drop-shadow-[0_2px_8px_rgba(15,23,42,0.22)]">
                             <i class="fa-solid fa-check-circle text-emerald-500 mr-2"></i>
-                            Chuyên gia sẽ thiết kế lộ trình phù hợp cho bạn
+                            <?= e(t('public.common.route_for_you')); ?>
                         </p>
                     </div>
 
@@ -1207,11 +1203,11 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                         <div class="sm:col-span-2 group">
                             <label class="mb-3 flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.16em] text-white group-focus-within:text-rose-300 transition-colors">
                                 <i class="fa-solid fa-user text-rose-500"></i>
-                                Họ và tên <span class="text-rose-500 text-base">*</span>
+                                <?= e(t('public.common.full_name')); ?> <span class="text-rose-500 text-base">*</span>
                             </label>
                             <div class="relative">
                                 <span class="absolute left-5 top-1/2 -translate-y-1/2 text-rose-400 group-focus-within:text-rose-500 transition-colors"><i class="fa-regular fa-user"></i></span>
-                                <input type="text" required placeholder="Nhập họ và tên của bạn" class="w-full rounded-2xl border border-slate-200 bg-white py-4 pl-14 pr-5 text-sm font-bold text-slate-900 shadow-sm outline-none transition-all placeholder:text-slate-400 placeholder:font-medium focus:border-rose-400 focus:ring-4 focus:ring-rose-500/15 focus:shadow-lg focus:shadow-rose-500/10">
+                                <input type="text" required placeholder="<?= e(t('public.common.full_name_placeholder')); ?>" class="w-full rounded-2xl border border-slate-200 bg-white py-4 pl-14 pr-5 text-sm font-bold text-slate-900 shadow-sm outline-none transition-all placeholder:text-slate-400 placeholder:font-medium focus:border-rose-400 focus:ring-4 focus:ring-rose-500/15 focus:shadow-lg focus:shadow-rose-500/10">
                             </div>
                         </div>
 
@@ -1219,7 +1215,7 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                         <div class="group">
                             <label class="mb-3 flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.16em] text-white group-focus-within:text-rose-300 transition-colors">
                                 <i class="fa-solid fa-phone text-rose-500"></i>
-                                Số điện thoại <span class="text-rose-500 text-base">*</span>
+                                <?= e(t('public.common.phone')); ?> <span class="text-rose-500 text-base">*</span>
                             </label>
                             <div class="relative">
                                 <span class="absolute left-5 top-1/2 -translate-y-1/2 text-rose-400 group-focus-within:text-rose-500 transition-colors"><i class="fa-solid fa-phone"></i></span>
@@ -1231,7 +1227,7 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                         <div class="group">
                             <label class="mb-3 flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.16em] text-white group-focus-within:text-emerald-300 transition-colors">
                                 <i class="fa-solid fa-calendar text-emerald-500"></i>
-                                Ngày sinh
+                                <?= e(t('public.common.birthdate')); ?>
                             </label>
                             <div class="relative">
                                 <span class="absolute left-5 top-1/2 -translate-y-1/2 text-emerald-400 group-focus-within:text-emerald-500 transition-colors"><i class="fa-regular fa-calendar"></i></span>
@@ -1243,15 +1239,15 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                         <div class="sm:col-span-2 group">
                             <label class="mb-3 flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.16em] text-white group-focus-within:text-emerald-300 transition-colors">
                                 <i class="fa-solid fa-message text-emerald-500"></i>
-                                Ghi chú mong muốn
+                                <?= e(t('public.common.note')); ?>
                             </label>
-                            <textarea rows="3" placeholder="Bạn muốn học khóa nào, hoặc khung giờ rảnh của bạn là gì?..." class="w-full rounded-2xl border border-slate-200 bg-white p-5 text-sm font-bold text-slate-900 shadow-sm outline-none transition-all placeholder:text-slate-400 placeholder:font-medium focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/15 focus:shadow-lg focus:shadow-emerald-500/10 resize-none"></textarea>
+                            <textarea rows="3" placeholder="<?= e(t('public.common.note_placeholder')); ?>" class="w-full rounded-2xl border border-slate-200 bg-white p-5 text-sm font-bold text-slate-900 shadow-sm outline-none transition-all placeholder:text-slate-400 placeholder:font-medium focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/15 focus:shadow-lg focus:shadow-emerald-500/10 resize-none"></textarea>
                         </div>
 
                         <!-- CTA Button: Rose (urgency/action psychology) + Emerald accent (trust) -->
                         <button type="submit" class="sm:col-span-2 mt-2 group relative inline-flex items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-rose-500 to-rose-600 px-8 py-4 text-sm font-black uppercase tracking-widest text-white shadow-lg shadow-rose-500/30 transition-all duration-300 hover:-translate-y-1.5 hover:from-rose-600 hover:to-rose-700 hover:shadow-rose-600/50 active:translate-y-0 active:shadow-rose-500/20">
                             <span class="flex items-center gap-2">
-                                Gửi yêu cầu ngay
+                                <?= e(t('public.common.send_request')); ?>
                                 <i class="fa-solid fa-arrow-right transition-transform group-hover:translate-x-1"></i>
                             </span>
                             <!-- Subtle success indicator (emerald) -->

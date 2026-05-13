@@ -9,12 +9,12 @@ $username = trim((string) ($_POST['username'] ?? ''));
 $password = (string) ($_POST['password'] ?? '');
 
 if ($username === '' || $password === '') {
-set_flash('error', 'Vui lòng nhập đầy đủ thông tin đăng nhập.');
+set_flash('error', t('auth.login.missing_credentials'));
 redirect(page_url('login'));
 }
 
 if (!login_attempt($username, $password)) {
-set_flash('error', 'Thông tin đăng nhập không đúng hoặc tài khoản bị khóa.');
+set_flash('error', t('auth.login.invalid_credentials'));
 redirect(page_url('login'));
 }
 

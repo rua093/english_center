@@ -265,7 +265,7 @@ $editingThumbnailUrl = normalize_public_file_url((string) ($editingActivity['ima
                                             </a>
                                         <?php endif; ?>
                                         <?php if ($canDeleteActivity): ?>
-                                            <form class="inline-block" method="post" action="/api/activities/delete?id=<?= (int) $act['id']; ?>" onsubmit="return confirm('Có chắc không?')">
+                                            <form class="inline-block" method="post" action="/api/activities/delete?id=<?= (int) $act['id']; ?>" onsubmit="return confirm('Bạn có chắc muốn xóa hoạt động ngoại khóa này không?')">
                                                 <?= csrf_input(); ?>
                                                 <button
                                                     class="<?= ui_btn_danger_classes('sm'); ?> admin-action-icon-btn"

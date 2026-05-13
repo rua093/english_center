@@ -195,7 +195,7 @@ $error = get_flash('error');
                                         <?php endif; ?>
                                         
                                         <?php if ($canDeleteFeedback): ?>
-                                            <form class="inline-block" method="post" action="/api/feedbacks/delete?id=<?= (int) $fb['id']; ?>" onsubmit="return confirm('Có chắc không?')">
+                                            <form class="inline-block" method="post" action="/api/feedbacks/delete?id=<?= (int) $fb['id']; ?>" onsubmit="return confirm('Bạn có chắc muốn xóa đánh giá này không?')">
                                                 <?= csrf_input(); ?>
                                                 <button
                                                     class="<?= ui_btn_danger_classes('sm'); ?> admin-action-icon-btn"

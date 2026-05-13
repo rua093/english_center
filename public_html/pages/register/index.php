@@ -1,6 +1,7 @@
 <?php
 $error = $error ?? get_flash('error');
 $success = $success ?? get_flash('success');
+$authLocale = current_locale();
 ?>
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -20,6 +21,17 @@ $success = $success ?? get_flash('success');
 </style>
 
 <section class="font-jakarta min-h-screen bg-slate-50 relative overflow-hidden flex items-center px-4 py-10 sm:px-6 lg:py-14">
+    <div class="absolute right-4 top-4 z-20 inline-flex rounded-full border border-white/70 bg-white/85 p-1 text-xs font-black shadow-lg shadow-slate-900/10 backdrop-blur">
+        <?php foreach (APP_SUPPORTED_LOCALES as $localeOption): ?>
+            <a
+                href="<?= e(localized_current_url($localeOption)); ?>"
+                class="rounded-full px-3 py-1.5 transition <?= $authLocale === $localeOption ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:bg-white hover:text-blue-700'; ?>"
+                aria-label="<?= e(t('locale.switch_to', ['language' => t('locale.' . $localeOption)])); ?>"
+            >
+                <?= e(t('locale.' . $localeOption)); ?>
+            </a>
+        <?php endforeach; ?>
+    </div>
     
     <div class="absolute top-0 -left-40 h-[30rem] w-[30rem] rounded-full bg-blue-200/50 blur-3xl animate-blob mix-blend-multiply"></div>
     <div class="absolute top-40 -right-20 h-[30rem] w-[30rem] rounded-full bg-cyan-200/50 blur-3xl animate-blob animation-delay-2000 mix-blend-multiply"></div>
@@ -32,18 +44,18 @@ $success = $success ?? get_flash('success');
 				<div>
 					<div class="mb-6 flex flex-wrap gap-3">
 						<span class="inline-flex items-center gap-1.5 rounded-full border border-cyan-200 bg-cyan-50 px-4 py-1.5 text-xs font-bold text-cyan-700 shadow-sm">
-                            <i class="fa-solid fa-sparkles text-cyan-500"></i> Khởi đầu mới
+                            <i class="fa-solid fa-sparkles text-cyan-500"></i> <?= e(t('register.badge_start')); ?>
                         </span>
 						<span class="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-4 py-1.5 text-xs font-bold text-blue-700 shadow-sm">
-                            <i class="fa-solid fa-bolt text-blue-500"></i> Nhanh chóng & Bảo mật
+                            <i class="fa-solid fa-bolt text-blue-500"></i> <?= e(t('register.badge_secure')); ?>
                         </span>
 					</div>
 
 					<h2 class="text-4xl font-extrabold leading-tight tracking-tight text-slate-800 sm:text-5xl">
-                        Đăng ký <br><span class="bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent drop-shadow-sm">tài khoản</span> trung tâm
+                        <?= e(t('register.hero_title_prefix')); ?> <br><span class="bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent drop-shadow-sm"><?= e(t('register.hero_title_highlight')); ?></span> <?= e(t('register.hero_title_suffix')); ?>
                     </h2>
 					<p class="mt-5 max-w-xl text-base leading-relaxed text-slate-600 sm:text-lg">
-						Chỉ với một tài khoản duy nhất, bạn có thể theo dõi tiến độ học tập, học phí, bài tập và nhận thông báo tức thì từ hệ thống.
+						<?= e(t('register.hero_copy')); ?>
 					</p>
 				</div>
 
@@ -52,19 +64,19 @@ $success = $success ?? get_flash('success');
 						<span class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white text-blue-600 shadow-md shadow-slate-200 border border-slate-100 transition-transform group-hover:scale-110">
                             <i class="fa-solid fa-user-pen text-xs"></i>
                         </span>
-						<span class="pt-1">Điền thông tin cá nhân cơ bản để tạo hồ sơ.</span>
+						<span class="pt-1"><?= e(t('register.step_profile')); ?></span>
 					</li>
 					<li class="flex items-start gap-4 group">
 						<span class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white text-blue-600 shadow-md shadow-slate-200 border border-slate-100 transition-transform group-hover:scale-110">
                             <i class="fa-solid fa-users-gear text-xs"></i>
                         </span>
-						<span class="pt-1">Chọn vai trò phù hợp (Học viên / Phụ huynh).</span>
+						<span class="pt-1"><?= e(t('register.step_role')); ?></span>
 					</li>
 					<li class="flex items-start gap-4 group">
 						<span class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white text-emerald-500 shadow-md shadow-slate-200 border border-slate-100 transition-transform group-hover:scale-110">
                             <i class="fa-solid fa-check text-xs"></i>
                         </span>
-						<span class="pt-1">Hoàn tất và bắt đầu trải nghiệm ngay lập tức.</span>
+						<span class="pt-1"><?= e(t('register.step_start')); ?></span>
 					</li>
 				</ul>
 			</div>
@@ -75,8 +87,8 @@ $success = $success ?? get_flash('success');
 
 			<div class="mx-auto max-w-md relative z-10">
 				<div class="mb-8 text-center">
-					<h1 class="text-3xl font-black tracking-tight text-slate-800">Tạo tài khoản</h1>
-					<p class="mt-2 text-sm font-medium text-slate-500">Tham gia hệ thống quản lý học tập thông minh.</p>
+					<h1 class="text-3xl font-black tracking-tight text-slate-800"><?= e(t('register.title')); ?></h1>
+					<p class="mt-2 text-sm font-medium text-slate-500"><?= e(t('register.subtitle')); ?></p>
 				</div>
 
 				<?php if ($error): ?>
@@ -97,7 +109,7 @@ $success = $success ?? get_flash('success');
 					<?= csrf_input(); ?>
 
 					<div class="grid gap-1.5">
-						<label class="text-sm font-bold text-slate-700">Họ và tên</label>
+						<label class="text-sm font-bold text-slate-700"><?= e(t('register.full_name')); ?></label>
                         <div class="relative">
                             <i class="fa-regular fa-id-card absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 transition-colors peer-focus:text-blue-600"></i>
 						    <input type="text" name="full_name" placeholder="Nguyễn Văn A" class="peer w-full rounded-xl border border-slate-200 bg-slate-50 py-3.5 pl-11 pr-4 text-slate-800 outline-none transition-all focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 placeholder:text-slate-400" required>
@@ -105,7 +117,7 @@ $success = $success ?? get_flash('success');
 					</div>
 
 					<div class="grid gap-1.5">
-						<label class="text-sm font-bold text-slate-700">Email hoặc tên đăng nhập</label>
+						<label class="text-sm font-bold text-slate-700"><?= e(t('register.username_email')); ?></label>
                         <div class="relative">
                             <i class="fa-regular fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 transition-colors peer-focus:text-blue-600"></i>
 						    <input type="text" name="username" placeholder="student@ec.local" class="peer w-full rounded-xl border border-slate-200 bg-slate-50 py-3.5 pl-11 pr-4 text-slate-800 outline-none transition-all focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 placeholder:text-slate-400" required>
@@ -114,7 +126,7 @@ $success = $success ?? get_flash('success');
 
                     <div class="grid grid-cols-2 gap-4">
                         <div class="grid gap-1.5">
-                            <label class="text-sm font-bold text-slate-700">Mật khẩu</label>
+                            <label class="text-sm font-bold text-slate-700"><?= e(t('register.password')); ?></label>
                             <div class="relative">
                                 <i class="fa-solid fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 transition-colors peer-focus:text-blue-600"></i>
                                 <input type="password" name="password" id="password_input" placeholder="••••••••" class="peer w-full rounded-xl border border-slate-200 bg-slate-50 py-3.5 pl-11 pr-10 text-slate-800 outline-none transition-all focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 placeholder:text-slate-400" required>
@@ -125,7 +137,7 @@ $success = $success ?? get_flash('success');
                         </div>
 
                         <div class="grid gap-1.5">
-                            <label class="text-sm font-bold text-slate-700">Nhập lại</label>
+                            <label class="text-sm font-bold text-slate-700"><?= e(t('register.password_confirm')); ?></label>
                             <div class="relative">
                                 <i class="fa-solid fa-shield-check absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 transition-colors peer-focus:text-blue-600"></i>
                                 <input type="password" name="password_confirm" id="password_confirm_input" placeholder="••••••••" class="peer w-full rounded-xl border border-slate-200 bg-slate-50 py-3.5 pl-11 pr-10 text-slate-800 outline-none transition-all focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 placeholder:text-slate-400" required>
@@ -137,12 +149,12 @@ $success = $success ?? get_flash('success');
                     </div>
 
 					<div class="grid gap-1.5">
-						<label class="text-sm font-bold text-slate-700">Vai trò của bạn</label>
+						<label class="text-sm font-bold text-slate-700"><?= e(t('register.role')); ?></label>
                         <div class="relative">
                             <i class="fa-solid fa-user-tag absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 transition-colors peer-focus:text-blue-600 z-10"></i>
 						    <select name="role" class="peer w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 py-3.5 pl-11 pr-10 text-slate-800 outline-none transition-all focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 cursor-pointer font-bold">
-                                <option value="student">👨‍🎓 Học viên</option>
-                                <option value="parent">👨‍👩‍👧 Phụ huynh</option>
+                                <option value="student">👨‍🎓 <?= e(t('register.role_student')); ?></option>
+                                <option value="parent">👨‍👩‍👧 <?= e(t('register.role_parent')); ?></option>
                             </select>
                             <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
                         </div>
@@ -150,12 +162,12 @@ $success = $success ?? get_flash('success');
 
 					<button type="submit" class="mt-4 group relative inline-flex w-full items-center justify-center overflow-hidden rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-4 text-base font-bold text-white shadow-lg shadow-blue-500/20 transition-all hover:scale-[1.02] hover:shadow-indigo-500/30">
                         <span class="absolute right-0 -mt-12 h-32 w-8 translate-x-12 rotate-12 bg-white opacity-20 transition-all duration-1000 ease-out group-hover:-translate-x-96"></span>
-						Đăng ký ngay <i class="fa-solid fa-arrow-right ml-2 transition-transform group-hover:translate-x-1"></i>
+						<?= e(t('register.submit')); ?> <i class="fa-solid fa-arrow-right ml-2 transition-transform group-hover:translate-x-1"></i>
 					</button>
 
 					<div class="mt-4 text-center text-sm font-medium text-slate-500">
-						Đã có tài khoản?
-						<a href="<?= e(page_url('login')); ?>" class="font-bold text-blue-600 transition-colors hover:text-indigo-600 hover:underline underline-offset-4">Đăng nhập tại đây</a>
+						<?= e(t('register.has_account')); ?>
+						<a href="<?= e(page_url('login')); ?>" class="font-bold text-blue-600 transition-colors hover:text-indigo-600 hover:underline underline-offset-4"><?= e(t('register.login_link')); ?></a>
 					</div>
 				</form>
 			</div>

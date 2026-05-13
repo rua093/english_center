@@ -245,7 +245,7 @@ $canUpdateMaterial = has_permission('materials.update');
                                         </a>
                                     <?php endif; ?>
                                     <?php if ($canDeleteAssignment): ?>
-                                        <form class="inline-block" method="post" action="/api/assignments/delete?id=<?= (int) $assignment['id']; ?>">
+                                        <form class="inline-block" method="post" action="/api/assignments/delete?id=<?= (int) $assignment['id']; ?>" onsubmit="return confirm('Bạn có chắc muốn xóa bài tập này không?');">
                                             <?= csrf_input(); ?>
                                             <button
                                                 class="<?= ui_btn_danger_classes('sm'); ?> admin-action-icon-btn"

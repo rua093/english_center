@@ -18,7 +18,7 @@ function api_rooms_save_action(): void
     }
 
     if ($roomName === '') {
-        set_flash('error', 'Vui long nhap ten phong hoc.');
+        set_flash('error', 'Vui lòng nhập tên phòng học.');
         redirect(page_url('rooms-manage', $redirectQuery));
     }
 
@@ -28,11 +28,11 @@ function api_rooms_save_action(): void
             'room_name' => $roomName,
         ]);
     } catch (Throwable $exception) {
-        set_flash('error', 'Khong the luu phong hoc. Vui long thu lai.');
+        set_flash('error', 'Không thể lưu phòng học. Vui lòng thử lại.');
         redirect(page_url('rooms-manage', $redirectQuery));
     }
 
-    set_flash('success', 'Da luu phong hoc thanh cong.');
+    set_flash('success', 'Đã lưu phòng học thành công.');
     redirect(page_url('rooms-manage'));
 }
 
@@ -49,15 +49,15 @@ function api_rooms_delete_action(): void
 
     $roomId = (int) ($_GET['id'] ?? 0);
     if ($roomId <= 0) {
-        set_flash('error', 'Phong hoc khong hop le.');
+        set_flash('error', 'Phòng học không hợp lệ.');
         redirect(page_url('rooms-manage'));
     }
 
     try {
         (new AcademicModel())->deleteRoom($roomId);
-        set_flash('success', 'Da chuyen phong hoc vao trang thai xoa mem.');
+        set_flash('success', 'Đã chuyển phòng học vào trạng thái xóa mềm.');
     } catch (Throwable $exception) {
-        set_flash('error', 'Khong the xoa phong hoc dang duoc su dung trong lich day.');
+        set_flash('error', 'Không thể xóa phòng học đang được sử dụng trong lịch dạy.');
     }
 
     redirect(page_url('rooms-manage'));
