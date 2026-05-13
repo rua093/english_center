@@ -3,6 +3,8 @@ $homeUser = auth_user();
 $studentProgress = $homeWidgets['student_progress'] ?? null;
 $teacherSchedules = $homeWidgets['teacher_schedules'] ?? [];
 $homeCourses = $homeCourses ?? [];
+$homeLeadSuccess = get_flash('home_success');
+$homeLeadError = get_flash('home_error');
 
 $homeFormatFeedbackDate = static function (?string $value): string {
     $value = trim((string) $value);
@@ -529,7 +531,9 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                         </p>
                     </div>
 
-                    <form class="relative z-10 grid gap-6 sm:grid-cols-2">
+                    <form action="/api/index.php?resource=leads&method=submit" method="POST" class="relative z-10 grid gap-6 sm:grid-cols-2">
+                        <?= csrf_input(); ?>
+                        <input type="hidden" name="redirect_to" value="<?= e(page_url('home') . '#dang-ky-tu-van'); ?>">
                         <!-- Name field: Rose psychology (action/engagement) -->
                         <div class="sm:col-span-2 group">
                             <label class="mb-3 flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.16em] text-white group-focus-within:text-rose-300 transition-colors">
@@ -538,7 +542,7 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                             </label>
                             <div class="relative">
                                 <span class="absolute left-5 top-1/2 -translate-y-1/2 text-rose-400 group-focus-within:text-rose-500 transition-colors"><i class="fa-regular fa-user"></i></span>
-                                <input type="text" required placeholder="<?= e(t('public.common.full_name_placeholder')); ?>" class="w-full rounded-2xl border border-slate-200 bg-white py-4 pl-14 pr-5 text-sm font-bold text-slate-900 shadow-sm outline-none transition-all placeholder:text-slate-400 placeholder:font-medium focus:border-rose-400 focus:ring-4 focus:ring-rose-500/15 focus:shadow-lg focus:shadow-rose-500/10">
+                                <input type="text" name="full_name" required placeholder="<?= e(t('public.common.full_name_placeholder')); ?>" class="w-full rounded-2xl border border-slate-200 bg-white py-4 pl-14 pr-5 text-sm font-bold text-slate-900 shadow-sm outline-none transition-all placeholder:text-slate-400 placeholder:font-medium focus:border-rose-400 focus:ring-4 focus:ring-rose-500/15 focus:shadow-lg focus:shadow-rose-500/10">
                             </div>
                         </div>
 
@@ -550,7 +554,7 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                             </label>
                             <div class="relative">
                                 <span class="absolute left-5 top-1/2 -translate-y-1/2 text-rose-400 group-focus-within:text-rose-500 transition-colors"><i class="fa-solid fa-phone"></i></span>
-                                <input type="tel" required placeholder="09xx xxx xxx" class="w-full rounded-2xl border border-slate-200 bg-white py-4 pl-14 pr-5 text-sm font-bold text-slate-900 shadow-sm outline-none transition-all placeholder:text-slate-400 placeholder:font-medium focus:border-rose-400 focus:ring-4 focus:ring-rose-500/15 focus:shadow-lg focus:shadow-rose-500/10">
+                                <input type="tel" name="phone" required placeholder="09xx xxx xxx" class="w-full rounded-2xl border border-slate-200 bg-white py-4 pl-14 pr-5 text-sm font-bold text-slate-900 shadow-sm outline-none transition-all placeholder:text-slate-400 placeholder:font-medium focus:border-rose-400 focus:ring-4 focus:ring-rose-500/15 focus:shadow-lg focus:shadow-rose-500/10">
                             </div>
                         </div>
 
@@ -562,17 +566,8 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                             </label>
                             <div class="relative">
                                 <span class="absolute left-5 top-1/2 -translate-y-1/2 text-emerald-400 group-focus-within:text-emerald-500 transition-colors"><i class="fa-regular fa-calendar"></i></span>
-                                <input type="date" class="w-full rounded-2xl border border-slate-200 bg-white py-4 pl-14 pr-5 text-sm font-bold text-slate-900 shadow-sm outline-none transition-all focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/15 focus:shadow-lg focus:shadow-emerald-500/10">
+                                <input type="date" name="dob" class="w-full rounded-2xl border border-slate-200 bg-white py-4 pl-14 pr-5 text-sm font-bold text-slate-900 shadow-sm outline-none transition-all focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/15 focus:shadow-lg focus:shadow-emerald-500/10">
                             </div>
-                        </div>
-
-                        <!-- Notes field: Emerald for feedback (confidence in sharing) -->
-                        <div class="sm:col-span-2 group">
-                            <label class="mb-3 flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.16em] text-white group-focus-within:text-emerald-300 transition-colors">
-                                <i class="fa-solid fa-message text-emerald-500"></i>
-                                <?= e(t('public.common.note')); ?>
-                            </label>
-                            <textarea rows="3" placeholder="<?= e(t('public.common.note_placeholder')); ?>" class="w-full rounded-2xl border border-slate-200 bg-white p-5 text-sm font-bold text-slate-900 shadow-sm outline-none transition-all placeholder:text-slate-400 placeholder:font-medium focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/15 focus:shadow-lg focus:shadow-emerald-500/10 resize-none"></textarea>
                         </div>
 
                         <!-- CTA Button: Rose (urgency/action psychology) + Emerald accent (trust) -->
@@ -1198,7 +1193,9 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                         </p>
                     </div>
 
-                    <form class="relative z-10 grid gap-6 sm:grid-cols-2">
+                    <form action="/api/index.php?resource=leads&method=submit" method="POST" class="relative z-10 grid gap-6 sm:grid-cols-2">
+                        <?= csrf_input(); ?>
+                        <input type="hidden" name="redirect_to" value="<?= e(page_url('home') . '#lien-he'); ?>">
                         <!-- Name field: Rose psychology (action/engagement) -->
                         <div class="sm:col-span-2 group">
                             <label class="mb-3 flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.16em] text-white group-focus-within:text-rose-300 transition-colors">
@@ -1207,7 +1204,7 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                             </label>
                             <div class="relative">
                                 <span class="absolute left-5 top-1/2 -translate-y-1/2 text-rose-400 group-focus-within:text-rose-500 transition-colors"><i class="fa-regular fa-user"></i></span>
-                                <input type="text" required placeholder="<?= e(t('public.common.full_name_placeholder')); ?>" class="w-full rounded-2xl border border-slate-200 bg-white py-4 pl-14 pr-5 text-sm font-bold text-slate-900 shadow-sm outline-none transition-all placeholder:text-slate-400 placeholder:font-medium focus:border-rose-400 focus:ring-4 focus:ring-rose-500/15 focus:shadow-lg focus:shadow-rose-500/10">
+                                <input type="text" name="full_name" required placeholder="<?= e(t('public.common.full_name_placeholder')); ?>" class="w-full rounded-2xl border border-slate-200 bg-white py-4 pl-14 pr-5 text-sm font-bold text-slate-900 shadow-sm outline-none transition-all placeholder:text-slate-400 placeholder:font-medium focus:border-rose-400 focus:ring-4 focus:ring-rose-500/15 focus:shadow-lg focus:shadow-rose-500/10">
                             </div>
                         </div>
 
@@ -1219,7 +1216,7 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                             </label>
                             <div class="relative">
                                 <span class="absolute left-5 top-1/2 -translate-y-1/2 text-rose-400 group-focus-within:text-rose-500 transition-colors"><i class="fa-solid fa-phone"></i></span>
-                                <input type="tel" required placeholder="09xx xxx xxx" class="w-full rounded-2xl border border-slate-200 bg-white py-4 pl-14 pr-5 text-sm font-bold text-slate-900 shadow-sm outline-none transition-all placeholder:text-slate-400 placeholder:font-medium focus:border-rose-400 focus:ring-4 focus:ring-rose-500/15 focus:shadow-lg focus:shadow-rose-500/10">
+                                <input type="tel" name="phone" required placeholder="09xx xxx xxx" class="w-full rounded-2xl border border-slate-200 bg-white py-4 pl-14 pr-5 text-sm font-bold text-slate-900 shadow-sm outline-none transition-all placeholder:text-slate-400 placeholder:font-medium focus:border-rose-400 focus:ring-4 focus:ring-rose-500/15 focus:shadow-lg focus:shadow-rose-500/10">
                             </div>
                         </div>
 
@@ -1231,17 +1228,8 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                             </label>
                             <div class="relative">
                                 <span class="absolute left-5 top-1/2 -translate-y-1/2 text-emerald-400 group-focus-within:text-emerald-500 transition-colors"><i class="fa-regular fa-calendar"></i></span>
-                                <input type="date" class="w-full rounded-2xl border border-slate-200 bg-white py-4 pl-14 pr-5 text-sm font-bold text-slate-900 shadow-sm outline-none transition-all focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/15 focus:shadow-lg focus:shadow-emerald-500/10">
+                                <input type="date" name="dob" class="w-full rounded-2xl border border-slate-200 bg-white py-4 pl-14 pr-5 text-sm font-bold text-slate-900 shadow-sm outline-none transition-all focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/15 focus:shadow-lg focus:shadow-emerald-500/10">
                             </div>
-                        </div>
-
-                        <!-- Notes field: Emerald for feedback (confidence in sharing) -->
-                        <div class="sm:col-span-2 group">
-                            <label class="mb-3 flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.16em] text-white group-focus-within:text-emerald-300 transition-colors">
-                                <i class="fa-solid fa-message text-emerald-500"></i>
-                                <?= e(t('public.common.note')); ?>
-                            </label>
-                            <textarea rows="3" placeholder="<?= e(t('public.common.note_placeholder')); ?>" class="w-full rounded-2xl border border-slate-200 bg-white p-5 text-sm font-bold text-slate-900 shadow-sm outline-none transition-all placeholder:text-slate-400 placeholder:font-medium focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/15 focus:shadow-lg focus:shadow-emerald-500/10 resize-none"></textarea>
                         </div>
 
                         <!-- CTA Button: Rose (urgency/action psychology) + Emerald accent (trust) -->
@@ -1304,5 +1292,21 @@ $homeFormatFeedbackDate = static function (?string $value): string {
 
         </div>
     </section> -->
+
+<?php $notifyShowTestButtons = false; require __DIR__ . '/../notification/notification.php'; ?>
+
+<script>
+    <?php if (!empty($homeLeadSuccess)): ?>
+    if (typeof showNotify === 'function') {
+        showNotify('success', <?= json_encode($homeLeadSuccess, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>);
+    }
+    <?php endif; ?>
+
+    <?php if (!empty($homeLeadError)): ?>
+    if (typeof showNotify === 'function') {
+        showNotify('error', <?= json_encode($homeLeadError, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>);
+    }
+    <?php endif; ?>
+</script>
 
 </main>

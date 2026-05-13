@@ -39,7 +39,7 @@ $studentNameMap = [];
 foreach ($students as $student) {
     $studentId = (int) ($student['id'] ?? 0);
     if ($studentId > 0) {
-        $studentNameMap[$studentId] = student_dropdown_label($student, 'Học viên #' . $studentId);
+        $studentNameMap[$studentId] = student_dropdown_label($student, t('admin.tuition.student_fallback', ['id' => $studentId]));
     }
 }
 
@@ -72,7 +72,7 @@ foreach ($classStudentRows as $row) {
 
     $classStudentMap[$classId][] = [
         'id' => $studentId,
-        'name' => student_dropdown_label($row, $studentNameMap[$studentId] ?? ('Học viên #' . $studentId)),
+        'name' => student_dropdown_label($row, $studentNameMap[$studentId] ?? t('admin.tuition.student_fallback', ['id' => $studentId])),
     ];
 }
 
@@ -101,16 +101,25 @@ $normalizeMonthValue = static function (?string $value): string {
     return $value;
 };
 
+$monthlyStatusLabels = [
+    'paid' => t('admin.tuition.monthly_status.paid'),
+    'not_due' => t('admin.tuition.monthly_status.not_due'),
+    'late' => t('admin.tuition.monthly_status.late'),
+    'no_day' => t('admin.tuition.monthly_status.no_day'),
+    'due' => t('admin.tuition.monthly_status.due'),
+    'na' => t('admin.tuition.monthly_status.na'),
+];
+
 $monthlyStatusLabel = function (array $fee) use ($currentMonth, $currentDay, $daysInMonth, $normalizeMonthValue): string {
     $plan = (string) ($fee['payment_plan'] ?? '');
     if ($plan !== 'monthly') {
-        return '-';
+        return 'na';
     }
 
     $totalAmount = (float) ($fee['total_amount'] ?? 0);
     $amountPaid = (float) ($fee['amount_paid'] ?? 0);
     if ($totalAmount > 0 && $amountPaid >= $totalAmount) {
-        return 'Đã đủ';
+        return 'paid';
     }
 
     $startMonth = $normalizeMonthValue((string) ($fee['monthly_start_month'] ?? ''));
@@ -118,34 +127,34 @@ $monthlyStatusLabel = function (array $fee) use ($currentMonth, $currentDay, $da
     $paymentDay = (int) ($fee['monthly_payment_day'] ?? 0);
 
     if ($startMonth !== '' && $currentMonth < $startMonth) {
-        return 'Chưa tới kỳ';
+        return 'not_due';
     }
 
     if ($endMonth !== '' && $currentMonth > $endMonth) {
-        return 'Trễ hạn';
+        return 'late';
     }
 
     if ($paymentDay <= 0) {
-        return 'Chưa đặt ngày';
+        return 'no_day';
     }
 
     $effectiveDay = min($paymentDay, $daysInMonth);
     if ($currentDay > $effectiveDay) {
-        return 'Trễ hạn';
+        return 'late';
     }
 
     if ($currentDay === $effectiveDay) {
-        return 'Đến hạn';
+        return 'due';
     }
 
-    return 'Chưa tới kỳ';
+    return 'not_due';
 };
 
-$monthlyStatusClass = function (string $label): string {
-    return match ($label) {
-        'Trễ hạn' => 'text-rose-700',
-        'Đến hạn' => 'text-amber-700',
-        'Đã đủ' => 'text-emerald-700',
+$monthlyStatusClass = function (string $statusKey): string {
+    return match ($statusKey) {
+        'late' => 'text-rose-700',
+        'due' => 'text-amber-700',
+        'paid' => 'text-emerald-700',
         default => 'text-slate-500',
     };
 };
@@ -158,13 +167,14 @@ $editingClass = $editingClassId > 0 ? ($classMap[$editingClassId] ?? $academicMo
 $editingCourseId = (int) ($editingClass['course_id'] ?? 0);
 $editingClassName = (string) ($editingClass['class_name'] ?? '');
 $editingCourseName = (string) ($editingClass['course_name'] ?? '');
-$editingStudentName = $editingStudentId > 0 ? ($studentNameMap[$editingStudentId] ?? ('Học viên #' . $editingStudentId)) : '';
+$editingStudentName = $editingStudentId > 0 ? ($studentNameMap[$editingStudentId] ?? t('admin.tuition.student_fallback', ['id' => $editingStudentId])) : '';
 $studentOptionsForSelectedClass = $editingClassId > 0 ? ($classStudentMap[$editingClassId] ?? []) : [];
 $editingMonthlyStart = $normalizeMonthValue((string) ($editingTuition['monthly_start_month'] ?? ''));
 $editingMonthlyEnd = $normalizeMonthValue((string) ($editingTuition['monthly_end_month'] ?? ''));
 $editingMonthlyDay = (int) ($editingTuition['monthly_payment_day'] ?? 0);
 $editingMonthlyMonths = (int) ($editingTuition['monthly_months'] ?? 0);
-$editingMonthlyStatus = $editingTuition ? $monthlyStatusLabel($editingTuition) : '-';
+$editingMonthlyStatusKey = $editingTuition ? $monthlyStatusLabel($editingTuition) : 'na';
+$editingMonthlyStatus = $monthlyStatusLabels[$editingMonthlyStatusKey] ?? t('admin.tuition.monthly_status.na');
 $editingIsMonthly = (($editingTuition['payment_plan'] ?? 'full') === 'monthly');
 
 if ($editingClassId > 0 && $editingStudentId > 0) {
@@ -177,23 +187,23 @@ if ($editingClassId > 0 && $editingStudentId > 0) {
     }
 
     if (!$hasEditingStudent) {
-        $fallbackName = $studentNameMap[$editingStudentId] ?? ('Học viên #' . $editingStudentId);
+        $fallbackName = $studentNameMap[$editingStudentId] ?? t('admin.tuition.student_fallback', ['id' => $editingStudentId]);
         $studentOptionsForSelectedClass[] = [
             'id' => $editingStudentId,
-            'name' => $fallbackName . ' (không còn trong lớp)',
+            'name' => t('admin.tuition.student_not_in_class', ['name' => $fallbackName]),
         ];
         if (!isset($classStudentMap[$editingClassId])) {
             $classStudentMap[$editingClassId] = [];
         }
         $classStudentMap[$editingClassId][] = [
             'id' => $editingStudentId,
-            'name' => $fallbackName . ' (không còn trong lớp)',
+            'name' => t('admin.tuition.student_not_in_class', ['name' => $fallbackName]),
         ];
     }
 }
 
 $module = 'tuition';
-$adminTitle = 'Quản lý học phí';
+$adminTitle = t('admin.tuition.title');
 
 $viewer = auth_user();
 $isAdmin = (($viewer['role'] ?? '') === 'admin');
@@ -306,19 +316,19 @@ $error = get_flash('error');
                 <?= csrf_input(); ?>
                 <input type="hidden" name="id" value="<?= (int) ($editingTuition['id'] ?? 0); ?>">
                 <label class="tuition-readonly-field">
-                    Học viên
+                    <?= e(t('admin.tuition.student')); ?>
                     <input type="text" value="<?= e($editingStudentName); ?>" readonly>
                 </label>
                 <label class="tuition-readonly-field">
-                    Lớp học
-                    <input type="text" value="<?= e($editingClassName !== '' ? $editingClassName : '-- Chọn lớp học --'); ?>" readonly>
+                    <?= e(t('admin.tuition.class')); ?>
+                    <input type="text" value="<?= e($editingClassName !== '' ? $editingClassName : t('admin.tuition.choose_class')); ?>" readonly>
                 </label>
                 <label class="tuition-readonly-field">
-                    Khóa học
-                    <input type="text" value="<?= e($editingCourseName !== '' ? $editingCourseName : '-- Chưa có khóa học --'); ?>" readonly>
+                    <?= e(t('admin.tuition.course')); ?>
+                    <input type="text" value="<?= e($editingCourseName !== '' ? $editingCourseName : t('admin.tuition.course_empty')); ?>" readonly>
                 </label>
                 <label class="tuition-readonly-field">
-                    Tổng tiền
+                    <?= e(t('admin.tuition.total_amount')); ?>
                     <input
                         id="tuition-total-amount"
                         type="number"
@@ -329,44 +339,44 @@ $error = get_flash('error');
                     >
                 </label>
                 <label class="tuition-readonly-field">
-                    Đã thu
+                    <?= e(t('admin.tuition.amount_paid')); ?>
                     <input id="tuition-amount-paid" type="number" step="1000" min="0" value="<?= e((string) ($editingTuition['amount_paid'] ?? '0')); ?>" readonly>
                 </label>
                 <label>
-                    Chế độ đóng
+                    <?= e(t('admin.tuition.payment_plan')); ?>
                     <select
                         name="payment_plan"
                         id="tuition-payment-plan-select"
                         data-tuition-payment-plan="1"
                         onchange="window.toggleTuitionMonthlyFields && window.toggleTuitionMonthlyFields(this.form); window.updateTuitionEditPreview && window.updateTuitionEditPreview(this.form);"
                     >
-                        <option value="full" <?= (($editingTuition['payment_plan'] ?? 'full') === 'full') ? 'selected' : ''; ?>>Đóng một lần (full)</option>
-                        <option value="monthly" <?= (($editingTuition['payment_plan'] ?? '') === 'monthly') ? 'selected' : ''; ?>>Đóng theo tháng (monthly)</option>
+                        <option value="full" <?= (($editingTuition['payment_plan'] ?? 'full') === 'full') ? 'selected' : ''; ?>><?= e(t('admin.tuition.payment_plan_full')); ?></option>
+                        <option value="monthly" <?= (($editingTuition['payment_plan'] ?? '') === 'monthly') ? 'selected' : ''; ?>><?= e(t('admin.tuition.payment_plan_monthly')); ?></option>
                     </select>
                 </label>
                 <div id="tuition-monthly-fields" data-tuition-monthly="1" class="md:col-span-2 <?= $editingIsMonthly ? '' : 'hidden'; ?> rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-4">
                     <div class="grid gap-3 md:grid-cols-2">
                         <label>
-                            Số tháng đóng
+                            <?= e(t('admin.tuition.monthly_months')); ?>
                             <input type="number" min="1" step="1" name="monthly_months" value="<?= e((string) $editingMonthlyMonths); ?>" <?= $editingIsMonthly ? '' : 'disabled'; ?>>
                         </label>
                         <label>
-                            Từ tháng
+                            <?= e(t('admin.tuition.monthly_start')); ?>
                             <input type="month" name="monthly_start_month" value="<?= e($editingMonthlyStart); ?>" <?= $editingIsMonthly ? '' : 'disabled'; ?>>
                         </label>
                         <label>
-                            Đến tháng
+                            <?= e(t('admin.tuition.monthly_end')); ?>
                             <input type="month" name="monthly_end_month" value="<?= e($editingMonthlyEnd); ?>" <?= $editingIsMonthly ? '' : 'disabled'; ?>>
                         </label>
                         <label>
-                            Ngày đóng hàng tháng
+                            <?= e(t('admin.tuition.monthly_day')); ?>
                             <input type="number" min="1" max="31" step="1" name="monthly_payment_day" value="<?= e($editingMonthlyDay > 0 ? (string) $editingMonthlyDay : ''); ?>" <?= $editingIsMonthly ? '' : 'disabled'; ?>>
                         </label>
-                        <p class="md:col-span-2 text-xs text-slate-500">Chỉ dùng khi chọn chế độ <strong>monthly</strong>. Nếu chuyển sang <strong>full</strong>, các field này sẽ được ẩn và không gửi lên server.</p>
+                        <p class="md:col-span-2 text-xs text-slate-500"><?= e(t('admin.tuition.monthly_hint')); ?></p>
                     </div>
                 </div>
                 <label>
-                    Ưu đãi áp dụng
+                    <?= e(t('admin.tuition.promotion')); ?>
                     <select
                         id="tuition-package-select"
                         name="package_id"
@@ -374,7 +384,7 @@ $error = get_flash('error');
                         data-current-course-id="<?= (int) $editingCourseId; ?>"
                         onchange="window.updateTuitionEditPreview && window.updateTuitionEditPreview(this.form);"
                     >
-                        <option value="0" data-discount-value="0" data-course-id="0" <?= $editingPackageId === 0 ? 'selected' : ''; ?>>Không áp dụng ưu đãi</option>
+                        <option value="0" data-discount-value="0" data-course-id="0" <?= $editingPackageId === 0 ? 'selected' : ''; ?>><?= e(t('admin.tuition.promotion_none')); ?></option>
                         <?php foreach ($promotions as $promo): ?>
                             <?php
                             $promoId = (int) ($promo['id'] ?? 0);
@@ -389,7 +399,7 @@ $error = get_flash('error');
 
                             $discountPercent = max(0, min(100, (float) ($promo['discount_value'] ?? 0)));
                             $discountPercentText = rtrim(rtrim(number_format($discountPercent, 2, '.', ''), '0'), '.');
-                            $promoName = trim((string) ($promo['name'] ?? ('Ưu đãi #' . $promoId)));
+                            $promoName = trim((string) ($promo['name'] ?? t('admin.tuition.promotion_fallback', ['id' => $promoId])));
                             ?>
                             <option
                                 value="<?= $promoId; ?>"
@@ -403,20 +413,20 @@ $error = get_flash('error');
                     </select>
                 </label>
                 <label class="tuition-readonly-field">
-                    Trạng thái
+                    <?= e(t('admin.tuition.status')); ?>
                     <input id="tuition-status" type="text" value="<?= e((string) ($editingTuition['status'] ?? 'debt')); ?>" readonly>
                 </label>
-                <p class="md:col-span-2 text-xs text-slate-500">Trạng thái sẽ tự động là <strong>debt</strong> nếu số đã thu chưa đủ và tự chuyển <strong>paid</strong> khi thu đủ.</p>
+                <p class="md:col-span-2 text-xs text-slate-500"><?= e(t('admin.tuition.status_auto_note')); ?></p>
                 <div class="md:col-span-2 inline-flex flex-wrap items-center gap-2">
-                    <button class="<?= ui_btn_primary_classes(); ?>" type="submit">Cập nhật hóa đơn</button>
-                    <a class="<?= ui_btn_secondary_classes(); ?>" href="<?= e(page_url('tuition-finance')); ?>">Hủy chỉnh sửa</a>
+                    <button class="<?= ui_btn_primary_classes(); ?>" type="submit"><?= e(t('admin.tuition.update_invoice')); ?></button>
+                    <a class="<?= ui_btn_secondary_classes(); ?>" href="<?= e(page_url('tuition-finance')); ?>"><?= e(t('admin.common.cancel')); ?></a>
                 </div>
             </form>
         </div>
     <?php endif; ?>
 
     <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h3>Danh sách học phí</h3>
+        <h3><?= e(t('admin.tuition.list')); ?></h3>
         <div
             class="tuition-list-shell"
             data-ajax-table-root="1"
@@ -427,7 +437,7 @@ $error = get_flash('error');
         >
         <div class="admin-table-toolbar tuition-search-toolbar">
             <div class="flex w-full flex-wrap items-center gap-3">
-                <label class="tuition-search-shell" aria-label="Tìm kiếm học phí">
+                <label class="tuition-search-shell" aria-label="<?= e(t('admin.tuition.search_label')); ?>">
                     <span class="tuition-search-icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <circle cx="11" cy="11" r="7"></circle>
@@ -439,7 +449,7 @@ $error = get_flash('error');
                         data-ajax-search="1"
                         type="search"
                         value="<?= e($searchQuery); ?>"
-                        placeholder="Tìm học viên, mã HV, mã hóa đơn..."
+                        placeholder="<?= e(t('admin.tuition.search_placeholder')); ?>"
                         autocomplete="off"
                     >
                 </label>
@@ -448,18 +458,18 @@ $error = get_flash('error');
                     data-ajax-filter="1"
                     class="h-11 rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
                 >
-                    <option value="">Tất cả trạng thái</option>
-                    <option value="debt" <?= $statusFilter === 'debt' ? 'selected' : ''; ?>>Còn nợ</option>
-                    <option value="paid" <?= $statusFilter === 'paid' ? 'selected' : ''; ?>>Đã thanh toán</option>
+                    <option value=""><?= e(t('admin.tuition.status_all')); ?></option>
+                    <option value="debt" <?= $statusFilter === 'debt' ? 'selected' : ''; ?>><?= e(t('admin.tuition.status_debt')); ?></option>
+                    <option value="paid" <?= $statusFilter === 'paid' ? 'selected' : ''; ?>><?= e(t('admin.tuition.status_paid')); ?></option>
                 </select>
                 <select
                     name="payment_plan"
                     data-ajax-filter="1"
                     class="h-11 rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
                 >
-                    <option value="">Tất cả chế độ đóng</option>
-                    <option value="full" <?= $paymentPlanFilter === 'full' ? 'selected' : ''; ?>>Đóng một lần</option>
-                    <option value="monthly" <?= $paymentPlanFilter === 'monthly' ? 'selected' : ''; ?>>Đóng theo tháng</option>
+                    <option value=""><?= e(t('admin.tuition.payment_plan_all')); ?></option>
+                    <option value="full" <?= $paymentPlanFilter === 'full' ? 'selected' : ''; ?>><?= e(t('admin.tuition.payment_plan_full_short')); ?></option>
+                    <option value="monthly" <?= $paymentPlanFilter === 'monthly' ? 'selected' : ''; ?>><?= e(t('admin.tuition.payment_plan_monthly_short')); ?></option>
                 </select>
             </div>
             <span
@@ -467,38 +477,39 @@ $error = get_flash('error');
                 data-visible="<?= (int) count($tuitionFees); ?>"
                 data-total="<?= (int) $tuitionTotal; ?>"
                 style="color: #64748b; font-size: 0.875rem; font-weight: 500; white-space: nowrap;"
-            >Hiển thị <?= (int) count($tuitionFees); ?> / <?= (int) $tuitionTotal; ?> dòng</span>
+            ><?= e(t('admin.tuition.showing_rows', ['shown' => (int) count($tuitionFees), 'total' => (int) $tuitionTotal])); ?></span>
         </div>
         <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
             <table class="min-w-full border-collapse text-sm" data-disable-global-filter="1" data-disable-row-detail="1">
                 <thead>
                     <tr>
-                        <th>Mã HV</th>
-                        <th>Học viên</th>
-                        <th>Khóa học</th>
-                        <th>Lớp học</th>
-                        <th>Tổng tiền</th>
-                        <th>Đã thu</th>
-                        <th>Còn lại</th>
-                        <th>Trạng thái</th>
-                        <th>Chế độ đóng</th>
-                        <th>Trễ hạn</th>
-                        <th>Hành động</th>
+                        <th><?= e(t('admin.tuition.table_student_code')); ?></th>
+                        <th><?= e(t('admin.tuition.table_student')); ?></th>
+                        <th><?= e(t('admin.tuition.table_course')); ?></th>
+                        <th><?= e(t('admin.tuition.table_class')); ?></th>
+                        <th><?= e(t('admin.tuition.table_total')); ?></th>
+                        <th><?= e(t('admin.tuition.table_paid')); ?></th>
+                        <th><?= e(t('admin.tuition.table_remaining')); ?></th>
+                        <th><?= e(t('admin.tuition.table_status')); ?></th>
+                        <th><?= e(t('admin.tuition.table_payment_plan')); ?></th>
+                        <th><?= e(t('admin.tuition.table_overdue')); ?></th>
+                        <th><?= e(t('admin.tuition.table_actions')); ?></th>
                     </tr>
                 </thead>
                 <tbody data-ajax-tbody="1">
                     <?php if (empty($tuitionFees)): ?>
                         <tr>
                             <td colspan="11">
-                                <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">Chưa có dữ liệu học phí.</div>
+                                <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500"><?= e(t('admin.tuition.empty')); ?></div>
                             </td>
                         </tr>
                     <?php else: ?>
                         <?php foreach ($tuitionFees as $fee): ?>
                             <?php $monthlyStatus = $monthlyStatusLabel($fee); ?>
+                            <?php $monthlyStatusText = $monthlyStatusLabels[$monthlyStatus] ?? t('admin.tuition.monthly_status.na'); ?>
                             <tr data-tuition-id="<?= (int) $fee['id']; ?>">
                                 <td><?= e((string) ($fee['student_code'] ?? '-')); ?></td>
-                                <td><?= e((string) ($fee['full_name'] ?? 'Học viên')); ?></td>
+                                <td><?= e((string) ($fee['full_name'] ?? t('admin.tuition.student_fallback', ['id' => (int) ($fee['student_id'] ?? 0)]))); ?></td>
                                 <td><?= e((string) ($fee['course_name'] ?? '')); ?></td>
                                 <td><?= e((string) ($fee['class_name'] ?? '')); ?></td>
                                 <td><?= format_money((float) $fee['total_amount']); ?></td>
@@ -507,10 +518,10 @@ $error = get_flash('error');
                                 <td><span class="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-bold capitalize is-<?= e((string) $fee['status']); ?>"><?= e((string) $fee['status']); ?></span></td>
                                 <td><?= e((string) ($fee['payment_plan'] ?? 'full')); ?></td>
                                 <td>
-                                    <?php if ($monthlyStatus === '-'): ?>
-                                        <span class="text-slate-400">-</span>
+                                    <?php if ($monthlyStatus === 'na'): ?>
+                                        <span class="text-slate-400"><?= e($monthlyStatusText); ?></span>
                                     <?php else: ?>
-                                        <span class="text-xs font-semibold <?= e($monthlyStatusClass($monthlyStatus)); ?>"><?= e($monthlyStatus); ?></span>
+                                        <span class="text-xs font-semibold <?= e($monthlyStatusClass($monthlyStatus)); ?>"><?= e($monthlyStatusText); ?></span>
                                     <?php endif; ?>
                                 </td>
                                 <td>
@@ -520,9 +531,9 @@ $error = get_flash('error');
                                                class="admin-action-icon-btn"
                                                data-action-kind="edit"
                                                data-skip-action-icon="1"
-                                               title="Sửa"
-                                               aria-label="Sửa">
-                                                <span class="admin-action-icon-label">Sửa</span>
+                                               title="<?= e(t('admin.common.edit')); ?>"
+                                               aria-label="<?= e(t('admin.common.edit')); ?>">
+                                                <span class="admin-action-icon-label"><?= e(t('admin.common.edit')); ?></span>
                                                 <span class="admin-action-icon-glyph" aria-hidden="true">
                                                     <svg viewBox="0 0 24 24" aria-hidden="true">
                                                         <path d="M12 20h9"></path>
@@ -543,10 +554,10 @@ $error = get_flash('error');
                                                 class="admin-action-icon-btn"
                                                 data-action-kind="pay"
                                                 data-skip-action-icon="1"
-                                                title="Đóng học phí"
-                                                aria-label="Đóng học phí"
+                                                title="<?= e(t('admin.tuition.collect_payment')); ?>"
+                                                aria-label="<?= e(t('admin.tuition.collect_payment')); ?>"
                                             >
-                                                <span class="admin-action-icon-label">Đóng học phí</span>
+                                                <span class="admin-action-icon-label"><?= e(t('admin.tuition.collect_payment')); ?></span>
                                                 <span class="admin-action-icon-glyph" aria-hidden="true">
                                                     <svg viewBox="0 0 24 24" aria-hidden="true">
                                                         <path d="M3 7h18"></path>
@@ -558,16 +569,16 @@ $error = get_flash('error');
                                         <?php endif; ?>
 
                                         <?php if ($canDeleteTuition): ?>
-                                            <form method="post" action="/api/tuitions/delete" onsubmit="return confirm('Bạn chắc chắn muốn xóa hóa đơn học phí này?');">
+                                            <form method="post" action="/api/tuitions/delete" onsubmit="return confirm('<?= e(t('admin.tuition.delete_confirm')); ?>');">
                                                 <?= csrf_input(); ?>
                                                 <input type="hidden" name="tuition_id" value="<?= (int) $fee['id']; ?>">
                                                 <button type="submit"
                                                         class="admin-action-icon-btn"
                                                         data-action-kind="delete"
                                                         data-skip-action-icon="1"
-                                                        title="Xóa"
-                                                        aria-label="Xóa">
-                                                    <span class="admin-action-icon-label">Xóa</span>
+                                                        title="<?= e(t('admin.common.delete')); ?>"
+                                                        aria-label="<?= e(t('admin.common.delete')); ?>">
+                                                    <span class="admin-action-icon-label"><?= e(t('admin.common.delete')); ?></span>
                                                     <span class="admin-action-icon-glyph" aria-hidden="true">
                                                         <svg viewBox="0 0 24 24" aria-hidden="true">
                                                             <path d="M3 6h18"></path>
@@ -583,8 +594,8 @@ $error = get_flash('error');
                                             <form method="post" action="/api/tuitions/request-delete">
                                                 <?= csrf_input(); ?>
                                                 <input type="hidden" name="tuition_id" value="<?= (int) $fee['id']; ?>">
-                                                <input type="hidden" name="reason" value="Yêu cầu xóa học phí do cần điều chỉnh nghiệp vụ.">
-                                                <button class="<?= ui_btn_secondary_classes('sm'); ?>" type="submit">Gửi duyệt xóa</button>
+                                                <input type="hidden" name="reason" value="<?= e(t('admin.tuition.request_delete_reason')); ?>">
+                                                <button class="<?= ui_btn_secondary_classes('sm'); ?>" type="submit"><?= e(t('admin.tuition.request_delete')); ?></button>
                                             </form>
                                         <?php endif; ?>
                                     </div>
@@ -598,14 +609,14 @@ $error = get_flash('error');
             <?php if ($tuitionTotal > 0): ?>
                 <div class="border-t border-slate-200 bg-slate-50/80 px-3 py-2">
                     <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600">
-                        <span class="font-medium">Trang <?= (int) $tuitionPage; ?>/<?= (int) $tuitionTotalPages; ?> - Tổng <?= (int) $tuitionTotal; ?> hóa đơn</span>
+                        <span class="font-medium"><?= e(t('admin.tuition.page_info', ['current' => (int) $tuitionPage, 'total' => (int) $tuitionTotalPages, 'count' => (int) $tuitionTotal])); ?></span>
                         <div class="inline-flex items-center gap-1.5">
                             <form class="ajax-table-per-page-form inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2 py-1" method="get" action="<?= e(page_url('tuition-finance')); ?>">
                                 <input type="hidden" name="page" value="tuition-finance">
                                 <input type="hidden" name="search" value="<?= e($searchQuery); ?>">
                                 <input type="hidden" name="status" value="<?= e($statusFilter); ?>">
                                 <input type="hidden" name="payment_plan" value="<?= e($paymentPlanFilter); ?>">
-                                <label class="text-[11px] font-semibold text-slate-500" for="tuition-per-page">Số dòng</label>
+                                <label class="text-[11px] font-semibold text-slate-500" for="tuition-per-page"><?= e(t('admin.common.rows')); ?></label>
                                 <select id="tuition-per-page" name="tuition_per_page" data-ajax-per-page="1" class="h-7 rounded-md border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700">
                                     <?php foreach ($tuitionPerPageOptions as $option): ?>
                                         <option value="<?= (int) $option; ?>" <?= $tuitionPerPage === (int) $option ? 'selected' : ''; ?>><?= (int) $option; ?></option>
@@ -613,15 +624,15 @@ $error = get_flash('error');
                                 </select>
                             </form>
                             <?php if ($tuitionPage > 1): ?>
-                                <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('tuition-finance', ['tuition_page' => $tuitionPage - 1, 'tuition_per_page' => $tuitionPerPage, 'search' => $searchQuery, 'status' => $statusFilter, 'payment_plan' => $paymentPlanFilter])); ?>">Trước</a>
+                                <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('tuition-finance', ['tuition_page' => $tuitionPage - 1, 'tuition_per_page' => $tuitionPerPage, 'search' => $searchQuery, 'status' => $statusFilter, 'payment_plan' => $paymentPlanFilter])); ?>"><?= e(t('admin.common.previous')); ?></a>
                             <?php else: ?>
-                                <span class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 text-xs font-semibold text-slate-400">Trước</span>
+                                <span class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 text-xs font-semibold text-slate-400"><?= e(t('admin.common.previous')); ?></span>
                             <?php endif; ?>
 
                             <?php if ($tuitionPage < $tuitionTotalPages): ?>
-                                <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('tuition-finance', ['tuition_page' => $tuitionPage + 1, 'tuition_per_page' => $tuitionPerPage, 'search' => $searchQuery, 'status' => $statusFilter, 'payment_plan' => $paymentPlanFilter])); ?>">Sau</a>
+                                <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('tuition-finance', ['tuition_page' => $tuitionPage + 1, 'tuition_per_page' => $tuitionPerPage, 'search' => $searchQuery, 'status' => $statusFilter, 'payment_plan' => $paymentPlanFilter])); ?>"><?= e(t('admin.common.next')); ?></a>
                             <?php else: ?>
-                                <span class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 text-xs font-semibold text-slate-400">Sau</span>
+                                <span class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 text-xs font-semibold text-slate-400"><?= e(t('admin.common.next')); ?></span>
                             <?php endif; ?>
                         </div>
                     </div>
@@ -634,13 +645,13 @@ $error = get_flash('error');
 
     <?php if ($isStaff): ?>
         <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <h3>Gửi yêu cầu điều chỉnh tài chính</h3>
+            <h3><?= e(t('admin.tuition.adjust_request_title')); ?></h3>
             <form class="grid gap-3 md:grid-cols-2" method="post" action="/api/tuitions/request-adjust">
                 <?= csrf_input(); ?>
                 <label class="md:col-span-2">
-                    Hóa đơn học phí
+                    <?= e(t('admin.tuition.invoice')); ?>
                     <select name="tuition_id" required>
-                        <option value="">-- Chọn hóa đơn --</option>
+                        <option value=""><?= e(t('admin.tuition.choose_invoice')); ?></option>
                         <?php foreach ($tuitionOptions as $fee): ?>
                             <option value="<?= (int) $fee['id']; ?>">
                                 #<?= (int) $fee['id']; ?> - <?= e(student_dropdown_label($fee)); ?> - <?= e((string) $fee['course_name']); ?>
@@ -649,15 +660,15 @@ $error = get_flash('error');
                     </select>
                 </label>
                 <label>
-                    Số đã thu đề xuất
+                    <?= e(t('admin.tuition.requested_amount')); ?>
                     <input type="number" step="1000" min="0" name="requested_amount_paid" required>
                 </label>
                 <label>
-                    Lý do điều chỉnh
-                    <input type="text" name="reason" required placeholder="Ví dụ: Nhập sai số tiền khi thu tại quầy">
+                    <?= e(t('admin.tuition.adjust_reason')); ?>
+                    <input type="text" name="reason" required placeholder="<?= e(t('admin.tuition.adjust_reason_placeholder')); ?>">
                 </label>
                 <div class="md:col-span-2">
-                    <button class="<?= ui_btn_primary_classes('sm'); ?>" type="submit">Gửi yêu cầu phê duyệt</button>
+                    <button class="<?= ui_btn_primary_classes('sm'); ?>" type="submit"><?= e(t('admin.tuition.submit_adjust_request')); ?></button>
                 </div>
             </form>
         </article>

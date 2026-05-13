@@ -221,6 +221,20 @@ final class AdminModel
         return $leadId;
     }
 
+    public function completeConsultationLead(int $leadId, array $data): void
+    {
+        $lead = $this->studentLeadsTable->findById($leadId);
+        if (!$lead) {
+            throw new RuntimeException('Khong tim thay lead hoc vien.');
+        }
+
+        if ((int) ($lead['converted_user_id'] ?? 0) > 0) {
+            throw new RuntimeException('Lead nay da duoc chuyen thanh tai khoan hoc vien.');
+        }
+
+        $this->studentLeadsTable->updateConsultationLead($leadId, $data);
+    }
+
     public function submitStudentLead(array $data): int
     {
         $leadId = $this->studentLeadsTable->createFromPublic($data);

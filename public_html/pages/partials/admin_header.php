@@ -1828,51 +1828,53 @@ if ($activeModule === '') {
 }
 
 $adminPageTitleMap = [
-    'dashboard' => 'Toàn cảnh vận hành',
-    'tuition' => 'Học phí',
-    'registration' => 'Đăng ký khóa học',
-    'promotions' => 'Ưu đãi giảm giá',
-    'payments' => 'Giao dịch thanh toán',
-    'users' => 'Người dùng và phân quyền',
-    'approvals' => 'Yêu cầu phê duyệt',
-    'feedbacks' => 'Phản hồi học viên',
-    'student-leads' => 'Học viên đăng ký',
-    'job-applications' => 'Giáo viên ứng tuyển',
-    'activities' => 'Hoạt động ngoại khóa',
-    'rooms' => 'Quản lý phòng học',
-    'notifications' => 'Quản lý thông báo',
-    'courses' => 'Danh mục khóa học',
-    'roadmaps' => 'Lộ trình theo khóa học',
-    'classes' => 'Danh mục lớp học',
-    'classrooms' => 'Quản lý lớp học',
-    'schedules' => 'Kế hoạch lịch dạy',
-    'assignments' => 'Hệ thống bài tập',
-    'materials' => 'Kho tài liệu',
-    'portfolios' => 'Hồ sơ tiến bộ học viên',
+    'dashboard' => t('admin.page_title.dashboard'),
+    'tuition' => t('admin.page_title.tuition'),
+    'registration' => t('admin.page_title.registration'),
+    'promotions' => t('admin.page_title.promotions'),
+    'payments' => t('admin.page_title.payments'),
+    'users' => t('admin.page_title.users'),
+    'approvals' => t('admin.page_title.approvals'),
+    'feedbacks' => t('admin.page_title.feedbacks'),
+    'student-leads' => t('admin.page_title.student_leads'),
+    'job-applications' => t('admin.page_title.job_applications'),
+    'activities' => t('admin.page_title.activities'),
+    'rooms' => t('admin.page_title.rooms'),
+    'notifications' => t('admin.page_title.notifications'),
+    'courses' => t('admin.page_title.courses'),
+    'roadmaps' => t('admin.page_title.roadmaps'),
+    'classes' => t('admin.page_title.classes'),
+    'classrooms' => t('admin.page_title.classrooms'),
+    'schedules' => t('admin.page_title.schedules'),
+    'assignments' => t('admin.page_title.assignments'),
+    'materials' => t('admin.page_title.materials'),
+    'portfolios' => t('admin.page_title.portfolios'),
+    'exports' => t('admin.page_title.exports'),
 ];
 
 $adminPageDescriptionMap = [
-    'dashboard' => 'Theo dõi doanh thu, biến động lớp học và thông báo quan trọng để nắm nhanh tình hình vận hành mỗi ngày.',
-    'tuition' => 'Theo dõi hóa đơn đã tạo, cập nhật số tiền đã thu và kiểm soát số tiền còn lại theo từng học viên trong từng lớp.',
-    'registration' => 'Đăng ký học viên vào khóa/lớp, áp giảm giá và tự động tạo học phí để theo dõi thu tiền chuẩn nghiệp vụ.',
-    'promotions' => 'Thiết lập các chương trình ưu đãi theo khóa học hoặc toàn trung tâm để áp dụng giảm giá tự động khi đăng ký.',
-    'payments' => 'Đối soát trạng thái thanh toán và rà soát lịch sử thu học phí một cách tập trung.',
-    'users' => 'Quản lý tài khoản, vai trò và hồ sơ theo từng nhóm người dùng để kiểm soát truy cập hệ thống an toàn.',
-    'approvals' => 'Tạo yêu cầu, cập nhật trạng thái duyệt và theo dõi người xử lý cho từng quy trình nội bộ của trung tâm.',
-    'feedbacks' => 'Thu thập nhận xét học viên, theo dõi điểm đánh giá và xử lý phản hồi theo trung tâm.',
-    'student-leads' => 'Theo dõi học viên đăng ký từ lúc gửi form đến khi kiểm tra đầu vào, học thử và chuyển đổi chính thức.',
-    'job-applications' => 'Xử lý hồ sơ ứng tuyển giáo viên và chuyển đổi thành tài khoản giảng dạy.',
-    'activities' => 'Lên kế hoạch hoạt động ngoại khóa, theo dõi trạng thái tổ chức và số lượng học viên đăng ký tham gia.',
-    'rooms' => 'Quản lý danh mục phòng học dùng trong xếp lịch giảng dạy và tránh trùng phòng theo khung giờ.',
-    'notifications' => 'Tạo và theo dõi thông báo nội bộ gửi tới từng người dùng trong hệ thống.',
-    'courses' => 'Quản lý danh mục khóa học, mức học phí cơ bản và số buổi chuẩn để đồng bộ toàn bộ vận hành học vụ.',
-    'roadmaps' => 'Thiết kế lộ trình kiến thức theo từng khóa học, làm chuẩn cho giáo án buổi học và kế hoạch giảng dạy.',
-    'classes' => 'Theo dõi danh sách lớp, giáo viên phụ trách và trạng thái vận hành để điều phối học vụ chính xác hơn.',
-    'classrooms' => 'Lập kế hoạch tiết học theo từng lớp, gắn buổi vào lịch học theo thời khóa biểu tuần và thao tác nhanh theo từng buổi.',
-    'schedules' => 'Sắp xếp lịch dạy, phòng học và khung giờ giảng dạy nhằm hạn chế trùng lịch và tối ưu nguồn lực.',
-    'assignments' => 'Tạo bài tập, quản lý hạn nộp và kiểm soát tài nguyên đính kèm theo từng buổi học hoặc khóa học.',
-    'materials' => 'Quản lý kho tài liệu theo khóa học, cập nhật tệp nhanh và giữ cấu trúc nội dung học tập nhất quán.',
-    'portfolios' => 'Tổng hợp hồ sơ tiến bộ của học viên, lưu minh chứng tiến bộ theo giai đoạn học.',
+    'dashboard' => t('admin.page_desc.dashboard'),
+    'tuition' => t('admin.page_desc.tuition'),
+    'registration' => t('admin.page_desc.registration'),
+    'promotions' => t('admin.page_desc.promotions'),
+    'payments' => t('admin.page_desc.payments'),
+    'users' => t('admin.page_desc.users'),
+    'approvals' => t('admin.page_desc.approvals'),
+    'feedbacks' => t('admin.page_desc.feedbacks'),
+    'student-leads' => t('admin.page_desc.student_leads'),
+    'job-applications' => t('admin.page_desc.job_applications'),
+    'activities' => t('admin.page_desc.activities'),
+    'rooms' => t('admin.page_desc.rooms'),
+    'notifications' => t('admin.page_desc.notifications'),
+    'courses' => t('admin.page_desc.courses'),
+    'roadmaps' => t('admin.page_desc.roadmaps'),
+    'classes' => t('admin.page_desc.classes'),
+    'classrooms' => t('admin.page_desc.classrooms'),
+    'schedules' => t('admin.page_desc.schedules'),
+    'assignments' => t('admin.page_desc.assignments'),
+    'materials' => t('admin.page_desc.materials'),
+    'portfolios' => t('admin.page_desc.portfolios'),
+    'exports' => t('admin.page_desc.exports'),
 ];
 
 $displayAdminTitle = (string) ($adminPageTitleMap[$activeModule] ?? ($adminTitle ?? t('app.admin_default_title')));
@@ -1886,14 +1888,14 @@ if ($displayAdminDescription === '') {
         <div class="admin-sidebar-top">
             <a class="admin-sidebar-brand" href="<?= e(page_url('admin')); ?>">
                 <span class="admin-sidebar-brand-mark">EC</span>
-                <span class="admin-sidebar-brand-text">Khu vực điều hành</span>
+                <span class="admin-sidebar-brand-text"><?= e(t('admin.brand_title')); ?></span>
             </a>
 
             <button
                 type="button"
                 class="admin-sidebar-toggle"
                 id="adminSidebarToggle"
-                aria-label="Đóng mở sidebar"
+                aria-label="<?= e(t('admin.sidebar.toggle')); ?>"
                 aria-controls="adminSidebar"
                 aria-expanded="true"
             >
@@ -1906,67 +1908,67 @@ if ($displayAdminDescription === '') {
             <small><?= strtoupper((string) ($adminUser['role'] ?? '')); ?></small>
         </div>
 
-        <nav class="admin-sidebar-nav" aria-label="Menu quản trị">
+        <nav class="admin-sidebar-nav" aria-label="<?= e(t('admin.sidebar.menu_label')); ?>">
             <?php if (can_access_page('dashboard-admin')): ?>
-                <a class="admin-sidebar-link<?= $activeModule === 'dashboard' ? ' is-active' : ''; ?>" href="<?= e(page_url('dashboard-admin')); ?>" title="Tổng quan">
+                <a class="admin-sidebar-link<?= $activeModule === 'dashboard' ? ' is-active' : ''; ?>" href="<?= e(page_url('dashboard-admin')); ?>" title="<?= e(t('admin.nav.dashboard')); ?>">
                     <span class="admin-sidebar-link-icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8"></rect><rect x="13" y="3" width="8" height="5"></rect><rect x="13" y="10" width="8" height="11"></rect><rect x="3" y="13" width="8" height="8"></rect></svg>
                     </span>
-                    <span class="admin-sidebar-link-label">Tổng quan</span>
+                    <span class="admin-sidebar-link-label"><?= e(t('admin.nav.dashboard')); ?></span>
                 </a>
             <?php endif; ?>
 
             <?php if (can_access_page('tuition-finance')): ?>
-                <a class="admin-sidebar-link<?= $activeModule === 'tuition' ? ' is-active' : ''; ?>" href="<?= e(page_url('tuition-finance')); ?>" title="Học phí">
+                <a class="admin-sidebar-link<?= $activeModule === 'tuition' ? ' is-active' : ''; ?>" href="<?= e(page_url('tuition-finance')); ?>" title="<?= e(t('admin.nav.tuition')); ?>">
                     <span class="admin-sidebar-link-icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="12" rx="2"></rect><path d="M3 11h18"></path><path d="M16 15h2"></path></svg>
                     </span>
-                    <span class="admin-sidebar-link-label">Học phí</span>
+                    <span class="admin-sidebar-link-label"><?= e(t('admin.nav.tuition')); ?></span>
                 </a>
             <?php endif; ?>
 
             <?php if (can_access_page('registration-finance')): ?>
-                <a class="admin-sidebar-link<?= $activeModule === 'registration' ? ' is-active' : ''; ?>" href="<?= e(page_url('registration-finance')); ?>" title="Đăng ký khóa học">
+                <a class="admin-sidebar-link<?= $activeModule === 'registration' ? ' is-active' : ''; ?>" href="<?= e(page_url('registration-finance')); ?>" title="<?= e(t('admin.nav.registration')); ?>">
                     <span class="admin-sidebar-link-icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24"><path d="M4 5h16"></path><path d="M4 10h10"></path><path d="M4 15h8"></path><path d="m14 14 2 2 4-4"></path><circle cx="18" cy="16" r="5"></circle></svg>
                     </span>
-                    <span class="admin-sidebar-link-label">Đăng ký khóa học</span>
+                    <span class="admin-sidebar-link-label"><?= e(t('admin.nav.registration')); ?></span>
                 </a>
             <?php endif; ?>
 
             <?php if (can_access_page('promotions-manage')): ?>
-                <a class="admin-sidebar-link<?= $activeModule === 'promotions' ? ' is-active' : ''; ?>" href="<?= e(page_url('promotions-manage')); ?>" title="Ưu đãi giảm giá">
+                <a class="admin-sidebar-link<?= $activeModule === 'promotions' ? ' is-active' : ''; ?>" href="<?= e(page_url('promotions-manage')); ?>" title="<?= e(t('admin.nav.promotions')); ?>">
                     <span class="admin-sidebar-link-icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24"><path d="M20.59 13.41 12 22l-8.59-8.59a2 2 0 0 1 0-2.82L12 2l8.59 8.59a2 2 0 0 1 0 2.82z"></path><circle cx="9" cy="9" r="1.5"></circle></svg>
                     </span>
-                    <span class="admin-sidebar-link-label">Ưu đãi giảm giá</span>
+                    <span class="admin-sidebar-link-label"><?= e(t('admin.nav.promotions')); ?></span>
                 </a>
             <?php endif; ?>
 
             <?php if (can_access_page('payments-finance')): ?>
-                <a class="admin-sidebar-link<?= $activeModule === 'payments' ? ' is-active' : ''; ?>" href="<?= e(page_url('payments-finance')); ?>" title="Thanh toán">
+                <a class="admin-sidebar-link<?= $activeModule === 'payments' ? ' is-active' : ''; ?>" href="<?= e(page_url('payments-finance')); ?>" title="<?= e(t('admin.nav.payments')); ?>">
                     <span class="admin-sidebar-link-icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24"><rect x="2.5" y="5" width="19" height="14" rx="2"></rect><path d="M2.5 10h19"></path><path d="M6 15h4"></path></svg>
                     </span>
-                    <span class="admin-sidebar-link-label">Thanh toán</span>
+                    <span class="admin-sidebar-link-label"><?= e(t('admin.nav.payments')); ?></span>
                 </a>
             <?php endif; ?>
 
             <?php if (can_access_page('users-admin')): ?>
-                <a class="admin-sidebar-link<?= $activeModule === 'users' ? ' is-active' : ''; ?>" href="<?= e(page_url('users-admin')); ?>" title="Người dùng">
+                <a class="admin-sidebar-link<?= $activeModule === 'users' ? ' is-active' : ''; ?>" href="<?= e(page_url('users-admin')); ?>" title="<?= e(t('admin.nav.users')); ?>">
                     <span class="admin-sidebar-link-icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"></circle><path d="M3 19a6 6 0 0 1 12 0"></path><circle cx="17" cy="9" r="2.5"></circle><path d="M14.5 19a4.5 4.5 0 0 1 6.5 0"></path></svg>
                     </span>
-                    <span class="admin-sidebar-link-label">Người dùng</span>
+                    <span class="admin-sidebar-link-label"><?= e(t('admin.nav.users')); ?></span>
                 </a>
             <?php endif; ?>
 
             <?php if (can_access_page('approvals-manage')): ?>
-                <a class="admin-sidebar-link<?= $activeModule === 'approvals' ? ' is-active' : ''; ?>" href="<?= e(page_url('approvals-manage')); ?>" title="Phê duyệt">
+                <a class="admin-sidebar-link<?= $activeModule === 'approvals' ? ' is-active' : ''; ?>" href="<?= e(page_url('approvals-manage')); ?>" title="<?= e(t('admin.nav.approvals')); ?>">
                     <span class="admin-sidebar-link-icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24"><path d="M12 3 5 6v6c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6Z"></path><path d="m9 12 2 2 4-4"></path></svg>
                     </span>
-                    <span class="admin-sidebar-link-label">Phê duyệt</span>
+                    <span class="admin-sidebar-link-label"><?= e(t('admin.nav.approvals')); ?></span>
                     <?php if (((int) ($adminUnreadNotificationModules['approvals'] ?? 0)) > 0): ?>
                         <span
                             id="adminSidebarModuleBadge-approvals"
@@ -1979,20 +1981,20 @@ if ($displayAdminDescription === '') {
             <?php endif; ?>
 
             <?php if (can_access_page('feedbacks-manage')): ?>
-                <a class="admin-sidebar-link<?= $activeModule === 'feedbacks' ? ' is-active' : ''; ?>" href="<?= e(page_url('feedbacks-manage')); ?>" title="Đánh giá">
+                <a class="admin-sidebar-link<?= $activeModule === 'feedbacks' ? ' is-active' : ''; ?>" href="<?= e(page_url('feedbacks-manage')); ?>" title="<?= e(t('admin.nav.feedbacks')); ?>">
                     <span class="admin-sidebar-link-icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24"><path d="M4 6h16v10H8l-4 4z"></path><path d="M8 10h8"></path><path d="M8 13h5"></path></svg>
                     </span>
-                    <span class="admin-sidebar-link-label">Đánh giá</span>
+                    <span class="admin-sidebar-link-label"><?= e(t('admin.nav.feedbacks')); ?></span>
                 </a>
             <?php endif; ?>
 
             <?php if (can_access_page('student-leads-manage')): ?>
-                <a class="admin-sidebar-link<?= $activeModule === 'student-leads' ? ' is-active' : ''; ?>" href="<?= e(page_url('student-leads-manage')); ?>" title="Học viên đăng ký">
+                <a class="admin-sidebar-link<?= $activeModule === 'student-leads' ? ' is-active' : ''; ?>" href="<?= e(page_url('student-leads-manage')); ?>" title="<?= e(t('admin.nav.student_leads')); ?>">
                     <span class="admin-sidebar-link-icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24"><circle cx="10" cy="8" r="3"></circle><path d="M4 19a6 6 0 0 1 12 0"></path><path d="M16 8h5"></path><path d="M18.5 5.5v5"></path></svg>
                     </span>
-                    <span class="admin-sidebar-link-label">Học viên đăng ký</span>
+                    <span class="admin-sidebar-link-label"><?= e(t('admin.nav.student_leads')); ?></span>
                     <?php if (((int) ($adminUnreadNotificationModules['student-leads'] ?? 0)) > 0): ?>
                         <span
                             id="adminSidebarModuleBadge-student-leads"
@@ -2005,11 +2007,11 @@ if ($displayAdminDescription === '') {
             <?php endif; ?>
 
             <?php if (can_access_page('job-applications-manage')): ?>
-                <a class="admin-sidebar-link<?= $activeModule === 'job-applications' ? ' is-active' : ''; ?>" href="<?= e(page_url('job-applications-manage')); ?>" title="Ứng tuyển giáo viên">
+                <a class="admin-sidebar-link<?= $activeModule === 'job-applications' ? ' is-active' : ''; ?>" href="<?= e(page_url('job-applications-manage')); ?>" title="<?= e(t('admin.nav.job_applications')); ?>">
                     <span class="admin-sidebar-link-icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24"><path d="M3 6h18v12H3z"></path><path d="m3 7 9 6 9-6"></path><path d="M7 11h2"></path><path d="M7 14h4"></path></svg>
                     </span>
-                    <span class="admin-sidebar-link-label">Giáo viên ứng tuyển</span>
+                    <span class="admin-sidebar-link-label"><?= e(t('admin.nav.job_applications')); ?></span>
                     <?php if (((int) ($adminUnreadNotificationModules['job-applications'] ?? 0)) > 0): ?>
                         <span
                             id="adminSidebarModuleBadge-job-applications"
@@ -2022,11 +2024,11 @@ if ($displayAdminDescription === '') {
             <?php endif; ?>
 
             <?php if (can_access_page('activities-manage')): ?>
-                <a class="admin-sidebar-link<?= $activeModule === 'activities' ? ' is-active' : ''; ?>" href="<?= e(page_url('activities-manage')); ?>" title="Hoạt động">
+                <a class="admin-sidebar-link<?= $activeModule === 'activities' ? ' is-active' : ''; ?>" href="<?= e(page_url('activities-manage')); ?>" title="<?= e(t('admin.nav.activities')); ?>">
                     <span class="admin-sidebar-link-icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"></rect><path d="M8 2v4"></path><path d="M16 2v4"></path><path d="M3 10h18"></path><path d="m9 15 2 2 4-4"></path></svg>
                     </span>
-                    <span class="admin-sidebar-link-label">Hoạt động ngoại khóa</span>
+                    <span class="admin-sidebar-link-label"><?= e(t('admin.nav.activities')); ?></span>
                     <?php if (((int) ($adminUnreadNotificationModules['activities'] ?? 0)) > 0): ?>
                         <span
                             id="adminSidebarModuleBadge-activities"
@@ -2039,20 +2041,20 @@ if ($displayAdminDescription === '') {
             <?php endif; ?>
 
             <?php if (can_access_page('rooms-manage')): ?>
-                <a class="admin-sidebar-link<?= $activeModule === 'rooms' ? ' is-active' : ''; ?>" href="<?= e(page_url('rooms-manage')); ?>" title="Phòng học">
+                <a class="admin-sidebar-link<?= $activeModule === 'rooms' ? ' is-active' : ''; ?>" href="<?= e(page_url('rooms-manage')); ?>" title="<?= e(t('admin.nav.rooms')); ?>">
                     <span class="admin-sidebar-link-icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24"><path d="M4 6h16v12H4z"></path><path d="M8 10h3"></path><path d="M8 14h3"></path><path d="M16 14h.01"></path></svg>
                     </span>
-                    <span class="admin-sidebar-link-label">Phòng học</span>
+                    <span class="admin-sidebar-link-label"><?= e(t('admin.nav.rooms')); ?></span>
                 </a>
             <?php endif; ?>
 
             <?php if ($canManageNotificationCenter): ?>
-                <a class="admin-sidebar-link<?= $activeModule === 'notifications' ? ' is-active' : ''; ?>" href="<?= e(page_url('notifications-manage')); ?>" title="Thông báo">
+                <a class="admin-sidebar-link<?= $activeModule === 'notifications' ? ' is-active' : ''; ?>" href="<?= e(page_url('notifications-manage')); ?>" title="<?= e(t('admin.nav.notifications')); ?>">
                     <span class="admin-sidebar-link-icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 7h18s-3 0-3-7"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
                     </span>
-                    <span class="admin-sidebar-link-label">Thông báo</span>
+                    <span class="admin-sidebar-link-label"><?= e(t('admin.nav.notifications')); ?></span>
                     <?php if ($adminUnreadNotificationCount > 0): ?>
                         <span
                             id="adminSidebarNotificationBadge"
@@ -2066,29 +2068,29 @@ if ($displayAdminDescription === '') {
 
 
             <?php if (can_access_page('courses-academic')): ?>
-                <a class="admin-sidebar-link<?= $activeModule === 'courses' ? ' is-active' : ''; ?>" href="<?= e(page_url('courses-academic')); ?>" title="Khóa học">
+                <a class="admin-sidebar-link<?= $activeModule === 'courses' ? ' is-active' : ''; ?>" href="<?= e(page_url('courses-academic')); ?>" title="<?= e(t('admin.nav.courses')); ?>">
                     <span class="admin-sidebar-link-icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24"><path d="M4 4h16v14H4z"></path><path d="M8 8h8"></path><path d="M8 12h5"></path><path d="M4 20h16"></path></svg>
                     </span>
-                    <span class="admin-sidebar-link-label">Khóa học</span>
+                    <span class="admin-sidebar-link-label"><?= e(t('admin.nav.courses')); ?></span>
                 </a>
             <?php endif; ?>
 
             <?php if (can_access_page('roadmaps-academic')): ?>
-                <a class="admin-sidebar-link<?= $activeModule === 'roadmaps' ? ' is-active' : ''; ?>" href="<?= e(page_url('roadmaps-academic')); ?>" title="Lộ trình khóa học">
+                <a class="admin-sidebar-link<?= $activeModule === 'roadmaps' ? ' is-active' : ''; ?>" href="<?= e(page_url('roadmaps-academic')); ?>" title="<?= e(t('admin.nav.roadmaps')); ?>">
                     <span class="admin-sidebar-link-icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24"><path d="M3 7h4v4H3z"></path><path d="M10 7h11"></path><path d="M3 13h4v4H3z"></path><path d="M10 15h11"></path></svg>
                     </span>
-                    <span class="admin-sidebar-link-label">Lộ trình khóa học</span>
+                    <span class="admin-sidebar-link-label"><?= e(t('admin.nav.roadmaps')); ?></span>
                 </a>
             <?php endif; ?>
 
             <?php if (can_access_page('classes-academic')): ?>
-                <a class="admin-sidebar-link<?= $activeModule === 'classes' ? ' is-active' : ''; ?>" href="<?= e(page_url('classes-academic')); ?>" title="Lớp học">
+                <a class="admin-sidebar-link<?= $activeModule === 'classes' ? ' is-active' : ''; ?>" href="<?= e(page_url('classes-academic')); ?>" title="<?= e(t('admin.nav.classes')); ?>">
                     <span class="admin-sidebar-link-icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24"><path d="M3 5a3 3 0 0 1 3-3h6v18H6a3 3 0 0 0-3 3z"></path><path d="M21 5a3 3 0 0 0-3-3h-6v18h6a3 3 0 0 1 3 3z"></path></svg>
                     </span>
-                    <span class="admin-sidebar-link-label">Danh mục lớp học</span>
+                    <span class="admin-sidebar-link-label"><?= e(t('admin.nav.classes')); ?></span>
                     <?php if (((int) ($adminUnreadNotificationModules['classes'] ?? 0)) > 0): ?>
                         <span
                             id="adminSidebarModuleBadge-classes"
@@ -2101,47 +2103,47 @@ if ($displayAdminDescription === '') {
             <?php endif; ?>
 
             <?php if (can_access_page('schedules-academic')): ?>
-                <a class="admin-sidebar-link<?= $activeModule === 'schedules' ? ' is-active' : ''; ?>" href="<?= e(page_url('schedules-academic')); ?>" title="Lịch dạy">
+                <a class="admin-sidebar-link<?= $activeModule === 'schedules' ? ' is-active' : ''; ?>" href="<?= e(page_url('schedules-academic')); ?>" title="<?= e(t('admin.nav.schedules')); ?>">
                     <span class="admin-sidebar-link-icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
                     </span>
-                    <span class="admin-sidebar-link-label">Lịch dạy</span>
+                    <span class="admin-sidebar-link-label"><?= e(t('admin.nav.schedules')); ?></span>
                 </a>
             <?php endif; ?>
 
             <?php if (can_access_page('assignments-academic')): ?>
-                <a class="admin-sidebar-link<?= $activeModule === 'assignments' ? ' is-active' : ''; ?>" href="<?= e(page_url('assignments-academic')); ?>" title="Bài tập">
+                <a class="admin-sidebar-link<?= $activeModule === 'assignments' ? ' is-active' : ''; ?>" href="<?= e(page_url('assignments-academic')); ?>" title="<?= e(t('admin.nav.assignments')); ?>">
                     <span class="admin-sidebar-link-icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24"><rect x="6" y="4" width="12" height="17" rx="2"></rect><path d="M9 4.5h6"></path><path d="M9 10h6"></path><path d="M9 14h6"></path></svg>
                     </span>
-                    <span class="admin-sidebar-link-label">Bài tập</span>
+                    <span class="admin-sidebar-link-label"><?= e(t('admin.nav.assignments')); ?></span>
                 </a>
             <?php endif; ?>
 
             <?php if (can_access_page('materials-academic')): ?>
-                <a class="admin-sidebar-link<?= $activeModule === 'materials' ? ' is-active' : ''; ?>" href="<?= e(page_url('materials-academic')); ?>" title="Tài liệu">
+                <a class="admin-sidebar-link<?= $activeModule === 'materials' ? ' is-active' : ''; ?>" href="<?= e(page_url('materials-academic')); ?>" title="<?= e(t('admin.nav.materials')); ?>">
                     <span class="admin-sidebar-link-icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24"><path d="M3 7h6l2 2h10v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><path d="M3 7V5a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2"></path></svg>
                     </span>
-                    <span class="admin-sidebar-link-label">Tài liệu</span>
+                    <span class="admin-sidebar-link-label"><?= e(t('admin.nav.materials')); ?></span>
                 </a>
             <?php endif; ?>
 
             <?php if (can_access_page('portfolios-academic')): ?>
-                <a class="admin-sidebar-link<?= $activeModule === 'portfolios' ? ' is-active' : ''; ?>" href="<?= e(page_url('portfolios-academic')); ?>" title="Hồ sơ tiến bộ học viên">
+                <a class="admin-sidebar-link<?= $activeModule === 'portfolios' ? ' is-active' : ''; ?>" href="<?= e(page_url('portfolios-academic')); ?>" title="<?= e(t('admin.nav.portfolios')); ?>">
                     <span class="admin-sidebar-link-icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24"><path d="M12 2a2 2 0 0 1 2 2v2h4v12H4V6h4V4a2 2 0 0 1 2-2z"></path><path d="M8 10h8"></path><path d="M8 14h8"></path></svg>
                     </span>
-                    <span class="admin-sidebar-link-label">Hồ sơ tiến bộ</span>
+                    <span class="admin-sidebar-link-label"><?= e(t('admin.nav.portfolios')); ?></span>
                 </a>
             <?php endif; ?>
 
             <?php if (can_access_page('exports-academic')): ?>
-                <a class="admin-sidebar-link<?= $activeModule === 'exports' ? ' is-active' : ''; ?>" href="<?= e(page_url('exports-academic')); ?>" title="Xuất Excel học viên">
+                <a class="admin-sidebar-link<?= $activeModule === 'exports' ? ' is-active' : ''; ?>" href="<?= e(page_url('exports-academic')); ?>" title="<?= e(t('admin.nav.exports')); ?>">
                     <span class="admin-sidebar-link-icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24"><path d="M14 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><path d="M8 3h8v4H8z"></path><path d="m9 12 2 2 4-4"></path><path d="M8 17h8"></path></svg>
                     </span>
-                    <span class="admin-sidebar-link-label">Xuất Excel học viên</span>
+                    <span class="admin-sidebar-link-label"><?= e(t('admin.nav.exports')); ?></span>
                 </a>
             <?php endif; ?>
 

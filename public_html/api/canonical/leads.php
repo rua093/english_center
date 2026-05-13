@@ -37,9 +37,49 @@ function api_leads_extract_phone(string $value): string
     return $digits;
 }
 
+function api_leads_resolve_redirect_target(string $fallback): string
+{
+    $redirectTo = trim((string) ($_POST['redirect_to'] ?? ''));
+    if ($redirectTo === '') {
+        return $fallback;
+    }
+
+    if (!str_starts_with($redirectTo, '/')) {
+        return $fallback;
+    }
+
+    $parts = parse_url($redirectTo);
+    if ($parts === false) {
+        return $fallback;
+    }
+
+    if (isset($parts['scheme']) || isset($parts['host'])) {
+        return $fallback;
+    }
+
+    $path = (string) ($parts['path'] ?? '');
+    if ($path === '' || !str_starts_with($path, '/')) {
+        return $fallback;
+    }
+
+    $query = (string) ($parts['query'] ?? '');
+    $fragment = (string) ($parts['fragment'] ?? '');
+    $target = $path;
+
+    if ($query !== '') {
+        $target .= '?' . $query;
+    }
+
+    if ($fragment !== '') {
+        $target .= '#' . $fragment;
+    }
+
+    return $target;
+}
+
 function api_leads_submit_action(): void
 {
-    $redirectPath = page_url('home') . '#lien-he';
+    $redirectPath = api_leads_resolve_redirect_target(page_url('home') . '#lien-he');
     api_require_post($redirectPath);
 
     $studentName = input_string($_POST, 'student_name');
@@ -104,6 +144,9 @@ function api_leads_submit_action(): void
     // Require name and at least one contact method (phone or email)
     $contactPhone = api_leads_extract_phone($parentPhone . ' ' . normalize_phone_string($legacyPhone) . ' ' . $parentName);
     $contactEmail = api_leads_extract_email($legacyEmail . ' ' . $parentName);
+    if ($contactPhone !== '') {
+        $payload['parent_phone'] = $contactPhone;
+    }
     $payload['parent_email'] = $contactEmail;
 
     if ($payload['student_name'] === '' || ($contactPhone === '' && $contactEmail === '')) {
@@ -128,16 +171,16 @@ function api_leads_submit_action(): void
 
 function api_leads_submit_consultation_action(): void
 {
-    $redirectPath = page_url('register-consultation');
+    $redirectPath = api_leads_resolve_redirect_target(page_url('register-consultation'));
     api_require_post($redirectPath);
 
+    $leadId = input_int($_POST, 'lead_id');
     $studentName = input_string($_POST, 'student_name');
     $parentName = input_string($_POST, 'parent_name');
-    $fatherPhone = normalize_phone_string(input_string($_POST, 'father_phone'));
-    $motherPhone = normalize_phone_string(input_string($_POST, 'mother_phone'));
+    $parentPhone = normalize_phone_string(input_string($_POST, 'parent_phone'));
     $parentEmail = api_leads_extract_email(input_string($_POST, 'parent_email', input_string($_POST, 'email')));
     $legacyPhone = normalize_phone_string(input_string($_POST, 'parent_phone', input_string($_POST, 'phone')));
-    $contactPhone = api_leads_extract_phone($fatherPhone . ' ' . $motherPhone . ' ' . $legacyPhone . ' ' . $parentName);
+    $contactPhone = api_leads_extract_phone($parentPhone . ' ' . $legacyPhone . ' ' . $parentName);
 
     if ($studentName === '' || $parentName === '' || $contactPhone === '') {
         set_flash('home_error', 'Vui long nhap ten hoc vien, ho ten phu huynh va it nhat mot so dien thoai lien he.');
@@ -168,7 +211,11 @@ function api_leads_submit_consultation_action(): void
     }
 
     try {
-        (new AdminModel())->saveConsultationLead($payload);
+        if ($leadId > 0) {
+            (new AdminModel())->completeConsultationLead($leadId, $payload);
+        } else {
+            (new AdminModel())->saveConsultationLead($payload);
+        }
         set_flash('home_success', 'Yeu cau tu van da duoc ghi nhan. Trung tam se lien he voi ban som nhat.');
     } catch (Throwable $exception) {
         set_flash('home_error', 'Khong the gui yeu cau tu van. Vui long thu lai sau.');

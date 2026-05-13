@@ -108,6 +108,27 @@
 <?php
 $success = get_flash('home_success');
 $error = get_flash('home_error');
+$prefillPayload = api_decode_payload((string) ($_GET['prefill'] ?? ''));
+if (!is_array($prefillPayload)) {
+    $prefillPayload = [];
+}
+
+$prefillValue = static function (string $key, string $fallback = '') use ($prefillPayload): string {
+    return trim((string) ($prefillPayload[$key] ?? $fallback));
+};
+
+$prefillLeadId = max(0, (int) ($prefillPayload['lead_id'] ?? 0));
+$prefillStudentName = $prefillValue('student_name');
+$prefillStudentDob = $prefillValue('student_dob', $prefillValue('dob'));
+$prefillParentName = $prefillValue('parent_name');
+$prefillParentPhone = $prefillValue('parent_phone', $prefillValue('phone'));
+$prefillParentEmail = $prefillValue('parent_email');
+$prefillStudentHobbies = $prefillValue('student_hobbies', $prefillValue('interests'));
+$prefillStudentSchool = $prefillValue('student_school', $prefillValue('school_name'));
+$prefillStudentGrade = $prefillValue('student_grade', $prefillValue('current_grade'));
+$prefillCurrentLevel = $prefillValue('current_level');
+$prefillStudentGender = $prefillValue('student_gender', $prefillValue('gender'));
+$prefillStudentPersonality = $prefillValue('student_personality', $prefillValue('personality'));
 ?>
 
 <main class="py-12 md:py-16 font-jakarta">
@@ -117,21 +138,25 @@ $error = get_flash('home_error');
             <div class="absolute top-0 left-0 w-2 h-full bg-rose-600"></div>
             <div class="flex flex-col md:flex-row justify-between items-center gap-6">
                 <div class="text-left flex items-center gap-4">
-                    <img src="assets/images/logo_remove.png" alt="Nhuệ Minh Logo" class="h-16 w-auto">
+                    <img src="assets/images/logo_remove.png" alt="<?= e(t('consult.logo_alt')); ?>" class="h-16 w-auto">
                     <div>
-                        <h2 class="text-xl font-black text-rose-600 tracking-tight">TRUNG TÂM NGOẠI NGỮ NHUỆ MINH</h2>
+                        <h2 class="text-xl font-black text-rose-600 tracking-tight"><?= e(t('consult.center_name')); ?></h2>
                         <p class="text-sm font-bold text-slate-500">Hotline: <a href="tel:0899925259" class="text-slate-800 hover:text-rose-600">0899 925 259</a></p>
                     </div>
                 </div>
                 <div class="text-right">
-                    <h1 class="text-2xl md:text-3xl font-black text-slate-800 uppercase">Thông Tin Tư Vấn</h1>
-                    <p class="text-sm font-medium text-slate-500 mt-1">Khảo sát lộ trình học tập</p>
+                    <h1 class="text-2xl md:text-3xl font-black text-slate-800 uppercase"><?= e(t('consult.title')); ?></h1>
+                    <p class="text-sm font-medium text-slate-500 mt-1"><?= e(t('consult.subtitle')); ?></p>
                 </div>
             </div>
         </div>
 
         <form action="/api/index.php?resource=leads&method=submit-consultation" method="POST" class="space-y-8" id="consultationForm">
             <?= csrf_input(); ?>
+            <input type="hidden" name="redirect_to" value="<?= e($_SERVER['REQUEST_URI'] ?? page_url('register-consultation')); ?>">
+            <?php if ($prefillLeadId > 0): ?>
+                <input type="hidden" name="lead_id" value="<?= $prefillLeadId; ?>">
+            <?php endif; ?>
             
             <!-- <section class="form-card p-6 md:p-8 shadow-md animate-card">
                 <div class="grid md:grid-cols-2 gap-6">
@@ -148,24 +173,24 @@ $error = get_flash('home_error');
 
             <section class="form-card p-6 md:p-8 shadow-md animate-card">
                 <div class="section-header">
-                    <h2 class="section-title"><span class="title-number">I</span> Thông tin học sinh</h2>
+                    <h2 class="section-title"><span class="title-number">I</span> <?= e(t('consult.student_info')); ?></h2>
                 </div>
                 
                 <div class="grid md:grid-cols-12 gap-6 mb-6">
                     <div class="md:col-span-8 space-y-2">
-                        <label class="text-xs font-black text-slate-500 uppercase ml-1">Họ và tên học sinh *</label>
-                        <input type="text" name="student_name" required placeholder="Nguyễn Văn A" class="w-full px-5 py-3.5 rounded-xl bg-slate-50 outline-none focus-lime font-bold text-slate-700">
+                        <label class="text-xs font-black text-slate-500 uppercase ml-1"><?= e(t('consult.student_name')); ?></label>
+                        <input type="text" name="student_name" required value="<?= e($prefillStudentName); ?>" placeholder="Nguyễn Văn A" class="w-full px-5 py-3.5 rounded-xl bg-slate-50 outline-none focus-lime font-bold text-slate-700">
                     </div>
                     <div class="md:col-span-4 space-y-2">
-                        <label class="text-xs font-black text-slate-500 uppercase ml-1">Giới tính</label>
+                        <label class="text-xs font-black text-slate-500 uppercase ml-1"><?= e(t('consult.gender')); ?></label>
                         <div class="flex gap-4">
                             <label class="custom-option animate-option flex-1 justify-center">
-                                <input type="radio" name="student_gender" value="Nam" class="w-4 h-4 accent-rose-600" required>
-                                <span class="text-sm font-medium text-slate-600">Nam</span>
+                                <input type="radio" name="student_gender" value="Nam" class="w-4 h-4 accent-rose-600" required <?= $prefillStudentGender === 'Nam' ? 'checked' : ''; ?>>
+                                <span class="text-sm font-medium text-slate-600"><?= e(t('consult.gender_male')); ?></span>
                             </label>
                             <label class="custom-option animate-option flex-1 justify-center">
-                                <input type="radio" name="student_gender" value="Nữ" class="w-4 h-4 accent-rose-600">
-                                <span class="text-sm font-medium text-slate-600">Nữ</span>
+                                <input type="radio" name="student_gender" value="Nữ" class="w-4 h-4 accent-rose-600" <?= $prefillStudentGender === 'Nữ' ? 'checked' : ''; ?>>
+                                <span class="text-sm font-medium text-slate-600"><?= e(t('consult.gender_female')); ?></span>
                             </label>
                         </div>
                     </div>
@@ -173,52 +198,40 @@ $error = get_flash('home_error');
 
                 <div class="grid md:grid-cols-2 gap-6 mb-6">
                     <div class="space-y-2">
-                        <label class="text-xs font-black text-slate-500 uppercase ml-1">Ngày sinh</label>
-                        <input type="date" name="student_dob" required class="w-full px-5 py-3.5 rounded-xl bg-slate-50 outline-none focus-lime font-bold text-slate-700">
+                        <label class="text-xs font-black text-slate-500 uppercase ml-1"><?= e(t('consult.birthdate')); ?></label>
+                        <input type="date" name="student_dob" required value="<?= e($prefillStudentDob); ?>" class="w-full px-5 py-3.5 rounded-xl bg-slate-50 outline-none focus-lime font-bold text-slate-700">
                     </div>
                     <div class="space-y-2">
-                        <label class="text-xs font-black text-slate-500 uppercase ml-1">Sở thích của bé</label>
-                        <input type="text" name="student_hobbies" required placeholder="VD: Vẽ, đá bóng, xem hoạt hình..." class="w-full px-5 py-3.5 rounded-xl bg-slate-50 outline-none focus-lime font-bold text-slate-700">
-                    </div>
-                </div>
-
-                <div class="grid md:grid-cols-2 gap-6 mb-6">
-                    <div class="space-y-2">
-                        <label class="text-xs font-black text-slate-500 uppercase ml-1">CCCD Học sinh</label>
-                        <input type="text" inputmode="numeric" pattern="[0-9]*" name="student_cccd" placeholder="Nhập CCCD/CMND học sinh" class="w-full px-5 py-3.5 rounded-xl bg-slate-50 outline-none focus-lime font-bold text-slate-700">
-                    </div>
-                    <div class="space-y-2">
-                        <!-- intentionally left blank to preserve two-column layout -->
-                        <label class="text-xs font-black text-slate-500 uppercase ml-1">&nbsp;</label>
-                        <div></div>
+                        <label class="text-xs font-black text-slate-500 uppercase ml-1"><?= e(t('consult.hobbies')); ?></label>
+                        <input type="text" name="student_hobbies" required value="<?= e($prefillStudentHobbies); ?>" placeholder="<?= e(t('consult.hobbies_placeholder')); ?>" class="w-full px-5 py-3.5 rounded-xl bg-slate-50 outline-none focus-lime font-bold text-slate-700">
                     </div>
                 </div>
 
                 <div class="grid md:grid-cols-12 gap-6 mb-8">
                     <div class="md:col-span-8 space-y-2">
-                        <label class="text-xs font-black text-slate-500 uppercase ml-1">Trường học hiện tại</label>
-                        <input type="text" name="student_school" required placeholder="Tên trường tiểu học/THCS..." class="w-full px-5 py-3.5 rounded-xl bg-slate-50 outline-none focus-lime font-bold text-slate-700">
+                        <label class="text-xs font-black text-slate-500 uppercase ml-1"><?= e(t('consult.school')); ?></label>
+                        <input type="text" name="student_school" required value="<?= e($prefillStudentSchool); ?>" placeholder="<?= e(t('consult.school_placeholder')); ?>" class="w-full px-5 py-3.5 rounded-xl bg-slate-50 outline-none focus-lime font-bold text-slate-700">
                     </div>
                     <div class="md:col-span-4 space-y-2">
-                        <label class="text-xs font-black text-slate-500 uppercase ml-1">Lớp</label>
-                        <input type="text" name="student_grade" required placeholder="VD: 3A, Lớp 5..." class="w-full px-5 py-3.5 rounded-xl bg-slate-50 outline-none focus-lime font-bold text-slate-700">
+                        <label class="text-xs font-black text-slate-500 uppercase ml-1"><?= e(t('consult.grade')); ?></label>
+                        <input type="text" name="student_grade" required value="<?= e($prefillStudentGrade); ?>" placeholder="<?= e(t('consult.grade_placeholder')); ?>" class="w-full px-5 py-3.5 rounded-xl bg-slate-50 outline-none focus-lime font-bold text-slate-700">
                     </div>
                 </div>
 
                 <div class="space-y-3">
-                    <label class="text-xs font-black text-slate-500 uppercase ml-1">Tính cách của bé</label>
+                    <label class="text-xs font-black text-slate-500 uppercase ml-1"><?= e(t('consult.personality')); ?></label>
                     <div class="grid sm:grid-cols-3 gap-4">
                         <label class="custom-option animate-option">
-                            <input type="radio" name="student_personality" value="Hướng nội" class="w-4 h-4 accent-rose-600" required>
-                            <span class="text-sm font-medium text-slate-600">Hướng nội (Nhút nhát, ít nói)</span>
+                            <input type="radio" name="student_personality" value="Hướng nội" class="w-4 h-4 accent-rose-600" required <?= $prefillStudentPersonality === 'Hướng nội' ? 'checked' : ''; ?>>
+                            <span class="text-sm font-medium text-slate-600"><?= e(t('consult.personality_introvert')); ?></span>
                         </label>
                         <label class="custom-option animate-option">
-                            <input type="radio" name="student_personality" value="Hướng ngoại" class="w-4 h-4 accent-rose-600">
-                            <span class="text-sm font-medium text-slate-600">Hướng ngoại (Hoạt bát)</span>
+                            <input type="radio" name="student_personality" value="Hướng ngoại" class="w-4 h-4 accent-rose-600" <?= $prefillStudentPersonality === 'Hướng ngoại' ? 'checked' : ''; ?>>
+                            <span class="text-sm font-medium text-slate-600"><?= e(t('consult.personality_extrovert')); ?></span>
                         </label>
                         <label class="custom-option animate-option">
-                            <input type="radio" name="student_personality" value="Trung bình" class="w-4 h-4 accent-rose-600">
-                            <span class="text-sm font-medium text-slate-600">Trung bình (Dễ hòa nhập)</span>
+                            <input type="radio" name="student_personality" value="Trung bình" class="w-4 h-4 accent-rose-600" <?= $prefillStudentPersonality === 'Trung bình' ? 'checked' : ''; ?>>
+                            <span class="text-sm font-medium text-slate-600"><?= e(t('consult.personality_balanced')); ?></span>
                         </label>
                     </div>
                 </div>
@@ -226,62 +239,45 @@ $error = get_flash('home_error');
 
             <section class="form-card p-6 md:p-8 shadow-md animate-card">
                 <div class="section-header">
-                    <h2 class="section-title"><span class="title-number">II</span> Thông tin phụ huynh</h2>
+                    <h2 class="section-title"><span class="title-number">II</span> <?= e(t('consult.parent_info')); ?></h2>
                 </div>
                 
                 <div class="space-y-6">
                     <div class="space-y-2">
-                        <label class="text-xs font-black text-slate-500 uppercase ml-1">Họ và tên Phụ huynh *</label>
-                        <input type="text" name="parent_name" required placeholder="Tên Ba/Mẹ..." class="w-full px-5 py-3.5 rounded-xl bg-slate-50 outline-none focus-lime font-bold text-slate-700">
+                        <label class="text-xs font-black text-slate-500 uppercase ml-1"><?= e(t('consult.parent_name')); ?></label>
+                        <input type="text" name="parent_name" required value="<?= e($prefillParentName); ?>" placeholder="<?= e(t('consult.parent_name_placeholder')); ?>" class="w-full px-5 py-3.5 rounded-xl bg-slate-50 outline-none focus-lime font-bold text-slate-700">
                     </div>
                     
-                    <div class="grid md:grid-cols-2 gap-6">
-                        <div class="space-y-2">
-                            <label class="text-xs font-black text-slate-500 uppercase ml-1">Số điện thoại Ba</label>
-                            <input type="tel" inputmode="numeric" pattern="[0-9]*" name="father_phone" placeholder="09xx xxx xxx" class="w-full px-5 py-3.5 rounded-xl bg-slate-50 outline-none focus-lime font-bold text-slate-700">
-                        </div>
-                        <div class="space-y-2">
-                            <label class="text-xs font-black text-slate-500 uppercase ml-1">Số điện thoại Mẹ</label>
-                            <input type="tel" inputmode="numeric" pattern="[0-9]*" name="mother_phone" placeholder="09xx xxx xxx" class="w-full px-5 py-3.5 rounded-xl bg-slate-50 outline-none focus-lime font-bold text-slate-700">
-                        </div>
-                    </div>
-
-                    <div class="grid md:grid-cols-2 gap-6">
-                        <div class="space-y-2">
-                            <label class="text-xs font-black text-slate-500 uppercase ml-1">CCCD Ba</label>
-                            <input type="text" inputmode="numeric" pattern="[0-9]*" name="father_cccd" placeholder="Nhập CCCD/CMND Ba" class="w-full px-5 py-3.5 rounded-xl bg-slate-50 outline-none focus-lime font-bold text-slate-700">
-                        </div>
-                        <div class="space-y-2">
-                            <label class="text-xs font-black text-slate-500 uppercase ml-1">CCCD Mẹ</label>
-                            <input type="text" inputmode="numeric" pattern="[0-9]*" name="mother_cccd" placeholder="Nhập CCCD/CMND Mẹ" class="w-full px-5 py-3.5 rounded-xl bg-slate-50 outline-none focus-lime font-bold text-slate-700">
-                        </div>
+                    <div class="space-y-2">
+                        <label class="text-xs font-black text-slate-500 uppercase ml-1">Số điện thoại liên hệ *</label>
+                        <input type="tel" inputmode="numeric" pattern="[0-9]*" name="parent_phone" required value="<?= e($prefillParentPhone); ?>" placeholder="09xx xxx xxx" class="w-full px-5 py-3.5 rounded-xl bg-slate-50 outline-none focus-lime font-bold text-slate-700">
                     </div>
 
                     <div class="space-y-2">
-                        <label class="text-xs font-black text-slate-500 uppercase ml-1">Email phụ huynh</label>
-                        <input type="email" name="parent_email" placeholder="phuhuynh@example.com" class="w-full px-5 py-3.5 rounded-xl bg-slate-50 outline-none focus-lime font-bold text-slate-700">
+                        <label class="text-xs font-black text-slate-500 uppercase ml-1"><?= e(t('consult.parent_email')); ?></label>
+                        <input type="email" name="parent_email" value="<?= e($prefillParentEmail); ?>" placeholder="phuhuynh@example.com" class="w-full px-5 py-3.5 rounded-xl bg-slate-50 outline-none focus-lime font-bold text-slate-700">
                     </div>
 
                     <div class="space-y-3 pt-2">
-                        <label class="text-xs font-black text-slate-500 uppercase ml-1">Ba mẹ biết Trung tâm thông qua</label>
+                        <label class="text-xs font-black text-slate-500 uppercase ml-1"><?= e(t('consult.source')); ?></label>
                         <div class="grid sm:grid-cols-2 gap-4">
                             <label class="custom-option animate-option">
                                 <input type="checkbox" name="source_channels[]" value="Người quen giới thiệu" class="w-4 h-4 accent-rose-600 rounded">
-                                <span class="text-sm font-medium text-slate-600">Có người quen giới thiệu</span>
+                                <span class="text-sm font-medium text-slate-600"><?= e(t('consult.source_referral')); ?></span>
                             </label>
                             <label class="custom-option animate-option">
                                 <input type="checkbox" name="source_channels[]" value="Tờ rơi/Quảng cáo" class="w-4 h-4 accent-rose-600 rounded">
-                                <span class="text-sm font-medium text-slate-600">Nhận tờ rơi, quảng cáo</span>
+                                <span class="text-sm font-medium text-slate-600"><?= e(t('consult.source_ads')); ?></span>
                             </label>
                             <label class="custom-option animate-option">
                                 <input type="checkbox" name="source_channels[]" value="Mạng xã hội" class="w-4 h-4 accent-rose-600 rounded">
-                                <span class="text-sm font-medium text-slate-600">Mạng xã hội (Facebook, Zalo...)</span>
+                                <span class="text-sm font-medium text-slate-600"><?= e(t('consult.source_social')); ?></span>
                             </label>
                             <div class="relative group">
                                 <div class="custom-option focus-within:border-rose-600 focus-within:bg-rose-50">
                                     <input type="checkbox" id="source_other_check" name="source_channels[]" value="Khác" class="w-4 h-4 accent-rose-600 rounded">
-                                    <span class="text-sm font-medium text-slate-600 whitespace-nowrap">Khác:</span>
-                                    <input type="text" name="source_other_detail" placeholder="Vui lòng ghi rõ..." class="w-full bg-transparent border-b border-slate-300 outline-none text-sm font-bold text-slate-700 ml-2 focus:border-rose-600 placeholder:font-normal">
+                                    <span class="text-sm font-medium text-slate-600 whitespace-nowrap"><?= e(t('consult.other')); ?></span>
+                                    <input type="text" name="source_other_detail" placeholder="<?= e(t('consult.other_placeholder')); ?>" class="w-full bg-transparent border-b border-slate-300 outline-none text-sm font-bold text-slate-700 ml-2 focus:border-rose-600 placeholder:font-normal">
                                 </div>
                             </div>
                         </div>
@@ -291,64 +287,64 @@ $error = get_flash('home_error');
 
             <section class="form-card p-6 md:p-8 shadow-md animate-card">
                 <div class="section-header">
-                    <h2 class="section-title"><span class="title-number">III</span> Mục tiêu học tập</h2>
+                    <h2 class="section-title"><span class="title-number">III</span> <?= e(t('consult.goals')); ?></h2>
                 </div>
                 
                 <div class="grid lg:grid-cols-2 gap-10">
                     <div class="space-y-4">
-                        <h3 class="text-sm font-black text-rose-600 uppercase mb-3">1. Trình độ tiếng Anh hiện tại</h3>
+                        <h3 class="text-sm font-black text-rose-600 uppercase mb-3"><?= e(t('consult.current_level')); ?></h3>
                         <div class="space-y-3">
                             <label class="custom-option animate-option">
-                                <input type="radio" name="current_level" value="Chưa tiếp xúc" class="w-4 h-4 accent-rose-600" required>
-                                <span class="text-sm font-medium text-slate-600">Chưa tiếp xúc với tiếng Anh</span>
+                                <input type="radio" name="current_level" value="Chưa tiếp xúc" class="w-4 h-4 accent-rose-600" required <?= $prefillCurrentLevel === 'Chưa tiếp xúc' ? 'checked' : ''; ?>>
+                                <span class="text-sm font-medium text-slate-600"><?= e(t('consult.level_none')); ?></span>
                             </label>
                             <label class="custom-option animate-option">
-                                <input type="radio" name="current_level" value="Biết từ vựng cơ bản" class="w-4 h-4 accent-rose-600">
-                                <span class="text-sm font-medium text-slate-600">Biết một số từ vựng cơ bản</span>
+                                <input type="radio" name="current_level" value="Biết từ vựng cơ bản" class="w-4 h-4 accent-rose-600" <?= $prefillCurrentLevel === 'Biết từ vựng cơ bản' ? 'checked' : ''; ?>>
+                                <span class="text-sm font-medium text-slate-600"><?= e(t('consult.level_vocab')); ?></span>
                             </label>
                             <label class="custom-option animate-option">
-                                <input type="radio" name="current_level" value="Nghe hiểu được, phản xạ chậm" class="w-4 h-4 accent-rose-600">
-                                <span class="text-sm font-medium text-slate-600">Nghe hiểu được nhưng phản xạ chậm</span>
+                                <input type="radio" name="current_level" value="Nghe hiểu được, phản xạ chậm" class="w-4 h-4 accent-rose-600" <?= $prefillCurrentLevel === 'Nghe hiểu được, phản xạ chậm' ? 'checked' : ''; ?>>
+                                <span class="text-sm font-medium text-slate-600"><?= e(t('consult.level_slow')); ?></span>
                             </label>
                             <label class="custom-option animate-option">
-                                <input type="radio" name="current_level" value="Có nền tảng, giao tiếp cơ bản" class="w-4 h-4 accent-rose-600">
-                                <span class="text-sm font-medium text-slate-600">Đã có nền tảng vững, giao tiếp cơ bản</span>
+                                <input type="radio" name="current_level" value="Có nền tảng, giao tiếp cơ bản" class="w-4 h-4 accent-rose-600" <?= $prefillCurrentLevel === 'Có nền tảng, giao tiếp cơ bản' ? 'checked' : ''; ?>>
+                                <span class="text-sm font-medium text-slate-600"><?= e(t('consult.level_basic')); ?></span>
                             </label>
                             <label class="custom-option animate-option">
-                                <input type="radio" name="current_level" value="Học tốt, muốn nâng cao" class="w-4 h-4 accent-rose-600">
-                                <span class="text-sm font-medium text-slate-600">Học tốt tiếng Anh nhưng muốn nâng cao</span>
+                                <input type="radio" name="current_level" value="Học tốt, muốn nâng cao" class="w-4 h-4 accent-rose-600" <?= $prefillCurrentLevel === 'Học tốt, muốn nâng cao' ? 'checked' : ''; ?>>
+                                <span class="text-sm font-medium text-slate-600"><?= e(t('consult.level_advanced')); ?></span>
                             </label>
                         </div>
                     </div>
 
                     <div class="space-y-8">
                         <div class="space-y-4">
-                            <h3 class="text-sm font-black text-rose-600 uppercase mb-3">2. Thời gian bé có thể học</h3>
+                            <h3 class="text-sm font-black text-rose-600 uppercase mb-3"><?= e(t('consult.available_time')); ?></h3>
                             <div class="grid grid-cols-3 gap-3 mb-3">
-                                <label class="custom-option animate-option justify-center"><input type="checkbox" name="available_shifts[]" value="Sáng" class="w-4 h-4 accent-rose-600"><span class="text-sm text-slate-600">Sáng</span></label>
-                                <label class="custom-option animate-option justify-center"><input type="checkbox" name="available_shifts[]" value="Chiều" class="w-4 h-4 accent-rose-600"><span class="text-sm text-slate-600">Chiều</span></label>
-                                <label class="custom-option animate-option justify-center"><input type="checkbox" name="available_shifts[]" value="Tối" class="w-4 h-4 accent-rose-600"><span class="text-sm text-slate-600">Tối</span></label>
+                                <label class="custom-option animate-option justify-center"><input type="checkbox" name="available_shifts[]" value="Sáng" class="w-4 h-4 accent-rose-600"><span class="text-sm text-slate-600"><?= e(t('consult.shift_morning')); ?></span></label>
+                                <label class="custom-option animate-option justify-center"><input type="checkbox" name="available_shifts[]" value="Chiều" class="w-4 h-4 accent-rose-600"><span class="text-sm text-slate-600"><?= e(t('consult.shift_afternoon')); ?></span></label>
+                                <label class="custom-option animate-option justify-center"><input type="checkbox" name="available_shifts[]" value="Tối" class="w-4 h-4 accent-rose-600"><span class="text-sm text-slate-600"><?= e(t('consult.shift_evening')); ?></span></label>
                             </div>
                             <div class="grid grid-cols-2 gap-3">
-                                <label class="custom-option animate-option justify-center"><input type="checkbox" name="available_days[]" value="Ngày trong tuần" class="w-4 h-4 accent-rose-600"><span class="text-sm text-slate-600">Ngày trong tuần</span></label>
-                                <label class="custom-option animate-option justify-center"><input type="checkbox" name="available_days[]" value="Cuối tuần" class="w-4 h-4 accent-rose-600"><span class="text-sm text-slate-600">Cuối tuần</span></label>
+                                <label class="custom-option animate-option justify-center"><input type="checkbox" name="available_days[]" value="Ngày trong tuần" class="w-4 h-4 accent-rose-600"><span class="text-sm text-slate-600"><?= e(t('consult.weekdays')); ?></span></label>
+                                <label class="custom-option animate-option justify-center"><input type="checkbox" name="available_days[]" value="Cuối tuần" class="w-4 h-4 accent-rose-600"><span class="text-sm text-slate-600"><?= e(t('consult.weekend')); ?></span></label>
                             </div>
                         </div>
 
                         <div class="space-y-4">
-                            <h3 class="text-sm font-black text-rose-600 uppercase mb-3">3. Phụ huynh mong muốn điều gì?</h3>
+                            <h3 class="text-sm font-black text-rose-600 uppercase mb-3"><?= e(t('consult.expectation_title')); ?></h3>
                             <div class="space-y-3">
                                 <label class="custom-option animate-option">
                                     <input type="checkbox" name="parent_expectations[]" value="Tiến bộ giao tiếp" class="w-4 h-4 accent-rose-600 rounded">
-                                    <span class="text-sm font-medium text-slate-600">Bé tiến bộ rõ rệt trong giao tiếp</span>
+                                    <span class="text-sm font-medium text-slate-600"><?= e(t('consult.expect_communication')); ?></span>
                                 </label>
                                 <label class="custom-option animate-option">
                                     <input type="checkbox" name="parent_expectations[]" value="Điểm cao tại trường" class="w-4 h-4 accent-rose-600 rounded">
-                                    <span class="text-sm font-medium text-slate-600">Bé đạt điểm cao trong kỳ thi tại trường</span>
+                                    <span class="text-sm font-medium text-slate-600"><?= e(t('consult.expect_school_score')); ?></span>
                                 </label>
                                 <label class="custom-option animate-option">
                                     <input type="checkbox" name="parent_expectations[]" value="Lộ trình chứng chỉ quốc tế" class="w-4 h-4 accent-rose-600 rounded">
-                                    <span class="text-sm font-medium text-slate-600">Có lộ trình học lâu dài, lấy chứng chỉ quốc tế</span>
+                                    <span class="text-sm font-medium text-slate-600"><?= e(t('consult.expect_certificate')); ?></span>
                                 </label>
                             </div>
                         </div>
@@ -358,7 +354,7 @@ $error = get_flash('home_error');
 
             <div class="text-center pt-4">
                 <button type="submit" class="w-full md:w-auto px-16 py-5 rounded-full bg-rose-600 hover:bg-rose-700 text-white font-black uppercase tracking-widest shadow-xl shadow-rose-600/30 transition-all hover:-translate-y-1 flex justify-center items-center gap-3 mx-auto submit-animated">
-                    Lưu Hồ Sơ Khảo Sát
+                    <?= e(t('consult.submit')); ?>
                     <i class="fa-solid fa-cloud-arrow-up"></i>
                 </button>
             </div>
@@ -375,28 +371,6 @@ $error = get_flash('home_error');
     const sourceOtherInput = document.querySelector('input[name="source_other_detail"]');
     const sourceOtherCheck = document.getElementById('source_other_check');
     const consultationForm = document.getElementById('consultationForm');
-    const fatherPhoneInput = document.querySelector('input[name="father_phone"]');
-    const motherPhoneInput = document.querySelector('input[name="mother_phone"]');
-
-    const syncParentPhoneValidity = () => {
-        if (!fatherPhoneInput || !motherPhoneInput) {
-            return;
-        }
-
-        const fatherFilled = fatherPhoneInput.value.trim().length > 0;
-        const motherFilled = motherPhoneInput.value.trim().length > 0;
-        const valid = fatherFilled || motherFilled;
-        const message = 'Vui lòng nhập ít nhất một số điện thoại liên hệ của phụ huynh.';
-
-        fatherPhoneInput.setCustomValidity(valid ? '' : message);
-        motherPhoneInput.setCustomValidity(valid ? '' : message);
-    };
-
-    if (fatherPhoneInput && motherPhoneInput) {
-        fatherPhoneInput.addEventListener('input', syncParentPhoneValidity);
-        motherPhoneInput.addEventListener('input', syncParentPhoneValidity);
-        syncParentPhoneValidity();
-    }
     
     if (sourceOtherInput && sourceOtherCheck) {
         sourceOtherInput.addEventListener('input', function() {
@@ -423,8 +397,6 @@ $error = get_flash('home_error');
         consultationForm.addEventListener('submit', function(event) {
             event.preventDefault();
 
-            syncParentPhoneValidity();
-
             if (!this.checkValidity()) {
                 this.reportValidity();
                 return;
@@ -432,30 +404,44 @@ $error = get_flash('home_error');
 
             const requiredCheckboxGroups = [
                 'source_channels[]',
-                'available_shifts[]',
-                'available_days[]',
                 'parent_expectations[]'
             ];
+            const checkboxGroupLabels = {
+                'source_channels[]': <?= json_encode(t('consult.source'), JSON_UNESCAPED_UNICODE); ?>,
+                'parent_expectations[]': <?= json_encode(t('consult.expectation_title'), JSON_UNESCAPED_UNICODE); ?>
+            };
 
             for (const groupName of requiredCheckboxGroups) {
                 const groupCheckboxes = Array.from(this.querySelectorAll(`input[type="checkbox"][name="${groupName}"]`));
                 if (groupCheckboxes.length > 0 && !groupCheckboxes.some((checkbox) => checkbox.checked)) {
                     groupCheckboxes[0].focus();
+                    const groupLabel = checkboxGroupLabels[groupName] || groupName.replace('[]', '');
                     if (typeof showNotify === 'function') {
-                        showNotify('warning', 'Vui lòng chọn ít nhất một mục cho phần: ' + groupName.replace('[]', ''));
+                        showNotify('warning', <?= json_encode(t('consult.select_group_required'), JSON_UNESCAPED_UNICODE); ?> + groupLabel);
                     } else {
-                        alert('Vui lòng chọn ít nhất một mục cho phần: ' + groupName.replace('[]', ''));
+                        alert(<?= json_encode(t('consult.select_group_required'), JSON_UNESCAPED_UNICODE); ?> + groupLabel);
                     }
                     return;
                 }
             }
 
+            const availableTimeCheckboxes = Array.from(this.querySelectorAll('input[type="checkbox"][name="available_shifts[]"], input[type="checkbox"][name="available_days[]"]'));
+            if (availableTimeCheckboxes.length > 0 && !availableTimeCheckboxes.some((checkbox) => checkbox.checked)) {
+                availableTimeCheckboxes[0].focus();
+                if (typeof showNotify === 'function') {
+                    showNotify('warning', <?= json_encode(t('consult.select_group_required'), JSON_UNESCAPED_UNICODE); ?> + <?= json_encode(t('consult.available_time'), JSON_UNESCAPED_UNICODE); ?>);
+                } else {
+                    alert(<?= json_encode(t('consult.select_group_required'), JSON_UNESCAPED_UNICODE); ?> + <?= json_encode(t('consult.available_time'), JSON_UNESCAPED_UNICODE); ?>);
+                }
+                return;
+            }
+
             if (sourceOtherCheck && sourceOtherCheck.checked && sourceOtherInput && sourceOtherInput.value.trim() === '') {
                 sourceOtherInput.focus();
                 if (typeof showNotify === 'function') {
-                    showNotify('warning', 'Vui lòng nhập nội dung cho mục Khác.');
+                    showNotify('warning', <?= json_encode(t('consult.other_required'), JSON_UNESCAPED_UNICODE); ?>);
                 } else {
-                    alert('Vui lòng nhập nội dung cho mục Khác.');
+                    alert(<?= json_encode(t('consult.other_required'), JSON_UNESCAPED_UNICODE); ?>);
                 }
                 return;
             }
@@ -463,8 +449,8 @@ $error = get_flash('home_error');
             if (typeof showConfirm === 'function') {
                 showConfirm(
                     'success',
-                    'Xác nhận đăng ký?',
-                    'Bạn có chắc chắn muốn gửi hồ sơ tư vấn này không?',
+                    <?= json_encode(t('consult.confirm_title'), JSON_UNESCAPED_UNICODE); ?>,
+                    <?= json_encode(t('consult.confirm_message'), JSON_UNESCAPED_UNICODE); ?>,
                     () => consultationForm.submit()
                 );
             } else {

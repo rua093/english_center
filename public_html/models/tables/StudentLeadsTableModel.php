@@ -146,29 +146,38 @@ final class StudentLeadsTableModel
         ]);
         $parentEmail = $this->normalizeEmail($data['parent_email'] ?? $data['email'] ?? '');
 
-        $referralSource = $this->combineSelections(
-            $data['source_channels'] ?? [],
-            trim((string) ($data['source_other_detail'] ?? '')),
-            120
-        );
+        $referralSource = trim((string) ($data['referral_source'] ?? ''));
+        if ($referralSource === '') {
+            $referralSource = $this->combineSelections(
+                $data['source_channels'] ?? [],
+                trim((string) ($data['source_other_detail'] ?? '')),
+                120
+            );
+        }
         if ($referralSource === '') {
             $referralSource = 'website';
         }
 
-        $studyTime = $this->combineSelections(
-            array_merge(
-                (array) ($data['available_shifts'] ?? []),
-                (array) ($data['available_days'] ?? [])
-            ),
-            '',
-            180
-        );
+        $studyTime = trim((string) ($data['study_time'] ?? ''));
+        if ($studyTime === '') {
+            $studyTime = $this->combineSelections(
+                array_merge(
+                    (array) ($data['available_shifts'] ?? []),
+                    (array) ($data['available_days'] ?? [])
+                ),
+                '',
+                180
+            );
+        }
 
-        $parentExpectation = $this->combineSelections(
-            $data['parent_expectations'] ?? [],
-            '',
-            1000
-        );
+        $parentExpectation = trim((string) ($data['parent_expectation'] ?? ''));
+        if ($parentExpectation === '') {
+            $parentExpectation = $this->combineSelections(
+                $data['parent_expectations'] ?? [],
+                '',
+                1000
+            );
+        }
 
         $columns = [
             'student_name',
@@ -214,6 +223,96 @@ final class StudentLeadsTableModel
         $this->executeStatement($sql, $values);
 
         return (int) $this->pdo->lastInsertId();
+    }
+
+    public function updateConsultationLead(int $id, array $data): void
+    {
+        $studentName = trim((string) ($data['student_name'] ?? ''));
+
+        $parentName = trim((string) ($data['parent_name'] ?? ''));
+        $parentPhone = $this->firstFilledPhone([
+            $data['parent_phone'] ?? null,
+            $data['father_phone'] ?? null,
+            $data['mother_phone'] ?? null,
+            $data['phone'] ?? null,
+        ]);
+        $parentEmail = $this->normalizeEmail($data['parent_email'] ?? $data['email'] ?? '');
+
+        $referralSource = trim((string) ($data['referral_source'] ?? ''));
+        if ($referralSource === '') {
+            $referralSource = $this->combineSelections(
+                $data['source_channels'] ?? [],
+                trim((string) ($data['source_other_detail'] ?? '')),
+                120
+            );
+        }
+        if ($referralSource === '') {
+            $referralSource = 'website';
+        }
+
+        $studyTime = trim((string) ($data['study_time'] ?? ''));
+        if ($studyTime === '') {
+            $studyTime = $this->combineSelections(
+                array_merge(
+                    (array) ($data['available_shifts'] ?? []),
+                    (array) ($data['available_days'] ?? [])
+                ),
+                '',
+                180
+            );
+        }
+
+        $parentExpectation = trim((string) ($data['parent_expectation'] ?? ''));
+        if ($parentExpectation === '') {
+            $parentExpectation = $this->combineSelections(
+                $data['parent_expectations'] ?? [],
+                '',
+                1000
+            );
+        }
+
+        $assignments = [
+            'student_name = :student_name',
+            'gender = :gender',
+            'dob = :dob',
+            'interests = :interests',
+            'personality = :personality',
+            'parent_name = :parent_name',
+            'parent_phone = :parent_phone',
+            'school_name = :school_name',
+            'current_grade = :current_grade',
+            'referral_source = :referral_source',
+            'current_level = :current_level',
+            'study_time = :study_time',
+            'parent_expectation = :parent_expectation',
+        ];
+        $values = [
+            'id' => $id,
+            'student_name' => $studentName,
+            'gender' => $this->nullIfEmpty($data['student_gender'] ?? $data['gender'] ?? null),
+            'dob' => $this->nullIfEmpty($data['student_dob'] ?? $data['dob'] ?? null),
+            'interests' => $this->nullIfEmpty($data['student_hobbies'] ?? $data['interests'] ?? null),
+            'personality' => $this->nullIfEmpty($data['student_personality'] ?? $data['personality'] ?? null),
+            'parent_name' => $this->nullIfEmpty($parentName),
+            'parent_phone' => $this->nullIfEmpty($parentPhone),
+            'school_name' => $this->nullIfEmpty($data['student_school'] ?? $data['school_name'] ?? null),
+            'current_grade' => $this->nullIfEmpty($data['student_grade'] ?? $data['current_grade'] ?? null),
+            'referral_source' => $this->nullIfEmpty($referralSource),
+            'current_level' => $this->nullIfEmpty($data['current_level'] ?? null),
+            'study_time' => $this->nullIfEmpty($studyTime),
+            'parent_expectation' => $this->nullIfEmpty($parentExpectation),
+        ];
+
+        if ($this->supportsParentEmailColumn()) {
+            $assignments[] = 'parent_email = :parent_email';
+            $values['parent_email'] = $this->nullIfEmpty($parentEmail);
+        }
+
+        $sql = 'UPDATE student_leads
+                SET ' . implode(', ', $assignments) . '
+                WHERE id = :id';
+
+        $this->executeStatement($sql, $values);
     }
 
     public function updateReview(int $id, string $status, string $adminNote): void

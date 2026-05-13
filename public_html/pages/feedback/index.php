@@ -2,7 +2,7 @@
 require_login();
 
 $user = auth_user();
-$fullName = $user['full_name'] ?? 'Học viên';
+$fullName = $user['full_name'] ?? t('feedback.default_name');
 $studentDashboardActiveTab = 'feedback';
 $success = get_flash('success');
 $error = get_flash('error');
@@ -35,7 +35,7 @@ $error = get_flash('error');
             <div class="min-w-0 space-y-8">
                 <div class="mb-2 flex justify-start">
                     <a class="group inline-flex items-center gap-2 rounded-full bg-white/60 backdrop-blur-md border border-slate-200 px-4 py-2 text-xs font-bold text-slate-600 shadow-sm transition-all hover:bg-white hover:text-emerald-600" href="/">
-                        <i class="fa-solid fa-arrow-left transition-transform group-hover:-translate-x-1"></i> Trở về Trang chủ
+                        <i class="fa-solid fa-arrow-left transition-transform group-hover:-translate-x-1"></i> <?= e(t('feedback.back_home')); ?>
                     </a>
                 </div>
 
@@ -68,25 +68,25 @@ $error = get_flash('error');
                                 <i class="fa-regular fa-comment-dots"></i>
                             </div>
                             <h2 class="text-3xl md:text-4xl font-black mb-4 leading-tight tracking-tight">
-                                Chúng tôi luôn <br> <span class="text-emerald-200">Lắng nghe bạn!</span>
+                                <?= e(t('feedback.hero_title_1')); ?> <br> <span class="text-emerald-200"><?= e(t('feedback.hero_title_2')); ?></span>
                             </h2>
                             <p class="text-emerald-50 font-medium leading-relaxed text-sm mb-8">
-                                Xin chào <strong><?= e($fullName) ?></strong>, mọi ý kiến đóng góp của bạn đều là viên gạch quý giá giúp Trung tâm không ngừng hoàn thiện và nâng cao chất lượng giảng dạy.
+                                <?= t('feedback.hero_copy', ['name' => '<strong>' . e($fullName) . '</strong>']); ?>
                             </p>
                             
                             <div class="bg-black/10 rounded-2xl p-5 border border-white/10 backdrop-blur-sm">
                                 <div class="flex items-center gap-3 text-emerald-100 text-sm font-bold mb-2">
-                                    <i class="fa-solid fa-shield-heart text-emerald-300"></i> Phản hồi bảo mật 100%
+                                    <i class="fa-solid fa-shield-heart text-emerald-300"></i> <?= e(t('feedback.secure_title')); ?>
                                 </div>
-                                <p class="text-xs text-emerald-50/80">Bạn có thể thoải mái chia sẻ những điều hài lòng hoặc chưa hài lòng. Chúng tôi cam kết bảo mật thông tin cá nhân của bạn.</p>
+                                <p class="text-xs text-emerald-50/80"><?= e(t('feedback.secure_copy')); ?></p>
                             </div>
                         </div>
                     </div>
 
                     <div class="md:w-7/12 p-8 md:p-12 bg-white">
                         <div class="mb-8 border-b border-slate-100 pb-5">
-                            <h3 class="text-2xl font-black text-slate-800">Đánh giá chất lượng</h3>
-                            <p class="text-sm font-medium text-slate-500 mt-1">Vui lòng điền vào biểu mẫu dưới đây.</p>
+                            <h3 class="text-2xl font-black text-slate-800"><?= e(t('feedback.form_title')); ?></h3>
+                            <p class="text-sm font-medium text-slate-500 mt-1"><?= e(t('feedback.form_subtitle')); ?></p>
                         </div>
 
                         <form id="feedbackForm" action="/api/index.php?resource=feedbacks&method=save" method="POST" class="space-y-8">
@@ -95,30 +95,30 @@ $error = get_flash('error');
                             <input type="hidden" name="rating" id="rating_value" value="0" required>
 
                             <div class="space-y-3">
-                                <label class="text-xs font-black text-slate-500 uppercase tracking-widest">Mức độ hài lòng của bạn <span class="text-rose-500">*</span></label>
+                                <label class="text-xs font-black text-slate-500 uppercase tracking-widest"><?= e(t('feedback.rating_label')); ?> <span class="text-rose-500">*</span></label>
                                 <div class="flex items-center gap-2" id="star-container">
-                                    <i class="fa-regular fa-star text-3xl text-slate-300 rating-star" data-value="1" title="Rất tệ"></i>
-                                    <i class="fa-regular fa-star text-3xl text-slate-300 rating-star" data-value="2" title="Tệ"></i>
-                                    <i class="fa-regular fa-star text-3xl text-slate-300 rating-star" data-value="3" title="Bình thường"></i>
-                                    <i class="fa-regular fa-star text-3xl text-slate-300 rating-star" data-value="4" title="Tốt"></i>
-                                    <i class="fa-regular fa-star text-3xl text-slate-300 rating-star" data-value="5" title="Tuyệt vời"></i>
+                                    <i class="fa-regular fa-star text-3xl text-slate-300 rating-star" data-value="1" title="<?= e(t('feedback.rating.1')); ?>"></i>
+                                    <i class="fa-regular fa-star text-3xl text-slate-300 rating-star" data-value="2" title="<?= e(t('feedback.rating.2')); ?>"></i>
+                                    <i class="fa-regular fa-star text-3xl text-slate-300 rating-star" data-value="3" title="<?= e(t('feedback.rating.3')); ?>"></i>
+                                    <i class="fa-regular fa-star text-3xl text-slate-300 rating-star" data-value="4" title="<?= e(t('feedback.rating.4')); ?>"></i>
+                                    <i class="fa-regular fa-star text-3xl text-slate-300 rating-star" data-value="5" title="<?= e(t('feedback.rating.5')); ?>"></i>
                                 </div>
                                 <p id="rating-text" class="text-sm font-bold text-amber-500 h-5"></p>
                             </div>
 
                             <div class="space-y-3">
                                 <div class="flex justify-between items-end">
-                                    <label class="text-xs font-black text-slate-500 uppercase tracking-widest">Nội dung phản hồi <span class="text-rose-500">*</span></label>
-                                    <span class="text-[10px] font-bold text-slate-400">Tối thiểu 10 ký tự</span>
+                                    <label class="text-xs font-black text-slate-500 uppercase tracking-widest"><?= e(t('feedback.content_label')); ?> <span class="text-rose-500">*</span></label>
+                                    <span class="text-[10px] font-bold text-slate-400"><?= e(t('feedback.content_min')); ?></span>
                                 </div>
                                 <div class="relative">
-                                    <textarea name="content" id="feedback_content" rows="5" required placeholder="Bạn cảm thấy bài giảng thế nào? Cơ sở vật chất ra sao?..." class="w-full px-5 py-4 rounded-2xl bg-slate-50 text-slate-800 text-sm font-bold border border-slate-200 outline-none focus-emerald transition-all resize-none shadow-inner"></textarea>
+                                    <textarea name="content" id="feedback_content" rows="5" required placeholder="<?= e(t('feedback.content_placeholder')); ?>" class="w-full px-5 py-4 rounded-2xl bg-slate-50 text-slate-800 text-sm font-bold border border-slate-200 outline-none focus-emerald transition-all resize-none shadow-inner"></textarea>
                                 </div>
                             </div>
 
                             <div class="pt-2">
                                 <button type="submit" id="submitBtn" class="w-full bg-slate-900 hover:bg-emerald-600 text-white font-black py-4 rounded-2xl shadow-lg transition-all hover:-translate-y-1 text-sm uppercase tracking-widest flex items-center justify-center gap-2">
-                                    <i class="fa-solid fa-paper-plane"></i> Gửi đánh giá ngay
+                                    <i class="fa-solid fa-paper-plane"></i> <?= e(t('feedback.submit')); ?>
                                 </button>
                             </div>
                         </form>
@@ -141,11 +141,11 @@ if(file_exists($modalPath)) require $modalPath;
         const ratingText = document.getElementById('rating-text');
         
         const ratingDescriptions = {
-            1: "Rất thất vọng",
-            2: "Chưa hài lòng",
-            3: "Bình thường",
-            4: "Khá hài lòng",
-            5: "Tuyệt vời!"
+            1: <?= json_encode(t('feedback.rating_text.1'), JSON_UNESCAPED_UNICODE); ?>,
+            2: <?= json_encode(t('feedback.rating_text.2'), JSON_UNESCAPED_UNICODE); ?>,
+            3: <?= json_encode(t('feedback.rating_text.3'), JSON_UNESCAPED_UNICODE); ?>,
+            4: <?= json_encode(t('feedback.rating_text.4'), JSON_UNESCAPED_UNICODE); ?>,
+            5: <?= json_encode(t('feedback.rating_text.5'), JSON_UNESCAPED_UNICODE); ?>
         };
 
         // Hàm tô màu sao
@@ -205,20 +205,20 @@ if(file_exists($modalPath)) require $modalPath;
 
                 // Validate JS cơ bản
                 if (currentRating === 0) {
-                    alert('Vui lòng chọn mức độ hài lòng (từ 1 đến 5 sao)!');
+                    alert(<?= json_encode(t('feedback.validate_rating'), JSON_UNESCAPED_UNICODE); ?>);
                     return;
                 }
                 if (contentLen < 10) {
-                    alert('Vui lòng nhập nội dung đánh giá ít nhất 10 ký tự.');
+                    alert(<?= json_encode(t('feedback.validate_content'), JSON_UNESCAPED_UNICODE); ?>);
                     return;
                 }
 
                 // Gọi Confirm Modal
                 if(typeof showConfirm === 'function') {
                     showConfirm(
-                        'success', 
-                        'Gửi đánh giá?', 
-                        'Bạn có chắc chắn muốn gửi phản hồi này tới hệ thống không?', 
+                        'success',
+                        <?= json_encode(t('feedback.confirm_title'), JSON_UNESCAPED_UNICODE); ?>,
+                        <?= json_encode(t('feedback.confirm_message'), JSON_UNESCAPED_UNICODE); ?>,
                         () => feedbackForm.submit()
                     );
                 } else {

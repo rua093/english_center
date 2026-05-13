@@ -58,7 +58,7 @@ if (!empty($_GET['edit'])) {
 }
 
 $module = 'schedules';
-$adminTitle = 'Học vụ - Lịch dạy';
+$adminTitle = t('admin.schedules.title');
 
 $success = get_flash('success');
 $error = get_flash('error');
@@ -109,7 +109,15 @@ $nextWeekRef = $weekStartDate->modify('+7 days')->format('o-\WW');
 $todayDateValue = (new DateTimeImmutable('today'))->format('Y-m-d');
 $currentTimeValue = (new DateTimeImmutable('now'))->format('H:i:s');
 
-$weekDayLabels = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'Chủ nhật'];
+$weekDayLabels = [
+    t('admin.schedules.monday'),
+    t('admin.schedules.tuesday'),
+    t('admin.schedules.wednesday'),
+    t('admin.schedules.thursday'),
+    t('admin.schedules.friday'),
+    t('admin.schedules.saturday'),
+    t('admin.schedules.sunday'),
+];
 $weekDays = [];
 for ($dayOffset = 0; $dayOffset < 7; $dayOffset++) {
     $currentDate = $weekStartDate->modify('+' . $dayOffset . ' days');
@@ -184,12 +192,12 @@ $scheduleConflictDataset = array_map(static function (array $schedule): array {
 
         <?php if ($canCreateSchedule || $canUpdateSchedule): ?>
         <article class="order-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <h3><?= $editingSchedule ? 'Sửa lịch dạy' : 'Thêm lịch dạy'; ?></h3>
+            <h3><?= e($editingSchedule ? t('admin.schedules.edit') : t('admin.schedules.add')); ?></h3>
             <form class="grid gap-3" method="post" action="/api/schedules/save" data-schedule-form="1">
                 <?= csrf_input(); ?>
                 <input type="hidden" name="id" value="<?= (int) ($editingSchedule['id'] ?? 0); ?>">
                 <label>
-                    Lớp học
+                    <?= e(t('admin.schedule_edit.class')); ?>
                     <select name="class_id" required data-class-select="1">
                         <?php foreach ($lookups['classes'] as $class): ?>
                             <option value="<?= (int) $class['id']; ?>" <?= (int) ($editingSchedule['class_id'] ?? 0) === (int) $class['id'] ? 'selected' : ''; ?>><?= e((string) $class['class_name']); ?></option>
@@ -197,7 +205,7 @@ $scheduleConflictDataset = array_map(static function (array $schedule): array {
                     </select>
                 </label>
                 <label>
-                    Phòng học
+                    <?= e(t('admin.schedule_edit.room')); ?>
                     <select name="room_id" required>
                         <?php foreach ($lookups['rooms'] as $room): ?>
                             <option value="<?= (int) $room['id']; ?>" <?= (int) ($editingSchedule['room_id'] ?? 0) === (int) $room['id'] ? 'selected' : ''; ?>><?= e((string) $room['room_name']); ?></option>
@@ -205,7 +213,7 @@ $scheduleConflictDataset = array_map(static function (array $schedule): array {
                     </select>
                 </label>
                 <label>
-                    Giáo viên
+                    <?= e(t('admin.schedule_edit.teacher')); ?>
                     <select name="teacher_id" required data-teacher-select="1">
                         <?php foreach ($lookups['teachers'] as $teacher): ?>
                             <option value="<?= (int) $teacher['id']; ?>" <?= (int) ($editingSchedule['teacher_id'] ?? 0) === (int) $teacher['id'] ? 'selected' : ''; ?>><?= e(teacher_dropdown_label($teacher)); ?></option>
@@ -213,18 +221,18 @@ $scheduleConflictDataset = array_map(static function (array $schedule): array {
                     </select>
                 </label>
                 <label>
-                    Ngày học
+                    <?= e(t('admin.schedule_edit.study_date')); ?>
                     <input type="date" name="study_date" required value="<?= e((string) ($editingSchedule['study_date'] ?? '')); ?>">
                 </label>
                 <label>
-                    Giờ bắt đầu
+                    <?= e(t('admin.schedule_edit.start_time')); ?>
                     <input type="time" name="start_time" required value="<?= e((string) ($editingSchedule['start_time'] ?? '')); ?>">
                 </label>
                 <label>
-                    Giờ kết thúc
+                    <?= e(t('admin.schedule_edit.end_time')); ?>
                     <input type="time" name="end_time" required value="<?= e((string) ($editingSchedule['end_time'] ?? '')); ?>">
                 </label>
-                <button class="<?= ui_btn_primary_classes(); ?>" type="submit">Lưu lịch dạy</button>
+                <button class="<?= ui_btn_primary_classes(); ?>" type="submit"><?= e(t('admin.schedule_edit.save')); ?></button>
             </form>
         </article>
         <?php endif; ?>
@@ -232,33 +240,33 @@ $scheduleConflictDataset = array_map(static function (array $schedule): array {
         <article class="order-1 rounded-3xl border border-slate-200 bg-gradient-to-b from-white via-slate-50/70 to-white p-5 shadow-sm" data-weekly-card="1">
             <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
                 <div>
-                    <h3 class="text-slate-900">Thời khóa biểu tuần</h3>
-                    <p class="text-xs font-medium text-slate-500">Từ <?= e($weekStartDate->format('d/m/Y')); ?> đến <?= e($weekEndDate->format('d/m/Y')); ?></p>
+                    <h3 class="text-slate-900"><?= e(t('admin.schedules.weekly_timetable')); ?></h3>
+                    <p class="text-xs font-medium text-slate-500"><?= e(t('admin.schedules.week_range', ['from' => $weekStartDate->format('d/m/Y'), 'to' => $weekEndDate->format('d/m/Y')])); ?></p>
                 </div>
                 <div class="flex flex-wrap items-center gap-1.5">
-                    <a class="inline-flex h-9 items-center rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-sky-400 hover:bg-sky-50 hover:text-sky-700" data-week-nav-link="1" href="<?= e(page_url('schedules-academic', ['week_start' => $prevWeekStart, 'week_ref' => $prevWeekRef, 'schedule_page' => $schedulePage, 'schedule_per_page' => $schedulePerPage])); ?>">Tuần trước</a>
+                    <a class="inline-flex h-9 items-center rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-sky-400 hover:bg-sky-50 hover:text-sky-700" data-week-nav-link="1" href="<?= e(page_url('schedules-academic', ['week_start' => $prevWeekStart, 'week_ref' => $prevWeekRef, 'schedule_page' => $schedulePage, 'schedule_per_page' => $schedulePerPage])); ?>"><?= e(t('admin.schedules.previous_week')); ?></a>
                     <span class="inline-flex h-9 items-center rounded-xl border border-slate-300 bg-slate-100 px-3 text-xs font-semibold text-slate-700 shadow-sm"><?= e($weekStartDate->format('d/m/Y')); ?> - <?= e($weekEndDate->format('d/m/Y')); ?></span>
-                    <a class="inline-flex h-9 items-center rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-sky-400 hover:bg-sky-50 hover:text-sky-700" data-week-nav-link="1" href="<?= e(page_url('schedules-academic', ['week_start' => $nextWeekStart, 'week_ref' => $nextWeekRef, 'schedule_page' => $schedulePage, 'schedule_per_page' => $schedulePerPage])); ?>">Tuần sau</a>
+                    <a class="inline-flex h-9 items-center rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-sky-400 hover:bg-sky-50 hover:text-sky-700" data-week-nav-link="1" href="<?= e(page_url('schedules-academic', ['week_start' => $nextWeekStart, 'week_ref' => $nextWeekRef, 'schedule_page' => $schedulePage, 'schedule_per_page' => $schedulePerPage])); ?>"><?= e(t('admin.schedules.next_week')); ?></a>
                     <form class="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-2 py-1 shadow-sm" method="get" action="<?= e(page_url('schedules-academic')); ?>" data-week-picker-form="1">
                         <input type="hidden" name="page" value="schedules-academic">
                         <input type="hidden" name="schedule_page" value="<?= (int) $schedulePage; ?>">
                         <input type="hidden" name="schedule_per_page" value="<?= (int) $schedulePerPage; ?>">
-                        <label class="text-[11px] font-semibold text-slate-600" for="schedule-week-picker">Chọn tuần</label>
+                        <label class="text-[11px] font-semibold text-slate-600" for="schedule-week-picker"><?= e(t('admin.schedules.choose_week')); ?></label>
                         <input id="schedule-week-picker" type="week" name="week_ref" value="<?= e($weekRefValue); ?>" class="h-8 rounded-lg border border-slate-300 bg-white px-2 text-xs font-semibold text-slate-700">
-                        <button type="submit" class="inline-flex h-8 items-center rounded-lg border border-slate-300 bg-slate-50 px-2.5 text-xs font-semibold text-slate-700 transition hover:border-sky-400 hover:bg-sky-50 hover:text-sky-700">Xem</button>
+                        <button type="submit" class="inline-flex h-8 items-center rounded-lg border border-slate-300 bg-slate-50 px-2.5 text-xs font-semibold text-slate-700 transition hover:border-sky-400 hover:bg-sky-50 hover:text-sky-700"><?= e(t('admin.schedules.view')); ?></button>
                     </form>
                 </div>
             </div>
 
             <?php if (empty($weekTimeSlots)): ?>
-                <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">Không có lịch dạy trong tuần này.</div>
+                <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500"><?= e(t('admin.schedules.empty_week')); ?></div>
             <?php else: ?>
                 <div class="overflow-x-auto rounded-3xl border border-slate-400 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.05)]">
                     <div class="min-w-[960px]">
                     <table class="w-full border-collapse text-sm">
                         <thead>
                             <tr>
-                                <th class="whitespace-nowrap border-b border-r border-slate-400 bg-slate-100 px-3 py-3 text-left text-xs font-semibold uppercase tracking-[0.16em] text-slate-700">Khung giờ</th>
+                                <th class="whitespace-nowrap border-b border-r border-slate-400 bg-slate-100 px-3 py-3 text-left text-xs font-semibold uppercase tracking-[0.16em] text-slate-700"><?= e(t('admin.schedules.time_slot')); ?></th>
                                 <?php foreach ($weekDays as $weekDay): ?>
                                     <?php
                                     $isTodayColumn = (string) ($weekDay['value'] ?? '') === $todayDateValue;
@@ -309,11 +317,11 @@ $scheduleConflictDataset = array_map(static function (array $schedule): array {
                                                         data-weekly-chip="1"
                                                         data-class-name="<?= e($slotClassName !== '' ? $slotClassName : '-'); ?>"
                                                         data-teacher-name="<?= e($slotTeacherName !== '' ? $slotTeacherName : '-'); ?>"
-                                                        data-room-name="<?= e($slotRoomName !== '' ? $slotRoomName : 'Trực tuyến'); ?>"
+                                                        data-room-name="<?= e($slotRoomName !== '' ? $slotRoomName : t('admin.schedules.online')); ?>"
                                                         data-time-label="<?= e($slotStart . ' - ' . $slotEnd); ?>"
-                                                        title="<?= e($slotClassName . ' | ' . $slotTeacherName . ' | ' . ($slotRoomName !== '' ? $slotRoomName : 'Trực tuyến') . ' | ' . $slotStart . '-' . $slotEnd); ?>"
+                                                        title="<?= e($slotClassName . ' | ' . $slotTeacherName . ' | ' . ($slotRoomName !== '' ? $slotRoomName : t('admin.schedules.online')) . ' | ' . $slotStart . '-' . $slotEnd); ?>"
                                                     >
-                                                        <div class="truncate text-[12px] font-bold"><?= e($slotClassName !== '' ? $slotClassName : 'Buổi học'); ?></div>
+                                                        <div class="truncate text-[12px] font-bold"><?= e($slotClassName !== '' ? $slotClassName : t('admin.schedules.lesson')); ?></div>
                                                     </div>
                                                 <?php endforeach; ?>
                                             <?php endif; ?>
@@ -325,7 +333,7 @@ $scheduleConflictDataset = array_map(static function (array $schedule): array {
                     </table>
                     </div>
                 </div>
-                <p class="mt-2 text-xs text-slate-500">Di chuột lên từng ô lịch dạy để xem nhanh lớp, giáo viên, phòng và giờ học.</p>
+                <p class="mt-2 text-xs text-slate-500"><?= e(t('admin.schedules.week_hint')); ?></p>
             <?php endif; ?>
         </article>
 
@@ -337,7 +345,7 @@ $scheduleConflictDataset = array_map(static function (array $schedule): array {
             data-ajax-page-param="schedule_page"
             data-ajax-search-param="search"
         >
-            <h3>Danh sách lịch dạy</h3>
+            <h3><?= e(t('admin.schedules.list')); ?></h3>
             <div class="admin-table-toolbar mb-3 flex flex-wrap items-center gap-3">
                 <label class="relative w-full max-w-sm">
                     <span class="pointer-events-none absolute inset-y-0 left-3 inline-flex items-center text-slate-400">
@@ -346,18 +354,18 @@ $scheduleConflictDataset = array_map(static function (array $schedule): array {
                             <path d="m20 20-3.5-3.5"></path>
                         </svg>
                     </span>
-                    <input data-ajax-search="1" type="search" value="<?= e($searchQuery); ?>" placeholder="Tìm lớp, phòng, giáo viên, ngày học..." autocomplete="off" class="h-11 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100">
+                    <input data-ajax-search="1" type="search" value="<?= e($searchQuery); ?>" placeholder="<?= e(t('admin.schedules.search_placeholder')); ?>" autocomplete="off" class="h-11 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100">
                 </label>
-                <span data-ajax-row-info="1" class="text-sm font-medium text-slate-500">Hiển thị <?= (int) count($schedules); ?> / <?= (int) $scheduleTotal; ?> dòng</span>
+                <span data-ajax-row-info="1" class="text-sm font-medium text-slate-500"><?= e(t('admin.schedules.showing_rows', ['shown' => (int) count($schedules), 'total' => (int) $scheduleTotal])); ?></span>
             </div>
             <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
                 <table class="min-w-full border-collapse text-sm" data-disable-global-filter="1" data-disable-row-detail="1">
                 <thead>
-                    <tr><th>Lớp học</th><th>Phòng</th><th>Mã GV</th><th>Giáo viên</th><th>Ngày học</th><th>Giờ</th><th>Hành động</th></tr>
+                    <tr><th><?= e(t('admin.schedule_edit.class')); ?></th><th><?= e(t('admin.schedule_edit.room')); ?></th><th><?= e(t('admin.classes.teacher_code')); ?></th><th><?= e(t('admin.schedule_edit.teacher')); ?></th><th><?= e(t('admin.schedule_edit.study_date')); ?></th><th><?= e(t('admin.schedules.time')); ?></th><th><?= e(t('admin.common.actions')); ?></th></tr>
                 </thead>
                 <tbody data-ajax-tbody="1">
                     <?php if (empty($schedules)): ?>
-                        <tr><td colspan="7"><div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">Chưa có lịch dạy nào.</div></td></tr>
+                        <tr><td colspan="7"><div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500"><?= e(t('admin.schedules.empty')); ?></div></td></tr>
                     <?php else: ?>
                     <?php foreach ($schedules as $schedule): ?>
                         <?php
@@ -370,7 +378,7 @@ $scheduleConflictDataset = array_map(static function (array $schedule): array {
                             <td><?= e((string) $schedule['class_name']); ?></td>
                             <td><?= e((string) ($schedule['room_name'] ?? '')); ?></td>
                             <td><?= e((string) ($schedule['teacher_code'] ?? '-')); ?></td>
-                            <td><?= e((string) ($schedule['teacher_name'] ?? 'Giáo viên')); ?></td>
+                            <td><?= e((string) ($schedule['teacher_name'] ?? t('admin.schedule_edit.teacher'))); ?></td>
                             <td><?= e(ui_format_date((string) ($schedule['study_date'] ?? ''))); ?></td>
                             <td><?= e((string) $schedule['start_time']); ?> - <?= e((string) $schedule['end_time']); ?></td>
                             <td>
@@ -381,27 +389,27 @@ $scheduleConflictDataset = array_map(static function (array $schedule): array {
                                             class="admin-action-icon-btn"
                                             data-action-kind="edit"
                                             data-skip-action-icon="1"
-                                            title="Sửa"
-                                            aria-label="Sửa"
+                                            title="<?= e(t('admin.common.edit')); ?>"
+                                            aria-label="<?= e(t('admin.common.edit')); ?>"
                                         >
-                                            <span class="admin-action-icon-label">Sửa</span>
+                                            <span class="admin-action-icon-label"><?= e(t('admin.common.edit')); ?></span>
                                             <span class="admin-action-icon-glyph" aria-hidden="true">
                                                 <svg viewBox="0 0 24 24"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
                                             </span>
                                         </a>
                                     <?php endif; ?>
                                     <?php if ($canDeleteSchedule): ?>
-                                        <form class="inline-block" method="post" action="/api/schedules/delete?id=<?= (int) $schedule['id']; ?>" onsubmit="return confirm('Bạn có chắc muốn xóa lịch dạy này không?');">
+                                        <form class="inline-block" method="post" action="/api/schedules/delete?id=<?= (int) $schedule['id']; ?>" onsubmit="return confirm(<?= e(json_encode(t('admin.schedules.delete_confirm'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)); ?>);">
                                             <?= csrf_input(); ?>
                                             <button
                                                 class="<?= ui_btn_danger_classes('sm'); ?> admin-action-icon-btn"
                                                 data-action-kind="delete"
                                                 data-skip-action-icon="1"
                                                 type="submit"
-                                                title="Xóa"
-                                                aria-label="Xóa"
+                                                title="<?= e(t('admin.common.delete')); ?>"
+                                                aria-label="<?= e(t('admin.common.delete')); ?>"
                                             >
-                                                <span class="admin-action-icon-label">Xóa</span>
+                                                <span class="admin-action-icon-label"><?= e(t('admin.common.delete')); ?></span>
                                                 <span class="admin-action-icon-glyph" aria-hidden="true">
                                                     <svg viewBox="0 0 24 24"><path d="M3 6h18"></path><path d="M8 6V4h8v2"></path><path d="M19 6l-1 14H6L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>
                                                 </span>
@@ -418,13 +426,13 @@ $scheduleConflictDataset = array_map(static function (array $schedule): array {
                 <?php if ($scheduleTotal > 0): ?>
                     <div data-ajax-pagination="1" class="border-t border-slate-200 bg-slate-50/80 px-3 py-2">
                         <div class="flex flex-wrap items-center gap-2 text-xs text-slate-600">
-                            <span data-ajax-row-info="1" class="min-w-0 flex-1 font-medium">Trang <?= (int) $schedulePage; ?>/<?= (int) $scheduleTotalPages; ?> - Tổng <?= (int) $scheduleTotal; ?> lịch dạy</span>
+                            <span data-ajax-row-info="1" class="min-w-0 flex-1 font-medium"><?= e(t('admin.schedules.page_info', ['current' => (int) $schedulePage, 'total' => (int) $scheduleTotalPages, 'count' => (int) $scheduleTotal])); ?></span>
                             <div class="ml-auto inline-flex items-center gap-1.5">
                                 <form class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2 py-1" method="get" action="<?= e(page_url('schedules-academic')); ?>">
                                     <input type="hidden" name="page" value="schedules-academic">
                                     <input type="hidden" name="week_start" value="<?= e($weekStartValue); ?>">
                                     <input type="hidden" name="search" value="<?= e($searchQuery); ?>">
-                                    <label class="text-[11px] font-semibold text-slate-500" for="schedule-per-page">Số dòng</label>
+                                    <label class="text-[11px] font-semibold text-slate-500" for="schedule-per-page"><?= e(t('admin.common.rows')); ?></label>
                                     <select id="schedule-per-page" name="schedule_per_page" data-ajax-per-page="1" class="h-7 rounded-md border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700">
                                         <?php foreach ($schedulePerPageOptions as $option): ?>
                                             <option value="<?= (int) $option; ?>" <?= $schedulePerPage === (int) $option ? 'selected' : ''; ?>><?= (int) $option; ?></option>
@@ -432,15 +440,15 @@ $scheduleConflictDataset = array_map(static function (array $schedule): array {
                                     </select>
                                 </form>
                                 <?php if ($schedulePage > 1): ?>
-                                    <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('schedules-academic', ['schedule_page' => $schedulePage - 1, 'schedule_per_page' => $schedulePerPage, 'week_start' => $weekStartValue, 'search' => $searchQuery !== '' ? $searchQuery : null])); ?>">Trước</a>
+                                    <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('schedules-academic', ['schedule_page' => $schedulePage - 1, 'schedule_per_page' => $schedulePerPage, 'week_start' => $weekStartValue, 'search' => $searchQuery !== '' ? $searchQuery : null])); ?>"><?= e(t('admin.common.previous')); ?></a>
                                 <?php else: ?>
-                                    <span class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 text-xs font-semibold text-slate-400">Trước</span>
+                                    <span class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 text-xs font-semibold text-slate-400"><?= e(t('admin.common.previous')); ?></span>
                                 <?php endif; ?>
 
                                 <?php if ($schedulePage < $scheduleTotalPages): ?>
-                                    <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('schedules-academic', ['schedule_page' => $schedulePage + 1, 'schedule_per_page' => $schedulePerPage, 'week_start' => $weekStartValue, 'search' => $searchQuery !== '' ? $searchQuery : null])); ?>">Sau</a>
+                                    <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('schedules-academic', ['schedule_page' => $schedulePage + 1, 'schedule_per_page' => $schedulePerPage, 'week_start' => $weekStartValue, 'search' => $searchQuery !== '' ? $searchQuery : null])); ?>"><?= e(t('admin.common.next')); ?></a>
                                 <?php else: ?>
-                                    <span class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 text-xs font-semibold text-slate-400">Sau</span>
+                                    <span class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 text-xs font-semibold text-slate-400"><?= e(t('admin.common.next')); ?></span>
                                 <?php endif; ?>
                             </div>
                         </div>
@@ -454,6 +462,15 @@ $scheduleConflictDataset = array_map(static function (array $schedule): array {
 (function () {
     const conflictSource = <?= json_encode($scheduleConflictDataset, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
     const classTeacherMap = <?= json_encode($classTeacherMap, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
+    const scheduleI18n = <?= json_encode([
+        'invalidTime' => t('admin.schedule_edit.invalid_time'),
+        'endAfterStart' => t('admin.schedule_edit.end_after_start'),
+        'classConflict' => t('admin.schedule_edit.class_conflict'),
+        'teacherConflict' => t('admin.schedule_edit.teacher_conflict'),
+        'withClass' => t('admin.schedule_edit.with_class'),
+        'roomConflict' => t('admin.schedule_edit.room_conflict'),
+        'atRoom' => t('admin.schedule_edit.at_room'),
+    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
 
     function parseIntSafe(value) {
         const parsed = Number.parseInt(String(value ?? '').trim(), 10);
@@ -562,13 +579,13 @@ $scheduleConflictDataset = array_map(static function (array $schedule): array {
 
             if (startMinutes === null || endMinutes === null) {
                 event.preventDefault();
-                window.alert('Giờ học không hợp lệ.');
+                window.alert(scheduleI18n.invalidTime);
                 return;
             }
 
             if (startMinutes >= endMinutes) {
                 event.preventDefault();
-                window.alert('Giờ kết thúc phải sau giờ bắt đầu.');
+                window.alert(scheduleI18n.endAfterStart);
                 return;
             }
 
@@ -592,7 +609,8 @@ $scheduleConflictDataset = array_map(static function (array $schedule): array {
 
             if (classConflict) {
                 event.preventDefault();
-                window.alert('Lớp học đã có lịch trùng giờ (' + formatTime(classConflict.start_time) + ' - ' + formatTime(classConflict.end_time) + ').');
+                const conflictTime = formatTime(classConflict.start_time) + ' - ' + formatTime(classConflict.end_time);
+                window.alert(String(scheduleI18n.classConflict || '').replace(':time', conflictTime));
                 return;
             }
 
@@ -617,7 +635,11 @@ $scheduleConflictDataset = array_map(static function (array $schedule): array {
             if (teacherConflict) {
                 event.preventDefault();
                 const conflictClass = String(teacherConflict.class_name ?? '').trim();
-                window.alert('Giáo viên đã có lịch trùng giờ' + (conflictClass !== '' ? ' với lớp ' + conflictClass : '') + '.');
+                window.alert(
+                    scheduleI18n.teacherConflict
+                    + (conflictClass !== '' ? ' ' + String(scheduleI18n.withClass || '').replace(':class', conflictClass) : '')
+                    + '.'
+                );
                 return;
             }
 
@@ -643,7 +665,11 @@ $scheduleConflictDataset = array_map(static function (array $schedule): array {
                 if (roomConflict) {
                     event.preventDefault();
                     const roomName = String(roomConflict.room_name ?? '').trim();
-                    window.alert('Phòng học đã có lịch trùng giờ' + (roomName !== '' ? ' tại ' + roomName : '') + '.');
+                    window.alert(
+                        scheduleI18n.roomConflict
+                        + (roomName !== '' ? ' ' + String(scheduleI18n.atRoom || '').replace(':room', roomName) : '')
+                        + '.'
+                    );
                 }
             }
         });
@@ -652,6 +678,12 @@ $scheduleConflictDataset = array_map(static function (array $schedule): array {
 
 (function () {
     const TOOLTIP_ID = 'schedule-week-tooltip';
+    const tooltipI18n = <?= json_encode([
+        'class' => t('admin.schedule_edit.class'),
+        'teacher' => t('admin.schedule_edit.teacher'),
+        'room' => t('admin.schedule_edit.room'),
+        'time' => t('admin.schedules.time'),
+    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
     let tooltip = document.getElementById(TOOLTIP_ID);
 
     if (!tooltip) {
@@ -708,10 +740,10 @@ $scheduleConflictDataset = array_map(static function (array $schedule): array {
             tooltip.appendChild(line);
         }
 
-        appendLine('Lớp', className);
-        appendLine('Giáo viên', teacherName);
-        appendLine('Phòng', roomName);
-        appendLine('Giờ', timeLabel);
+        appendLine(tooltipI18n.class, className);
+        appendLine(tooltipI18n.teacher, teacherName);
+        appendLine(tooltipI18n.room, roomName);
+        appendLine(tooltipI18n.time, timeLabel);
         tooltip.classList.remove('hidden');
 
         setTooltipPosition(event);

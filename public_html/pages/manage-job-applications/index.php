@@ -140,10 +140,10 @@ if (!function_exists('job_application_can_convert_status')) {
 
 $adminModel = new AdminModel();
 $statusOptions = [
-    'PENDING'      => 'Mới nhận',
-    'INTERVIEWING' => 'Đã phỏng vấn',
-    'PASSED'       => 'Đã trúng tuyển',
-    'REJECTED'     => 'Không đạt',
+    'PENDING'      => t('admin.job_applications.status.pending'),
+    'INTERVIEWING' => t('admin.job_applications.status.interviewing'),
+    'PASSED'       => t('admin.job_applications.status.passed'),
+    'REJECTED'     => t('admin.job_applications.status.rejected'),
 ];
 
 $statusFilter = strtoupper(trim((string) ($_GET['status'] ?? '')));
@@ -187,8 +187,8 @@ if (!empty($_GET['edit'])) {
 }
 
 $module = 'job-applications';
-$adminTitle = 'Quản lý hồ sơ ứng tuyển giáo viên';
-$adminDescription = 'Theo dõi thông tin ứng viên, cập nhật trạng thái phỏng vấn và chuyển đổi thành tài khoản giáo viên.';
+$adminTitle = t('admin.job_applications.title');
+$adminDescription = t('admin.job_applications.description');
 
 $success = get_flash('success');
 $error = get_flash('error');
@@ -205,7 +205,7 @@ $canDeleteApplication = has_permission('job_application.delete');
     <?php endif; ?>
 
     <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h3>Tổng quan pipeline ứng tuyển giáo viên</h3>
+        <h3><?= e(t('admin.job_applications.pipeline_title')); ?></h3>
         <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <?php foreach ($statusSummary as $summary): ?>
                 <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
@@ -224,7 +224,7 @@ $canDeleteApplication = has_permission('job_application.delete');
             $editingStatus = (string) ($editingApplication['status'] ?? 'PENDING');
             $editingStatusLabel = (string) ($statusOptions[$editingStatus] ?? $editingStatus);
             $editingApplicationConverted = (int) ($editingApplication['converted_user_id'] ?? 0) > 0;
-            $editingApplicationLockReason = 'Hồ sơ đã được chuyển đổi thành user nên không thể đổi lại trạng thái cũ.';
+            $editingApplicationLockReason = t('admin.job_applications.lock_reason');
             $editingApplicationCanConvertNow = job_application_can_convert_status($editingStatus);
             $editingApplicationUrl = page_url('job-applications-manage', [
                 'edit' => (int) ($editingApplication['id'] ?? 0),
@@ -234,12 +234,12 @@ $canDeleteApplication = has_permission('job_application.delete');
                 'search' => $searchQuery !== '' ? $searchQuery : null,
             ]);
         ?>
-        <a id="job-application-edit-auto-open" href="<?= e($editingApplicationUrl); ?>" class="hidden" aria-hidden="true" tabindex="-1">Mở popup xử lý hồ sơ</a>
-        <article class="hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm" aria-hidden="true" data-edit-form-source="1" data-edit-modal-mode="process" data-edit-modal-title="Xử lý hồ sơ ứng tuyển">
+        <a id="job-application-edit-auto-open" href="<?= e($editingApplicationUrl); ?>" class="hidden" aria-hidden="true" tabindex="-1"><?= e(t('admin.job_applications.open_modal')); ?></a>
+        <article class="hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm" aria-hidden="true" data-edit-form-source="1" data-edit-modal-mode="process" data-edit-modal-title="<?= e(t('admin.job_applications.modal_title')); ?>">
             <div class="mb-4 flex flex-wrap items-start justify-between gap-3">
                 <div>
-                    <h3 class="mb-1">Xử lý hồ sơ #<?= (int) ($editingApplication['id'] ?? 0); ?> - <?= e((string) ($editingApplication['full_name'] ?? '')); ?></h3>
-                    <p class="text-sm text-slate-600">Tạo lúc: <strong><?= e(job_application_format_datetime((string) ($editingApplication['created_at'] ?? ''))); ?></strong></p>
+                    <h3 class="mb-1"><?= e(t('admin.job_applications.process_title', ['id' => (int) ($editingApplication['id'] ?? 0), 'name' => (string) ($editingApplication['full_name'] ?? '')])); ?></h3>
+                    <p class="text-sm text-slate-600"><?= e(t('admin.job_applications.created_at_label')); ?> <strong><?= e(job_application_format_datetime((string) ($editingApplication['created_at'] ?? ''))); ?></strong></p>
                 </div>
                 <span data-process-status-badge="1" class="inline-flex items-center rounded-full border px-3 py-1 text-xs font-extrabold <?= e(job_application_status_badge_class($editingStatus)); ?>">
                     <?= e($editingStatusLabel); ?>
@@ -248,33 +248,33 @@ $canDeleteApplication = has_permission('job_application.delete');
 
             <div class="grid gap-3 xl:grid-cols-3">
                 <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
-                    <h4 class="mb-2 text-sm font-extrabold text-slate-800">Thông tin ứng viên</h4>
+                    <h4 class="mb-2 text-sm font-extrabold text-slate-800"><?= e(t('admin.job_applications.candidate_info')); ?></h4>
                     <dl class="grid gap-1 text-sm text-slate-700">
-                        <div><dt class="inline font-semibold">Họ tên:</dt> <dd class="inline"><?= e(job_application_value_or_dash($editingApplication['full_name'] ?? '')); ?></dd></div>
-                        <div><dt class="inline font-semibold">Email:</dt> <dd class="inline"><?= e(job_application_value_or_dash($editingApplication['email'] ?? '')); ?></dd></div>
-                        <div><dt class="inline font-semibold">SĐT:</dt> <dd class="inline"><?= e(job_application_value_or_dash($editingApplication['phone'] ?? '')); ?></dd></div>
-                        <div><dt class="inline font-semibold">Địa chỉ:</dt> <dd class="inline"><?= e(job_application_value_or_dash($editingApplication['address'] ?? '')); ?></dd></div>
-                        <div><dt class="inline font-semibold">Vị trí:</dt> <dd class="inline"><?= e(job_application_value_or_dash($editingApplication['position_applied'] ?? '')); ?></dd></div>
-                        <div><dt class="inline font-semibold">Hình thức:</dt> <dd class="inline"><?= e(job_application_value_or_dash($editingApplication['work_mode'] ?? '')); ?></dd></div>
-                        <div><dt class="inline font-semibold">Sẵn sàng đi làm:</dt> <dd class="inline"><?= e(ui_format_date((string) ($editingApplication['start_date'] ?? ''), '—')); ?></dd></div>
-                        <div><dt class="inline font-semibold">Mức lương mong muốn:</dt> <dd class="inline"><?= e(job_application_value_or_dash($editingApplication['salary_expectation'] ?? '')); ?></dd></div>
-                        <div><dt class="inline font-semibold">CV:</dt> <dd class="inline"><?= e(job_application_value_or_dash($editingApplication['cv_file_url'] ?? '')); ?></dd></div>
+                        <div><dt class="inline font-semibold"><?= e(t('admin.job_applications.full_name')); ?>:</dt> <dd class="inline"><?= e(job_application_value_or_dash($editingApplication['full_name'] ?? '')); ?></dd></div>
+                        <div><dt class="inline font-semibold"><?= e(t('admin.job_applications.email')); ?>:</dt> <dd class="inline"><?= e(job_application_value_or_dash($editingApplication['email'] ?? '')); ?></dd></div>
+                        <div><dt class="inline font-semibold"><?= e(t('admin.job_applications.phone')); ?>:</dt> <dd class="inline"><?= e(job_application_value_or_dash($editingApplication['phone'] ?? '')); ?></dd></div>
+                        <div><dt class="inline font-semibold"><?= e(t('admin.job_applications.address')); ?>:</dt> <dd class="inline"><?= e(job_application_value_or_dash($editingApplication['address'] ?? '')); ?></dd></div>
+                        <div><dt class="inline font-semibold"><?= e(t('admin.job_applications.position')); ?>:</dt> <dd class="inline"><?= e(job_application_value_or_dash($editingApplication['position_applied'] ?? '')); ?></dd></div>
+                        <div><dt class="inline font-semibold"><?= e(t('admin.job_applications.work_mode')); ?>:</dt> <dd class="inline"><?= e(job_application_value_or_dash($editingApplication['work_mode'] ?? '')); ?></dd></div>
+                        <div><dt class="inline font-semibold"><?= e(t('admin.job_applications.start_date')); ?>:</dt> <dd class="inline"><?= e(ui_format_date((string) ($editingApplication['start_date'] ?? ''), '—')); ?></dd></div>
+                        <div><dt class="inline font-semibold"><?= e(t('admin.job_applications.salary')); ?>:</dt> <dd class="inline"><?= e(job_application_value_or_dash($editingApplication['salary_expectation'] ?? '')); ?></dd></div>
+                        <div><dt class="inline font-semibold"><?= e(t('admin.job_applications.cv')); ?>:</dt> <dd class="inline"><?= e(job_application_value_or_dash($editingApplication['cv_file_url'] ?? '')); ?></dd></div>
                     </dl>
                 </div>
 
                 <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
-                    <h4 class="mb-2 text-sm font-extrabold text-slate-800">Hồ sơ chuyên môn</h4>
+                    <h4 class="mb-2 text-sm font-extrabold text-slate-800"><?= e(t('admin.job_applications.professional_profile')); ?></h4>
                     <dl class="grid gap-2 text-sm text-slate-700">
                         <div>
-                            <dt class="font-semibold">Học vấn</dt>
+                            <dt class="font-semibold"><?= e(t('admin.job_applications.education')); ?></dt>
                             <dd><?= e(job_application_value_or_dash($editingApplication['education_detail'] ?? '')); ?></dd>
                         </div>
                         <div>
-                            <dt class="font-semibold">Kinh nghiệm</dt>
+                            <dt class="font-semibold"><?= e(t('admin.job_applications.experience')); ?></dt>
                             <dd><?= e(job_application_value_or_dash($editingApplication['work_history'] ?? '')); ?></dd>
                         </div>
                         <div>
-                            <dt class="font-semibold">Kỹ năng</dt>
+                            <dt class="font-semibold"><?= e(t('admin.job_applications.skills')); ?></dt>
                             <dd><?= e(job_application_value_or_dash($editingApplication['skills_set'] ?? '')); ?></dd>
                         </div>
                     </dl>
@@ -284,13 +284,13 @@ $canDeleteApplication = has_permission('job_application.delete');
                     class="rounded-xl border border-slate-200 bg-white p-3"
                     <?= $editingApplicationConverted ? 'data-process-locked-section="1" title="' . e($editingApplicationLockReason) . '"' : ''; ?>
                 >
-                    <h4 class="mb-2 text-sm font-extrabold text-slate-800">Cập nhật quy trình tuyển dụng</h4>
+                    <h4 class="mb-2 text-sm font-extrabold text-slate-800"><?= e(t('admin.job_applications.update_process')); ?></h4>
                     <form class="grid gap-2" method="post" action="/api/applications/update">
                         <?= csrf_input(); ?>
                         <input type="hidden" name="id" value="<?= (int) ($editingApplication['id'] ?? 0); ?>">
                         <fieldset class="grid gap-2" <?= $editingApplicationConverted ? 'disabled aria-disabled="true"' : ''; ?>>
                             <label>
-                                Trạng thái
+                                <?= e(t('admin.job_applications.status_label')); ?>
                                 <div class="relative mt-1">
                                     <select
                                         name="status"
@@ -316,11 +316,11 @@ $canDeleteApplication = has_permission('job_application.delete');
                                 </div>
                             </label>
                             <label>
-                                Ghi chú HR
-                                <textarea name="hr_note" rows="4" placeholder="Ví dụ: Đã phỏng vấn vòng 1, hẹn dạy demo vào thứ 7..."><?= e((string) ($editingApplication['hr_note'] ?? '')); ?></textarea>
+                                <?= e(t('admin.job_applications.hr_note')); ?>
+                                <textarea name="hr_note" rows="4" placeholder="<?= e(t('admin.job_applications.hr_note_placeholder')); ?>"><?= e((string) ($editingApplication['hr_note'] ?? '')); ?></textarea>
                             </label>
                             <div>
-                                <button class="<?= ui_btn_primary_classes('sm'); ?>" type="submit">Lưu cập nhật</button>
+                                <button class="<?= ui_btn_primary_classes('sm'); ?>" type="submit"><?= e(t('admin.job_applications.save_update')); ?></button>
                             </div>
                         </fieldset>
                     </form>
@@ -329,14 +329,14 @@ $canDeleteApplication = has_permission('job_application.delete');
 
             <div class="mt-3 grid gap-3 md:grid-cols-2">
                 <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
-                    <h4 class="mb-2 text-sm font-extrabold text-slate-800">Giới thiệu bản thân</h4>
+                    <h4 class="mb-2 text-sm font-extrabold text-slate-800"><?= e(t('admin.job_applications.bio')); ?></h4>
                     <p class="text-sm leading-relaxed text-slate-700"><?= nl2br(e(job_application_value_or_dash($editingApplication['bio_summary'] ?? ''))); ?></p>
                 </div>
 
                 <?php if ($editingApplicationConverted): ?>
                     <div class="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">
-                        <p class="font-semibold">Hồ sơ này đã được chuyển thành tài khoản giáo viên.</p>
-                        <p class="mt-1">Mã tài khoản:
+                        <p class="font-semibold"><?= e(t('admin.job_applications.converted_notice')); ?></p>
+                        <p class="mt-1"><?= e(t('admin.job_applications.account_id')); ?>
                             <button
                                 type="button"
                                 class="font-bold text-emerald-800 underline"
@@ -344,11 +344,11 @@ $canDeleteApplication = has_permission('job_application.delete');
                                 data-detail-url="<?= e(page_url('users-admin', ['edit' => (int) $editingApplication['converted_user_id']])); ?>"
                             >#<?= (int) $editingApplication['converted_user_id']; ?></button>
                         </p>
-                        <p class="mt-1 text-xs">Thời gian chuyển đổi: <?= e(job_application_format_datetime((string) ($editingApplication['converted_at'] ?? ''))); ?></p>
+                        <p class="mt-1 text-xs"><?= e(t('admin.job_applications.converted_at')); ?> <?= e(job_application_format_datetime((string) ($editingApplication['converted_at'] ?? ''))); ?></p>
                     </div>
                 <?php elseif ($canConvertApplication): ?>
                     <div class="rounded-xl border border-blue-200 bg-blue-50 p-3">
-                        <h4 class="mb-2 text-sm font-extrabold text-blue-900">Tạo tài khoản giáo viên</h4>
+                        <h4 class="mb-2 text-sm font-extrabold text-blue-900"><?= e(t('admin.job_applications.create_teacher_account')); ?></h4>
                         <form
                             class="grid gap-2 md:grid-cols-2"
                             method="post"
@@ -361,15 +361,15 @@ $canDeleteApplication = has_permission('job_application.delete');
                             <?= csrf_input(); ?>
                             <input type="hidden" name="id" value="<?= (int) ($editingApplication['id'] ?? 0); ?>">
                             <label>
-                                Username
+                                <?= e(t('admin.job_applications.username')); ?>
                                 <input type="text" name="username" value="<?= e(job_application_suggested_username($editingApplication)); ?>" required>
                             </label>
                             <label>
-                                Mật khẩu (để trống dùng 123456)
+                                <?= e(t('admin.job_applications.password')); ?>
                                 <input type="text" name="password" value="">
                             </label>
                             <label class="md:col-span-2">
-                                Ghi chú khi chuyển đổi
+                                <?= e(t('admin.job_applications.convert_note')); ?>
                                 <textarea name="admin_note" rows="2"><?= e((string) ($editingApplication['hr_note'] ?? '')); ?></textarea>
                             </label>
                             <div class="md:col-span-2">
@@ -377,8 +377,8 @@ $canDeleteApplication = has_permission('job_application.delete');
                                     class="<?= ui_btn_primary_classes('sm'); ?>"
                                     type="submit"
                                     data-process-convert-button="1"
-                                    <?= $editingApplicationCanConvertNow ? '' : 'disabled aria-disabled="true" title="Cần chuyển hồ sơ sang Đã phỏng vấn hoặc Đã trúng tuyển trước khi tạo user."'; ?>
-                                >Tạo user giáo viên</button>
+                                    <?= $editingApplicationCanConvertNow ? '' : 'disabled aria-disabled="true" title="' . e(t('admin.job_applications.convert_blocked')) . '"'; ?>
+                                ><?= e(t('admin.job_applications.create_user')); ?></button>
                             </div>
                         </form>
                     </div>
@@ -390,10 +390,10 @@ $canDeleteApplication = has_permission('job_application.delete');
     <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
             <div>
-                <h3 class="mb-1">Danh sách hồ sơ ứng tuyển</h3>
-                <p class="text-sm text-slate-600">Bảng chỉ hiển thị tóm tắt. Bấm Xem chi tiết hoặc Xử lý để mở toàn bộ hồ sơ.</p>
+                <h3 class="mb-1"><?= e(t('admin.job_applications.list_title')); ?></h3>
+                <p class="text-sm text-slate-600"><?= e(t('admin.job_applications.list_note')); ?></p>
             </div>
-            <span class="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-bold text-slate-600">Tổng: <?= (int) $applicationTotal; ?> hồ sơ</span>
+            <span class="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-bold text-slate-600"><?= e(t('admin.job_applications.total_badge', ['count' => (int) $applicationTotal])); ?></span>
         </div>
 
         <div
@@ -409,7 +409,7 @@ $canDeleteApplication = has_permission('job_application.delete');
                     data-ajax-search="1"
                     type="search"
                     value="<?= e($searchQuery); ?>"
-                    placeholder="Tìm theo tên ứng viên, email, SĐT, vị trí..."
+                    placeholder="<?= e(t('admin.job_applications.search_placeholder')); ?>"
                     autocomplete="off"
                     class="w-full max-w-sm rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-700 shadow-sm outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
                 >
@@ -418,7 +418,7 @@ $canDeleteApplication = has_permission('job_application.delete');
                     data-ajax-filter="1"
                     class="h-11 rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
                 >
-                    <option value="">Tất cả trạng thái</option>
+                    <option value=""><?= e(t('admin.job_applications.status_all')); ?></option>
                     <?php foreach ($statusOptions as $statusKey => $statusLabel): ?>
                         <option value="<?= e($statusKey); ?>" <?= $statusFilter === $statusKey ? 'selected' : ''; ?>><?= e($statusLabel); ?></option>
                     <?php endforeach; ?>
@@ -429,20 +429,20 @@ $canDeleteApplication = has_permission('job_application.delete');
             <table class="min-w-full border-collapse text-sm" data-enable-row-detail="1" data-disable-global-filter="1">
                 <thead>
                     <tr>
-                        <th>Mã</th>
-                        <th>Ứng viên</th>
-                        <th>Hồ sơ chuyên môn</th>
-                        <th>Trạng thái</th>
-                        <th>Ghi chú HR</th>
-                        <th>Chuyển đổi</th>
-                        <th>Hành động</th>
+                        <th><?= e(t('admin.job_applications.table_id')); ?></th>
+                        <th><?= e(t('admin.job_applications.table_candidate')); ?></th>
+                        <th><?= e(t('admin.job_applications.table_profile')); ?></th>
+                        <th><?= e(t('admin.job_applications.table_status')); ?></th>
+                        <th><?= e(t('admin.job_applications.table_hr_note')); ?></th>
+                        <th><?= e(t('admin.job_applications.table_conversion')); ?></th>
+                        <th><?= e(t('admin.common.actions')); ?></th>
                     </tr>
                 </thead>
                 <tbody data-ajax-tbody="1">
                     <?php if (empty($applications)): ?>
                         <tr>
                             <td colspan="7">
-                                <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">Chưa có hồ sơ ứng tuyển nào.</div>
+                                <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500"><?= e(t('admin.job_applications.empty')); ?></div>
                             </td>
                         </tr>
                     <?php else: ?>
@@ -457,16 +457,16 @@ $canDeleteApplication = has_permission('job_application.delete');
                                 <td class="font-semibold">#<?= $applicationId; ?></td>
                                 <td>
                                     <div class="font-bold text-slate-800"><?= e(job_application_value_or_dash($application['full_name'] ?? '')); ?></div>
-                                    <div class="text-xs text-slate-600">Liên hệ: <?= e(job_application_short_text(trim((string) (($application['email'] ?? '') . ' ' . ($application['phone'] ?? ''))), 50)); ?></div>
+                                    <div class="text-xs text-slate-600"><?= e(t('admin.job_applications.contact_label')); ?> <?= e(job_application_short_text(trim((string) (($application['email'] ?? '') . ' ' . ($application['phone'] ?? ''))), 50)); ?></div>
                                 </td>
                                 <td>
-                                    <div class="font-semibold text-slate-700">Vị trí: <?= e(job_application_short_text($application['position_applied'] ?? '', 40)); ?></div>
-                                    <div class="text-xs text-slate-600">Kinh nghiệm: <?= e(job_application_short_text($application['work_history'] ?? '', 35)); ?></div>
-                                    <div class="text-xs text-slate-500">Học vấn: <?= e(job_application_short_text($application['education_detail'] ?? '', 35)); ?></div>
+                                    <div class="font-semibold text-slate-700"><?= e(t('admin.job_applications.position')); ?> <?= e(job_application_short_text($application['position_applied'] ?? '', 40)); ?></div>
+                                    <div class="text-xs text-slate-600"><?= e(t('admin.job_applications.experience')); ?> <?= e(job_application_short_text($application['work_history'] ?? '', 35)); ?></div>
+                                    <div class="text-xs text-slate-500"><?= e(t('admin.job_applications.education')); ?> <?= e(job_application_short_text($application['education_detail'] ?? '', 35)); ?></div>
                                 </td>
                                 <td>
                                     <span class="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-bold <?= e(job_application_status_badge_class($statusValue)); ?>"><?= e($statusLabel); ?></span>
-                                    <div class="text-xs text-slate-500">Tạo lúc: <?= e(job_application_format_datetime((string) ($application['created_at'] ?? ''))); ?></div>
+                                    <div class="text-xs text-slate-500"><?= e(t('admin.job_applications.created_at_label')); ?> <?= e(job_application_format_datetime((string) ($application['created_at'] ?? ''))); ?></div>
                                 </td>
                                 <td>
                                     <div class="text-sm text-slate-700" data-full-value="<?= e((string) ($application['hr_note'] ?? '')); ?>"><?= e(job_application_short_text($application['hr_note'] ?? '', 80)); ?></div>
@@ -480,7 +480,7 @@ $canDeleteApplication = has_permission('job_application.delete');
                                             data-detail-url="<?= e(page_url('users-admin', ['edit' => (int) $application['converted_user_id'], 'search' => $searchQuery])); ?>"
                                         >User #<?= (int) $application['converted_user_id']; ?></button>
                                     <?php else: ?>
-                                        <span class="text-xs font-semibold text-slate-500">Chưa tạo user</span>
+                                        <span class="text-xs font-semibold text-slate-500"><?= e(t('admin.job_applications.not_converted')); ?></span>
                                     <?php endif; ?>
                                 </td>
                                 <td>
@@ -492,10 +492,10 @@ $canDeleteApplication = has_permission('job_application.delete');
                                             data-admin-row-detail="1"
                                             data-detail-url="<?= e(page_url('job-applications-manage', ['edit' => (int) $application['id'], 'application_page' => $applicationPage, 'application_per_page' => $applicationPerPage, 'status' => $statusFilter, 'search' => $searchQuery])); ?>"
                                             data-skip-action-icon="1"
-                                            title="Xem chi tiết"
-                                            aria-label="Xem chi tiết"
+                                            title="<?= e(t('admin.common.view_detail')); ?>"
+                                            aria-label="<?= e(t('admin.common.view_detail')); ?>"
                                         >
-                                            <span class="admin-action-icon-label">Xem chi tiết</span>
+                                            <span class="admin-action-icon-label"><?= e(t('admin.common.view_detail')); ?></span>
                                             <span class="admin-action-icon-glyph" aria-hidden="true">
                                                 <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12z"></path></svg>
                                             </span>
@@ -505,26 +505,26 @@ $canDeleteApplication = has_permission('job_application.delete');
                                             class="admin-action-icon-btn"
                                             data-action-kind="edit"
                                             data-skip-action-icon="1"
-                                            title="Xử lý"
-                                            aria-label="Xử lý"
+                                            title="<?= e(t('admin.job_applications.process_action')); ?>"
+                                            aria-label="<?= e(t('admin.job_applications.process_action')); ?>"
                                         >
-                                            <span class="admin-action-icon-label">Xử lý</span>
+                                            <span class="admin-action-icon-label"><?= e(t('admin.job_applications.process_action')); ?></span>
                                             <span class="admin-action-icon-glyph" aria-hidden="true">
                                                 <svg viewBox="0 0 24 24"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
                                             </span>
                                         </a>
                                         <?php if ($canDeleteApplication): ?>
-                                            <form class="inline-block" method="post" action="/api/applications/delete?id=<?= (int) $application['id']; ?>" onsubmit="return confirm('Bạn có chắc muốn xóa hồ sơ ứng tuyển này?');">
+                                            <form class="inline-block" method="post" action="/api/applications/delete?id=<?= (int) $application['id']; ?>" onsubmit="return confirm('<?= e(t('admin.job_applications.delete_confirm')); ?>');">
                                                 <?= csrf_input(); ?>
                                                 <button
                                                     class="<?= ui_btn_danger_classes('sm'); ?> admin-action-icon-btn"
                                                     data-action-kind="delete"
                                                     data-skip-action-icon="1"
                                                     type="submit"
-                                                    title="Xóa"
-                                                    aria-label="Xóa"
+                                                    title="<?= e(t('admin.common.delete')); ?>"
+                                                    aria-label="<?= e(t('admin.common.delete')); ?>"
                                                 >
-                                                    <span class="admin-action-icon-label">Xóa</span>
+                                                    <span class="admin-action-icon-label"><?= e(t('admin.common.delete')); ?></span>
                                                     <span class="admin-action-icon-glyph" aria-hidden="true">
                                                         <svg viewBox="0 0 24 24"><path d="M3 6h18"></path><path d="M8 6V4h8v2"></path><path d="M19 6l-1 14H6L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>
                                                     </span>
@@ -542,12 +542,12 @@ $canDeleteApplication = has_permission('job_application.delete');
             <?php if ($applicationTotal > 0): ?>
                 <div data-ajax-pagination="1" class="border-t border-slate-200 bg-slate-50/80 px-3 py-2">
                     <div class="flex flex-wrap items-center gap-2 text-xs text-slate-600">
-                        <span data-ajax-row-info="1" class="min-w-0 flex-1 font-medium">Hiển thị trang <?= (int) $applicationPage; ?>/<?= (int) $applicationTotalPages; ?> • Tổng <?= (int) $applicationTotal; ?> hồ sơ</span>
+                        <span data-ajax-row-info="1" class="min-w-0 flex-1 font-medium"><?= e(t('admin.job_applications.page_info', ['current' => (int) $applicationPage, 'total' => (int) $applicationTotalPages, 'count' => (int) $applicationTotal])); ?></span>
                         <div class="ml-auto inline-flex items-center gap-1.5">
                             <form class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2 py-1" method="get" action="<?= e(page_url('job-applications-manage')); ?>">
                                 <input type="hidden" name="status" value="<?= e($statusFilter); ?>">
                                 <input type="hidden" name="search" value="<?= e($searchQuery); ?>">
-                                <label class="text-[11px] font-semibold text-slate-500" for="application-per-page">Số dòng</label>
+                                <label class="text-[11px] font-semibold text-slate-500" for="application-per-page"><?= e(t('admin.common.rows')); ?></label>
                                 <select id="application-per-page" name="application_per_page" data-ajax-per-page="1" class="h-7 rounded-md border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700">
                                     <?php foreach ($applicationPerPageOptions as $option): ?>
                                         <option value="<?= (int) $option; ?>" <?= $applicationPerPage === (int) $option ? 'selected' : ''; ?>><?= (int) $option; ?></option>
@@ -556,15 +556,15 @@ $canDeleteApplication = has_permission('job_application.delete');
                             </form>
 
                             <?php if ($applicationPage > 1): ?>
-                                <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('job-applications-manage', ['application_page' => $applicationPage - 1, 'application_per_page' => $applicationPerPage, 'status' => $statusFilter, 'search' => $searchQuery])); ?>">Trước</a>
+                                <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('job-applications-manage', ['application_page' => $applicationPage - 1, 'application_per_page' => $applicationPerPage, 'status' => $statusFilter, 'search' => $searchQuery])); ?>"><?= e(t('admin.common.previous')); ?></a>
                             <?php else: ?>
-                                <span class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 text-xs font-semibold text-slate-400">Trước</span>
+                                <span class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 text-xs font-semibold text-slate-400"><?= e(t('admin.common.previous')); ?></span>
                             <?php endif; ?>
 
                             <?php if ($applicationPage < $applicationTotalPages): ?>
-                                <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('job-applications-manage', ['application_page' => $applicationPage + 1, 'application_per_page' => $applicationPerPage, 'status' => $statusFilter, 'search' => $searchQuery])); ?>">Sau</a>
+                                <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('job-applications-manage', ['application_page' => $applicationPage + 1, 'application_per_page' => $applicationPerPage, 'status' => $statusFilter, 'search' => $searchQuery])); ?>"><?= e(t('admin.common.next')); ?></a>
                             <?php else: ?>
-                                <span class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 text-xs font-semibold text-slate-400">Sau</span>
+                                <span class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 text-xs font-semibold text-slate-400"><?= e(t('admin.common.next')); ?></span>
                             <?php endif; ?>
                         </div>
                     </div>

@@ -17,10 +17,10 @@
         
         <div class="relative z-10 flex gap-4">
             <button onclick="closeConfirm()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-600 font-black py-3.5 rounded-xl transition-all uppercase tracking-widest text-xs">
-                HỦY BỎ
+                <?= e(t('confirm.cancel')); ?>
             </button>
             <button id="confirm-ok-btn" class="flex-1 font-black py-3.5 rounded-xl text-white shadow-lg transition-all hover:-translate-y-1 uppercase tracking-widest text-xs active:translate-y-0">
-                XÁC NHẬN
+                <?= e(t('confirm.ok')); ?>
             </button>
         </div>
     </div>
@@ -132,28 +132,28 @@
 <div class="p-10 flex flex-wrap gap-4 justify-center bg-slate-50 mt-10 rounded-2xl">
     
     <button onclick="
-        showConfirm('danger', 'Xóa tài liệu này?', 'Hành động này không thể hoàn tác. Tài liệu sẽ bị xóa vĩnh viễn khỏi hệ thống.', function() {
-            alert('Đã thực hiện lệnh XÓA (Gọi API/Submit Form tại đây)');
+        showConfirm('danger', <?= json_encode(t('confirm.delete_document_title'), JSON_UNESCAPED_UNICODE); ?>, <?= json_encode(t('confirm.delete_document_message'), JSON_UNESCAPED_UNICODE); ?>, function() {
+            alert(<?= json_encode(t('confirm.delete_done'), JSON_UNESCAPED_UNICODE); ?>);
         })
-    " class="px-6 py-2 bg-rose-600 text-white rounded-lg font-bold shadow-md">Test Xóa (Danger)</button>
+    " class="px-6 py-2 bg-rose-600 text-white rounded-lg font-bold shadow-md"><?= e(t('confirm.test_delete')); ?></button>
     
     <button onclick="
-        showConfirm('success', 'Nộp bài kiểm tra?', 'Thời gian làm bài vẫn còn. Bạn có chắc chắn muốn nộp bài ngay bây giờ không?', function() {
-            alert('Đã thực hiện lệnh NỘP BÀI');
+        showConfirm('success', <?= json_encode(t('confirm.submit_test_title'), JSON_UNESCAPED_UNICODE); ?>, <?= json_encode(t('confirm.submit_test_message'), JSON_UNESCAPED_UNICODE); ?>, function() {
+            alert(<?= json_encode(t('confirm.submit_done'), JSON_UNESCAPED_UNICODE); ?>);
         })
-    " class="px-6 py-2 bg-emerald-500 text-white rounded-lg font-bold shadow-md">Test Nộp bài (Success)</button>
+    " class="px-6 py-2 bg-emerald-500 text-white rounded-lg font-bold shadow-md"><?= e(t('confirm.test_submit')); ?></button>
 
     <button onclick="
-        showConfirm('warning', 'Hủy đăng ký khóa học?', 'Phí giữ chỗ sẽ không được hoàn lại. Bạn có chắc chắn muốn hủy đăng ký?', function() {
-            alert('Đã thực hiện lệnh HỦY');
+        showConfirm('warning', <?= json_encode(t('confirm.cancel_course_title'), JSON_UNESCAPED_UNICODE); ?>, <?= json_encode(t('confirm.cancel_course_message'), JSON_UNESCAPED_UNICODE); ?>, function() {
+            alert(<?= json_encode(t('confirm.cancel_done'), JSON_UNESCAPED_UNICODE); ?>);
         })
-    " class="px-6 py-2 bg-amber-500 text-white rounded-lg font-bold shadow-md">Test Cảnh báo (Warning)</button>
+    " class="px-6 py-2 bg-amber-500 text-white rounded-lg font-bold shadow-md"><?= e(t('confirm.test_warning')); ?></button>
 
     <button onclick="
-        showConfirm('info', 'Xác nhận đăng xuất?', 'Bạn sẽ cần đăng nhập lại để tiếp tục sử dụng hệ thống học tập.', function() {
+        showConfirm('info', <?= json_encode(t('confirm.logout_title'), JSON_UNESCAPED_UNICODE); ?>, <?= json_encode(t('confirm.logout_message'), JSON_UNESCAPED_UNICODE); ?>, function() {
             window.location.href = '/logout.php'; // Ví dụ chuyển hướng thực tế
         })
-    " class="px-6 py-2 bg-blue-500 text-white rounded-lg font-bold shadow-md">Test Đăng xuất (Info)</button>
+    " class="px-6 py-2 bg-blue-500 text-white rounded-lg font-bold shadow-md"><?= e(t('confirm.test_logout')); ?></button>
 
 </div>
 <?php endif; ?>

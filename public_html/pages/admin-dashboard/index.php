@@ -27,8 +27,8 @@ foreach ($widgetPrefixes as $widgetKey => $prefix) {
 $overview = $adminModel->dashboardOverviewData($dashboardFilters);
 
 $module = 'dashboard';
-$adminTitle = 'Bảng điều khiển';
-$adminDescription = 'Toàn cảnh vận hành, tăng trưởng, tài chính và mức độ quan tâm của học viên.';
+$adminTitle = t('admin.dashboard.title');
+$adminDescription = t('admin.dashboard.description');
 
 $success = get_flash('success');
 $error = get_flash('error');
@@ -54,7 +54,7 @@ $revenuePrevious = (float) ($revenueHistory['previous'] ?? 0);
 $revenueDelta = $revenueLatest - $revenuePrevious;
 $revenueDeltaPercent = $revenuePrevious > 0 ? round(($revenueDelta / $revenuePrevious) * 100, 1) : ($revenueLatest > 0 ? 100.0 : 0.0);
 $collectionRate = (float) ($tuition['collection_rate'] ?? 0);
-$classStatusLabels = ['Sắp mở', 'Đang học', 'Hoàn thành', 'Đã hủy'];
+$classStatusLabels = [t('admin.dashboard.status_upcoming'), t('admin.dashboard.status_active'), t('admin.dashboard.status_graduated'), t('admin.dashboard.status_cancelled')];
 $classStatusValues = [
     (int) ($classStatus['upcoming'] ?? 0),
     (int) ($classStatus['active'] ?? 0),
@@ -83,15 +83,15 @@ $renderPeriodForm = static function (string $widgetKey, string $prefix, array $p
     <form class="js-dashboard-period-form mt-3 flex flex-wrap items-end gap-2" method="get" action="<?= e(page_url('dashboard-admin')); ?>">
         <?= $renderHiddenParams($excludeKeys); ?>
         <label class="flex min-w-0 flex-col gap-1 text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500">
-            <span>Từ tháng</span>
+            <span><?= e(t('admin.dashboard.from_month')); ?></span>
             <input class="w-full min-w-[150px] rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100" type="month" name="<?= e($prefix . '_start'); ?>" value="<?= e($startMonth); ?>">
         </label>
         <label class="flex min-w-0 flex-col gap-1 text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500">
-            <span>Đến tháng</span>
+            <span><?= e(t('admin.dashboard.to_month')); ?></span>
             <input class="w-full min-w-[150px] rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100" type="month" name="<?= e($prefix . '_end'); ?>" value="<?= e($endMonth); ?>">
         </label>
         <button class="inline-flex h-[42px] items-center justify-center rounded-xl bg-slate-900 px-4 text-sm font-black text-white transition hover:bg-cyan-600" type="submit">
-            Xem
+            <?= e(t('admin.dashboard.view')); ?>
         </button>
     </form>
     <?php
@@ -109,14 +109,14 @@ $dashboardPayload = [
         'teachers' => is_array($growth['teachers'] ?? null) ? $growth['teachers'] : [],
     ],
     'conversion' => [
-        'labels' => ['Học viên', 'Giáo viên'],
+        'labels' => [t('admin.dashboard.students'), t('admin.dashboard.teachers')],
         'rates' => [
             (float) ($leadConversion['conversion_rate'] ?? 0),
             (float) ($teacherConversion['conversion_rate'] ?? 0),
         ],
     ],
     'feedback' => [
-        'labels' => ['1 sao', '2 sao', '3 sao', '4 sao', '5 sao'],
+        'labels' => [t('admin.dashboard.star_1'), t('admin.dashboard.star_2'), t('admin.dashboard.star_3'), t('admin.dashboard.star_4'), t('admin.dashboard.star_5')],
         'values' => is_array($feedback['distribution'] ?? null) ? $feedback['distribution'] : [0, 0, 0, 0, 0],
     ],
     'classStatus' => [
@@ -124,14 +124,14 @@ $dashboardPayload = [
         'values' => $classStatusValues,
     ],
     'tuition' => [
-        'labels' => ['Đã thu', 'Còn nợ'],
+        'labels' => [t('admin.dashboard.collected'), t('admin.dashboard.debt')],
         'values' => [
             (float) ($tuition['amount_paid'] ?? 0),
             (float) ($tuition['amount_debt'] ?? 0),
         ],
     ],
     'population' => [
-        'labels' => ['Học viên', 'Giáo viên', 'Lớp học', 'Khóa học'],
+        'labels' => [t('admin.dashboard.students'), t('admin.dashboard.teachers'), t('admin.dashboard.classes'), t('admin.dashboard.courses')],
         'values' => [
             (int) ($population['total_students'] ?? 0),
             (int) ($population['total_teachers'] ?? 0),
@@ -152,27 +152,27 @@ $dashboardPayload = [
 
 $heroCards = [
     [
-        'label' => 'Học viên mới tháng này',
+        'label' => t('admin.dashboard.new_students_this_month'),
         'value' => (string) ($hero['students_new'] ?? 0),
-        'note' => (($hero['students_delta'] ?? 0) >= 0 ? '+' : '') . (int) ($hero['students_delta'] ?? 0) . ' so với tháng trước',
+        'note' => t('admin.dashboard.delta_vs_last_month', ['delta' => (($hero['students_delta'] ?? 0) >= 0 ? '+' : '') . (int) ($hero['students_delta'] ?? 0)]),
         'tone' => 'from-rose-500/25 to-pink-500/10 border-rose-300/25',
     ],
     [
-        'label' => 'Giáo viên mới tháng này',
+        'label' => t('admin.dashboard.new_teachers_this_month'),
         'value' => (string) ($hero['teachers_new'] ?? 0),
-        'note' => (($hero['teachers_delta'] ?? 0) >= 0 ? '+' : '') . (int) ($hero['teachers_delta'] ?? 0) . ' so với tháng trước',
+        'note' => t('admin.dashboard.delta_vs_last_month', ['delta' => (($hero['teachers_delta'] ?? 0) >= 0 ? '+' : '') . (int) ($hero['teachers_delta'] ?? 0)]),
         'tone' => 'from-amber-400/25 to-orange-500/10 border-amber-300/25',
     ],
     [
-        'label' => 'Chuyển đổi học viên',
+        'label' => t('admin.dashboard.student_conversion'),
         'value' => number_format((float) ($hero['lead_conversion_rate'] ?? 0), 1, ',', '.') . '%',
-        'note' => 'Tỷ lệ tổng thể từ lead sang học viên',
+        'note' => t('admin.dashboard.student_conversion_note'),
         'tone' => 'from-emerald-400/25 to-lime-400/10 border-emerald-300/25',
     ],
     [
-        'label' => 'Đánh giá trung bình',
+        'label' => t('admin.dashboard.average_rating'),
         'value' => number_format((float) ($hero['avg_rating'] ?? 0), 1, ',', '.') . '/5',
-        'note' => (int) ($hero['feedback_total'] ?? 0) . ' lượt đánh giá đã ghi nhận',
+        'note' => t('admin.dashboard.feedback_total_note', ['count' => (string) (int) ($hero['feedback_total'] ?? 0)]),
         'tone' => 'from-sky-400/25 to-cyan-400/10 border-sky-300/25',
     ],
 ];
@@ -190,14 +190,14 @@ $heroCards = [
     <section class="overflow-hidden rounded-[2rem] border border-slate-200 bg-[radial-gradient(circle_at_top_left,_rgba(251,113,133,0.28),_transparent_35%),radial-gradient(circle_at_top_right,_rgba(34,211,238,0.24),_transparent_32%),linear-gradient(135deg,_#161032_0%,_#1d1b5f_42%,_#0f3b68_100%)] p-5 text-white shadow-[0_30px_80px_rgba(15,23,42,0.24)]">
         <div class="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
             <div class="min-w-0 flex-1">
-                <span class="inline-flex items-center rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[11px] font-black uppercase tracking-[0.24em] text-cyan-100">Điều hành trung tâm</span>
-                <h2 class="mt-3 max-w-4xl text-3xl font-black tracking-tight text-white md:text-4xl">Toàn cảnh trung tâm dưới dạng biểu đồ, dễ nhìn và dễ kiểm soát theo từng giai đoạn.</h2>
-                <p class="mt-3 max-w-3xl text-sm leading-7 text-slate-100/90">Mỗi biểu đồ bên dưới có bộ chọn tháng riêng để bạn soi đúng khoảng thời gian cần xem, từ tài chính, tăng trưởng, chuyển đổi cho tới độ phổ biến của khóa học.</p>
+                <span class="inline-flex items-center rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[11px] font-black uppercase tracking-[0.24em] text-cyan-100"><?= e(t('admin.dashboard.hero_badge')); ?></span>
+                <h2 class="mt-3 max-w-4xl text-3xl font-black tracking-tight text-white md:text-4xl"><?= e(t('admin.dashboard.hero_title')); ?></h2>
+                <p class="mt-3 max-w-3xl text-sm leading-7 text-slate-100/90"><?= e(t('admin.dashboard.hero_copy')); ?></p>
             </div>
             <div class="flex flex-wrap items-center gap-2">
-                <span class="inline-flex items-center rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-bold text-white/95">Cập nhật lúc <?= e($reportGeneratedAt); ?></span>
+                <span class="inline-flex items-center rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-bold text-white/95"><?= e(t('admin.dashboard.updated_at', ['time' => $reportGeneratedAt])); ?></span>
                 <?php if (can_access_page('classes-academic')): ?>
-                    <a class="inline-flex items-center rounded-full border border-white/15 bg-white px-4 py-2 text-sm font-black text-slate-900 transition hover:bg-cyan-200" href="<?= e(page_url('classes-academic')); ?>">Đi tới học vụ</a>
+                    <a class="inline-flex items-center rounded-full border border-white/15 bg-white px-4 py-2 text-sm font-black text-slate-900 transition hover:bg-cyan-200" href="<?= e(page_url('classes-academic')); ?>"><?= e(t('admin.dashboard.go_academic')); ?></a>
                 <?php endif; ?>
             </div>
         </div>
@@ -217,20 +217,20 @@ $heroCards = [
         <article class="rounded-[1.8rem] border border-slate-200 bg-white p-5 shadow-sm">
             <div class="flex flex-wrap items-start justify-between gap-3">
                 <div class="min-w-0 flex-1">
-                    <p class="text-[11px] font-black uppercase tracking-[0.22em] text-cyan-600">Doanh thu</p>
-                    <h3 class="mt-1 text-xl font-black text-slate-900">Lịch sử doanh thu học phí</h3>
-                    <p class="mt-1 text-sm text-slate-500">Xem trung tâm đã thu vào bao nhiêu theo từng tháng trong khoảng bạn chọn.</p>
+                    <p class="text-[11px] font-black uppercase tracking-[0.22em] text-cyan-600"><?= e(t('admin.dashboard.revenue')); ?></p>
+                    <h3 class="mt-1 text-xl font-black text-slate-900"><?= e(t('admin.dashboard.revenue_history')); ?></h3>
+                    <p class="mt-1 text-sm text-slate-500"><?= e(t('admin.dashboard.revenue_history_copy')); ?></p>
                 </div>
                 <span class="inline-flex items-center rounded-full bg-cyan-50 px-3 py-1 text-xs font-bold text-cyan-700"><?= e((string) ($periods['revenue']['label'] ?? '')); ?></span>
             </div>
             <?= $renderPeriodForm('revenue', 'revenue', $periods['revenue'] ?? []); ?>
             <div class="mt-4 grid gap-3 md:grid-cols-2">
                 <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                    <p class="text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Tháng gần nhất</p>
+                    <p class="text-[11px] font-black uppercase tracking-[0.2em] text-slate-500"><?= e(t('admin.dashboard.latest_month')); ?></p>
                     <p class="mt-2 text-2xl font-black text-slate-900"><?= e(format_money($revenueLatest)); ?></p>
                 </div>
                 <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                    <p class="text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Biến động</p>
+                    <p class="text-[11px] font-black uppercase tracking-[0.2em] text-slate-500"><?= e(t('admin.dashboard.change')); ?></p>
                     <p class="mt-2 text-2xl font-black <?= $revenueDelta >= 0 ? 'text-emerald-600' : 'text-rose-600'; ?>"><?= e(($revenueDelta >= 0 ? '+' : '-') . number_format(abs($revenueDeltaPercent), 1, ',', '.') . '%'); ?></p>
                 </div>
             </div>
@@ -244,27 +244,27 @@ $heroCards = [
         <article class="rounded-[1.8rem] border border-slate-200 bg-white p-5 shadow-sm">
             <div class="flex flex-wrap items-start justify-between gap-3">
                 <div class="min-w-0 flex-1">
-                    <p class="text-[11px] font-black uppercase tracking-[0.22em] text-emerald-600">Học phí</p>
-                    <h3 class="mt-1 text-xl font-black text-slate-900">Đã thu và còn nợ</h3>
-                    <p class="mt-1 text-sm text-slate-500">Nhìn nhanh sức khỏe tài chính của học phí trong giai đoạn đã chọn.</p>
+                    <p class="text-[11px] font-black uppercase tracking-[0.22em] text-emerald-600"><?= e(t('admin.dashboard.tuition')); ?></p>
+                    <h3 class="mt-1 text-xl font-black text-slate-900"><?= e(t('admin.dashboard.collected_and_debt')); ?></h3>
+                    <p class="mt-1 text-sm text-slate-500"><?= e(t('admin.dashboard.collected_and_debt_copy')); ?></p>
                 </div>
                 <span class="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700"><?= e((string) ($periods['tuition']['label'] ?? '')); ?></span>
             </div>
             <?= $renderPeriodForm('tuition', 'tuition', $periods['tuition'] ?? []); ?>
             <div class="mt-4 grid gap-3 md:grid-cols-2">
                 <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
-                    <p class="text-[11px] font-black uppercase tracking-[0.2em] text-emerald-700">Đã thu</p>
+                    <p class="text-[11px] font-black uppercase tracking-[0.2em] text-emerald-700"><?= e(t('admin.dashboard.collected')); ?></p>
                     <p class="mt-2 text-2xl font-black text-emerald-950"><?= e(format_money((float) ($tuition['amount_paid'] ?? 0))); ?></p>
                 </div>
                 <div class="rounded-2xl border border-orange-200 bg-orange-50 p-4">
-                    <p class="text-[11px] font-black uppercase tracking-[0.2em] text-orange-700">Còn nợ</p>
+                    <p class="text-[11px] font-black uppercase tracking-[0.2em] text-orange-700"><?= e(t('admin.dashboard.debt')); ?></p>
                     <p class="mt-2 text-2xl font-black text-orange-950"><?= e(format_money((float) ($tuition['amount_debt'] ?? 0))); ?></p>
                 </div>
             </div>
             <div class="mt-4 h-[260px]">
                 <canvas id="dashboardTuitionChart"></canvas>
             </div>
-            <p class="mt-3 text-sm font-semibold text-slate-600">Tỷ lệ thu học phí: <span class="font-black text-slate-900"><?= e(number_format($collectionRate, 1, ',', '.')); ?>%</span></p>
+            <p class="mt-3 text-sm font-semibold text-slate-600"><?= e(t('admin.dashboard.collection_rate')); ?>: <span class="font-black text-slate-900"><?= e(number_format($collectionRate, 1, ',', '.')); ?>%</span></p>
         </article>
     </section>
 
@@ -272,9 +272,9 @@ $heroCards = [
         <article class="rounded-[1.8rem] border border-slate-200 bg-white p-5 shadow-sm">
             <div class="flex flex-wrap items-start justify-between gap-3">
                 <div class="min-w-0 flex-1">
-                    <p class="text-[11px] font-black uppercase tracking-[0.22em] text-fuchsia-600">Tăng trưởng</p>
-                    <h3 class="mt-1 text-xl font-black text-slate-900">Học viên và giáo viên mới</h3>
-                    <p class="mt-1 text-sm text-slate-500">So sánh nhịp tăng trưởng giữa hai nhóm theo từng tháng.</p>
+                    <p class="text-[11px] font-black uppercase tracking-[0.22em] text-fuchsia-600"><?= e(t('admin.dashboard.growth')); ?></p>
+                    <h3 class="mt-1 text-xl font-black text-slate-900"><?= e(t('admin.dashboard.new_students_teachers')); ?></h3>
+                    <p class="mt-1 text-sm text-slate-500"><?= e(t('admin.dashboard.new_students_teachers_copy')); ?></p>
                 </div>
                 <span class="inline-flex items-center rounded-full bg-fuchsia-50 px-3 py-1 text-xs font-bold text-fuchsia-700"><?= e((string) ($periods['growth']['label'] ?? '')); ?></span>
             </div>
@@ -287,9 +287,9 @@ $heroCards = [
         <article class="rounded-[1.8rem] border border-slate-200 bg-white p-5 shadow-sm">
             <div class="flex flex-wrap items-start justify-between gap-3">
                 <div class="min-w-0 flex-1">
-                    <p class="text-[11px] font-black uppercase tracking-[0.22em] text-violet-600">Chuyển đổi</p>
-                    <h3 class="mt-1 text-xl font-black text-slate-900">Học viên và giáo viên đăng ký</h3>
-                    <p class="mt-1 text-sm text-slate-500">Đo mức hiệu quả chuyển đổi của trung tâm ở đầu vào.</p>
+                    <p class="text-[11px] font-black uppercase tracking-[0.22em] text-violet-600"><?= e(t('admin.dashboard.conversion')); ?></p>
+                    <h3 class="mt-1 text-xl font-black text-slate-900"><?= e(t('admin.dashboard.registered_students_teachers')); ?></h3>
+                    <p class="mt-1 text-sm text-slate-500"><?= e(t('admin.dashboard.registered_students_teachers_copy')); ?></p>
                 </div>
                 <span class="inline-flex items-center rounded-full bg-violet-50 px-3 py-1 text-xs font-bold text-violet-700"><?= e((string) ($periods['conversion']['label'] ?? '')); ?></span>
             </div>
@@ -299,10 +299,10 @@ $heroCards = [
             </div>
             <div class="mt-4 grid gap-3 md:grid-cols-2">
                 <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
-                    Tỉ lệ chuyển đổi thành học viên chính thức: <strong><?= (int) ($leadConversion['converted'] ?? 0); ?></strong> / <?= (int) ($leadConversion['total'] ?? 0); ?>
+                    <?= e(t('admin.dashboard.official_student_conversion')); ?>: <strong><?= (int) ($leadConversion['converted'] ?? 0); ?></strong> / <?= (int) ($leadConversion['total'] ?? 0); ?>
                 </div>
                 <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
-                    Tỉ lệ chuyển đổi thành giáo viên chính thức: <strong><?= (int) ($teacherConversion['converted'] ?? 0); ?></strong> / <?= (int) ($teacherConversion['total'] ?? 0); ?>
+                    <?= e(t('admin.dashboard.official_teacher_conversion')); ?>: <strong><?= (int) ($teacherConversion['converted'] ?? 0); ?></strong> / <?= (int) ($teacherConversion['total'] ?? 0); ?>
                 </div>
             </div>
         </article>
@@ -312,9 +312,9 @@ $heroCards = [
         <article class="rounded-[1.8rem] border border-slate-200 bg-white p-5 shadow-sm">
             <div class="flex flex-wrap items-start justify-between gap-3">
                 <div class="min-w-0 flex-1">
-                    <p class="text-[11px] font-black uppercase tracking-[0.22em] text-sky-600">Đánh giá học viên</p>
-                    <h3 class="mt-1 text-xl font-black text-slate-900">Phân bố mức sao</h3>
-                    <p class="mt-1 text-sm text-slate-500">Nhìn cảm nhận chung của học viên về trung tâm trong khoảng tháng đã chọn.</p>
+                    <p class="text-[11px] font-black uppercase tracking-[0.22em] text-sky-600"><?= e(t('admin.dashboard.student_feedback')); ?></p>
+                    <h3 class="mt-1 text-xl font-black text-slate-900"><?= e(t('admin.dashboard.star_distribution')); ?></h3>
+                    <p class="mt-1 text-sm text-slate-500"><?= e(t('admin.dashboard.star_distribution_copy')); ?></p>
                 </div>
                 <span class="inline-flex items-center rounded-full bg-sky-50 px-3 py-1 text-xs font-bold text-sky-700"><?= e((string) ($periods['feedback']['label'] ?? '')); ?></span>
             </div>
@@ -322,15 +322,15 @@ $heroCards = [
             <div class="mt-4 h-[280px]">
                 <canvas id="dashboardFeedbackChart"></canvas>
             </div>
-            <p class="mt-3 text-sm font-semibold text-slate-600">Điểm trung bình: <span class="font-black text-slate-900"><?= e(number_format((float) ($feedback['avg_rating'] ?? 0), 1, ',', '.')); ?>/5</span></p>
+            <p class="mt-3 text-sm font-semibold text-slate-600"><?= e(t('admin.dashboard.average_score')); ?>: <span class="font-black text-slate-900"><?= e(number_format((float) ($feedback['avg_rating'] ?? 0), 1, ',', '.')); ?>/5</span></p>
         </article>
 
         <article class="rounded-[1.8rem] border border-slate-200 bg-white p-5 shadow-sm">
             <div class="flex flex-wrap items-start justify-between gap-3">
                 <div class="min-w-0 flex-1">
-                    <p class="text-[11px] font-black uppercase tracking-[0.22em] text-indigo-600">Lớp học</p>
-                    <h3 class="mt-1 text-xl font-black text-slate-900">Trạng thái lớp học</h3>
-                    <p class="mt-1 text-sm text-slate-500">Cho biết các lớp mở trong giai đoạn đang nằm ở trạng thái nào.</p>
+                    <p class="text-[11px] font-black uppercase tracking-[0.22em] text-indigo-600"><?= e(t('admin.dashboard.classes')); ?></p>
+                    <h3 class="mt-1 text-xl font-black text-slate-900"><?= e(t('admin.dashboard.class_status')); ?></h3>
+                    <p class="mt-1 text-sm text-slate-500"><?= e(t('admin.dashboard.class_status_copy')); ?></p>
                 </div>
                 <span class="inline-flex items-center rounded-full bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-700"><?= e((string) ($periods['class_status']['label'] ?? '')); ?></span>
             </div>
@@ -338,7 +338,7 @@ $heroCards = [
             <div class="mt-4 h-[280px]">
                 <canvas id="dashboardClassStatusChart"></canvas>
             </div>
-            <p class="mt-3 text-sm font-semibold text-slate-600">Tổng số lớp trong giai đoạn: <span class="font-black text-slate-900"><?= (int) ($classStatus['total_classes'] ?? array_sum($classStatusValues)); ?></span></p>
+            <p class="mt-3 text-sm font-semibold text-slate-600"><?= e(t('admin.dashboard.total_classes_period')); ?>: <span class="font-black text-slate-900"><?= (int) ($classStatus['total_classes'] ?? array_sum($classStatusValues)); ?></span></p>
         </article>
     </section>
 
@@ -346,9 +346,9 @@ $heroCards = [
         <article class="rounded-[1.8rem] border border-slate-200 bg-white p-5 shadow-sm">
             <div class="flex flex-wrap items-start justify-between gap-3">
                 <div class="min-w-0 flex-1">
-                    <p class="text-[11px] font-black uppercase tracking-[0.22em] text-orange-600">Quy mô</p>
-                    <h3 class="mt-1 text-xl font-black text-slate-900">Học viên, giáo viên, lớp và khóa học</h3>
-                    <p class="mt-1 text-sm text-slate-500">Ảnh chụp số lượng phát sinh trong khoảng tháng đang được xem.</p>
+                    <p class="text-[11px] font-black uppercase tracking-[0.22em] text-orange-600"><?= e(t('admin.dashboard.scale')); ?></p>
+                    <h3 class="mt-1 text-xl font-black text-slate-900"><?= e(t('admin.dashboard.population_title')); ?></h3>
+                    <p class="mt-1 text-sm text-slate-500"><?= e(t('admin.dashboard.population_copy')); ?></p>
                 </div>
                 <span class="inline-flex items-center rounded-full bg-orange-50 px-3 py-1 text-xs font-bold text-orange-700"><?= e((string) ($periods['population']['label'] ?? '')); ?></span>
             </div>
@@ -356,15 +356,15 @@ $heroCards = [
             <div class="mt-4 h-[280px]">
                 <canvas id="dashboardPopulationChart"></canvas>
             </div>
-            <p class="mt-3 text-sm font-semibold text-slate-600">Sĩ số trung bình: <span class="font-black text-slate-900"><?= e(number_format((float) ($population['avg_students_per_class'] ?? 0), 1, ',', '.')); ?></span> học viên/lớp</p>
+            <p class="mt-3 text-sm font-semibold text-slate-600"><?= e(t('admin.dashboard.average_class_size')); ?>: <span class="font-black text-slate-900"><?= e(number_format((float) ($population['avg_students_per_class'] ?? 0), 1, ',', '.')); ?></span> <?= e(t('admin.dashboard.students_per_class')); ?></p>
         </article>
 
         <article class="rounded-[1.8rem] border border-slate-200 bg-white p-5 shadow-sm">
             <div class="flex flex-wrap items-start justify-between gap-3">
                 <div class="min-w-0 flex-1">
-                    <p class="text-[11px] font-black uppercase tracking-[0.22em] text-rose-600">Sĩ số lớp</p>
-                    <h3 class="mt-1 text-xl font-black text-slate-900">Phân bố lớp theo ngưỡng sĩ số</h3>
-                    <p class="mt-1 text-sm text-slate-500">Giúp thấy ngay lớp nào còn mỏng và lớp nào đã đông trong giai đoạn đó.</p>
+                    <p class="text-[11px] font-black uppercase tracking-[0.22em] text-rose-600"><?= e(t('admin.dashboard.class_size')); ?></p>
+                    <h3 class="mt-1 text-xl font-black text-slate-900"><?= e(t('admin.dashboard.class_size_distribution')); ?></h3>
+                    <p class="mt-1 text-sm text-slate-500"><?= e(t('admin.dashboard.class_size_distribution_copy')); ?></p>
                 </div>
                 <span class="inline-flex items-center rounded-full bg-rose-50 px-3 py-1 text-xs font-bold text-rose-700"><?= e((string) ($periods['class_size']['label'] ?? '')); ?></span>
             </div>
@@ -378,9 +378,9 @@ $heroCards = [
     <section class="rounded-[1.8rem] border border-slate-200 bg-white p-5 shadow-sm">
         <div class="flex flex-wrap items-start justify-between gap-3">
             <div class="min-w-0 flex-1">
-                <p class="text-[11px] font-black uppercase tracking-[0.22em] text-teal-600">Độ phổ biến khóa học</p>
-                <h3 class="mt-1 text-xl font-black text-slate-900">Khóa học nào đang được ưa chuộng nhất</h3>
-                <p class="mt-1 text-sm text-slate-500">So sánh số lớp mở ra và số học viên đăng ký theo từng khóa học trong cùng một khoảng xem.</p>
+                <p class="text-[11px] font-black uppercase tracking-[0.22em] text-teal-600"><?= e(t('admin.dashboard.course_popularity')); ?></p>
+                <h3 class="mt-1 text-xl font-black text-slate-900"><?= e(t('admin.dashboard.popular_courses_title')); ?></h3>
+                <p class="mt-1 text-sm text-slate-500"><?= e(t('admin.dashboard.popular_courses_copy')); ?></p>
             </div>
             <span class="inline-flex items-center rounded-full bg-teal-50 px-3 py-1 text-xs font-bold text-teal-700"><?= e((string) ($periods['course_popularity']['label'] ?? '')); ?></span>
         </div>
@@ -419,7 +419,7 @@ $heroCards = [
             data: {
                 labels: payload.revenue.labels || [],
                 datasets: [{
-                    label: 'Doanh thu',
+                    label: <?= json_encode(t('admin.dashboard.revenue'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
                     data: payload.revenue.values || [],
                     borderRadius: 12,
                     borderSkipped: false,
@@ -437,7 +437,7 @@ $heroCards = [
                     tooltip: {
                         callbacks: {
                             label(context) {
-                                return 'Doanh thu: ' + formatMoney(context.parsed.y);
+                                return <?= json_encode(t('admin.dashboard.revenue'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?> + ': ' + formatMoney(context.parsed.y);
                             },
                         },
                     },
@@ -498,7 +498,7 @@ $heroCards = [
                 labels: payload.growth.labels || [],
                 datasets: [
                     {
-                        label: 'Học viên mới',
+                        label: <?= json_encode(t('admin.dashboard.new_students'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
                         data: payload.growth.students || [],
                         borderColor: '#ec4899',
                         backgroundColor: 'rgba(236,72,153,0.18)',
@@ -509,7 +509,7 @@ $heroCards = [
                         fill: true,
                     },
                     {
-                        label: 'Giáo viên mới',
+                        label: <?= json_encode(t('admin.dashboard.new_teachers'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
                         data: payload.growth.teachers || [],
                         borderColor: '#f59e0b',
                         backgroundColor: 'rgba(245,158,11,0.12)',
@@ -546,7 +546,7 @@ $heroCards = [
             data: {
                 labels: payload.conversion.labels || [],
                 datasets: [{
-                    label: 'Tỷ lệ chuyển đổi (%)',
+                    label: <?= json_encode(t('admin.dashboard.conversion_rate_percent'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
                     data: payload.conversion.rates || [],
                     backgroundColor: ['#8b5cf6', '#06b6d4'],
                     borderRadius: 14,
@@ -563,7 +563,7 @@ $heroCards = [
                     tooltip: {
                         callbacks: {
                             label(context) {
-                                return 'Tỷ lệ: ' + Number(context.parsed.x || 0).toLocaleString('vi-VN') + '%';
+                                return <?= json_encode(t('admin.dashboard.rate'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?> + ': ' + Number(context.parsed.x || 0).toLocaleString('vi-VN') + '%';
                             },
                         },
                     },
@@ -611,7 +611,7 @@ $heroCards = [
                     tooltip: {
                         callbacks: {
                             label(context) {
-                                return context.label + ': ' + Number(context.raw || 0).toLocaleString('vi-VN') + ' lượt';
+                                return context.label + ': ' + Number(context.raw || 0).toLocaleString('vi-VN') + ' ' + <?= json_encode(t('admin.dashboard.turns'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
                             },
                         },
                     },
@@ -653,7 +653,7 @@ $heroCards = [
             data: {
                 labels: payload.population.labels || [],
                 datasets: [{
-                    label: 'Số lượng',
+                    label: <?= json_encode(t('admin.dashboard.quantity'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
                     data: payload.population.values || [],
                     backgroundColor: ['#ec4899', '#f59e0b', '#14b8a6', '#6366f1'],
                     borderRadius: 14,
@@ -679,7 +679,7 @@ $heroCards = [
             data: {
                 labels: payload.classSize.labels || [],
                 datasets: [{
-                    label: 'Số lớp',
+                    label: <?= json_encode(t('admin.dashboard.class_count'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
                     data: payload.classSize.values || [],
                     backgroundColor: ['#fb7185', '#f59e0b', '#22c55e', '#6366f1'],
                     borderRadius: 14,
@@ -695,7 +695,7 @@ $heroCards = [
                     tooltip: {
                         callbacks: {
                             label(context) {
-                                return 'Số lớp: ' + Number(context.raw || 0).toLocaleString('vi-VN');
+                                return <?= json_encode(t('admin.dashboard.class_count'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?> + ': ' + Number(context.raw || 0).toLocaleString('vi-VN');
                             },
                         },
                     },
@@ -713,14 +713,14 @@ $heroCards = [
                 labels: payload.coursePopularity.labels || [],
                 datasets: [
                     {
-                        label: 'Số lớp',
+                        label: <?= json_encode(t('admin.dashboard.class_count'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
                         data: payload.coursePopularity.classCounts || [],
                         backgroundColor: '#8b5cf6',
                         borderRadius: 12,
                         borderSkipped: false,
                     },
                     {
-                        label: 'Số học viên',
+                        label: <?= json_encode(t('admin.dashboard.student_count'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
                         data: payload.coursePopularity.enrollmentCounts || [],
                         backgroundColor: '#06b6d4',
                         borderRadius: 12,

@@ -78,11 +78,11 @@ if (!$editingPayment && $prefillTuitionId > 0 && isset($tuitionMeta[$prefillTuit
 }
 
 $paymentMethodOptions = [
-    'bank_transfer' => 'Chuyển khoản', // Đổi chữ hiển thị
-    'cash'          => 'Tiền mặt',               // Đổi chữ hiển thị
-    'ewallet'       => 'Ví điện tử',
-    'card'          => 'Thẻ tín dụng',
-    'other'         => 'Phương thức khác',
+    'bank_transfer' => t('admin.payments.method_bank_transfer'),
+    'cash'          => t('admin.payments.method_cash'),
+    'ewallet'       => t('admin.payments.method_ewallet'),
+    'card'          => t('admin.payments.method_card'),
+    'other'         => t('admin.payments.method_other'),
 ];
 $selectedPaymentMethod = (string) ($editingPayment['payment_method'] ?? 'bank_transfer');
 if ($selectedPaymentMethod !== '' && !isset($paymentMethodOptions[$selectedPaymentMethod])) {
@@ -90,7 +90,7 @@ if ($selectedPaymentMethod !== '' && !isset($paymentMethodOptions[$selectedPayme
 }
 
 $module = 'payments';
-$adminTitle = 'Giao dịch thanh toán';
+$adminTitle = t('admin.payments.title');
 
 $canCreatePayment = has_permission('finance.payments.create');
 $canUpdatePayment = has_permission('finance.payments.update');
@@ -110,14 +110,14 @@ $error = get_flash('error');
 
     <?php if ($canCreatePayment || ($canUpdatePayment && $editingPayment)): ?>
         <article id="payment-create-section" class="order-2 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <h3><?= $editingPayment ? 'Sửa giao dịch thanh toán' : 'Tạo giao dịch thanh toán'; ?></h3>
+            <h3><?= e($editingPayment ? t('admin.payments.edit') : t('admin.payments.add')); ?></h3>
             <form class="grid gap-3 md:grid-cols-2" method="post" action="/api/payments/save">
                 <?= csrf_input(); ?>
                 <input type="hidden" name="id" value="<?= (int) ($editingPayment['id'] ?? 0); ?>">
                 <label>
-                    Hóa đơn học phí
+                    <?= e(t('admin.payments.invoice')); ?>
                     <select id="payment-tuition-select" name="tuition_fee_id" required>
-                        <option value="">-- Chọn hóa đơn --</option>
+                        <option value=""><?= e(t('admin.payments.choose_invoice')); ?></option>
                         <?php foreach ($tuitionOptions as $fee): ?>
                             <?php
                             $feeId = (int) ($fee['id'] ?? 0);
@@ -137,24 +137,24 @@ $error = get_flash('error');
                     </select>
                 </label>
                 <div class="md:col-span-2 rounded-xl border border-slate-200 bg-slate-50 p-4" id="payment-invoice-preview">
-                    <h4 class="text-xs font-extrabold uppercase tracking-wide text-slate-600">Thông tin học phí</h4>
+                    <h4 class="text-xs font-extrabold uppercase tracking-wide text-slate-600"><?= e(t('admin.payments.invoice_info')); ?></h4>
                     <div class="mt-3 grid gap-2 sm:grid-cols-3">
                         <div class="rounded-lg border border-slate-200 bg-white p-3">
-                            <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Tổng cần thu</p>
-                            <p id="payment-total-amount" class="mt-1 text-base font-extrabold text-slate-800">0 đ</p>
+                            <p class="text-xs font-semibold uppercase tracking-wide text-slate-500"><?= e(t('admin.payments.total_due')); ?></p>
+                            <p id="payment-total-amount" class="mt-1 text-base font-extrabold text-slate-800"><?= e('0 ' . t('admin.common.currency_suffix')); ?></p>
                         </div>
                         <div class="rounded-lg border border-slate-200 bg-white p-3">
-                            <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Đã thu</p>
-                            <p id="payment-amount-paid" class="mt-1 text-base font-extrabold text-emerald-700">0 đ</p>
+                            <p class="text-xs font-semibold uppercase tracking-wide text-slate-500"><?= e(t('admin.payments.amount_paid')); ?></p>
+                            <p id="payment-amount-paid" class="mt-1 text-base font-extrabold text-emerald-700"><?= e('0 ' . t('admin.common.currency_suffix')); ?></p>
                         </div>
                         <div class="rounded-lg border border-slate-200 bg-white p-3">
-                            <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Còn nợ</p>
-                            <p id="payment-amount-remaining" class="mt-1 text-base font-extrabold text-rose-700">0 đ</p>
+                            <p class="text-xs font-semibold uppercase tracking-wide text-slate-500"><?= e(t('admin.payments.remaining')); ?></p>
+                            <p id="payment-amount-remaining" class="mt-1 text-base font-extrabold text-rose-700"><?= e('0 ' . t('admin.common.currency_suffix')); ?></p>
                         </div>
                     </div>
                 </div>
                 <label>
-                    Phương thức
+                    <?= e(t('admin.payments.method')); ?>
                     <select name="payment_method" required>
                         <?php foreach ($paymentMethodOptions as $value => $label): ?>
                             <option value="<?= e((string) $value); ?>" <?= $selectedPaymentMethod === (string) $value ? 'selected' : ''; ?>><?= e((string) $label); ?></option>
@@ -162,7 +162,7 @@ $error = get_flash('error');
                     </select>
                 </label>
                 <label>
-                    Số tiền
+                    <?= e(t('admin.payments.amount')); ?>
                     <input
                         type="number"
                         step="1000"
@@ -175,7 +175,7 @@ $error = get_flash('error');
                     >
                 </label>
                 <label>
-                    Trạng thái
+                    <?= e(t('admin.payments.status')); ?>
                     <select name="transaction_status">
                         <option value="pending" <?= (($editingPayment['transaction_status'] ?? 'pending') === 'pending') ? 'selected' : ''; ?>>pending</option>
                         <option value="success" <?= (($editingPayment['transaction_status'] ?? '') === 'success') ? 'selected' : ''; ?>>success</option>
@@ -183,9 +183,9 @@ $error = get_flash('error');
                     </select>
                 </label>
                 <div class="md:col-span-2 inline-flex flex-wrap items-center gap-2">
-                    <button class="<?= ui_btn_primary_classes(); ?>" type="submit"><?= $editingPayment ? 'Cập nhật giao dịch' : 'Tạo giao dịch'; ?></button>
+                    <button class="<?= ui_btn_primary_classes(); ?>" type="submit"><?= e($editingPayment ? t('admin.payments.update') : t('admin.payments.create')); ?></button>
                     <?php if ($editingPayment): ?>
-                        <a class="<?= ui_btn_secondary_classes(); ?>" href="<?= e(page_url('payments-finance', ['payments_page' => $paymentsPage, 'payments_per_page' => $paymentsPerPage, 'search' => $searchQuery, 'transaction_status' => $transactionStatusFilter, 'payment_method' => $paymentMethodFilter])); ?>">Hủy chỉnh sửa</a>
+                        <a class="<?= ui_btn_secondary_classes(); ?>" href="<?= e(page_url('payments-finance', ['payments_page' => $paymentsPage, 'payments_per_page' => $paymentsPerPage, 'search' => $searchQuery, 'transaction_status' => $transactionStatusFilter, 'payment_method' => $paymentMethodFilter])); ?>"><?= e(t('admin.common.cancel')); ?></a>
                     <?php endif; ?>
                 </div>
             </form>
@@ -200,7 +200,7 @@ $error = get_flash('error');
         data-ajax-page-param="payments_page"
         data-ajax-search-param="search"
     >
-        <h3>Danh sách giao dịch</h3>
+        <h3><?= e(t('admin.payments.list')); ?></h3>
         <div class="mb-3 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div class="flex flex-1 flex-col gap-3 md:flex-row md:items-center">
                 <label class="relative block w-full md:max-w-sm">
@@ -214,18 +214,18 @@ $error = get_flash('error');
                         type="search"
                         value="<?= e($searchQuery); ?>"
                         data-ajax-search="1"
-                        placeholder="Tìm mã GD, học viên, khóa học..."
+                        placeholder="<?= e(t('admin.payments.search_placeholder')); ?>"
                         class="h-10 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-3 text-sm text-slate-700 shadow-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
                     >
                 </label>
                 <select name="transaction_status" data-ajax-filter="1" class="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 shadow-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100">
-                    <option value="">Tất cả trạng thái</option>
-                    <option value="pending" <?= $transactionStatusFilter === 'pending' ? 'selected' : ''; ?>>Đang chờ</option>
-                    <option value="success" <?= $transactionStatusFilter === 'success' ? 'selected' : ''; ?>>Thành công</option>
-                    <option value="failed" <?= $transactionStatusFilter === 'failed' ? 'selected' : ''; ?>>Thất bại</option>
+                    <option value=""><?= e(t('admin.payments.status_all')); ?></option>
+                    <option value="pending" <?= $transactionStatusFilter === 'pending' ? 'selected' : ''; ?>><?= e(t('admin.payments.status_pending')); ?></option>
+                    <option value="success" <?= $transactionStatusFilter === 'success' ? 'selected' : ''; ?>><?= e(t('admin.payments.status_success')); ?></option>
+                    <option value="failed" <?= $transactionStatusFilter === 'failed' ? 'selected' : ''; ?>><?= e(t('admin.payments.status_failed')); ?></option>
                 </select>
                 <select name="payment_method" data-ajax-filter="1" class="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 shadow-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100">
-                    <option value="">Tất cả phương thức</option>
+                    <option value=""><?= e(t('admin.payments.method_all')); ?></option>
                     <?php foreach ($paymentMethodOptions as $value => $label): ?>
                         <option value="<?= e((string) $value); ?>" <?= $paymentMethodFilter === (string) $value ? 'selected' : ''; ?>><?= e((string) $label); ?></option>
                     <?php endforeach; ?>
@@ -236,28 +236,28 @@ $error = get_flash('error');
             <table class="min-w-full border-collapse text-sm" data-disable-global-filter="1">
                 <thead>
                     <tr>
-                        <th>Mã HV</th>
-                        <th>Học viên</th>
-                        <th>Khóa học</th>
-                        <th>Số tiền</th>
-                        <th>Phương thức</th>
-                        <th>Trạng thái</th>
-                        <th>Ngày giao dịch</th>
-                        <th>Hành động</th>
+                        <th><?= e(t('admin.payments.table_student_code')); ?></th>
+                        <th><?= e(t('admin.payments.table_student')); ?></th>
+                        <th><?= e(t('admin.payments.table_course')); ?></th>
+                        <th><?= e(t('admin.payments.table_amount')); ?></th>
+                        <th><?= e(t('admin.payments.table_method')); ?></th>
+                        <th><?= e(t('admin.payments.table_status')); ?></th>
+                        <th><?= e(t('admin.payments.table_date')); ?></th>
+                        <th><?= e(t('admin.common.actions')); ?></th>
                     </tr>
                 </thead>
                 <tbody data-ajax-tbody="1">
                     <?php if (empty($transactions)): ?>
                         <tr>
                             <td colspan="8">
-                                <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">Chưa có giao dịch nào.</div>
+                                <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500"><?= e(t('admin.payments.empty')); ?></div>
                             </td>
                         </tr>
                     <?php else: ?>
                         <?php foreach ($transactions as $txn): ?>
                             <tr>
                                 <td><?= e((string) ($txn['student_code'] ?? '-')); ?></td>
-                                <td><?= e((string) ($txn['full_name'] ?? 'Học viên')); ?></td>
+                                <td><?= e((string) ($txn['full_name'] ?? t('admin.payments.student_fallback'))); ?></td>
                                 <td><?= e((string) $txn['course_name']); ?></td>
                                 <td><?= format_money((float) $txn['amount']); ?></td>
                                 <td><span class="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-bold capitalize text-blue-700 whitespace-nowrap"><?= e((string) ($paymentMethodOptions[$txn['method']] ?? $txn['method'])); ?></span></td>
@@ -273,10 +273,10 @@ $error = get_flash('error');
                                                 data-admin-row-detail="1"
                                                 data-detail-url="<?= e(page_url('payments-finance', ['edit' => (int) $txn['id'], 'payments_page' => $paymentsPage, 'payments_per_page' => $paymentsPerPage, 'search' => $searchQuery, 'transaction_status' => $transactionStatusFilter, 'payment_method' => $paymentMethodFilter])); ?>"
                                                 data-skip-action-icon="1"
-                                                title="Xem chi tiết"
-                                                aria-label="Xem chi tiết"
+                                                title="<?= e(t('admin.common.view_detail')); ?>"
+                                                aria-label="<?= e(t('admin.common.view_detail')); ?>"
                                             >
-                                                <span class="admin-action-icon-label">Xem chi tiết</span>
+                                                <span class="admin-action-icon-label"><?= e(t('admin.common.view_detail')); ?></span>
                                                 <span class="admin-action-icon-glyph" aria-hidden="true">
                                                     <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12z"></path></svg>
                                                 </span>
@@ -288,10 +288,10 @@ $error = get_flash('error');
                                                 class="admin-action-icon-btn"
                                                 data-action-kind="edit"
                                                 data-skip-action-icon="1"
-                                                title="Sửa"
-                                                aria-label="Sửa"
+                                                title="<?= e(t('admin.common.edit')); ?>"
+                                                aria-label="<?= e(t('admin.common.edit')); ?>"
                                             >
-                                                <span class="admin-action-icon-label">Sửa</span>
+                                                <span class="admin-action-icon-label"><?= e(t('admin.common.edit')); ?></span>
                                                 <span class="admin-action-icon-glyph" aria-hidden="true">
                                                     <svg viewBox="0 0 24 24" aria-hidden="true">
                                                         <path d="M12 20h9"></path>
@@ -301,7 +301,7 @@ $error = get_flash('error');
                                             </a>
                                         <?php endif; ?>
                                         <?php if ($canDeletePayment): ?>
-                                            <form method="post" action="/api/payments/delete" onsubmit="return confirm('Bạn chắc chắn muốn xóa giao dịch này?');">
+                                            <form method="post" action="/api/payments/delete" onsubmit="return confirm('<?= e(t('admin.payments.delete_confirm')); ?>');">
                                                 <?= csrf_input(); ?>
                                                 <input type="hidden" name="id" value="<?= (int) $txn['id']; ?>">
                                                 <button
@@ -309,10 +309,10 @@ $error = get_flash('error');
                                                     data-action-kind="delete"
                                                     data-skip-action-icon="1"
                                                     type="submit"
-                                                    title="Xóa"
-                                                    aria-label="Xóa"
+                                                    title="<?= e(t('admin.common.delete')); ?>"
+                                                    aria-label="<?= e(t('admin.common.delete')); ?>"
                                                 >
-                                                    <span class="admin-action-icon-label">Xóa</span>
+                                                    <span class="admin-action-icon-label"><?= e(t('admin.common.delete')); ?></span>
                                                     <span class="admin-action-icon-glyph" aria-hidden="true">
                                                         <svg viewBox="0 0 24 24" aria-hidden="true">
                                                             <path d="M3 6h18"></path>
@@ -335,14 +335,14 @@ $error = get_flash('error');
             <?php if ($paymentsTotal > 0): ?>
                 <div class="border-t border-slate-200 bg-slate-50/80 px-3 py-2" data-ajax-pagination="1">
                     <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600">
-                        <span class="min-w-0 flex-1 font-medium" data-ajax-row-info="1">Trang <?= (int) $paymentsPage; ?>/<?= (int) $paymentsTotalPages; ?> - Tổng <?= (int) $paymentsTotal; ?> giao dịch</span>
+                        <span class="min-w-0 flex-1 font-medium" data-ajax-row-info="1"><?= e(t('admin.payments.page_info', ['current' => (int) $paymentsPage, 'total' => (int) $paymentsTotalPages, 'count' => (int) $paymentsTotal])); ?></span>
                         <div class="ml-auto inline-flex items-center gap-1.5">
                             <form class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2 py-1" method="get" action="<?= e(page_url('payments-finance')); ?>">
                                 <input type="hidden" name="page" value="payments-finance">
                                 <input type="hidden" name="search" value="<?= e($searchQuery); ?>">
                                 <input type="hidden" name="transaction_status" value="<?= e($transactionStatusFilter); ?>">
                                 <input type="hidden" name="payment_method" value="<?= e($paymentMethodFilter); ?>">
-                                <label class="text-[11px] font-semibold text-slate-500" for="payments-per-page">Số dòng</label>
+                                <label class="text-[11px] font-semibold text-slate-500" for="payments-per-page"><?= e(t('admin.common.rows')); ?></label>
                                 <select id="payments-per-page" name="payments_per_page" data-ajax-per-page="1" class="h-7 rounded-md border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700">
                                     <?php foreach ($paymentsPerPageOptions as $option): ?>
                                         <option value="<?= (int) $option; ?>" <?= $paymentsPerPage === (int) $option ? 'selected' : ''; ?>><?= (int) $option; ?></option>
@@ -350,15 +350,15 @@ $error = get_flash('error');
                                 </select>
                             </form>
                             <?php if ($paymentsPage > 1): ?>
-                                <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('payments-finance', ['payments_page' => $paymentsPage - 1, 'payments_per_page' => $paymentsPerPage, 'search' => $searchQuery, 'transaction_status' => $transactionStatusFilter, 'payment_method' => $paymentMethodFilter])); ?>">Trước</a>
+                                <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('payments-finance', ['payments_page' => $paymentsPage - 1, 'payments_per_page' => $paymentsPerPage, 'search' => $searchQuery, 'transaction_status' => $transactionStatusFilter, 'payment_method' => $paymentMethodFilter])); ?>"><?= e(t('admin.common.previous')); ?></a>
                             <?php else: ?>
-                                <span class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 text-xs font-semibold text-slate-400">Trước</span>
+                                <span class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 text-xs font-semibold text-slate-400"><?= e(t('admin.common.previous')); ?></span>
                             <?php endif; ?>
 
                             <?php if ($paymentsPage < $paymentsTotalPages): ?>
-                                <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('payments-finance', ['payments_page' => $paymentsPage + 1, 'payments_per_page' => $paymentsPerPage, 'search' => $searchQuery, 'transaction_status' => $transactionStatusFilter, 'payment_method' => $paymentMethodFilter])); ?>">Sau</a>
+                                <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('payments-finance', ['payments_page' => $paymentsPage + 1, 'payments_per_page' => $paymentsPerPage, 'search' => $searchQuery, 'transaction_status' => $transactionStatusFilter, 'payment_method' => $paymentMethodFilter])); ?>"><?= e(t('admin.common.next')); ?></a>
                             <?php else: ?>
-                                <span class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 text-xs font-semibold text-slate-400">Sau</span>
+                                <span class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 text-xs font-semibold text-slate-400"><?= e(t('admin.common.next')); ?></span>
                             <?php endif; ?>
                         </div>
                     </div>
@@ -377,12 +377,15 @@ $error = get_flash('error');
             const remainingEl = document.getElementById('payment-amount-remaining');
             const amountInput = document.getElementById('payment-amount-input');
             const section = document.getElementById('payment-create-section');
+            const moneyLocale = <?= json_encode(current_locale() === 'en' ? 'en-US' : 'vi-VN'); ?>;
+            const moneySuffix = <?= json_encode(t('admin.common.currency_suffix'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
 
             if (!tuitionSelect || !totalAmountEl) return;
 
             function formatMoney(value) {
                 const amount = Number.isFinite(value) ? value : 0;
-                return new Intl.NumberFormat('vi-VN').format(Math.max(0, Math.round(amount))) + ' đ';
+                const formatted = new Intl.NumberFormat(moneyLocale).format(Math.max(0, Math.round(amount)));
+                return moneySuffix ? formatted + ' ' + moneySuffix : formatted;
             }
 
             function updateInvoicePreview() {
@@ -397,9 +400,10 @@ $error = get_flash('error');
                     }
                 }
                 if (!selectedOption || !selectedOption.value) {
-                    totalAmountEl.textContent = '0 đ';
-                    amountPaidEl.textContent = '0 đ';
-                    remainingEl.textContent = '0 đ';
+                    const emptyMoney = formatMoney(0);
+                    totalAmountEl.textContent = emptyMoney;
+                    amountPaidEl.textContent = emptyMoney;
+                    remainingEl.textContent = emptyMoney;
                     return;
                 }
 

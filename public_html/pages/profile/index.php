@@ -34,14 +34,14 @@ $studentCurrentGrade = trim((string) (($profileUser['role_profile']['student_cur
 $teacherCertificates = is_array($profileUser['role_profile']['teacher_certificates'] ?? null) ? $profileUser['role_profile']['teacher_certificates'] : [];
 $teacherCertificatesCount = count($teacherCertificates);
 $profileCode = $role === 'student' ? $studentCode : ($role === 'teacher' ? $teacherCode : '');
-$profileCodeLabel = $role === 'student' ? 'Mã học viên' : ($role === 'teacher' ? 'Mã giáo viên' : '');
+$profileCodeLabel = $role === 'student' ? t('profile.student_code') : ($role === 'teacher' ? t('profile.teacher_code') : '');
 $studentSubjectCount = (int) ($studentProgress['subject_count'] ?? 0);
 $studentAttendancePercent = (int) ($studentProgress['attendance_percent'] ?? 0);
 $studentProgressPercent = (int) ($studentProgress['progress_percent'] ?? 0);
 $studentCompletedLessons = (int) ($studentProgress['completed_lessons'] ?? 0);
 $studentTotalLessons = (int) ($studentProgress['total_lessons'] ?? 0);
 $studentProgramScore = trim((string) (($profileUser['role_profile']['student_target_score'] ?? '') ?: ($profileUser['student_target_score'] ?? '')));
-$studentProgramScoreLabel = $studentProgramScore !== '' ? $studentProgramScore : 'Chưa cập nhật';
+$studentProgramScoreLabel = $studentProgramScore !== '' ? $studentProgramScore : t('profile.not_updated');
 $teacherIntroVideoUrl = trim((string) ($profileUser['role_profile']['teacher_intro_video_url'] ?? ''));
 if ($teacherIntroVideoUrl === '' && isset($profileUser['teacher_intro_video_url'])) {
     $teacherIntroVideoUrl = trim((string) $profileUser['teacher_intro_video_url']);
@@ -55,9 +55,9 @@ $isStudent = $role === 'student';
 $teacherVideoMaxBytes = 64 * 1024 * 1024;
 
 $roleDisplay = match($role) {
-    'teacher' => 'Giảng viên',
-    'admin' => 'Quản trị viên',
-    default => 'Học viên',
+    'teacher' => t('profile.role_teacher'),
+    'admin' => t('profile.role_admin'),
+    default => t('profile.role_student'),
 };
 
 $avatarUrl = trim((string) ($profileUser['avatar'] ?? ''));
@@ -96,7 +96,7 @@ $error = get_flash('error');
 
     <div class="relative z-10 pt-6 px-4 sm:px-8 max-w-7xl mx-auto flex justify-end">
         <a class="group inline-flex items-center gap-2 rounded-full bg-white/70 backdrop-blur-md border border-white px-5 py-2.5 text-sm font-bold text-slate-600 shadow-sm transition-all hover:bg-white hover:text-rose-600 hover:shadow-md" href="/">
-            <i class="fa-solid fa-arrow-left transition-transform group-hover:-translate-x-1"></i> Quay lại
+            <i class="fa-solid fa-arrow-left transition-transform group-hover:-translate-x-1"></i> <?= e(t('profile.back')); ?>
         </a>
     </div>
 
@@ -126,7 +126,7 @@ $error = get_flash('error');
                     
                     <?php if($status === 'active'): ?>
                         <div class="absolute top-5 right-5 flex items-center gap-2 bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-full text-xs font-black uppercase tracking-widest border border-emerald-200">
-                            <span class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)] animate-pulse"></span> Hoạt động
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)] animate-pulse"></span> <?= e(t('profile.active')); ?>
                         </div>
                     <?php endif; ?>
 
@@ -135,7 +135,7 @@ $error = get_flash('error');
                         <div class="relative h-full w-full rounded-full border-[5px] border-white shadow-xl overflow-hidden bg-slate-100">
                             <img id="sidebarAvatar" src="<?= e($avatarUrl) ?>" alt="Avatar" class="h-full w-full object-cover" />
                         </div>
-                        <button onclick="openAvatarModal()" class="absolute bottom-1 right-1 w-10 h-10 bg-white rounded-full flex items-center justify-center text-slate-600 shadow-lg border border-slate-100 hover:text-emerald-600 hover:scale-110 transition-all z-10" title="Đổi ảnh đại diện">
+                        <button onclick="openAvatarModal()" class="absolute bottom-1 right-1 w-10 h-10 bg-white rounded-full flex items-center justify-center text-slate-600 shadow-lg border border-slate-100 hover:text-emerald-600 hover:scale-110 transition-all z-10" title="<?= e(t('profile.change_avatar')); ?>">
                             <i class="fa-solid fa-camera text-sm"></i>
                         </button>
                     </div>
@@ -155,7 +155,7 @@ $error = get_flash('error');
                                     <i class="fa-solid fa-id-badge text-lg"></i>
                                 </div>
                                 <div class="flex-1 min-w-0">
-                                    <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1"><?= e($profileCodeLabel !== '' ? $profileCodeLabel : 'Mã tài khoản') ?></p>
+                                    <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1"><?= e($profileCodeLabel !== '' ? $profileCodeLabel : t('profile.account_code')) ?></p>
                                     <span class="font-bold text-slate-700 truncate block text-sm"><?= e($profileCode !== '' ? $profileCode : ('#' . (string) ($profileUser['id'] ?? $authUser['id'] ?? '---'))) ?></span>
                                 </div>
                             </div>
@@ -166,8 +166,8 @@ $error = get_flash('error');
                                         <i class="fa-solid fa-people-roof text-lg"></i>
                                     </div>
                                     <div class="flex-1 min-w-0">
-                                        <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1">Tên cha</p>
-                                        <span class="font-bold text-slate-700 truncate block text-sm"><?= e($studentFatherName !== '' ? $studentFatherName : 'Chưa cập nhật') ?></span>
+                                        <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1"><?= e(t('profile.father_name')); ?></p>
+                                        <span class="font-bold text-slate-700 truncate block text-sm"><?= e($studentFatherName !== '' ? $studentFatherName : t('profile.not_updated')) ?></span>
                                     </div>
                                 </div>
 
@@ -176,8 +176,8 @@ $error = get_flash('error');
                                         <i class="fa-solid fa-phone text-lg"></i>
                                     </div>
                                     <div class="flex-1 min-w-0">
-                                        <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1">SĐT cha</p>
-                                        <span class="font-bold text-slate-700 truncate block text-sm"><?= e($studentFatherPhone !== '' ? $studentFatherPhone : 'Chưa cập nhật') ?></span>
+                                        <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1"><?= e(t('profile.father_phone')); ?></p>
+                                        <span class="font-bold text-slate-700 truncate block text-sm"><?= e($studentFatherPhone !== '' ? $studentFatherPhone : t('profile.not_updated')) ?></span>
                                     </div>
                                 </div>
 
@@ -186,8 +186,8 @@ $error = get_flash('error');
                                         <i class="fa-solid fa-user-group text-lg"></i>
                                     </div>
                                     <div class="flex-1 min-w-0">
-                                        <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1">Tên mẹ</p>
-                                        <span class="font-bold text-slate-700 truncate block text-sm"><?= e($studentMotherName !== '' ? $studentMotherName : 'Chưa cập nhật') ?></span>
+                                        <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1"><?= e(t('profile.mother_name')); ?></p>
+                                        <span class="font-bold text-slate-700 truncate block text-sm"><?= e($studentMotherName !== '' ? $studentMotherName : t('profile.not_updated')) ?></span>
                                     </div>
                                 </div>
 
@@ -196,8 +196,8 @@ $error = get_flash('error');
                                         <i class="fa-solid fa-mobile-screen-button text-lg"></i>
                                     </div>
                                     <div class="flex-1 min-w-0">
-                                        <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1">SĐT mẹ</p>
-                                        <span class="font-bold text-slate-700 truncate block text-sm"><?= e($studentMotherPhone !== '' ? $studentMotherPhone : 'Chưa cập nhật') ?></span>
+                                        <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1"><?= e(t('profile.mother_phone')); ?></p>
+                                        <span class="font-bold text-slate-700 truncate block text-sm"><?= e($studentMotherPhone !== '' ? $studentMotherPhone : t('profile.not_updated')) ?></span>
                                     </div>
                                 </div>
 
@@ -206,8 +206,8 @@ $error = get_flash('error');
                                         <i class="fa-solid fa-school text-lg"></i>
                                     </div>
                                     <div class="flex-1 min-w-0">
-                                        <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1">Trường học</p>
-                                        <span class="font-bold text-slate-700 truncate block text-sm"><?= e($studentSchoolName !== '' ? $studentSchoolName : 'Chưa cập nhật') ?></span>
+                                        <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1"><?= e(t('profile.school')); ?></p>
+                                        <span class="font-bold text-slate-700 truncate block text-sm"><?= e($studentSchoolName !== '' ? $studentSchoolName : t('profile.not_updated')) ?></span>
                                     </div>
                                 </div>
 
@@ -216,8 +216,8 @@ $error = get_flash('error');
                                         <i class="fa-solid fa-layer-group text-lg"></i>
                                     </div>
                                     <div class="flex-1 min-w-0">
-                                        <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1">Khối lớp</p>
-                                        <span class="font-bold text-slate-700 truncate block text-sm"><?= e($studentCurrentGrade !== '' ? $studentCurrentGrade : 'Chưa cập nhật') ?></span>
+                                        <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1"><?= e(t('profile.grade')); ?></p>
+                                        <span class="font-bold text-slate-700 truncate block text-sm"><?= e($studentCurrentGrade !== '' ? $studentCurrentGrade : t('profile.not_updated')) ?></span>
                                     </div>
                                 </div>
                             <?php endif; ?>
@@ -228,8 +228,8 @@ $error = get_flash('error');
                                         <i class="fa-solid fa-certificate text-lg"></i>
                                     </div>
                                     <div class="flex-1 min-w-0">
-                                        <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1">Chứng chỉ</p>
-                                        <span class="font-bold text-slate-700 truncate block text-sm"><?= e((string) $teacherCertificatesCount) ?> chứng chỉ</span>
+                                        <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1"><?= e(t('profile.certificates')); ?></p>
+                                        <span class="font-bold text-slate-700 truncate block text-sm"><?= e(t('profile.certificate_count', ['count' => (string) $teacherCertificatesCount])); ?></span>
                                     </div>
                                 </div>
                             <?php endif; ?>
@@ -249,14 +249,14 @@ $error = get_flash('error');
                         <div class="flex items-center gap-4 text-sm font-medium text-slate-600 group">
                             <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-slate-100/60 text-slate-500 group-hover:bg-emerald-50 group-hover:text-emerald-600 transition-all shadow-sm"><i class="fa-solid fa-phone text-lg"></i></div>
                             <div class="flex-1 min-w-0">
-                                <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1">Điện thoại</p>
+                                <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1"><?= e(t('profile.phone')); ?></p>
                                 <span class="font-bold text-slate-700 truncate block text-sm"><?= e($phone) ?></span>
                             </div>
                         </div>
                         <div class="flex items-center gap-4 text-sm font-medium text-slate-600 group">
                             <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-slate-100/60 text-slate-500 group-hover:bg-emerald-50 group-hover:text-emerald-600 transition-all shadow-sm"><i class="fa-solid fa-calendar-check text-lg"></i></div>
                             <div class="flex-1 min-w-0">
-                                <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1">Ngày tham gia</p>
+                                <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1"><?= e(t('profile.join_date')); ?></p>
                                 <span class="font-bold text-slate-700 truncate block text-sm"><?= e($createdAt) ?></span>
                             </div>
                         </div>
@@ -269,10 +269,10 @@ $error = get_flash('error');
                 <?php if (!$isTeacher): ?>
                 <div class="bg-white/80 backdrop-blur-md p-2 rounded-2xl flex flex-wrap gap-2 w-full md:w-max shadow-sm border border-slate-200/60">
                     <button onclick="switchTab('overview')" id="tab-overview" class="nav-tab active flex-1 md:flex-none px-6 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-chart-pie"></i> Tổng quan
+                        <i class="fa-solid fa-chart-pie"></i> <?= e(t('profile.overview')); ?>
                     </button>
                     <button onclick="switchTab('settings')" id="tab-settings" class="nav-tab inactive flex-1 md:flex-none px-6 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-user-pen"></i> Cập nhật hồ sơ
+                        <i class="fa-solid fa-user-pen"></i> <?= e(t('profile.update_profile')); ?>
                     </button>
                 </div>
 
@@ -284,8 +284,8 @@ $error = get_flash('error');
                                     <i class="fa-solid fa-layer-group text-base"></i>
                                 </div>
                                 <div>
-                                    <h3 class="text-xl font-black text-slate-800">Lối tắt học viên</h3>
-                                    <p class="text-xs font-medium text-slate-500 mt-1">Đi nhanh tới các khu vực bạn dùng thường xuyên.</p>
+                                    <h3 class="text-xl font-black text-slate-800"><?= e(t('profile.student_shortcuts')); ?></h3>
+                                    <p class="text-xs font-medium text-slate-500 mt-1"><?= e(t('profile.student_shortcuts_copy')); ?></p>
                                 </div>
                             </div>
 
@@ -294,24 +294,24 @@ $error = get_flash('error');
                                     <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-lg shadow-blue-600/20 transition-transform group-hover:scale-110">
                                         <i class="fa-solid fa-calendar-days text-sm"></i>
                                     </div>
-                                    <p class="text-[10px] font-black uppercase tracking-widest text-blue-500">Thêm thời khoá biểu</p>
-                                    <h4 class="mt-1.5 text-sm font-black text-slate-800 group-hover:text-blue-700">Thời khoá biểu</h4>
+                                    <p class="text-[10px] font-black uppercase tracking-widest text-blue-500"><?= e(t('profile.add_schedule')); ?></p>
+                                    <h4 class="mt-1.5 text-sm font-black text-slate-800 group-hover:text-blue-700"><?= e(t('profile.schedule')); ?></h4>
                                 </a>
 
                                 <a href="<?= e(page_url('classes-my')); ?>" class="group rounded-[1.25rem] border border-slate-200/70 bg-slate-50 p-4 text-left transition-all hover:-translate-y-1 hover:border-emerald-300 hover:bg-emerald-50 hover:shadow-md">
                                     <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-600 text-white shadow-lg shadow-emerald-600/20 transition-transform group-hover:scale-110">
                                         <i class="fa-solid fa-book-open text-sm"></i>
                                     </div>
-                                    <p class="text-[10px] font-black uppercase tracking-widest text-emerald-500">Lớp học của tôi</p>
-                                    <h4 class="mt-1.5 text-sm font-black text-slate-800 group-hover:text-emerald-700">Mở danh sách lớp</h4>
+                                    <p class="text-[10px] font-black uppercase tracking-widest text-emerald-500"><?= e(t('profile.my_classes')); ?></p>
+                                    <h4 class="mt-1.5 text-sm font-black text-slate-800 group-hover:text-emerald-700"><?= e(t('profile.open_class_list')); ?></h4>
                                 </a>
 
                                 <a href="<?= e(page_url('activities-student')); ?>" class="group rounded-[1.25rem] border border-slate-200/70 bg-slate-50 p-4 text-left transition-all hover:-translate-y-1 hover:border-rose-300 hover:bg-rose-50 hover:shadow-md">
                                     <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-rose-600 text-white shadow-lg shadow-rose-600/20 transition-transform group-hover:scale-110">
                                         <i class="fa-solid fa-people-group text-sm"></i>
                                     </div>
-                                    <p class="text-[10px] font-black uppercase tracking-widest text-rose-500">Ngoại khoá</p>
-                                    <h4 class="mt-1.5 text-sm font-black text-slate-800 group-hover:text-rose-700">Xem hoạt động</h4>
+                                    <p class="text-[10px] font-black uppercase tracking-widest text-rose-500"><?= e(t('profile.extracurricular')); ?></p>
+                                    <h4 class="mt-1.5 text-sm font-black text-slate-800 group-hover:text-rose-700"><?= e(t('profile.view_activities')); ?></h4>
                                 </a>
                             </div>
                         </article>
@@ -320,22 +320,22 @@ $error = get_flash('error');
                             <div class="rounded-[1.5rem] border border-slate-200/60 bg-white p-6 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all text-center group">
                                 <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-50 text-rose-500 mb-4 group-hover:scale-110 transition-transform"><i class="fa-solid fa-book-open text-xl"></i></div>
                                 <p class="text-3xl font-black text-slate-800"><?= (int) $studentSubjectCount; ?></p>
-                                <p class="text-xs font-black uppercase tracking-widest text-slate-400 mt-1">Môn học</p>
+                                <p class="text-xs font-black uppercase tracking-widest text-slate-400 mt-1"><?= e(t('profile.subjects')); ?></p>
                             </div>
                             <div class="rounded-[1.5rem] border border-slate-200/60 bg-white p-6 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all text-center group">
                                 <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-500 mb-4 group-hover:scale-110 transition-transform"><i class="fa-solid fa-check-double text-xl"></i></div>
                                 <p class="text-3xl font-black text-slate-800"><?= (int) $studentAttendancePercent; ?>%</p>
-                                <p class="text-xs font-black uppercase tracking-widest text-slate-400 mt-1">Chuyên cần</p>
+                                <p class="text-xs font-black uppercase tracking-widest text-slate-400 mt-1"><?= e(t('profile.attendance')); ?></p>
                             </div>
                             <div class="rounded-[1.5rem] border border-slate-200/60 bg-white p-6 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all text-center group">
                                 <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-50 text-amber-500 mb-4 group-hover:scale-110 transition-transform"><i class="fa-solid fa-star text-xl"></i></div>
                                 <p class="text-xl font-black text-slate-800 leading-tight flex items-center justify-center h-9"><?= e($studentProgramScoreLabel); ?></p>
-                                <p class="text-xs font-black uppercase tracking-widest text-slate-400 mt-1">Mục tiêu</p>
+                                <p class="text-xs font-black uppercase tracking-widest text-slate-400 mt-1"><?= e(t('profile.target')); ?></p>
                             </div>
                             <div class="rounded-[1.5rem] border border-slate-200/60 bg-white p-6 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all text-center group">
                                 <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-sky-50 text-sky-500 mb-4 group-hover:scale-110 transition-transform"><i class="fa-solid fa-award text-xl"></i></div>
                                 <p class="text-3xl font-black text-slate-800"><?= (int) $studentProgressPercent; ?>%</p>
-                                <p class="text-xs font-black uppercase tracking-widest text-slate-400 mt-1">Tiến độ</p>
+                                <p class="text-xs font-black uppercase tracking-widest text-slate-400 mt-1"><?= e(t('profile.progress')); ?></p>
                             </div>
                         </div>
 
@@ -349,19 +349,19 @@ $error = get_flash('error');
                                         <div class="flex h-14 w-14 items-center justify-center rounded-[1rem] bg-emerald-500 text-white shadow-lg shadow-emerald-500/30">
                                             <i class="fa-solid fa-route text-xl"></i>
                                         </div>
-                                        <h3 class="text-2xl font-black text-slate-800">Tiến độ khóa học</h3>
+                                        <h3 class="text-2xl font-black text-slate-800"><?= e(t('profile.course_progress')); ?></h3>
                                     </div>
-                                    <p class="text-sm text-slate-500 font-medium max-w-md mt-2">Chúc mừng bạn đã đi được một quãng đường tuyệt vời. Tiếp tục duy trì nhé!</p>
+                                    <p class="text-sm text-slate-500 font-medium max-w-md mt-2"><?= e(t('profile.course_progress_copy')); ?></p>
                                     
                                     <div class="mt-6 flex items-baseline gap-2">
                                         <span class="text-5xl font-black text-emerald-600 tracking-tighter"><?= (int) $studentCompletedLessons; ?></span>
-                                        <span class="text-sm font-black text-slate-400 uppercase">/ <?= (int) $studentTotalLessons; ?> buổi</span>
+                                        <span class="text-sm font-black text-slate-400 uppercase"><?= e(t('profile.lesson_total', ['count' => (string) $studentTotalLessons])); ?></span>
                                     </div>
                                 </div>
 
                                 <div class="w-full lg:w-80 bg-slate-50 p-6 rounded-[1.5rem] border border-slate-200/50">
                                     <div class="mb-4 flex items-center justify-between">
-                                        <span class="text-xs font-black uppercase tracking-widest text-slate-500">Hoàn thành</span>
+                                        <span class="text-xs font-black uppercase tracking-widest text-slate-500"><?= e(t('profile.completed')); ?></span>
                                         <span class="text-rose-600 font-black text-2xl"><?= (int) $studentProgressPercent; ?>%</span>
                                     </div>
                                     <div class="h-4 w-full overflow-hidden rounded-full bg-slate-200 shadow-inner">
@@ -381,7 +381,7 @@ $error = get_flash('error');
                                 <div class="flex h-14 w-14 items-center justify-center rounded-[1rem] bg-rose-500 text-white shadow-lg shadow-rose-500/30">
                                     <i class="fa-solid fa-calendar-day text-xl"></i>
                                 </div>
-                                <h3 class="text-2xl font-black text-slate-800">Lịch dạy 7 ngày tới</h3>
+                                <h3 class="text-2xl font-black text-slate-800"><?= e(t('profile.next_7_days_schedule')); ?></h3>
                             </div>
                             
                             <?php if (empty($teacherSchedules)): ?>
@@ -389,7 +389,7 @@ $error = get_flash('error');
                                     <div class="mb-4 rounded-full bg-white p-6 shadow-sm text-slate-300">
                                         <i class="fa-regular fa-calendar-xmark text-4xl"></i>
                                     </div>
-                                    <p class="text-sm font-black text-slate-500 uppercase tracking-widest">Lịch trống</p>
+                                    <p class="text-sm font-black text-slate-500 uppercase tracking-widest"><?= e(t('profile.empty_schedule')); ?></p>
                                 </div>
                             <?php else: ?>
                                 <div class="grid gap-5 sm:grid-cols-2">
@@ -397,17 +397,17 @@ $error = get_flash('error');
                                         <div class="group relative rounded-2xl border border-slate-200/60 bg-white shadow-sm p-5 transition-all hover:shadow-lg hover:border-emerald-300 hover:-translate-y-1 cursor-pointer">
                                             <div class="mb-4 flex items-start justify-between gap-3">
                                                 <div class="rounded-xl bg-emerald-50 px-3 py-2 text-left border border-emerald-100">
-                                                    <p class="text-[10px] font-black uppercase tracking-widest text-emerald-600">Phòng học</p>
+                                                    <p class="text-[10px] font-black uppercase tracking-widest text-emerald-600"><?= e(t('profile.room')); ?></p>
                                                     <p class="mt-1 text-sm font-black text-emerald-800"><?= e((string) $schedule['room_name']); ?></p>
                                                 </div>
                                                 <div class="rounded-xl bg-slate-100 px-3 py-2 text-right">
-                                                    <p class="text-[10px] font-black uppercase tracking-widest text-slate-500">Ngày học</p>
+                                                    <p class="text-[10px] font-black uppercase tracking-widest text-slate-500"><?= e(t('profile.study_date')); ?></p>
                                                     <p class="mt-1 text-sm font-black text-slate-700"><?= e((string) $schedule['study_date']); ?></p>
                                                 </div>
                                             </div>
                                             <div class="space-y-4">
                                                 <div>
-                                                    <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">Tên lớp</p>
+                                                    <p class="text-[10px] font-black uppercase tracking-widest text-slate-400"><?= e(t('profile.class_name')); ?></p>
                                                     <h4 class="mt-1 text-base font-black text-slate-800 group-hover:text-emerald-600 transition-colors line-clamp-1">
                                                         <?= e((string) $schedule['class_name']); ?>
                                                     </h4>
@@ -415,7 +415,7 @@ $error = get_flash('error');
                                                 <div class="pt-4 border-t border-slate-100 flex items-center gap-3 text-sm font-bold text-slate-500">
                                                     <div class="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-emerald-50 group-hover:text-emerald-500 transition-colors"><i class="fa-regular fa-clock"></i></div>
                                                     <div>
-                                                        <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">Giờ học</p>
+                                                        <p class="text-[10px] font-black uppercase tracking-widest text-slate-400"><?= e(t('profile.study_time')); ?></p>
                                                         <p class="mt-1 text-sm font-black text-slate-700"><?= e((string) $schedule['start_time']); ?> - <?= e((string) $schedule['end_time']); ?></p>
                                                     </div>
                                                 </div>
@@ -434,8 +434,8 @@ $error = get_flash('error');
                         <div class="mb-8 border-b border-slate-100 pb-6 flex items-center gap-4">
                             <div class="w-12 h-12 rounded-[1rem] bg-emerald-50 text-emerald-500 flex items-center justify-center text-xl"><i class="fa-solid fa-user-pen"></i></div>
                             <div>
-                                <h2 class="text-2xl font-black text-slate-800">Cập nhật hồ sơ</h2>
-                                <p class="text-sm font-medium text-slate-500 mt-1">Quản lý và cập nhật thông tin cá nhân của bạn.</p>
+                                <h2 class="text-2xl font-black text-slate-800"><?= e(t('profile.update_profile')); ?></h2>
+                                <p class="text-sm font-medium text-slate-500 mt-1"><?= e(t('profile.update_profile_copy')); ?></p>
                             </div>
                         </div>
 
@@ -445,14 +445,14 @@ $error = get_flash('error');
                             
                             <div class="grid md:grid-cols-2 gap-6">
                                 <div class="space-y-2">
-                                    <label class="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">Email liên hệ <span class="text-rose-500">*</span></label>
+                                    <label class="text-xs font-black text-slate-500 uppercase tracking-widest ml-1"><?= e(t('profile.contact_email')); ?> <span class="text-rose-500">*</span></label>
                                     <div class="relative">
                                         <i class="fa-regular fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
                                         <input type="email" name="email" value="<?= e($email) ?>" required class="input-modern w-full pl-11 pr-4 py-4 rounded-2xl bg-slate-50 text-slate-800 text-sm font-bold border border-slate-200 transition-all">
                                     </div>
                                 </div>
                                 <div class="space-y-2">
-                                    <label class="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">Số điện thoại <span class="text-rose-500">*</span></label>
+                                    <label class="text-xs font-black text-slate-500 uppercase tracking-widest ml-1"><?= e(t('profile.phone_number')); ?> <span class="text-rose-500">*</span></label>
                                     <div class="relative">
                                         <i class="fa-solid fa-phone absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
                                         <input type="tel" inputmode="numeric" pattern="[0-9]*" name="phone" value="<?= e($phone) ?>" required class="input-modern w-full pl-11 pr-4 py-4 rounded-2xl bg-slate-50 text-slate-800 text-sm font-bold border border-slate-200 transition-all">
@@ -462,14 +462,14 @@ $error = get_flash('error');
                             
                             <div class="grid md:grid-cols-2 gap-6">
                                 <div class="space-y-2">
-                                    <label class="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Tên đăng nhập <span class="text-rose-500 lowercase">(Cố định)</span></label>
+                                    <label class="text-xs font-black text-slate-400 uppercase tracking-widest ml-1"><?= e(t('profile.username')); ?> <span class="text-rose-500 lowercase"><?= e(t('profile.fixed')); ?></span></label>
                                     <div class="relative">
                                         <i class="fa-solid fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
                                         <input type="text" value="<?= e($username) ?>" readonly class="w-full pl-11 pr-4 py-4 rounded-2xl bg-slate-100 text-slate-400 text-sm font-bold border border-slate-200 cursor-not-allowed">
                                     </div>
                                 </div>
                                 <div class="space-y-2">
-                                    <label class="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Họ và tên <span class="text-rose-500 lowercase">(L/H quản trị)</span></label>
+                                    <label class="text-xs font-black text-slate-400 uppercase tracking-widest ml-1"><?= e(t('profile.full_name')); ?> <span class="text-rose-500 lowercase"><?= e(t('profile.contact_admin')); ?></span></label>
                                     <div class="relative">
                                         <i class="fa-regular fa-id-card absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
                                         <input type="text" value="<?= e($fullName) ?>" readonly class="w-full pl-11 pr-4 py-4 rounded-2xl bg-slate-100 text-slate-400 text-sm font-bold border border-slate-200 cursor-not-allowed">
@@ -482,41 +482,41 @@ $error = get_flash('error');
                                 <div class="flex items-center gap-3 mb-4">
                                     <div class="w-11 h-11 rounded-2xl bg-rose-50 text-rose-500 flex items-center justify-center"><i class="fa-solid fa-people-roof"></i></div>
                                     <div>
-                                        <h3 class="text-base font-black text-slate-800">Thông tin ba mẹ</h3>
-                                        <p class="text-xs font-medium text-slate-500 mt-1">Cập nhật sau khi có tài khoản riêng để trung tâm quản lý hồ sơ đầy đủ hơn.</p>
+                                        <h3 class="text-base font-black text-slate-800"><?= e(t('profile.parent_info')); ?></h3>
+                                        <p class="text-xs font-medium text-slate-500 mt-1"><?= e(t('profile.parent_info_copy')); ?></p>
                                     </div>
                                 </div>
 
                                 <div class="grid md:grid-cols-2 gap-6">
                                     <div class="space-y-2">
-                                        <label class="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">Tên cha</label>
+                                        <label class="text-xs font-black text-slate-500 uppercase tracking-widest ml-1"><?= e(t('profile.father_name')); ?></label>
                                         <input type="text" name="student_father_name" value="<?= e($studentFatherName) ?>" class="input-modern w-full px-4 py-4 rounded-2xl bg-white text-slate-800 text-sm font-bold border border-slate-200 transition-all">
                                     </div>
                                     <div class="space-y-2">
-                                        <label class="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">SĐT cha</label>
+                                        <label class="text-xs font-black text-slate-500 uppercase tracking-widest ml-1"><?= e(t('profile.father_phone')); ?></label>
                                         <input type="tel" inputmode="numeric" pattern="[0-9]*" name="student_father_phone" value="<?= e($studentFatherPhone) ?>" class="input-modern w-full px-4 py-4 rounded-2xl bg-white text-slate-800 text-sm font-bold border border-slate-200 transition-all">
                                     </div>
                                     <div class="space-y-2">
-                                        <label class="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">CCCD cha</label>
+                                        <label class="text-xs font-black text-slate-500 uppercase tracking-widest ml-1"><?= e(t('profile.father_id')); ?></label>
                                         <input type="text" name="student_father_id_card" value="<?= e((string) (($profileUser['role_profile']['student_father_id_card'] ?? '') ?: ($profileUser['student_father_id_card'] ?? ''))) ?>" class="input-modern w-full px-4 py-4 rounded-2xl bg-white text-slate-800 text-sm font-bold border border-slate-200 transition-all">
                                     </div>
                                     <div class="space-y-2">
-                                        <label class="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">Tên mẹ</label>
+                                        <label class="text-xs font-black text-slate-500 uppercase tracking-widest ml-1"><?= e(t('profile.mother_name')); ?></label>
                                         <input type="text" name="student_mother_name" value="<?= e($studentMotherName) ?>" class="input-modern w-full px-4 py-4 rounded-2xl bg-white text-slate-800 text-sm font-bold border border-slate-200 transition-all">
                                     </div>
                                     <div class="space-y-2">
-                                        <label class="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">SĐT mẹ</label>
+                                        <label class="text-xs font-black text-slate-500 uppercase tracking-widest ml-1"><?= e(t('profile.mother_phone')); ?></label>
                                         <input type="tel" inputmode="numeric" pattern="[0-9]*" name="student_mother_phone" value="<?= e($studentMotherPhone) ?>" class="input-modern w-full px-4 py-4 rounded-2xl bg-white text-slate-800 text-sm font-bold border border-slate-200 transition-all">
                                     </div>
                                     <div class="space-y-2">
-                                        <label class="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">CCCD mẹ</label>
+                                        <label class="text-xs font-black text-slate-500 uppercase tracking-widest ml-1"><?= e(t('profile.mother_id')); ?></label>
                                         <input type="text" name="student_mother_id_card" value="<?= e((string) (($profileUser['role_profile']['student_mother_id_card'] ?? '') ?: ($profileUser['student_mother_id_card'] ?? ''))) ?>" class="input-modern w-full px-4 py-4 rounded-2xl bg-white text-slate-800 text-sm font-bold border border-slate-200 transition-all">
                                     </div>
                                 </div>
 
                                 <div class="mt-6 space-y-2">
-                                    <label class="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">Social links phụ huynh</label>
-                                    <textarea name="student_parent_social_links" rows="4" class="input-modern w-full px-4 py-4 rounded-2xl bg-white text-slate-800 text-sm font-bold border border-slate-200 transition-all" placeholder='Ví dụ: {"father":{"zalo":"https://zalo.me/..."},"mother":{"facebook":"https://facebook.com/..."}}'><?= e((string) (($profileUser['role_profile']['student_parent_social_links'] ?? '') ?: ($profileUser['student_parent_social_links'] ?? ''))) ?></textarea>
+                                    <label class="text-xs font-black text-slate-500 uppercase tracking-widest ml-1"><?= e(t('profile.parent_social_links')); ?></label>
+                                    <textarea name="student_parent_social_links" rows="4" class="input-modern w-full px-4 py-4 rounded-2xl bg-white text-slate-800 text-sm font-bold border border-slate-200 transition-all" placeholder='<?= e(t('profile.parent_social_placeholder')); ?>'><?= e((string) (($profileUser['role_profile']['student_parent_social_links'] ?? '') ?: ($profileUser['student_parent_social_links'] ?? ''))) ?></textarea>
                                 </div>
                             </div>
                             <?php endif; ?>
@@ -526,8 +526,8 @@ $error = get_flash('error');
                                 <div class="flex items-center gap-3 mb-4">
                                     <div class="w-11 h-11 rounded-2xl bg-rose-50 text-rose-500 flex items-center justify-center"><i class="fa-solid fa-video"></i></div>
                                     <div>
-                                        <h3 class="text-base font-black text-slate-800">Video giới thiệu giáo viên</h3>
-                                        <p class="text-xs font-medium text-slate-500 mt-1">Tải video demo để học viên xem trước phong cách giảng dạy của bạn.</p>
+                                        <h3 class="text-base font-black text-slate-800"><?= e(t('profile.teacher_intro_video')); ?></h3>
+                                        <p class="text-xs font-medium text-slate-500 mt-1"><?= e(t('profile.teacher_intro_video_copy')); ?></p>
                                     </div>
                                 </div>
 
@@ -539,7 +539,7 @@ $error = get_flash('error');
                                     </video>
                                 </div>
                                 <div id="teacherVideoEmptyState" class="mb-4 <?= $teacherIntroVideoUrl !== '' ? 'hidden' : ''; ?> rounded-[1.25rem] border border-dashed border-slate-300 bg-white px-4 py-8 text-center text-sm font-medium text-slate-500">
-                                    Chưa có video giới thiệu.
+                                    <?= e(t('profile.no_intro_video')); ?>
                                 </div>
 
                                 <label class="group relative flex flex-col items-center justify-center rounded-[1.5rem] border-2 border-dashed border-slate-300 bg-white p-6 text-center transition-all hover:border-rose-500 hover:bg-rose-50 cursor-pointer">
@@ -547,26 +547,26 @@ $error = get_flash('error');
                                     <div id="teacherVideoUploadIcon" class="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-50 text-rose-500 group-hover:scale-110 transition-transform">
                                         <i class="fa-solid fa-cloud-arrow-up text-xl"></i>
                                     </div>
-                                    <p id="teacherVideoUploadTitle" class="text-sm font-black text-slate-700">Tải video mới từ thiết bị</p>
-                                    <p id="teacherVideoUploadMeta" class="mt-1 text-xs font-medium text-slate-400">MP4, MOV, WEBM · Tối đa 64MB</p>
+                                    <p id="teacherVideoUploadTitle" class="text-sm font-black text-slate-700"><?= e(t('profile.upload_new_video')); ?></p>
+                                    <p id="teacherVideoUploadMeta" class="mt-1 text-xs font-medium text-slate-400"><?= e(t('profile.video_upload_meta')); ?></p>
                                 </label>
                             </div>
                             <?php endif; ?>
 
                             <div class="pt-4">
                                 <button type="submit" class="bg-rose-600 hover:bg-rose-700 text-white font-black px-8 py-4 rounded-2xl shadow-lg shadow-rose-600/20 transition-all hover:-translate-y-1 text-sm flex items-center justify-center gap-2 w-full sm:w-auto">
-                                    <i class="fa-solid fa-floppy-disk"></i> Lưu thay đổi hồ sơ
+                                    <i class="fa-solid fa-floppy-disk"></i> <?= e(t('profile.save_profile_changes')); ?>
                                 </button>
                             </div>
                         </form>
 
                         <div class="mt-10 pt-8 border-t border-slate-100 bg-slate-50/50 -mx-8 -mb-8 p-8 rounded-b-[2rem]">
                             <h3 class="text-base font-black text-slate-800 mb-2 flex items-center gap-2">
-                                <i class="fa-solid fa-shield-halved text-rose-500"></i> Bảo mật tài khoản
+                                <i class="fa-solid fa-shield-halved text-rose-500"></i> <?= e(t('profile.account_security')); ?>
                             </h3>
-                            <p class="text-sm text-slate-500 font-medium mb-5">Đổi mật khẩu định kỳ giúp bảo vệ tài khoản của bạn an toàn hơn.</p>
+                            <p class="text-sm text-slate-500 font-medium mb-5"><?= e(t('profile.account_security_copy')); ?></p>
                             <button type="button" onclick="openPasswordModal()" class="inline-flex items-center gap-2 border border-slate-200 bg-white text-slate-600 text-sm font-bold px-6 py-3 rounded-xl hover:border-emerald-500 hover:text-emerald-600 shadow-sm transition-all">
-                                Cập nhật mật khẩu mới <i class="fa-solid fa-arrow-right-long"></i>
+                                <?= e(t('profile.update_new_password')); ?> <i class="fa-solid fa-arrow-right-long"></i>
                             </button>
                         </div>
                     </article>
@@ -581,7 +581,7 @@ $error = get_flash('error');
     <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-[420px] overflow-hidden transform scale-95 modal-content border border-slate-100" id="avatarModalContent">
         <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
             <h3 class="text-sm font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
-                <i class="fa-solid fa-image text-emerald-500"></i> Đổi ảnh đại diện
+                <i class="fa-solid fa-image text-emerald-500"></i> <?= e(t('profile.change_avatar')); ?>
             </h3>
             <button onclick="closeAvatarModal()" class="w-8 h-8 flex items-center justify-center rounded-full bg-white text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-colors shadow-sm border border-slate-200 text-sm">
                 <i class="fa-solid fa-xmark"></i>
@@ -604,13 +604,13 @@ $error = get_flash('error');
                         <div class="w-12 h-12 rounded-full bg-white shadow-sm border border-slate-100 flex items-center justify-center text-emerald-500 mb-3 group-hover:scale-110 transition-transform">
                             <i class="fa-solid fa-cloud-arrow-up text-xl"></i>
                         </div>
-                        <p class="text-sm font-bold text-slate-700">Tải ảnh lên từ thiết bị</p>
+                        <p class="text-sm font-bold text-slate-700"><?= e(t('profile.upload_image')); ?></p>
                         <p class="text-xs font-bold text-slate-400 mt-1 uppercase">PNG, JPG (< 2MB)</p>
                     </label>
                 </div>
                 
                 <button id="avatarSaveButton" type="submit" disabled class="mt-6 w-full bg-rose-600 hover:bg-rose-700 text-white font-black py-4 rounded-2xl shadow-lg shadow-rose-600/20 transition-all text-sm uppercase tracking-widest flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
-                    <i class="fa-solid fa-floppy-disk"></i> Lưu thay đổi
+                    <i class="fa-solid fa-floppy-disk"></i> <?= e(t('profile.save_changes')); ?>
                 </button>
             </form>
         </div>
@@ -621,7 +621,7 @@ $error = get_flash('error');
     <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-[420px] overflow-hidden transform scale-95 modal-content border border-slate-100" id="passwordModalContent">
         <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
             <h3 class="text-sm font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
-                <i class="fa-solid fa-key text-emerald-500"></i> Đổi mật khẩu
+                <i class="fa-solid fa-key text-emerald-500"></i> <?= e(t('profile.change_password')); ?>
             </h3>
             <button onclick="closePasswordModal()" class="w-8 h-8 flex items-center justify-center rounded-full bg-white text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-colors shadow-sm border border-slate-200 text-sm">
                 <i class="fa-solid fa-xmark"></i>
@@ -634,40 +634,40 @@ $error = get_flash('error');
                 <input type="hidden" name="update_mode" value="password">
 
                 <div class="space-y-2">
-                    <label class="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">Mật khẩu hiện tại *</label>
+                    <label class="text-xs font-black text-slate-500 uppercase tracking-widest ml-1"><?= e(t('profile.current_password')); ?> *</label>
                     <div class="relative">
                         <i class="fa-solid fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
                         <input type="password" id="current_password" name="current_password" required class="input-modern w-full pl-11 pr-12 py-4 rounded-2xl bg-slate-50 text-slate-800 text-sm font-bold border border-slate-200 transition-all">
-                        <button type="button" onclick="togglePasswordField('current_password', this)" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-rose-600 transition-colors" aria-label="Hiện hoặc ẩn mật khẩu hiện tại">
+                        <button type="button" onclick="togglePasswordField('current_password', this)" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-rose-600 transition-colors" aria-label="<?= e(t('profile.toggle_current_password')); ?>">
                             <i class="fa-regular fa-eye"></i>
                         </button>
                     </div>
                 </div>
 
                 <div class="space-y-2">
-                    <label class="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">Mật khẩu mới *</label>
+                    <label class="text-xs font-black text-slate-500 uppercase tracking-widest ml-1"><?= e(t('profile.new_password')); ?> *</label>
                     <div class="relative">
                         <i class="fa-solid fa-key absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
                         <input type="password" id="new_password" name="new_password" required minlength="6" class="input-modern w-full pl-11 pr-12 py-4 rounded-2xl bg-slate-50 text-slate-800 text-sm font-bold border border-slate-200 transition-all">
-                        <button type="button" onclick="togglePasswordField('new_password', this)" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-rose-600 transition-colors" aria-label="Hiện hoặc ẩn mật khẩu mới">
+                        <button type="button" onclick="togglePasswordField('new_password', this)" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-rose-600 transition-colors" aria-label="<?= e(t('profile.toggle_new_password')); ?>">
                             <i class="fa-regular fa-eye"></i>
                         </button>
                     </div>
                 </div>
 
                 <div class="space-y-2">
-                    <label class="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">Xác nhận mật khẩu *</label>
+                    <label class="text-xs font-black text-slate-500 uppercase tracking-widest ml-1"><?= e(t('profile.confirm_password')); ?> *</label>
                     <div class="relative">
                         <i class="fa-solid fa-shield-halved absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
                         <input type="password" id="confirm_password" name="confirm_password" required minlength="6" class="input-modern w-full pl-11 pr-12 py-4 rounded-2xl bg-slate-50 text-slate-800 text-sm font-bold border border-slate-200 transition-all">
-                        <button type="button" onclick="togglePasswordField('confirm_password', this)" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-rose-600 transition-colors" aria-label="Hiện hoặc ẩn xác nhận mật khẩu">
+                        <button type="button" onclick="togglePasswordField('confirm_password', this)" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-rose-600 transition-colors" aria-label="<?= e(t('profile.toggle_confirm_password')); ?>">
                             <i class="fa-regular fa-eye"></i>
                         </button>
                     </div>
                 </div>
 
                 <button type="submit" class="mt-2 w-full bg-rose-600 hover:bg-rose-700 text-white font-black py-4 rounded-2xl shadow-lg shadow-rose-600/20 transition-all text-sm uppercase tracking-widest flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-floppy-disk"></i> Cập nhật mật khẩu
+                    <i class="fa-solid fa-floppy-disk"></i> <?= e(t('profile.update_password')); ?>
                 </button>
             </form>
         </div>
@@ -681,6 +681,23 @@ $error = get_flash('error');
 </style>
 
 <script>
+    const profileI18n = {
+        uploadNewVideo: <?= json_encode(t('profile.upload_new_video'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
+        videoUploadMeta: <?= json_encode(t('profile.video_upload_meta'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
+        videoTooLarge: <?= json_encode(t('profile.video_too_large'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
+        selectedPrefix: <?= json_encode(t('profile.selected_prefix'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
+        saveVideoHint: <?= json_encode(t('profile.save_video_hint'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
+        confirmProfileTitle: <?= json_encode(t('profile.confirm_profile_title'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
+        confirmProfileMessage: <?= json_encode(t('profile.confirm_profile_message'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
+        confirmAvatarTitle: <?= json_encode(t('profile.confirm_avatar_title'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
+        confirmAvatarMessage: <?= json_encode(t('profile.confirm_avatar_message'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
+        currentPasswordRequired: <?= json_encode(t('profile.current_password_required'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
+        passwordMinLength: <?= json_encode(t('profile.password_min_length'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
+        passwordMismatch: <?= json_encode(t('profile.password_mismatch'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
+        confirmPasswordTitle: <?= json_encode(t('profile.confirm_password_title'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
+        confirmPasswordMessage: <?= json_encode(t('profile.confirm_password_message'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>
+    };
+
     function switchTab(tabName) {
         const tabOverview = document.getElementById('tab-overview');
         const contentOverview = document.getElementById('content-overview');
@@ -793,12 +810,12 @@ $error = get_flash('error');
         if (typeof maxBytes === 'number' && maxBytes > 0 && file.size > maxBytes) {
             input.value = '';
             if (uploadTitle) {
-                uploadTitle.textContent = 'Tải video mới từ thiết bị';
+                uploadTitle.textContent = profileI18n.uploadNewVideo;
             }
             if (uploadMeta) {
-                uploadMeta.textContent = 'MP4, MOV, WEBM · Tối đa 64MB';
+                uploadMeta.textContent = profileI18n.videoUploadMeta;
             }
-            alert('Video vượt quá 64MB. Vui lòng chọn file nhỏ hơn để upload.');
+            alert(profileI18n.videoTooLarge);
             return;
         }
 
@@ -815,12 +832,12 @@ $error = get_flash('error');
         }
 
         if (uploadTitle) {
-            uploadTitle.textContent = 'Đã chọn: ' + file.name;
+            uploadTitle.textContent = profileI18n.selectedPrefix + file.name;
         }
 
         if (uploadMeta) {
             const fileSizeMb = (file.size / (1024 * 1024)).toFixed(2);
-            uploadMeta.textContent = fileSizeMb + ' MB - nhấn Lưu thay đổi hồ sơ để tải lên';
+            uploadMeta.textContent = fileSizeMb + ' MB - ' + profileI18n.saveVideoHint;
         }
     }
 
@@ -839,7 +856,7 @@ $error = get_flash('error');
         profileUpdateForm.addEventListener('submit', function(event) {
             event.preventDefault();
             if(typeof showConfirm === 'function') {
-                showConfirm('success', 'Cập nhật hồ sơ?', 'Bạn có chắc muốn lưu các thay đổi thông tin liên lạc này không?', () => profileUpdateForm.submit());
+                showConfirm('success', profileI18n.confirmProfileTitle, profileI18n.confirmProfileMessage, () => profileUpdateForm.submit());
             } else {
                 profileUpdateForm.submit();
             }
@@ -851,7 +868,7 @@ $error = get_flash('error');
         avatarUpdateForm.addEventListener('submit', function(event) {
             event.preventDefault();
             if(typeof showConfirm === 'function') {
-                showConfirm('success', 'Cập nhật ảnh đại diện?', 'Bạn có chắc muốn sử dụng ảnh đại diện mới này không?', () => avatarUpdateForm.submit());
+                showConfirm('success', profileI18n.confirmAvatarTitle, profileI18n.confirmAvatarMessage, () => avatarUpdateForm.submit());
             } else {
                 avatarUpdateForm.submit();
             }
@@ -891,7 +908,7 @@ $error = get_flash('error');
 
             if (currentPassword === '') {
                 if (currentPasswordInput) {
-                    currentPasswordInput.setCustomValidity('Vui lòng nhập mật khẩu hiện tại.');
+                    currentPasswordInput.setCustomValidity(profileI18n.currentPasswordRequired);
                     currentPasswordInput.reportValidity();
                     currentPasswordInput.focus();
                 }
@@ -900,7 +917,7 @@ $error = get_flash('error');
 
             if (newPassword.length < 6) {
                 if (newPasswordInput) {
-                    newPasswordInput.setCustomValidity('Mật khẩu mới phải có ít nhất 6 ký tự.');
+                    newPasswordInput.setCustomValidity(profileI18n.passwordMinLength);
                     newPasswordInput.reportValidity();
                     newPasswordInput.focus();
                 }
@@ -909,7 +926,7 @@ $error = get_flash('error');
 
             if (newPassword !== confirmPassword) {
                 if (confirmPasswordInput) {
-                    confirmPasswordInput.setCustomValidity('Mật khẩu xác nhận không khớp.');
+                    confirmPasswordInput.setCustomValidity(profileI18n.passwordMismatch);
                     confirmPasswordInput.reportValidity();
                     confirmPasswordInput.focus();
                 }
@@ -917,7 +934,7 @@ $error = get_flash('error');
             }
 
             if (typeof showConfirm === 'function') {
-                showConfirm('success', 'Đổi mật khẩu?', 'Bạn có chắc muốn cập nhật mật khẩu mới cho tài khoản này không?', () => passwordUpdateForm.submit());
+                showConfirm('success', profileI18n.confirmPasswordTitle, profileI18n.confirmPasswordMessage, () => passwordUpdateForm.submit());
             } else {
                 passwordUpdateForm.submit();
             }

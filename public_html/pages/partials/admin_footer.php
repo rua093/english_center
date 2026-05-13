@@ -18,6 +18,17 @@
         const AJAX_PAGINATION_SELECTOR = '[data-ajax-pagination="1"]';
         const AJAX_ROW_INFO_SELECTOR = '[data-ajax-row-info="1"]';
         const ADMIN_MAIN_CONTENT_SELECTOR = '[data-admin-main-content="1"]';
+        const bbcodeLabels = <?php echo json_encode([
+            'bold' => t('admin.bbcode.bold'),
+            'italic' => t('admin.bbcode.italic'),
+            'underline' => t('admin.bbcode.underline'),
+            'strike' => t('admin.bbcode.strike'),
+            'link' => t('admin.bbcode.link'),
+            'image' => t('admin.bbcode.image'),
+            'quote' => t('admin.bbcode.quote'),
+            'code' => t('admin.bbcode.code'),
+            'source' => t('admin.bbcode.source'),
+        ], JSON_UNESCAPED_UNICODE); ?>;
         const ajaxTableControllers = new WeakMap();
         const ajaxTableSearchTimers = new WeakMap();
         const bbcodeTextareaSyncLocks = new WeakSet();
@@ -150,19 +161,7 @@
                 return;
             }
 
-            const labels = {
-                bold: 'In đậm',
-                italic: 'In nghiêng',
-                underline: 'Gạch chân',
-                strike: 'Gạch ngang',
-                link: 'Chèn liên kết',
-                image: 'Chèn hình ảnh',
-                quote: 'Trích dẫn',
-                code: 'Khối mã',
-                source: 'Chế độ BBCode',
-            };
-
-            Object.keys(labels).forEach(function (name) {
+            Object.keys(bbcodeLabels).forEach(function (name) {
                 const button = editor.querySelector('.sceditor-button-' + name);
                 if (!(button instanceof HTMLElement)) {
                     return;
@@ -172,8 +171,8 @@
                     return;
                 }
 
-                button.setAttribute('title', labels[name]);
-                button.setAttribute('aria-label', labels[name]);
+                button.setAttribute('title', bbcodeLabels[name]);
+                button.setAttribute('aria-label', bbcodeLabels[name]);
                 button.innerHTML = bbcodeToolbarIconMarkup(name);
                 button.dataset.bbcodeIconReady = '1';
             });

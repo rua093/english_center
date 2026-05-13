@@ -82,11 +82,13 @@
     <header class="sticky top-0 z-50 w-full bg-white shadow-[0_2px_15px_rgba(0,0,0,0.04)]" id="top">    
         <div class="mx-auto w-full max-w-[1450px] px-4 sm:px-6 flex min-h-[85px] items-center justify-between gap-3">
             
-            <div class="flex-none flex items-center overflow-visible">
-                <a href="/" class="inline-flex items-center overflow-visible -my-3">
-                    <img src="assets/images/logo_remove.png" alt="Logo" class="h-20 md:h-24 w-auto max-w-none object-contain -mb-2">
-                </a>
-            </div>
+            <div class="flex-none flex items-center h-full">
+    <a href="/" class="flex items-center justify-center">
+        <img src="assets/images/logo_remove.png" 
+             alt="Logo" 
+             class="h-14 md:h-16 w-auto object-contain transition-transform hover:scale-105">
+    </a>
+</div>
 
             <nav class="hidden min-w-0 flex-1 items-center justify-center gap-6 lg:flex lg:gap-8" aria-label="Menu chính">
                 <a class="whitespace-nowrap text-[16px] font-extrabold transition-colors <?= $isActivePage(['home']) ? 'text-blue-600' : 'text-slate-800 hover:text-blue-600' ?>" href="/">
@@ -131,7 +133,7 @@
                     <a class="rounded-full px-2.5 py-1 <?= $currentLocale === 'vi' ? 'bg-blue-600 text-white' : 'text-slate-500 hover:text-blue-700'; ?>" href="<?= e(localized_current_url('vi')); ?>" title="<?= e(t('locale.switch_to', ['language' => 'Tiếng Việt'])); ?>"><?= e(t('locale.vi')); ?></a>
                     <a class="rounded-full px-2.5 py-1 <?= $currentLocale === 'en' ? 'bg-blue-600 text-white' : 'text-slate-500 hover:text-blue-700'; ?>" href="<?= e(localized_current_url('en')); ?>" title="<?= e(t('locale.switch_to', ['language' => 'English'])); ?>"><?= e(t('locale.en')); ?></a>
                 </div>
-                <a href="<?= e(page_url('register-consultation')); ?>" class="group hidden lg:inline-flex items-center gap-3 rounded-full bg-rose-600 px-6 py-3 text-[15px] font-black uppercase text-white transition-all hover:bg-rose-700 hover:shadow-lg">
+                <a href="<?= e(page_url('home') . '#dang-ky-tu-van'); ?>" class="group hidden lg:inline-flex items-center gap-3 rounded-full bg-rose-600 px-6 py-3 text-[15px] font-black uppercase text-white transition-all hover:bg-rose-700 hover:shadow-lg">
                     <?= e(t('nav.consultation')); ?>
                     <span class="w-2.5 h-2.5 rounded-full bg-white/90"></span>
                 </a>
@@ -252,7 +254,7 @@
                 <a class="block border-b border-slate-50 px-6 py-4 text-[15px] font-bold hover:bg-slate-50 <?= $isActivePage(['teacher-introduce', 'teacher-detail']) ? 'text-blue-600 bg-blue-50/50' : 'text-slate-800' ?>" href="<?= e(page_url('teacher-introduce')); ?>"><?= e(t('nav.teachers')); ?></a>
                 <a class="block border-b border-slate-50 px-6 py-4 text-[15px] font-bold hover:bg-slate-50 <?= $isActivePage(['activities-home', 'activities-home-detail']) ? 'text-blue-600 bg-blue-50/50' : 'text-slate-800' ?>" href="<?= e(page_url('activities-home')); ?>"><?= e(t('nav.activities')); ?></a>
                 <a class="block border-b border-slate-50 px-6 py-4 text-[15px] font-bold hover:bg-slate-50 <?= $isActivePage(['job-apply']) ? 'text-blue-600 bg-blue-50/50' : 'text-slate-800' ?>" href="<?= e(page_url('job-apply')); ?>"><?= e(t('nav.jobs')); ?></a>
-                <a class="block border-b border-slate-50 px-6 py-4 text-[15px] font-bold hover:bg-slate-50 <?= $isActivePage(['register-consultation']) ? 'text-blue-600 bg-blue-50/50' : 'text-slate-800' ?>" href="<?= e(page_url('register-consultation')); ?>"><?= e(t('nav.consultation')); ?></a>
+                <a class="block border-b border-slate-50 px-6 py-4 text-[15px] font-bold hover:bg-slate-50 <?= $isActivePage(['home']) ? 'text-blue-600 bg-blue-50/50' : 'text-slate-800' ?>" href="<?= e(page_url('home') . '#dang-ky-tu-van'); ?>"><?= e(t('nav.consultation')); ?></a>
                 
                 <?php if (is_logged_in()): ?>
                     <div class="bg-slate-50 px-6 py-4">

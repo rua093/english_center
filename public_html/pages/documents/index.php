@@ -72,21 +72,21 @@ $fileBadge = static function (string $filePath): array {
         
         <div class="text-center mb-10" data-aos="fade-down">
             <h1 class="text-3xl md:text-4xl font-black text-slate-950 mb-3 drop-shadow-[0_1px_0_rgba(255,255,255,0.55)]">
-                Kho Tài Liệu <span class="text-emerald-600">Học Tập</span>
+                <?= e(t('documents.title')); ?> <span class="text-emerald-600"><?= e(t('documents.highlight')); ?></span>
             </h1>
-            <p class="text-slate-700 text-sm md:text-base font-semibold leading-relaxed max-w-2xl mx-auto">Tìm kiếm, lọc và tải xuống hàng ngàn tài liệu miễn phí</p>
+            <p class="text-slate-700 text-sm md:text-base font-semibold leading-relaxed max-w-2xl mx-auto"><?= e(t('documents.subtitle')); ?></p>
         </div>
 
         <div class="flex flex-col gap-6" data-aos="fade-up" data-aos-delay="100">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-3">
                 <div class="text-center sm:text-left">
-                    <p class="text-sm font-bold text-slate-500">Tìm thấy <span class="text-emerald-600 font-black"><?= number_format($materialTotal, 0, ',', '.') ?></span> tài liệu</p>
-                    <p class="text-xs font-medium text-slate-400 mt-1">Dữ liệu được lấy trực tiếp từ bảng materials.</p>
+                    <p class="text-sm font-bold text-slate-500"><?= e(t('documents.found', ['count' => number_format($materialTotal, 0, ',', '.')])); ?></p>
+                    <p class="text-xs font-medium text-slate-400 mt-1"><?= e(t('documents.source_note')); ?></p>
                 </div>
 
                 <div class="relative w-full sm:w-72">
                     <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-                    <input type="text" placeholder="Tìm tài liệu theo tên..." class="w-full pl-10 pr-4 py-3 rounded-2xl bg-white border border-slate-200 outline-none text-sm font-bold focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all shadow-sm">
+                    <input type="text" placeholder="<?= e(t('documents.search_placeholder')); ?>" class="w-full pl-10 pr-4 py-3 rounded-2xl bg-white border border-slate-200 outline-none text-sm font-bold focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all shadow-sm">
                 </div>
             </div>
 
@@ -95,8 +95,8 @@ $fileBadge = static function (string $filePath): array {
                     <div class="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-2xl mx-auto mb-4">
                         <i class="fa-regular fa-folder-open"></i>
                     </div>
-                    <h2 class="text-lg font-black text-slate-800 mb-2">Chưa có tài liệu nào</h2>
-                    <p class="text-sm text-slate-500">Hãy thêm dữ liệu vào bảng materials để tài liệu xuất hiện ở đây.</p>
+                    <h2 class="text-lg font-black text-slate-800 mb-2"><?= e(t('documents.empty_title')); ?></h2>
+                    <p class="text-sm text-slate-500"><?= e(t('documents.empty_copy')); ?></p>
                 </div>
             <?php else: ?>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
@@ -110,7 +110,7 @@ $fileBadge = static function (string $filePath): array {
                         <article class="resource-card group relative bg-white rounded-2xl border border-slate-100 p-4 transition-all duration-300 shadow-lg shadow-slate-200/40">
                             <div class="flex items-start justify-between gap-3 mb-3">
                                 <div class="min-w-0">
-                                    <p class="text-[9px] font-black uppercase tracking-[0.28em] text-slate-400 mb-1.5">Tài liệu học tập</p>
+                                    <p class="text-[9px] font-black uppercase tracking-[0.28em] text-slate-400 mb-1.5"><?= e(t('documents.card_kicker')); ?></p>
                                     <h3 class="text-sm font-black text-slate-800 leading-snug line-clamp-2 group-hover:text-emerald-600 transition-colors">
                                         <?= e((string) ($doc['title'] ?? '')) ?>
                                     </h3>
@@ -134,7 +134,7 @@ $fileBadge = static function (string $filePath): array {
                             </div>
 
                             <div class="material-description text-xs text-slate-500 leading-5 min-h-[3rem]">
-                                <?= $description !== '' ? ui_render_bbcode($description) : e('Tài liệu được lưu trong hệ thống và có thể tải trực tiếp.') ?>
+                                <?= $description !== '' ? ui_render_bbcode($description) : e(t('documents.default_description')) ?>
                             </div>
 
                             <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
@@ -144,10 +144,10 @@ $fileBadge = static function (string $filePath): array {
                                 </span>
                                 <?php if ($materialFilePath !== ''): ?>
                                     <a href="<?= e($materialFilePath) ?>" target="_blank" rel="noopener noreferrer" class="btn-download-gradient inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-white text-[10px] font-black transition-all hover:shadow-md hover:-translate-y-0.5">
-                                        Tải ngay <i class="fa-solid fa-arrow-down-to-bracket text-[9px]"></i>
+                                        <?= e(t('documents.download_now')); ?> <i class="fa-solid fa-arrow-down-to-bracket text-[9px]"></i>
                                     </a>
                                 <?php else: ?>
-                                    <span class="inline-flex items-center justify-center px-3 py-2 rounded-xl bg-slate-100 text-slate-400 text-[10px] font-black">Chưa có file</span>
+                                    <span class="inline-flex items-center justify-center px-3 py-2 rounded-xl bg-slate-100 text-slate-400 text-[10px] font-black"><?= e(t('documents.no_file')); ?></span>
                                 <?php endif; ?>
                             </div>
                         </article>

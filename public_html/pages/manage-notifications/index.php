@@ -47,7 +47,7 @@ if (!in_array($editingTargetType, ['ALL', 'ROLE', 'CLASS', 'USER'], true)) {
 $editingTargetId = isset($editingNotification['target_id']) ? (int) $editingNotification['target_id'] : 0;
 
 $module = 'notifications';
-$adminTitle = 'Quản lý thông báo';
+$adminTitle = t('admin.notifications_manage.title');
 
 $success = get_flash('success');
 $error = get_flash('error');
@@ -65,56 +65,56 @@ $canManageNotifications = has_any_permission(['notifications.create', 'notificat
 
     <?php if ($canManageNotifications): ?>
         <article class="order-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <h3><?= $editingNotification ? 'Sửa thông báo' : 'Thêm thông báo'; ?></h3>
+            <h3><?= e($editingNotification ? t('admin.notifications_manage.edit') : t('admin.notifications_manage.add')); ?></h3>
             <form class="grid gap-3 md:grid-cols-2" method="post" action="/api/notifications/save" autocomplete="off" data-notification-form="1">
                 <?= csrf_input(); ?>
                 <input type="hidden" name="id" value="<?= (int) ($editingNotification['id'] ?? 0); ?>">
 
                 <label>
-                    Loại đối tượng nhận
+                    <?= e(t('admin.notifications_manage.target_type')); ?>
                     <select name="target_type" required data-notification-target-type="1">
-                        <option value="ALL" <?= $editingTargetType === 'ALL' ? 'selected' : ''; ?>>Toàn hệ thống</option>
-                        <option value="ROLE" <?= $editingTargetType === 'ROLE' ? 'selected' : ''; ?>>Theo vai trò</option>
-                        <option value="CLASS" <?= $editingTargetType === 'CLASS' ? 'selected' : ''; ?>>Theo lớp</option>
-                        <option value="USER" <?= $editingTargetType === 'USER' ? 'selected' : ''; ?>>Theo cá nhân</option>
+                        <option value="ALL" <?= $editingTargetType === 'ALL' ? 'selected' : ''; ?>><?= e(t('admin.notifications_manage.target_all')); ?></option>
+                        <option value="ROLE" <?= $editingTargetType === 'ROLE' ? 'selected' : ''; ?>><?= e(t('admin.notifications_manage.target_role')); ?></option>
+                        <option value="CLASS" <?= $editingTargetType === 'CLASS' ? 'selected' : ''; ?>><?= e(t('admin.notifications_manage.target_class')); ?></option>
+                        <option value="USER" <?= $editingTargetType === 'USER' ? 'selected' : ''; ?>><?= e(t('admin.notifications_manage.target_user')); ?></option>
                     </select>
                 </label>
 
 
                 <label data-target-select="ROLE" style="<?= $editingTargetType === 'ROLE' ? '' : 'display:none;'; ?>">
-                    Vai trò nhận thông báo
+                    <?= e(t('admin.notifications_manage.target_role_label')); ?>
                     <select name="target_role_id" <?= $editingTargetType === 'ROLE' ? 'required' : 'disabled'; ?>>
-                        <option value="">-- Chọn vai trò --</option>
+                        <option value=""><?= e(t('admin.notifications_manage.choose_role')); ?></option>
                         <?php foreach ($recipientRoles as $role): ?>
                             <?php $roleId = (int) ($role['id'] ?? 0); ?>
                             <option value="<?= $roleId; ?>" <?= $editingTargetType === 'ROLE' && $roleId === $editingTargetId ? 'selected' : ''; ?>>
-                                <?= e((string) ($role['role_name'] ?? ('Vai trò #' . $roleId))); ?>
+                                <?= e((string) ($role['role_name'] ?? t('admin.notifications_manage.role_fallback', ['id' => $roleId]))); ?>
                             </option>
                         <?php endforeach; ?>
                     </select>
                 </label>
 
                 <label data-target-select="CLASS" style="<?= $editingTargetType === 'CLASS' ? '' : 'display:none;'; ?>">
-                    Lớp nhận thông báo
+                    <?= e(t('admin.notifications_manage.target_class_label')); ?>
                     <select name="target_class_id" <?= $editingTargetType === 'CLASS' ? 'required' : 'disabled'; ?>>
-                        <option value="">-- Chọn lớp --</option>
+                        <option value=""><?= e(t('admin.notifications_manage.choose_class')); ?></option>
                         <?php foreach ($recipientClasses as $class): ?>
                             <?php $classId = (int) ($class['id'] ?? 0); ?>
                             <option value="<?= $classId; ?>" <?= $editingTargetType === 'CLASS' && $classId === $editingTargetId ? 'selected' : ''; ?>>
-                                <?= e((string) ($class['class_name'] ?? ('Lớp #' . $classId))); ?>
+                                <?= e((string) ($class['class_name'] ?? t('admin.notifications_manage.class_fallback', ['id' => $classId]))); ?>
                             </option>
                         <?php endforeach; ?>
                     </select>
                 </label>
 
                 <label data-target-select="USER" style="<?= $editingTargetType === 'USER' ? '' : 'display:none;'; ?>">
-                    Người nhận cụ thể
+                    <?= e(t('admin.notifications_manage.target_user_label')); ?>
                     <select name="target_user_id" <?= $editingTargetType === 'USER' ? 'required' : 'disabled'; ?>>
-                        <option value="">-- Chọn người nhận --</option>
+                        <option value=""><?= e(t('admin.notifications_manage.choose_user')); ?></option>
                         <?php foreach ($recipientUsers as $recipient): ?>
                             <?php
                             $recipientId = (int) ($recipient['id'] ?? 0);
-                            $recipientName = user_dropdown_label($recipient, 'Người dùng #' . $recipientId);
+                            $recipientName = user_dropdown_label($recipient, t('admin.notifications_manage.user_fallback', ['id' => $recipientId]));
                             ?>
                             <option value="<?= $recipientId; ?>" <?= $editingTargetType === 'USER' && $recipientId === $editingTargetId ? 'selected' : ''; ?>>
                                 <?= e($recipientName); ?>
@@ -124,24 +124,24 @@ $canManageNotifications = has_any_permission(['notifications.create', 'notificat
                 </label>
 
                 <label class="md:col-span-2">
-                    Tiêu đề
+                    <?= e(t('admin.notifications_manage.title_label')); ?>
                     <input type="text" name="title" value="<?= e((string) ($editingNotification['title'] ?? '')); ?>" required>
                 </label>
 
                 <div class="md:col-span-2">
-                    <label for="notification-message">Nội dung</label>
+                    <label for="notification-message"><?= e(t('admin.notifications_manage.message')); ?></label>
                     <?= render_bbcode_editor('message', (string) ($editingNotification['message'] ?? ''), ['id' => 'notification-message', 'rows' => 4, 'required' => true]); ?>
                 </div>
 
                 <label class="md:col-span-2 flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700">
                     <input type="checkbox" name="send_email" value="1" class="h-4 w-4 accent-blue-600">
-                    <span>Gửi thêm email cho các người nhận có địa chỉ email hợp lệ</span>
+                    <span><?= e(t('admin.notifications_manage.send_email')); ?></span>
                 </label>
 
                 <div class="md:col-span-2 flex flex-wrap items-center gap-2">
-                    <button class="<?= ui_btn_primary_classes(); ?>" type="submit">Lưu thông báo</button>
+                    <button class="<?= ui_btn_primary_classes(); ?>" type="submit"><?= e(t('admin.notifications_manage.save')); ?></button>
                     <?php if ($editingNotification): ?>
-                        <a class="<?= ui_btn_secondary_classes(); ?>" href="<?= e(page_url('notifications-manage', ['notification_page' => $notificationPage, 'notification_per_page' => $notificationPerPage, 'search' => $searchQuery, 'target_type' => $targetTypeFilter])); ?>">Tạo mới</a>
+                        <a class="<?= ui_btn_secondary_classes(); ?>" href="<?= e(page_url('notifications-manage', ['notification_page' => $notificationPage, 'notification_per_page' => $notificationPerPage, 'search' => $searchQuery, 'target_type' => $targetTypeFilter])); ?>"><?= e(t('admin.notifications_manage.create_new')); ?></a>
                     <?php endif; ?>
                 </div>
             </form>
@@ -156,7 +156,7 @@ $canManageNotifications = has_any_permission(['notifications.create', 'notificat
         data-ajax-page-param="notification_page"
         data-ajax-search-param="search"
     >
-        <h3>Danh sách thông báo</h3>
+        <h3><?= e(t('admin.notifications_manage.list')); ?></h3>
         <div class="mb-3 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div class="flex flex-1 flex-col gap-3 md:flex-row md:items-center">
                 <label class="relative block w-full md:max-w-sm">
@@ -170,16 +170,16 @@ $canManageNotifications = has_any_permission(['notifications.create', 'notificat
                         type="search"
                         value="<?= e($searchQuery); ?>"
                         data-ajax-search="1"
-                        placeholder="Tìm người gửi, đối tượng, tiêu đề, nội dung..."
+                        placeholder="<?= e(t('admin.notifications_manage.search_placeholder')); ?>"
                         class="h-10 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-3 text-sm text-slate-700 shadow-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
                     >
                 </label>
                 <select name="target_type" data-ajax-filter="1" class="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 shadow-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100">
-                    <option value="">Tất cả đối tượng</option>
-                    <option value="ALL" <?= $targetTypeFilter === 'ALL' ? 'selected' : ''; ?>>Toàn hệ thống</option>
-                    <option value="ROLE" <?= $targetTypeFilter === 'ROLE' ? 'selected' : ''; ?>>Theo vai trò</option>
-                    <option value="CLASS" <?= $targetTypeFilter === 'CLASS' ? 'selected' : ''; ?>>Theo lớp</option>
-                    <option value="USER" <?= $targetTypeFilter === 'USER' ? 'selected' : ''; ?>>Theo cá nhân</option>
+                    <option value=""><?= e(t('admin.notifications_manage.target_all')); ?></option>
+                    <option value="ALL" <?= $targetTypeFilter === 'ALL' ? 'selected' : ''; ?>><?= e(t('admin.notifications_manage.target_all')); ?></option>
+                    <option value="ROLE" <?= $targetTypeFilter === 'ROLE' ? 'selected' : ''; ?>><?= e(t('admin.notifications_manage.target_role')); ?></option>
+                    <option value="CLASS" <?= $targetTypeFilter === 'CLASS' ? 'selected' : ''; ?>><?= e(t('admin.notifications_manage.target_class')); ?></option>
+                    <option value="USER" <?= $targetTypeFilter === 'USER' ? 'selected' : ''; ?>><?= e(t('admin.notifications_manage.target_user')); ?></option>
                 </select>
             </div>
         </div>
@@ -187,20 +187,20 @@ $canManageNotifications = has_any_permission(['notifications.create', 'notificat
             <table class="min-w-full border-collapse text-sm" data-enable-row-detail="1" data-disable-global-filter="1">
                 <thead>
                     <tr>
-                        <th>Người gửi</th>
-                        <th>Đối tượng nhận</th>
-                        <th>Tiêu đề</th>
-                        <th>Nội dung</th>
-                        <th>Đã đọc</th>
-                        <th>Tạo lúc</th>
-                        <th width="220">Hành động</th>
+                        <th><?= e(t('admin.notifications_manage.table_sender')); ?></th>
+                        <th><?= e(t('admin.notifications_manage.table_target')); ?></th>
+                        <th><?= e(t('admin.notifications_manage.table_title')); ?></th>
+                        <th><?= e(t('admin.notifications_manage.table_message')); ?></th>
+                        <th><?= e(t('admin.notifications_manage.table_read')); ?></th>
+                        <th><?= e(t('admin.notifications_manage.table_created')); ?></th>
+                        <th width="220"><?= e(t('admin.common.actions')); ?></th>
                     </tr>
                 </thead>
                 <tbody data-ajax-tbody="1">
                     <?php if (empty($notifications)): ?>
                         <tr>
                             <td colspan="7">
-                                <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">Chưa có thông báo nào.</div>
+                                <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500"><?= e(t('admin.notifications_manage.empty')); ?></div>
                             </td>
                         </tr>
                     <?php else: ?>
@@ -212,7 +212,7 @@ $canManageNotifications = has_any_permission(['notifications.create', 'notificat
                                 $senderLabel = trim((string) ($notification['sender_username'] ?? ''));
                             }
                             if ($senderLabel === '') {
-                                $senderLabel = 'Hệ thống';
+                                $senderLabel = t('admin.notifications_manage.sender_system');
                             } else {
                                 $senderLabel = user_dropdown_label([
                                     'full_name' => (string) ($notification['sender_name'] ?? $senderLabel),
@@ -228,7 +228,7 @@ $canManageNotifications = has_any_permission(['notifications.create', 'notificat
                             ?>
                             <tr>
                                 <td><?= e($senderLabel); ?></td>
-                                <td><?= e((string) ($notification['target_summary'] ?? 'Chưa xác định')); ?></td>
+                                <td><?= e((string) ($notification['target_summary'] ?? t('admin.notifications_manage.target_unknown'))); ?></td>
                                 <td><?= e((string) ($notification['title'] ?? '')); ?></td>
                                 <td><span data-full-value="<?= e(bbcode_to_plain_text($fullMessage)); ?>"><?= e($messagePreview !== '' ? $messagePreview : '-'); ?></span></td>
                                 <td>
@@ -245,10 +245,10 @@ $canManageNotifications = has_any_permission(['notifications.create', 'notificat
                                                 class="admin-action-icon-btn"
                                                 data-action-kind="detail"
                                                 data-skip-action-icon="1"
-                                                title="Mở record"
-                                                aria-label="Mở record"
+                                                title="<?= e(t('admin.notifications_manage.open_record')); ?>"
+                                                aria-label="<?= e(t('admin.notifications_manage.open_record')); ?>"
                                             >
-                                                <span class="admin-action-icon-label">Mở record</span>
+                                                <span class="admin-action-icon-label"><?= e(t('admin.notifications_manage.open_record')); ?></span>
                                                 <span class="admin-action-icon-glyph" aria-hidden="true">
                                                     <svg viewBox="0 0 24 24"><path d="M14 3h7v7"></path><path d="M10 14 21 3"></path><path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"></path></svg>
                                                 </span>
@@ -261,10 +261,10 @@ $canManageNotifications = has_any_permission(['notifications.create', 'notificat
                                             data-admin-row-detail="1"
                                             data-detail-url="<?= e(page_url('notifications-manage', ['edit' => $notificationId, 'notification_page' => $notificationPage, 'notification_per_page' => $notificationPerPage, 'search' => $searchQuery, 'target_type' => $targetTypeFilter])); ?>"
                                             data-skip-action-icon="1"
-                                            title="Xem chi tiết"
-                                            aria-label="Xem chi tiết"
+                                            title="<?= e(t('admin.common.view_detail')); ?>"
+                                            aria-label="<?= e(t('admin.common.view_detail')); ?>"
                                         >
-                                            <span class="admin-action-icon-label">Xem chi tiết</span>
+                                            <span class="admin-action-icon-label"><?= e(t('admin.common.view_detail')); ?></span>
                                             <span class="admin-action-icon-glyph" aria-hidden="true">
                                                 <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12z"></path></svg>
                                             </span>
@@ -274,25 +274,25 @@ $canManageNotifications = has_any_permission(['notifications.create', 'notificat
                                             class="admin-action-icon-btn"
                                             data-action-kind="edit"
                                             data-skip-action-icon="1"
-                                            title="Sửa"
-                                            aria-label="Sửa"
+                                            title="<?= e(t('admin.common.edit')); ?>"
+                                            aria-label="<?= e(t('admin.common.edit')); ?>"
                                         >
-                                            <span class="admin-action-icon-label">Sửa</span>
+                                            <span class="admin-action-icon-label"><?= e(t('admin.common.edit')); ?></span>
                                             <span class="admin-action-icon-glyph" aria-hidden="true">
                                                 <svg viewBox="0 0 24 24"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
                                             </span>
                                         </a>
-                                        <form class="inline-block" method="post" action="/api/notifications/delete?id=<?= $notificationId; ?>" onsubmit="return confirm('Bạn có chắc muốn xóa thông báo này?');">
+                                        <form class="inline-block" method="post" action="/api/notifications/delete?id=<?= $notificationId; ?>" onsubmit="return confirm('<?= e(t('admin.notifications_manage.delete_confirm')); ?>');">
                                             <?= csrf_input(); ?>
                                             <button
                                                 class="<?= ui_btn_danger_classes('sm'); ?> admin-action-icon-btn"
                                                 data-action-kind="delete"
                                                 data-skip-action-icon="1"
                                                 type="submit"
-                                                title="Xóa"
-                                                aria-label="Xóa"
+                                                title="<?= e(t('admin.common.delete')); ?>"
+                                                aria-label="<?= e(t('admin.common.delete')); ?>"
                                             >
-                                                <span class="admin-action-icon-label">Xóa</span>
+                                                <span class="admin-action-icon-label"><?= e(t('admin.common.delete')); ?></span>
                                                 <span class="admin-action-icon-glyph" aria-hidden="true">
                                                     <svg viewBox="0 0 24 24"><path d="M3 6h18"></path><path d="M8 6V4h8v2"></path><path d="M19 6l-1 14H6L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>
                                                 </span>
@@ -309,13 +309,13 @@ $canManageNotifications = has_any_permission(['notifications.create', 'notificat
             <?php if ($notificationTotal > 0): ?>
                 <div class="border-t border-slate-200 bg-slate-50/80 px-3 py-2" data-ajax-pagination="1">
                     <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600">
-                        <span class="min-w-0 flex-1 font-medium" data-ajax-row-info="1">Trang <?= (int) $notificationPage; ?>/<?= (int) $notificationTotalPages; ?> - Tổng <?= (int) $notificationTotal; ?> thông báo</span>
+                        <span class="min-w-0 flex-1 font-medium" data-ajax-row-info="1"><?= e(t('admin.notifications_manage.page_info', ['current' => (int) $notificationPage, 'total' => (int) $notificationTotalPages, 'count' => (int) $notificationTotal])); ?></span>
                         <div class="ml-auto inline-flex items-center gap-1.5">
                             <form class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2 py-1" method="get" action="<?= e(page_url('notifications-manage')); ?>">
                                 <input type="hidden" name="page" value="notifications-manage">
                                 <input type="hidden" name="search" value="<?= e($searchQuery); ?>">
                                 <input type="hidden" name="target_type" value="<?= e($targetTypeFilter); ?>">
-                                <label class="text-[11px] font-semibold text-slate-500" for="notification-per-page">Số dòng</label>
+                                <label class="text-[11px] font-semibold text-slate-500" for="notification-per-page"><?= e(t('admin.common.rows')); ?></label>
                                 <select id="notification-per-page" name="notification_per_page" data-ajax-per-page="1" class="h-7 rounded-md border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700">
                                     <?php foreach ($notificationPerPageOptions as $option): ?>
                                         <option value="<?= (int) $option; ?>" <?= $notificationPerPage === (int) $option ? 'selected' : ''; ?>><?= (int) $option; ?></option>
@@ -324,15 +324,15 @@ $canManageNotifications = has_any_permission(['notifications.create', 'notificat
                             </form>
 
                             <?php if ($notificationPage > 1): ?>
-                                <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('notifications-manage', ['notification_page' => $notificationPage - 1, 'notification_per_page' => $notificationPerPage, 'search' => $searchQuery, 'target_type' => $targetTypeFilter])); ?>">Trước</a>
+                                <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('notifications-manage', ['notification_page' => $notificationPage - 1, 'notification_per_page' => $notificationPerPage, 'search' => $searchQuery, 'target_type' => $targetTypeFilter])); ?>"><?= e(t('admin.common.previous')); ?></a>
                             <?php else: ?>
-                                <span class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 text-xs font-semibold text-slate-400">Trước</span>
+                                <span class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 text-xs font-semibold text-slate-400"><?= e(t('admin.common.previous')); ?></span>
                             <?php endif; ?>
 
                             <?php if ($notificationPage < $notificationTotalPages): ?>
-                                <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('notifications-manage', ['notification_page' => $notificationPage + 1, 'notification_per_page' => $notificationPerPage, 'search' => $searchQuery, 'target_type' => $targetTypeFilter])); ?>">Sau</a>
+                                <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('notifications-manage', ['notification_page' => $notificationPage + 1, 'notification_per_page' => $notificationPerPage, 'search' => $searchQuery, 'target_type' => $targetTypeFilter])); ?>"><?= e(t('admin.common.next')); ?></a>
                             <?php else: ?>
-                                <span class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 text-xs font-semibold text-slate-400">Sau</span>
+                                <span class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 text-xs font-semibold text-slate-400"><?= e(t('admin.common.next')); ?></span>
                             <?php endif; ?>
                         </div>
                     </div>

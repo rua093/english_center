@@ -84,7 +84,9 @@ function set_flash(string $key, string $message): void
 		session_start();
 	}
 
-	$_SESSION['flash'][$key] = $message;
+	$_SESSION['flash'][$key] = function_exists('translate_legacy_flash_message')
+		? translate_legacy_flash_message($message)
+		: $message;
 }
 
 function get_flash(string $key): ?string

@@ -22,7 +22,7 @@ foreach ($lessons as $lesson) {
 
     $classOptions[$classId] = [
         'id' => $classId,
-        'class_name' => (string) ($lesson['class_name'] ?? ('Lớp #' . $classId)),
+        'class_name' => (string) ($lesson['class_name'] ?? t('admin.assignment_edit.class_fallback', ['id' => $classId])),
     ];
 }
 
@@ -75,14 +75,14 @@ if ($selectedAssignmentId > 0 && !$isValidAssignment) {
 }
 
 $statusLabels = [
-    'pending' => 'Cần xử lý',
-    'graded' => 'Đã chấm',
-    'missing' => 'Chưa nộp',
-    'all' => 'Tất cả',
+    'pending' => t('admin.submissions.status_pending'),
+    'graded' => t('admin.submissions.status_graded'),
+    'missing' => t('admin.submissions.status_missing'),
+    'all' => t('admin.submissions.status_all'),
 ];
 
 $module = 'submissions';
-$adminTitle = 'Học vụ - Bài nộp';
+$adminTitle = t('admin.submissions.title');
 
 $success = get_flash('success');
 $error = get_flash('error');
@@ -111,17 +111,17 @@ if (!is_string($assignmentsJson)) {
     <article class="rounded-2xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-6 shadow-sm">
         <div class="flex flex-wrap items-start justify-between gap-3">
             <div class="space-y-1">
-                <h3 class="text-xl font-semibold text-slate-900">Bộ lọc chấm điểm</h3>
-                <p class="text-sm text-slate-600">Giao diện gọn, cập nhật dữ liệu ngay khi đổi bộ lọc, không tải lại toàn trang.</p>
+                <h3 class="text-xl font-semibold text-slate-900"><?= e(t('admin.submissions.filter_title')); ?></h3>
+                <p class="text-sm text-slate-600"><?= e(t('admin.submissions.filter_description')); ?></p>
             </div>
-            <button id="reset-grading-filter" type="button" class="inline-flex h-10 items-center rounded-lg border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700">Đặt lại</button>
+            <button id="reset-grading-filter" type="button" class="inline-flex h-10 items-center rounded-lg border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700"><?= e(t('admin.submissions.reset')); ?></button>
         </div>
 
         <div class="mt-5 grid gap-3 lg:grid-cols-2 2xl:grid-cols-4">
             <label class="block rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
-                <span class="block text-sm font-semibold text-slate-700">Lớp học</span>
+                <span class="block text-sm font-semibold text-slate-700"><?= e(t('admin.assignment_edit.class')); ?></span>
                 <select id="grading-class-select" name="class_id" class="mt-2 h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-base font-medium text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400">
-                    <option value="0">-- Chọn lớp --</option>
+                    <option value="0"><?= e(t('admin.assignment_edit.choose_class')); ?></option>
                     <?php foreach ($classOptions as $classOption): ?>
                         <option value="<?= (int) $classOption['id']; ?>" <?= $selectedClassId === (int) $classOption['id'] ? 'selected' : ''; ?>><?= e((string) $classOption['class_name']); ?></option>
                     <?php endforeach; ?>
@@ -129,13 +129,13 @@ if (!is_string($assignmentsJson)) {
             </label>
 
             <label class="block rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
-                <span class="block text-sm font-semibold text-slate-700">Buổi học</span>
+                <span class="block text-sm font-semibold text-slate-700"><?= e(t('admin.assignment_edit.lesson')); ?></span>
                 <select id="grading-lesson-select" name="schedule_id" class="mt-2 h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-base font-medium text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400" <?= $selectedClassId > 0 ? '' : 'disabled'; ?>>
-                    <option value="0">-- Chọn buổi --</option>
+                    <option value="0"><?= e(t('admin.submissions.choose_lesson_short')); ?></option>
                     <?php foreach ($scheduleOptions as $lesson): ?>
                         <?php
                         $scheduleId = (int) ($lesson['id'] ?? 0);
-                        $lessonTitle = (string) ($lesson['actual_title'] ?? ('Buổi #' . $scheduleId));
+                        $lessonTitle = (string) ($lesson['actual_title'] ?? t('admin.submissions.lesson_fallback', ['id' => $scheduleId]));
                         $lessonDate = trim((string) ($lesson['study_date'] ?? ''));
                         if ($lessonDate !== '') {
                             $lessonTitle .= ' (' . $lessonDate . ')';
@@ -147,16 +147,16 @@ if (!is_string($assignmentsJson)) {
             </label>
 
             <label class="block rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
-                <span class="block text-sm font-semibold text-slate-700">Bài tập</span>
+                <span class="block text-sm font-semibold text-slate-700"><?= e(t('admin.assignments.table_assignment')); ?></span>
                 <select id="grading-assignment-select" name="assignment_id" class="mt-2 h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-base font-medium text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400" <?= $selectedScheduleId > 0 ? '' : 'disabled'; ?>>
-                    <option value="0">-- Chọn bài tập --</option>
+                    <option value="0"><?= e(t('admin.submissions.choose_assignment')); ?></option>
                     <?php foreach ($assignmentOptions as $assignment): ?>
                         <?php
                         $assignmentId = (int) ($assignment['id'] ?? 0);
-                        $assignmentTitle = (string) ($assignment['title'] ?? ('Bài tập #' . $assignmentId));
+                        $assignmentTitle = (string) ($assignment['title'] ?? t('admin.submissions.assignment_fallback', ['id' => $assignmentId]));
                         $deadlineText = trim((string) ($assignment['deadline'] ?? ''));
                         if ($deadlineText !== '') {
-                            $assignmentTitle .= ' - Hạn: ' . $deadlineText;
+                            $assignmentTitle .= ' - ' . t('admin.submissions.deadline_prefix') . ': ' . $deadlineText;
                         }
                         ?>
                         <option value="<?= $assignmentId; ?>" <?= $selectedAssignmentId === $assignmentId ? 'selected' : ''; ?>><?= e($assignmentTitle); ?></option>
@@ -165,7 +165,7 @@ if (!is_string($assignmentsJson)) {
             </label>
 
             <label class="block rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
-                <span class="block text-sm font-semibold text-slate-700">Trạng thái chấm</span>
+                <span class="block text-sm font-semibold text-slate-700"><?= e(t('admin.submissions.grade_status')); ?></span>
                 <select id="grading-status-select" name="grade_status" class="mt-2 h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-base font-medium text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
                     <?php foreach ($statusLabels as $statusValue => $statusLabel): ?>
                         <option value="<?= e($statusValue); ?>" <?= $gradeStatus === $statusValue ? 'selected' : ''; ?>><?= e($statusLabel); ?></option>
@@ -175,21 +175,21 @@ if (!is_string($assignmentsJson)) {
         </div>
 
         <div class="mt-4 flex flex-wrap items-center gap-2 text-sm">
-            <span class="inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1.5 font-semibold text-slate-700">Lớp: <span id="selected-class-label" class="ml-1">Chưa chọn</span></span>
-            <span class="inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1.5 font-semibold text-slate-700">Buổi: <span id="selected-lesson-label" class="ml-1">Chưa chọn</span></span>
-            <span class="inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1.5 font-semibold text-slate-700">Bài tập: <span id="selected-assignment-label" class="ml-1">Chưa chọn</span></span>
+            <span class="inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1.5 font-semibold text-slate-700"><?= e(t('admin.assignment_edit.class')); ?>: <span id="selected-class-label" class="ml-1"><?= e(t('admin.submissions.not_selected')); ?></span></span>
+            <span class="inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1.5 font-semibold text-slate-700"><?= e(t('admin.assignment_edit.lesson')); ?>: <span id="selected-lesson-label" class="ml-1"><?= e(t('admin.submissions.not_selected')); ?></span></span>
+            <span class="inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1.5 font-semibold text-slate-700"><?= e(t('admin.assignments.table_assignment')); ?>: <span id="selected-assignment-label" class="ml-1"><?= e(t('admin.submissions.not_selected')); ?></span></span>
         </div>
     </article>
 
     <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <div class="flex flex-wrap items-center justify-between gap-2">
-            <h3>Danh sách chấm điểm</h3>
+            <h3><?= e(t('admin.submissions.grading_list')); ?></h3>
             <div class="inline-flex flex-wrap items-center gap-2 text-sm">
-                <span class="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 font-semibold text-slate-700">Tổng học viên: <span id="summary-total" class="ml-1">0</span></span>
-                <span class="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 font-semibold text-blue-700">Đã nộp: <span id="summary-submitted" class="ml-1">0</span></span>
-                <span class="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 font-semibold text-amber-700">Chưa nộp: <span id="summary-missing" class="ml-1">0</span></span>
-                <span class="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 font-semibold text-emerald-700">Đã chấm: <span id="summary-graded" class="ml-1">0</span></span>
-                <span class="inline-flex items-center rounded-full border border-rose-200 bg-rose-50 px-3 py-1.5 font-semibold text-rose-700">Nộp trễ: <span id="summary-late" class="ml-1">0</span></span>
+                <span class="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 font-semibold text-slate-700"><?= e(t('admin.submissions.total_students')); ?>: <span id="summary-total" class="ml-1">0</span></span>
+                <span class="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 font-semibold text-blue-700"><?= e(t('admin.submissions.submitted')); ?>: <span id="summary-submitted" class="ml-1">0</span></span>
+                <span class="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 font-semibold text-amber-700"><?= e(t('admin.submissions.not_submitted')); ?>: <span id="summary-missing" class="ml-1">0</span></span>
+                <span class="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 font-semibold text-emerald-700"><?= e(t('admin.submissions.graded')); ?>: <span id="summary-graded" class="ml-1">0</span></span>
+                <span class="inline-flex items-center rounded-full border border-rose-200 bg-rose-50 px-3 py-1.5 font-semibold text-rose-700"><?= e(t('admin.submissions.late')); ?>: <span id="summary-late" class="ml-1">0</span></span>
             </div>
         </div>
 
@@ -204,15 +204,15 @@ if (!is_string($assignmentsJson)) {
 
             <?php if ($canGradeSubmission): ?>
                 <div class="flex flex-wrap items-center gap-2">
-                    <button id="select-all-submitted" type="button" class="inline-flex items-center rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700">Chọn tất cả đã nộp</button>
-                    <button id="clear-selected-submitted" type="button" class="inline-flex items-center rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700">Bỏ chọn</button>
-                    <button class="<?= ui_btn_primary_classes('sm'); ?>" type="submit">Lưu các dòng đã chọn</button>
+                    <button id="select-all-submitted" type="button" class="inline-flex items-center rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"><?= e(t('admin.submissions.select_all_submitted')); ?></button>
+                    <button id="clear-selected-submitted" type="button" class="inline-flex items-center rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"><?= e(t('admin.submissions.clear_selection')); ?></button>
+                    <button class="<?= ui_btn_primary_classes('sm'); ?>" type="submit"><?= e(t('admin.submissions.save_selected')); ?></button>
                 </div>
             <?php else: ?>
-                <span class="inline-flex w-fit items-center rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-700">Bạn chỉ có quyền xem.</span>
+                <span class="inline-flex w-fit items-center rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-700"><?= e(t('admin.common.view_only')); ?></span>
             <?php endif; ?>
 
-            <div id="grading-state-message" class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 text-center text-sm text-slate-600">Chọn lớp, buổi học và bài tập để tải danh sách chấm điểm.</div>
+            <div id="grading-state-message" class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 text-center text-sm text-slate-600"><?= e(t('admin.submissions.choose_all_to_load')); ?></div>
             <div id="grading-list" class="grid gap-3"></div>
         </form>
     </article>
@@ -253,6 +253,37 @@ if (!is_string($assignmentsJson)) {
     const lessons = <?= $lessonsJson; ?>;
     const assignments = <?= $assignmentsJson; ?>;
     const canGrade = <?= $canGradeSubmission ? 'true' : 'false'; ?>;
+    const i18n = <?= json_encode([
+        'graded' => t('admin.submissions.graded'),
+        'pending' => t('admin.submissions.pending'),
+        'notSubmitted' => t('admin.submissions.not_submitted'),
+        'lessonFallback' => t('admin.submissions.lesson_fallback_js'),
+        'assignmentFallback' => t('admin.submissions.assignment_fallback_js'),
+        'deadlinePrefix' => t('admin.submissions.deadline_prefix'),
+        'chooseLesson' => t('admin.assignment_edit.choose_lesson'),
+        'chooseAssignment' => t('admin.submissions.choose_assignment'),
+        'notSelected' => t('admin.submissions.not_selected'),
+        'submittedAt' => t('admin.submissions.submitted_at'),
+        'noDeadline' => t('admin.submissions.no_deadline'),
+        'lateSubmission' => t('admin.submissions.late_submission'),
+        'onTimeSubmission' => t('admin.submissions.on_time_submission'),
+        'batchSelect' => t('admin.submissions.batch_select'),
+        'score' => t('admin.submissions.score'),
+        'scorePlaceholder' => t('admin.submissions.score_placeholder'),
+        'comment' => t('admin.submissions.comment'),
+        'commentPlaceholder' => t('admin.submissions.comment_placeholder'),
+        'cannotGradeMissing' => t('admin.submissions.cannot_grade_missing'),
+        'noSubmittedFile' => t('admin.submissions.no_submitted_file'),
+        'openSubmittedFile' => t('admin.submissions.open_submitted_file'),
+        'chooseClassToStart' => t('admin.submissions.choose_class_to_start'),
+        'chooseLessonToContinue' => t('admin.submissions.choose_lesson_to_continue'),
+        'chooseAssignmentToLoad' => t('admin.submissions.choose_assignment_to_load'),
+        'loadingRoster' => t('admin.submissions.loading_roster'),
+        'emptyRoster' => t('admin.submissions.empty_roster'),
+        'emptyFiltered' => t('admin.submissions.empty_filtered'),
+        'loadError' => t('admin.submissions.load_error'),
+        'selectAtLeastOne' => t('admin.submissions.select_at_least_one'),
+    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
 
     const state = {
         classId: <?= (int) $selectedClassId; ?>,
@@ -268,15 +299,15 @@ if (!is_string($assignmentsJson)) {
 
     const statusBadgeMeta = {
         graded: {
-            label: 'Đã chấm',
+            label: i18n.graded,
             classes: 'border-emerald-200 bg-emerald-50 text-emerald-700',
         },
         pending: {
-            label: 'Chưa chấm',
+            label: i18n.pending,
             classes: 'border-blue-200 bg-blue-50 text-blue-700',
         },
         missing: {
-            label: 'Chưa nộp',
+            label: i18n.notSubmitted,
             classes: 'border-amber-200 bg-amber-50 text-amber-700',
         },
     };
@@ -354,15 +385,15 @@ if (!is_string($assignmentsJson)) {
     }
 
     function buildLessonLabel(lesson) {
-        const title = normalizeText(lesson.actual_title || ('Buổi #' + toInt(lesson.id)));
+        const title = normalizeText(lesson.actual_title || String(i18n.lessonFallback || '').replace(':id', String(toInt(lesson.id))));
         const lessonDate = normalizeText(lesson.lesson_date);
         return lessonDate === '' ? title : (title + ' (' + lessonDate + ')');
     }
 
     function buildAssignmentLabel(assignment) {
-        const title = normalizeText(assignment.title || ('Bài tập #' + toInt(assignment.id)));
+        const title = normalizeText(assignment.title || String(i18n.assignmentFallback || '').replace(':id', String(toInt(assignment.id))));
         const deadline = normalizeText(assignment.deadline);
-        return deadline === '' ? title : (title + ' - Hạn: ' + deadline);
+        return deadline === '' ? title : (title + ' - ' + i18n.deadlinePrefix + ': ' + deadline);
     }
 
     function setSelectOptions(selectElement, options, placeholder, selectedValue, labelResolver) {
@@ -400,7 +431,7 @@ if (!is_string($assignmentsJson)) {
         setSelectOptions(
             lessonSelect,
             availableLessons,
-            '-- Chọn buổi học --',
+            i18n.chooseLesson,
             state.scheduleId,
             buildLessonLabel
         );
@@ -414,24 +445,24 @@ if (!is_string($assignmentsJson)) {
         setSelectOptions(
             assignmentSelect,
             availableAssignments,
-            '-- Chọn bài tập --',
+            i18n.chooseAssignment,
             state.assignmentId,
             buildAssignmentLabel
         );
-        assignmentSelect.disabled = state.lessonId <= 0;
+        assignmentSelect.disabled = state.scheduleId <= 0;
     }
 
     function selectedText(selectElement) {
         const option = selectElement.options[selectElement.selectedIndex];
         if (!option) {
-            return 'Chưa chọn';
+            return i18n.notSelected;
         }
 
         if (toInt(option.value) <= 0) {
-            return 'Chưa chọn';
+            return i18n.notSelected;
         }
 
-        return normalizeText(option.textContent || 'Chưa chọn');
+        return normalizeText(option.textContent || i18n.notSelected);
     }
 
     function updateSelectedLabels() {
@@ -613,14 +644,14 @@ if (!is_string($assignmentsJson)) {
         const draft = draftForRow(row);
         const scoreValue = normalizeText(draft.score);
         const commentValue = String(draft.comment || '');
-        const submittedAt = normalizeText(row.submitted_at) || 'Chưa nộp';
+        const submittedAt = normalizeText(row.submitted_at) || i18n.notSubmitted;
         const deadline = submissionDeadlineText(row);
         const lateStatusBadge = hasSubmitted(row)
             ? (deadline === ''
-                ? '<span class="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 font-semibold text-slate-600">Không có deadline</span>'
+                ? '<span class="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 font-semibold text-slate-600">' + escapeHtml(i18n.noDeadline) + '</span>'
                 : (isLateSubmission(row)
-                    ? '<span class="inline-flex items-center rounded-full border border-rose-200 bg-rose-50 px-2 py-0.5 font-semibold text-rose-700">Nộp trễ hạn</span>'
-                    : '<span class="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 font-semibold text-emerald-700">Nộp đúng hạn</span>'))
+                    ? '<span class="inline-flex items-center rounded-full border border-rose-200 bg-rose-50 px-2 py-0.5 font-semibold text-rose-700">' + escapeHtml(i18n.lateSubmission) + '</span>'
+                    : '<span class="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 font-semibold text-emerald-700">' + escapeHtml(i18n.onTimeSubmission) + '</span>'))
             : '';
         const fileUrl = normalizeText(row.file_url);
 
@@ -633,25 +664,25 @@ if (!is_string($assignmentsJson)) {
                     '<div class="grid gap-2">' +
                         '<label class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-2 text-xs font-semibold text-slate-700">' +
                             '<input data-field="selected" class="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500" type="checkbox" name="selected_submission_ids[]" value="' + submissionId + '" ' + (draft.selected ? 'checked' : '') + '>' +
-                            'Chọn lưu batch' +
+                            escapeHtml(i18n.batchSelect) +
                         '</label>' +
                         '<label class="text-xs font-semibold text-slate-600">' +
-                            'Điểm' +
-                            '<input data-field="score" class="mt-1" type="number" min="0" max="10" step="0.1" name="score[' + submissionId + ']" value="' + escapeHtml(scoreValue) + '" placeholder="Điểm (0-10)">' +
+                            escapeHtml(i18n.score) +
+                            '<input data-field="score" class="mt-1" type="number" min="0" max="10" step="0.1" name="score[' + submissionId + ']" value="' + escapeHtml(scoreValue) + '" placeholder="' + escapeHtml(i18n.scorePlaceholder) + '">' +
                         '</label>' +
                     '</div>' +
                     '<label class="text-xs font-semibold text-slate-600">' +
-                        'Nhận xét' +
-                        '<textarea data-field="comment" class="mt-1 min-h-[92px]" rows="3" name="teacher_comment[' + submissionId + ']" placeholder="Nhận xét cho học viên này">' + escapeHtml(commentValue) + '</textarea>' +
+                        escapeHtml(i18n.comment) +
+                        '<textarea data-field="comment" class="mt-1 min-h-[92px]" rows="3" name="teacher_comment[' + submissionId + ']" placeholder="' + escapeHtml(i18n.commentPlaceholder) + '">' + escapeHtml(commentValue) + '</textarea>' +
                     '</label>' +
                 '</div>';
         } else if (submissionId <= 0) {
-            gradingMarkup = '<div class="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-700">Học viên chưa nộp bài. Hiện tại không thể chấm điểm.</div>';
+            gradingMarkup = '<div class="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-700">' + escapeHtml(i18n.cannotGradeMissing) + '</div>';
         } else {
             gradingMarkup = '' +
                 '<div class="mt-3 grid gap-2 lg:grid-cols-[140px_1fr]">' +
-                    '<div class="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">Điểm: ' + (scoreValue === '' ? '-' : escapeHtml(scoreValue)) + '</div>' +
-                    '<div class="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">Nhận xét: ' + (commentValue === '' ? '-' : escapeHtml(commentValue)) + '</div>' +
+                    '<div class="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">' + escapeHtml(i18n.score) + ': ' + (scoreValue === '' ? '-' : escapeHtml(scoreValue)) + '</div>' +
+                    '<div class="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">' + escapeHtml(i18n.comment) + ': ' + (commentValue === '' ? '-' : escapeHtml(commentValue)) + '</div>' +
                 '</div>';
         }
 
@@ -661,12 +692,12 @@ if (!is_string($assignmentsJson)) {
                     '<div class="space-y-2">' +
                         '<div class="text-lg font-semibold text-slate-900">' + escapeHtml(row.full_name || '') + '</div>' +
                         '<div class="flex flex-wrap items-center gap-2 text-sm text-slate-600">' +
-                            '<span>Nộp lúc: ' + escapeHtml(submittedAt) + '</span>' +
-                            (deadline === '' ? '' : '<span>Deadline: ' + escapeHtml(deadline) + '</span>') +
+                            '<span>' + escapeHtml(i18n.submittedAt) + ': ' + escapeHtml(submittedAt) + '</span>' +
+                            (deadline === '' ? '' : '<span>' + escapeHtml(i18n.deadlinePrefix) + ': ' + escapeHtml(deadline) + '</span>') +
                             lateStatusBadge +
                             (fileUrl === ''
-                                ? '<span class="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 font-semibold text-slate-500">Không có file nộp</span>'
-                                : '<a class="inline-flex items-center rounded-md border border-blue-200 bg-blue-50 px-2.5 py-1 font-semibold text-blue-700 hover:bg-blue-100" href="' + escapeHtml(fileUrl) + '" target="_blank" rel="noopener noreferrer">Mở file nộp</a>') +
+                                ? '<span class="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 font-semibold text-slate-500">' + escapeHtml(i18n.noSubmittedFile) + '</span>'
+                                : '<a class="inline-flex items-center rounded-md border border-blue-200 bg-blue-50 px-2.5 py-1 font-semibold text-blue-700 hover:bg-blue-100" href="' + escapeHtml(fileUrl) + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(i18n.openSubmittedFile) + '</a>') +
                         '</div>' +
                     '</div>' +
                     '<div>' + statusBadge(status) + '</div>' +
@@ -683,22 +714,22 @@ if (!is_string($assignmentsJson)) {
         gradingList.innerHTML = '';
 
         if (state.classId <= 0) {
-            setStateMessage('Chọn lớp học để bắt đầu.', 'info');
+            setStateMessage(i18n.chooseClassToStart, 'info');
             return;
         }
 
         if (state.scheduleId <= 0) {
-            setStateMessage('Chọn buổi học để tiếp tục.', 'info');
+            setStateMessage(i18n.chooseLessonToContinue, 'info');
             return;
         }
 
         if (state.assignmentId <= 0) {
-            setStateMessage('Chọn bài tập để tải danh sách học viên.', 'info');
+            setStateMessage(i18n.chooseAssignmentToLoad, 'info');
             return;
         }
 
         if (state.loading) {
-            setStateMessage('Đang tải danh sách học viên...', 'info');
+            setStateMessage(i18n.loadingRoster, 'info');
             return;
         }
 
@@ -708,13 +739,13 @@ if (!is_string($assignmentsJson)) {
         }
 
         if (state.roster.length === 0) {
-            setStateMessage('Không có dữ liệu học viên cho bộ lọc hiện tại.', 'info');
+            setStateMessage(i18n.emptyRoster, 'info');
             return;
         }
 
         const visibleRows = state.roster.filter((row) => shouldShowRow(row));
         if (visibleRows.length === 0) {
-            setStateMessage('Không có học viên phù hợp với trạng thái đã chọn.', 'info');
+            setStateMessage(i18n.emptyFiltered, 'info');
             return;
         }
 
@@ -759,7 +790,7 @@ if (!is_string($assignmentsJson)) {
 
             const payload = await response.json();
             if (!response.ok || !payload || payload.status !== 'success') {
-                throw new Error(payload && payload.message ? payload.message : 'Không thể tải dữ liệu bài nộp.');
+                throw new Error(payload && payload.message ? payload.message : i18n.loadError);
             }
 
             state.roster = Array.isArray(payload.data && payload.data.rows) ? payload.data.rows : [];
@@ -771,7 +802,7 @@ if (!is_string($assignmentsJson)) {
             state.loading = false;
             state.roster = [];
             state.lastLoadedKey = '';
-            state.errorMessage = error instanceof Error ? error.message : 'Không thể tải dữ liệu bài nộp.';
+            state.errorMessage = error instanceof Error ? error.message : i18n.loadError;
             renderRoster();
         }
     }
@@ -831,7 +862,7 @@ if (!is_string($assignmentsJson)) {
         resetButton.addEventListener('click', () => {
             captureDraftsFromDom();
             state.classId = 0;
-            state.lessonId = 0;
+            state.scheduleId = 0;
             state.assignmentId = 0;
             state.gradeStatus = 'all';
             state.lastLoadedKey = '';
@@ -882,7 +913,7 @@ if (!is_string($assignmentsJson)) {
         const selectedRows = batchForm.querySelectorAll('input[name="selected_submission_ids[]"]:checked');
         if (selectedRows.length === 0) {
             event.preventDefault();
-            setStateMessage('Hãy chọn ít nhất 1 học viên đã nộp để lưu chấm điểm hàng loạt.', 'error');
+            setStateMessage(i18n.selectAtLeastOne, 'error');
         }
     });
 

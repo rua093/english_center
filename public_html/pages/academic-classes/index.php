@@ -27,7 +27,13 @@ if (!empty($_GET['edit'])) {
 }
 
 $module = 'classes';
-$adminTitle = 'Học vụ - Lớp học';
+$adminTitle = t('admin.classes.title');
+$classStatusLabels = [
+    'upcoming' => t('admin.class_edit.status_upcoming'),
+    'active' => t('admin.class_edit.status_active'),
+    'graduated' => t('admin.class_edit.status_graduated'),
+    'cancelled' => t('admin.class_edit.status_cancelled'),
+];
 
 $success = get_flash('success');
 $error = get_flash('error');
@@ -56,12 +62,12 @@ $canUpdateMaterial = has_permission('materials.update');
 
         <?php if ($canCreateClass || $canUpdateClass): ?>
             <article class="order-2 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                <h3><?= $editingClass ? 'Sửa lớp học' : 'Thêm lớp học'; ?></h3>
+                <h3><?= e($editingClass ? t('admin.classes.edit') : t('admin.classes.add')); ?></h3>
                 <form class="grid gap-3" method="post" action="/api/classes/save">
                     <?= csrf_input(); ?>
                     <input type="hidden" name="id" value="<?= (int) ($editingClass['id'] ?? 0); ?>">
                     <label>
-                        Khóa học
+                        <?= e(t('admin.class_edit.course')); ?>
                         <select name="course_id" required>
                             <?php foreach ($lookups['courses'] as $course): ?>
                                 <option value="<?= (int) $course['id']; ?>" <?= (int) ($editingClass['course_id'] ?? 0) === (int) $course['id'] ? 'selected' : ''; ?>><?= e((string) $course['course_name']); ?></option>
@@ -69,11 +75,11 @@ $canUpdateMaterial = has_permission('materials.update');
                         </select>
                     </label>
                     <label>
-                        Tên lớp
+                        <?= e(t('admin.class_edit.class_name')); ?>
                         <input type="text" name="class_name" required value="<?= e((string) ($editingClass['class_name'] ?? '')); ?>">
                     </label>
                     <label>
-                        Giáo viên
+                        <?= e(t('admin.class_edit.teacher')); ?>
                         <select name="teacher_id" required>
                             <?php foreach ($lookups['teachers'] as $teacher): ?>
                                 <option value="<?= (int) $teacher['id']; ?>" <?= (int) ($editingClass['teacher_id'] ?? 0) === (int) $teacher['id'] ? 'selected' : ''; ?>><?= e(teacher_dropdown_label($teacher)); ?></option>
@@ -81,23 +87,23 @@ $canUpdateMaterial = has_permission('materials.update');
                         </select>
                     </label>
                     <label>
-                        Ngày bắt đầu
+                        <?= e(t('admin.class_edit.start_date')); ?>
                         <input type="date" name="start_date" value="<?= e((string) ($editingClass['start_date'] ?? '')); ?>">
                     </label>
                     <label>
-                        Ngày kết thúc
+                        <?= e(t('admin.class_edit.end_date')); ?>
                         <input type="date" name="end_date" value="<?= e((string) ($editingClass['end_date'] ?? '')); ?>">
                     </label>
                     <label>
-                        Trạng thái
+                        <?= e(t('admin.class_edit.status')); ?>
                         <select name="status">
-                            <option value="upcoming" <?= (($editingClass['status'] ?? 'upcoming') === 'upcoming') ? 'selected' : ''; ?>>Sắp mở</option>
-                            <option value="active" <?= (($editingClass['status'] ?? '') === 'active') ? 'selected' : ''; ?>>Đang học</option>
-                            <option value="graduated" <?= (($editingClass['status'] ?? '') === 'graduated') ? 'selected' : ''; ?>>Đã tốt nghiệp</option>
-                            <option value="cancelled" <?= (($editingClass['status'] ?? '') === 'cancelled') ? 'selected' : ''; ?>>Đã hủy</option>
+                            <option value="upcoming" <?= (($editingClass['status'] ?? 'upcoming') === 'upcoming') ? 'selected' : ''; ?>><?= e(t('admin.class_edit.status_upcoming')); ?></option>
+                            <option value="active" <?= (($editingClass['status'] ?? '') === 'active') ? 'selected' : ''; ?>><?= e(t('admin.class_edit.status_active')); ?></option>
+                            <option value="graduated" <?= (($editingClass['status'] ?? '') === 'graduated') ? 'selected' : ''; ?>><?= e(t('admin.class_edit.status_graduated')); ?></option>
+                            <option value="cancelled" <?= (($editingClass['status'] ?? '') === 'cancelled') ? 'selected' : ''; ?>><?= e(t('admin.class_edit.status_cancelled')); ?></option>
                         </select>
                     </label>
-                    <button class="<?= ui_btn_primary_classes(); ?>" type="submit">Lưu lớp học</button>
+                    <button class="<?= ui_btn_primary_classes(); ?>" type="submit"><?= e(t('admin.class_edit.save')); ?></button>
                 </form>
             </article>
         <?php endif; ?>
@@ -110,7 +116,7 @@ $canUpdateMaterial = has_permission('materials.update');
             data-ajax-page-param="class_page"
             data-ajax-search-param="search"
         >
-            <h3>Danh sách lớp học</h3>
+            <h3><?= e(t('admin.classes.list')); ?></h3>
             <div class="admin-table-toolbar mb-3 flex flex-wrap items-center gap-3">
                 <label class="relative w-full max-w-sm">
                     <span class="pointer-events-none absolute inset-y-0 left-3 inline-flex items-center text-slate-400">
@@ -119,34 +125,34 @@ $canUpdateMaterial = has_permission('materials.update');
                             <path d="m20 20-3.5-3.5"></path>
                         </svg>
                     </span>
-                    <input data-ajax-search="1" type="search" value="<?= e($searchQuery); ?>" placeholder="Tìm lớp, khóa học, giáo viên, mã GV..." autocomplete="off" class="h-11 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100">
+                    <input data-ajax-search="1" type="search" value="<?= e($searchQuery); ?>" placeholder="<?= e(t('admin.classes.search_placeholder')); ?>" autocomplete="off" class="h-11 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100">
                 </label>
                 <select name="status" data-ajax-filter="1" class="h-11 rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100">
-                    <option value="">Tất cả trạng thái</option>
-                    <option value="upcoming" <?= $statusFilter === 'upcoming' ? 'selected' : ''; ?>>Sắp mở</option>
-                    <option value="active" <?= $statusFilter === 'active' ? 'selected' : ''; ?>>Đang học</option>
-                    <option value="graduated" <?= $statusFilter === 'graduated' ? 'selected' : ''; ?>>Đã tốt nghiệp</option>
-                    <option value="cancelled" <?= $statusFilter === 'cancelled' ? 'selected' : ''; ?>>Đã hủy</option>
+                    <option value=""><?= e(t('admin.classes.all_statuses')); ?></option>
+                    <option value="upcoming" <?= $statusFilter === 'upcoming' ? 'selected' : ''; ?>><?= e(t('admin.class_edit.status_upcoming')); ?></option>
+                    <option value="active" <?= $statusFilter === 'active' ? 'selected' : ''; ?>><?= e(t('admin.class_edit.status_active')); ?></option>
+                    <option value="graduated" <?= $statusFilter === 'graduated' ? 'selected' : ''; ?>><?= e(t('admin.class_edit.status_graduated')); ?></option>
+                    <option value="cancelled" <?= $statusFilter === 'cancelled' ? 'selected' : ''; ?>><?= e(t('admin.class_edit.status_cancelled')); ?></option>
                 </select>
-                <span data-ajax-row-info="1" class="text-sm font-medium text-slate-500">Hiển thị <?= (int) count($classes); ?> / <?= (int) $classTotal; ?> dòng</span>
+                <span data-ajax-row-info="1" class="text-sm font-medium text-slate-500"><?= e(t('admin.classes.showing_rows', ['shown' => (int) count($classes), 'total' => (int) $classTotal])); ?></span>
             </div>
             <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
                 <table class="min-w-full border-collapse text-sm" data-disable-global-filter="1" data-disable-row-detail="1">
                 <thead>
-                    <tr><th>Tên lớp</th><th>Khóa học</th><th>Mã GV</th><th>Giáo viên</th><th>Số lượng</th><th>Trạng thái</th><th>Hành động</th></tr>
+                    <tr><th><?= e(t('admin.class_edit.class_name')); ?></th><th><?= e(t('admin.class_edit.course')); ?></th><th><?= e(t('admin.classes.teacher_code')); ?></th><th><?= e(t('admin.class_edit.teacher')); ?></th><th><?= e(t('admin.classes.student_count')); ?></th><th><?= e(t('admin.class_edit.status')); ?></th><th><?= e(t('admin.common.actions')); ?></th></tr>
                 </thead>
                 <tbody data-ajax-tbody="1">
                     <?php if (empty($classes)): ?>
-                        <tr><td colspan="7"><div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">Chưa có lớp học nào.</div></td></tr>
+                        <tr><td colspan="7"><div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500"><?= e(t('admin.classes.empty')); ?></div></td></tr>
                     <?php else: ?>
                     <?php foreach ($classes as $class): ?>
                         <tr>
                             <td><?= e((string) $class['class_name']); ?></td>
                             <td><?= e((string) $class['course_name']); ?></td>
-                            <td><?= e((string) ($class['teacher_name'] ?? 'Giáo viên')); ?></td>
+                            <td><?= e((string) ($class['teacher_name'] ?? t('admin.class_edit.teacher'))); ?></td>
                             <td><?= e((string) ($class['teacher_code'] ?? '-')); ?></td>
                             <td><?= (int) ($class['student_count'] ?? 0); ?></td>
-                            <td><span class="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-bold capitalize is-<?= e((string) $class['status']); ?>"><?= e((string) $class['status']); ?></span></td>
+                            <td><span class="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-bold capitalize is-<?= e((string) $class['status']); ?>"><?= e($classStatusLabels[(string) $class['status']] ?? (string) $class['status']); ?></span></td>
                             <td>
                                 <span class="inline-flex flex-wrap items-center gap-2">
                                     <?php if (can_access_page('classrooms-academic')): ?>
@@ -155,10 +161,10 @@ $canUpdateMaterial = has_permission('materials.update');
                                             class="admin-action-icon-btn"
                                             data-action-kind="detail"
                                             data-skip-action-icon="1"
-                                            title="Chi tiết"
-                                            aria-label="Chi tiết"
+                                            title="<?= e(t('admin.common.view_detail')); ?>"
+                                            aria-label="<?= e(t('admin.common.view_detail')); ?>"
                                         >
-                                            <span class="admin-action-icon-label">Chi tiết</span>
+                                            <span class="admin-action-icon-label"><?= e(t('admin.common.view_detail')); ?></span>
                                             <span class="admin-action-icon-glyph" aria-hidden="true">
                                                 <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12z"></path></svg>
                                             </span>
@@ -170,27 +176,27 @@ $canUpdateMaterial = has_permission('materials.update');
                                             class="admin-action-icon-btn"
                                             data-action-kind="edit"
                                             data-skip-action-icon="1"
-                                            title="Sửa"
-                                            aria-label="Sửa"
+                                            title="<?= e(t('admin.common.edit')); ?>"
+                                            aria-label="<?= e(t('admin.common.edit')); ?>"
                                         >
-                                            <span class="admin-action-icon-label">Sửa</span>
+                                            <span class="admin-action-icon-label"><?= e(t('admin.common.edit')); ?></span>
                                             <span class="admin-action-icon-glyph" aria-hidden="true">
                                                 <svg viewBox="0 0 24 24"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
                                             </span>
                                         </a>
                                     <?php endif; ?>
                                     <?php if ($canDeleteClass): ?>
-                                        <form class="inline-block" method="post" action="/api/classes/delete?id=<?= (int) $class['id']; ?>" onsubmit="return confirm('Bạn có chắc muốn xóa lớp học này không?');">
+                                        <form class="inline-block" method="post" action="/api/classes/delete?id=<?= (int) $class['id']; ?>" onsubmit="return confirm(<?= e(json_encode(t('admin.classes.delete_confirm'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)); ?>);">
                                             <?= csrf_input(); ?>
                                             <button
                                                 class="<?= ui_btn_danger_classes('sm'); ?> admin-action-icon-btn"
                                                 data-action-kind="delete"
                                                 data-skip-action-icon="1"
                                                 type="submit"
-                                                title="Xóa"
-                                                aria-label="Xóa"
+                                                title="<?= e(t('admin.common.delete')); ?>"
+                                                aria-label="<?= e(t('admin.common.delete')); ?>"
                                             >
-                                                <span class="admin-action-icon-label">Xóa</span>
+                                                <span class="admin-action-icon-label"><?= e(t('admin.common.delete')); ?></span>
                                                 <span class="admin-action-icon-glyph" aria-hidden="true">
                                                     <svg viewBox="0 0 24 24"><path d="M3 6h18"></path><path d="M8 6V4h8v2"></path><path d="M19 6l-1 14H6L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>
                                                 </span>
@@ -207,13 +213,13 @@ $canUpdateMaterial = has_permission('materials.update');
                 <?php if ($classTotal > 0): ?>
                     <div data-ajax-pagination="1" class="border-t border-slate-200 bg-slate-50/80 px-3 py-2">
                         <div class="flex flex-wrap items-center gap-2 text-xs text-slate-600">
-                            <span data-ajax-row-info="1" class="min-w-0 flex-1 font-medium">Trang <?= (int) $classPage; ?>/<?= (int) $classTotalPages; ?> - Tổng <?= (int) $classTotal; ?> lớp học</span>
+                            <span data-ajax-row-info="1" class="min-w-0 flex-1 font-medium"><?= e(t('admin.classes.page_info', ['current' => (int) $classPage, 'total' => (int) $classTotalPages, 'count' => (int) $classTotal])); ?></span>
                             <div class="ml-auto inline-flex items-center gap-1.5">
                                 <form class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2 py-1" method="get" action="<?= e(page_url('classes-academic')); ?>">
                                     <input type="hidden" name="page" value="classes-academic">
                                     <input type="hidden" name="search" value="<?= e($searchQuery); ?>">
                                     <input type="hidden" name="status" value="<?= e($statusFilter); ?>">
-                                    <label class="text-[11px] font-semibold text-slate-500" for="class-per-page">Số dòng</label>
+                                    <label class="text-[11px] font-semibold text-slate-500" for="class-per-page"><?= e(t('admin.common.rows')); ?></label>
                                     <select id="class-per-page" name="class_per_page" data-ajax-per-page="1" class="h-7 rounded-md border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700">
                                         <?php foreach ($classPerPageOptions as $option): ?>
                                             <option value="<?= (int) $option; ?>" <?= $classPerPage === (int) $option ? 'selected' : ''; ?>><?= (int) $option; ?></option>
@@ -221,15 +227,15 @@ $canUpdateMaterial = has_permission('materials.update');
                                     </select>
                                 </form>
                                 <?php if ($classPage > 1): ?>
-                                    <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('classes-academic', ['class_page' => $classPage - 1, 'class_per_page' => $classPerPage, 'search' => $searchQuery !== '' ? $searchQuery : null, 'status' => $statusFilter !== '' ? $statusFilter : null])); ?>">Trước</a>
+                                    <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('classes-academic', ['class_page' => $classPage - 1, 'class_per_page' => $classPerPage, 'search' => $searchQuery !== '' ? $searchQuery : null, 'status' => $statusFilter !== '' ? $statusFilter : null])); ?>"><?= e(t('admin.common.previous')); ?></a>
                                 <?php else: ?>
-                                    <span class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 text-xs font-semibold text-slate-400">Trước</span>
+                                    <span class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 text-xs font-semibold text-slate-400"><?= e(t('admin.common.previous')); ?></span>
                                 <?php endif; ?>
 
                                 <?php if ($classPage < $classTotalPages): ?>
-                                    <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('classes-academic', ['class_page' => $classPage + 1, 'class_per_page' => $classPerPage, 'search' => $searchQuery !== '' ? $searchQuery : null, 'status' => $statusFilter !== '' ? $statusFilter : null])); ?>">Sau</a>
+                                    <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('classes-academic', ['class_page' => $classPage + 1, 'class_per_page' => $classPerPage, 'search' => $searchQuery !== '' ? $searchQuery : null, 'status' => $statusFilter !== '' ? $statusFilter : null])); ?>"><?= e(t('admin.common.next')); ?></a>
                                 <?php else: ?>
-                                    <span class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 text-xs font-semibold text-slate-400">Sau</span>
+                                    <span class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 text-xs font-semibold text-slate-400"><?= e(t('admin.common.next')); ?></span>
                                 <?php endif; ?>
                             </div>
                         </div>

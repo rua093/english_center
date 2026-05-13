@@ -29,7 +29,7 @@ $scheduleConflictDataset = array_map(static function (array $schedule): array {
 }, $allSchedules);
 
 $module = 'schedules';
-$adminTitle = $editingSchedule ? 'Học vụ - Sửa lịch dạy' : 'Học vụ - Thêm lịch dạy';
+$adminTitle = $editingSchedule ? t('admin.schedule_edit.title_edit') : t('admin.schedule_edit.title_add');
 ?>
 <div class="grid gap-4">
     <?php if ($success): ?>
@@ -41,38 +41,38 @@ $adminTitle = $editingSchedule ? 'Học vụ - Sửa lịch dạy' : 'Học vụ
     <?php endif; ?>
 
     <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h2><?= $editingSchedule ? 'Chỉnh sửa lịch dạy' : 'Thêm lịch dạy'; ?></h2>
+        <h2><?= e($editingSchedule ? t('admin.schedule_edit.heading_edit') : t('admin.schedule_edit.heading_add')); ?></h2>
         <form class="grid gap-3" method="post" action="/api/schedules/save" data-schedule-form="1">
                 <?= csrf_input(); ?>
                 <input type="hidden" name="id" value="<?= (int) ($editingSchedule['id'] ?? 0); ?>">
-                <label>Lớp học
+                <label><?= e(t('admin.schedule_edit.class')); ?>
                     <select name="class_id" required>
                         <?php foreach ($lookups['classes'] as $class): ?>
                             <option value="<?= (int) $class['id']; ?>" <?= (int) ($editingSchedule['class_id'] ?? 0) === (int) $class['id'] ? 'selected' : ''; ?>><?= e((string) $class['class_name']); ?></option>
                         <?php endforeach; ?>
                     </select>
                 </label>
-                <label>Phòng học
+                <label><?= e(t('admin.schedule_edit.room')); ?>
                     <select name="room_id">
-                        <option value="">Trực tuyến / chưa chọn phòng</option>
+                        <option value=""><?= e(t('admin.schedule_edit.online_or_no_room')); ?></option>
                         <?php foreach ($lookups['rooms'] as $room): ?>
                             <option value="<?= (int) $room['id']; ?>" <?= (int) ($editingSchedule['room_id'] ?? 0) === (int) $room['id'] ? 'selected' : ''; ?>><?= e((string) $room['room_name']); ?></option>
                         <?php endforeach; ?>
                     </select>
                 </label>
-                <label>Giáo viên
+                <label><?= e(t('admin.schedule_edit.teacher')); ?>
                     <select name="teacher_id" required>
-                        <option value="">-- Chọn giáo viên --</option>
+                        <option value=""><?= e(t('admin.schedule_edit.choose_teacher')); ?></option>
                         <?php foreach ($lookups['teachers'] as $teacher): ?>
                             <option value="<?= (int) $teacher['id']; ?>" <?= (int) ($editingSchedule['teacher_id'] ?? 0) === (int) $teacher['id'] ? 'selected' : ''; ?>><?= e(teacher_dropdown_label($teacher)); ?></option>
                         <?php endforeach; ?>
                     </select>
                 </label>
-                <label>Ngày học<input type="date" name="study_date" value="<?= e((string) ($editingSchedule['study_date'] ?? '')); ?>" required></label>
-                <label>Giờ bắt đầu<input type="time" name="start_time" value="<?= e((string) ($editingSchedule['start_time'] ?? '')); ?>" required></label>
-                <label>Giờ kết thúc<input type="time" name="end_time" value="<?= e((string) ($editingSchedule['end_time'] ?? '')); ?>" required></label>
-            <button class="<?= ui_btn_primary_classes(); ?>" type="submit">Lưu lịch dạy</button>
-            <a class="<?= ui_btn_secondary_classes(); ?>" href="<?= e(page_url('schedules-academic')); ?>">Quay lại</a>
+                <label><?= e(t('admin.schedule_edit.study_date')); ?><input type="date" name="study_date" value="<?= e((string) ($editingSchedule['study_date'] ?? '')); ?>" required></label>
+                <label><?= e(t('admin.schedule_edit.start_time')); ?><input type="time" name="start_time" value="<?= e((string) ($editingSchedule['start_time'] ?? '')); ?>" required></label>
+                <label><?= e(t('admin.schedule_edit.end_time')); ?><input type="time" name="end_time" value="<?= e((string) ($editingSchedule['end_time'] ?? '')); ?>" required></label>
+            <button class="<?= ui_btn_primary_classes(); ?>" type="submit"><?= e(t('admin.schedule_edit.save')); ?></button>
+            <a class="<?= ui_btn_secondary_classes(); ?>" href="<?= e(page_url('schedules-academic')); ?>"><?= e(t('admin.common.back')); ?></a>
         </form>
     </article>
 </div>
@@ -80,6 +80,15 @@ $adminTitle = $editingSchedule ? 'Học vụ - Sửa lịch dạy' : 'Học vụ
 <script>
 (function () {
     const conflictSource = <?= json_encode($scheduleConflictDataset, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
+    const scheduleEditI18n = {
+        invalidTime: <?= json_encode(t('admin.schedule_edit.invalid_time'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
+        endAfterStart: <?= json_encode(t('admin.schedule_edit.end_after_start'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
+        classConflict: <?= json_encode(t('admin.schedule_edit.class_conflict'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
+        teacherConflict: <?= json_encode(t('admin.schedule_edit.teacher_conflict'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
+        withClass: <?= json_encode(t('admin.schedule_edit.with_class'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
+        roomConflict: <?= json_encode(t('admin.schedule_edit.room_conflict'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
+        atRoom: <?= json_encode(t('admin.schedule_edit.at_room'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>
+    };
 
     function parseIntSafe(value) {
         const parsed = Number.parseInt(String(value ?? '').trim(), 10);
@@ -140,13 +149,13 @@ $adminTitle = $editingSchedule ? 'Học vụ - Sửa lịch dạy' : 'Học vụ
 
             if (startMinutes === null || endMinutes === null) {
                 event.preventDefault();
-                window.alert('Giờ học không hợp lệ.');
+                window.alert(scheduleEditI18n.invalidTime);
                 return;
             }
 
             if (startMinutes >= endMinutes) {
                 event.preventDefault();
-                window.alert('Giờ kết thúc phải sau giờ bắt đầu.');
+                window.alert(scheduleEditI18n.endAfterStart);
                 return;
             }
 
@@ -170,7 +179,7 @@ $adminTitle = $editingSchedule ? 'Học vụ - Sửa lịch dạy' : 'Học vụ
 
             if (classConflict) {
                 event.preventDefault();
-                window.alert('Lớp học đã có lịch trùng giờ (' + formatTime(classConflict.start_time) + ' - ' + formatTime(classConflict.end_time) + ').');
+                window.alert(scheduleEditI18n.classConflict.replace(':time', formatTime(classConflict.start_time) + ' - ' + formatTime(classConflict.end_time)));
                 return;
             }
 
@@ -195,7 +204,7 @@ $adminTitle = $editingSchedule ? 'Học vụ - Sửa lịch dạy' : 'Học vụ
             if (teacherConflict) {
                 event.preventDefault();
                 const conflictClass = String(teacherConflict.class_name ?? '').trim();
-                window.alert('Giáo viên đã có lịch trùng giờ' + (conflictClass !== '' ? ' với lớp ' + conflictClass : '') + '.');
+                window.alert(scheduleEditI18n.teacherConflict + (conflictClass !== '' ? ' ' + scheduleEditI18n.withClass.replace(':class', conflictClass) : '') + '.');
                 return;
             }
 
@@ -221,7 +230,7 @@ $adminTitle = $editingSchedule ? 'Học vụ - Sửa lịch dạy' : 'Học vụ
                 if (roomConflict) {
                     event.preventDefault();
                     const roomName = String(roomConflict.room_name ?? '').trim();
-                    window.alert('Phòng học đã có lịch trùng giờ' + (roomName !== '' ? ' tại ' + roomName : '') + '.');
+                    window.alert(scheduleEditI18n.roomConflict + (roomName !== '' ? ' ' + scheduleEditI18n.atRoom.replace(':room', roomName) : '') + '.');
                 }
             }
         });

@@ -4,8 +4,8 @@ $studentDashboardActiveTab = (string) ($studentDashboardActiveTab ?? 'dashboard-
 <nav class="w-full rounded-[2rem] border border-blue-100 bg-white/95 p-4 sm:p-5 md:p-6 shadow-[0_14px_40px_rgba(37,99,235,0.08)] backdrop-blur">
     <div class="mb-4 flex items-center justify-between gap-3 sm:mb-5">
 		<div>
-            <p class="text-[10px] font-black uppercase tracking-[0.35em] text-blue-400">Student panel</p>
-            <h2 class="mt-1 text-sm sm:text-base font-black text-slate-800">Bảng điều hướng</h2>
+            <p class="text-[10px] font-black uppercase tracking-[0.35em] text-blue-400"><?= e(t('student.dashboard.panel')); ?></p>
+            <h2 class="mt-1 text-sm sm:text-base font-black text-slate-800"><?= e(t('student.dashboard.navigation')); ?></h2>
 		</div>
         <div class="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 shadow-inner">
 			<i class="fa-solid fa-layer-group"></i>
@@ -18,7 +18,7 @@ $studentDashboardActiveTab = (string) ($studentDashboardActiveTab ?? 'dashboard-
 			<span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-colors <?= $studentDashboardActiveTab === 'student-notification' ? 'bg-white/20 text-white' : 'bg-blue-50 text-blue-600 group-hover:bg-blue-100' ?>">
 				<i class="fa-solid fa-bell"></i>
 			</span>
-			<span class="font-bold leading-tight">Thông báo</span>
+			<span class="font-bold leading-tight"><?= e(t('student.dashboard.notifications')); ?></span>
 		</a>
 
 		<a href="<?= e(page_url('dashboard-student')); ?>"
@@ -26,7 +26,7 @@ $studentDashboardActiveTab = (string) ($studentDashboardActiveTab ?? 'dashboard-
 			<span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-colors <?= $studentDashboardActiveTab === 'dashboard-student' ? 'bg-white/20 text-white' : 'bg-blue-50 text-blue-600 group-hover:bg-blue-100' ?>">
 				<i class="fa-solid fa-house"></i>
 			</span>
-			<span class="font-bold leading-tight">Thời khoá biểu</span>
+			<span class="font-bold leading-tight"><?= e(t('student.dashboard.schedule')); ?></span>
 		</a>
 
 		<a href="<?= e(page_url('classes-my')); ?>"
@@ -34,7 +34,7 @@ $studentDashboardActiveTab = (string) ($studentDashboardActiveTab ?? 'dashboard-
 			<span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-colors <?= $studentDashboardActiveTab === 'classes-my' ? 'bg-white/20 text-white' : 'bg-blue-50 text-blue-600 group-hover:bg-blue-100' ?>">
 				<i class="fa-solid fa-book-open"></i>
 			</span>
-			<span class="font-bold leading-tight">Lớp học của tôi</span>
+			<span class="font-bold leading-tight"><?= e(t('student.dashboard.my_classes')); ?></span>
 		</a>
 
 		<a href="<?= e(page_url('activities-student')); ?>"
@@ -42,7 +42,7 @@ $studentDashboardActiveTab = (string) ($studentDashboardActiveTab ?? 'dashboard-
 			<span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-colors <?= $studentDashboardActiveTab === 'activities-student' ? 'bg-white/20 text-white' : 'bg-blue-50 text-blue-600 group-hover:bg-blue-100' ?>">
 				<i class="fa-solid fa-people-group"></i>
 			</span>
-			<span class="font-bold leading-tight">Ngoại khoá</span>
+			<span class="font-bold leading-tight"><?= e(t('student.dashboard.activities')); ?></span>
 		</a>
 
 		<a href="<?= e(page_url('feedback')); ?>"
@@ -50,7 +50,7 @@ $studentDashboardActiveTab = (string) ($studentDashboardActiveTab ?? 'dashboard-
 			<span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-colors <?= $studentDashboardActiveTab === 'feedback' ? 'bg-white/20 text-white' : 'bg-emerald-50 text-emerald-600 group-hover:bg-emerald-100' ?>">
 				<i class="fa-regular fa-comment-dots"></i>
 			</span>
-			<span class="font-bold leading-tight">Đánh giá trung tâm</span>
+			<span class="font-bold leading-tight"><?= e(t('student.dashboard.feedback')); ?></span>
 		</a>
 	</div>
 </nav>

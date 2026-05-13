@@ -14,18 +14,18 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 $csrfToken = request_csrf_token();
 if (!validate_csrf_token($csrfToken)) {
-	set_flash('error', 'Yêu cầu không hợp lệ. Vui lòng thử lại.');
+	set_flash('error', t('flash.invalid_request'));
 	redirect(page_url('classes-my'));
 }
 
 $user = auth_user();
 if (!$user) {
-	set_flash('error', 'Vui lòng đăng nhập để tiếp tục.');
+	set_flash('error', t('flash.login_required'));
 	redirect(page_url('login'));
 }
 
 if (!has_permission('student.assignment.submit') && !in_array((string) ($user['role'] ?? ''), ['student', 'admin'], true)) {
-	set_flash('error', 'Bạn không có quyền nộp bài tập.');
+	set_flash('error', t('student.assignment.no_permission'));
 	redirect(page_url('classes-my'));
 }
 
@@ -40,12 +40,12 @@ $deadline = trim((string) ($_POST['assignment_deadline'] ?? ''));
 $note = trim((string) ($_POST['note'] ?? ''));
 
 if ($className === '' || $assignmentTitle === '') {
-	set_flash('error', 'Vui lòng chọn lớp học và nhập tên bài tập.');
+	set_flash('error', t('student.assignment.missing_class_assignment'));
 	redirect(page_url('classes-my'));
 }
 
 if (empty($_FILES['submission_file']['name'])) {
-	set_flash('error', 'Vui lòng tải lên file bài làm.');
+	set_flash('error', t('student.assignment.missing_file'));
 	redirect(page_url('classes-my'));
 }
 
@@ -59,7 +59,7 @@ foreach ($studentClasses as $studentClass) {
 }
 
 if ($classId <= 0) {
-	set_flash('error', 'Không tìm thấy lớp học tương ứng để nộp bài.');
+	set_flash('error', t('student.assignment.class_not_found'));
 	redirect(page_url('classes-my'));
 }
 
@@ -73,24 +73,24 @@ if ($classId <= 0) {
 	}
 
 if ($assignmentId <= 0) {
-	set_flash('error', 'Không tìm thấy bài tập tương ứng để nộp.');
+	set_flash('error', t('student.assignment.assignment_not_found'));
 	redirect(page_url('classes-my'));
 }
 
 $fileUpload = store_uploaded_file($_FILES['submission_file'], sprintf('submission-%d', (int) $user['id']), 'homeworks');
 if ($fileUpload === null) {
-	set_flash('error', 'Tải lên bài làm thất bại. Vui lòng thử lại.');
+	set_flash('error', t('student.assignment.upload_failed'));
 	redirect(page_url('classes-my'));
 }
 
 $submissionsTable->upsertStudentSubmission((int) $user['id'], $assignmentId, $fileUpload);
 
-$successMessage = sprintf('Đã nộp bài "%s" cho lớp "%s" thành công.', $assignmentTitle, $className);
+$successMessage = t('student.assignment.submit_success', ['assignment' => $assignmentTitle, 'class' => $className]);
 if ($deadline !== '') {
 	$successMessage .= sprintf(' Deadline: %s.', $deadline);
 }
 if ($note !== '') {
-	$successMessage .= ' Ghi chú đã được ghi nhận.';
+	$successMessage .= ' ' . t('student.assignment.note_recorded');
 }
 
 set_flash('success', $successMessage);

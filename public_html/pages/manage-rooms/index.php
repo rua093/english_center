@@ -20,7 +20,7 @@ $rooms = $academicModel->listRoomsPage($roomPage, $roomPerPage, $searchQuery, $r
 $roomPerPageOptions = ui_pagination_per_page_options();
 
 $module = 'rooms';
-$adminTitle = 'Quản lý phòng học';
+$adminTitle = t('admin.rooms.title');
 
 $success = get_flash('success');
 $error = get_flash('error');
@@ -41,20 +41,20 @@ $canShowForm = $editingRoom ? $canUpdateRoom : ($canCreateRoom || $canUpdateRoom
 
     <?php if ($canShowForm): ?>
         <article class="order-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <h3><?= $editingRoom ? 'Sửa phòng học' : 'Thêm phòng học'; ?></h3>
+            <h3><?= e($editingRoom ? t('admin.rooms.edit') : t('admin.rooms.add')); ?></h3>
             <form class="grid gap-3 md:grid-cols-2" method="post" action="/api/rooms/save" autocomplete="off">
                 <?= csrf_input(); ?>
                 <input type="hidden" name="id" value="<?= (int) ($editingRoom['id'] ?? 0); ?>">
 
                 <label class="md:col-span-2">
-                    Tên phòng học
+                    <?= e(t('admin.rooms.name')); ?>
                     <input type="text" name="room_name" value="<?= e((string) ($editingRoom['room_name'] ?? '')); ?>" required>
                 </label>
 
                 <div class="md:col-span-2 flex flex-wrap items-center gap-2">
-                    <button class="<?= ui_btn_primary_classes(); ?>" type="submit">Lưu phòng học</button>
+                    <button class="<?= ui_btn_primary_classes(); ?>" type="submit"><?= e(t('admin.rooms.save')); ?></button>
                     <?php if ($editingRoom): ?>
-                        <a class="<?= ui_btn_secondary_classes(); ?>" href="<?= e(page_url('rooms-manage', ['room_page' => $roomPage, 'room_per_page' => $roomPerPage, 'search' => $searchQuery])); ?>">Tạo mới</a>
+                        <a class="<?= ui_btn_secondary_classes(); ?>" href="<?= e(page_url('rooms-manage', ['room_page' => $roomPage, 'room_per_page' => $roomPerPage, 'search' => $searchQuery])); ?>"><?= e(t('admin.common.create_new')); ?></a>
                     <?php endif; ?>
                 </div>
             </form>
@@ -69,7 +69,7 @@ $canShowForm = $editingRoom ? $canUpdateRoom : ($canCreateRoom || $canUpdateRoom
         data-ajax-page-param="room_page"
         data-ajax-search-param="search"
     >
-        <h3>Danh sách phòng học</h3>
+        <h3><?= e(t('admin.rooms.list')); ?></h3>
         <div class="mb-3 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div class="flex flex-1 flex-col gap-3 md:flex-row md:items-center">
                 <label class="relative block w-full md:max-w-sm">
@@ -83,7 +83,7 @@ $canShowForm = $editingRoom ? $canUpdateRoom : ($canCreateRoom || $canUpdateRoom
                         type="search"
                         value="<?= e($searchQuery); ?>"
                         data-ajax-search="1"
-                        placeholder="Tìm ID hoặc tên phòng học..."
+                        placeholder="<?= e(t('admin.rooms.search_placeholder')); ?>"
                         class="h-10 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-3 text-sm text-slate-700 shadow-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
                     >
                 </label>
@@ -94,15 +94,15 @@ $canShowForm = $editingRoom ? $canUpdateRoom : ($canCreateRoom || $canUpdateRoom
                 <thead>
                     <tr>
                         <th width="100">ID</th>
-                        <th>Tên phòng học</th>
-                        <th width="220">Hành động</th>
+                        <th><?= e(t('admin.rooms.name')); ?></th>
+                        <th width="220"><?= e(t('admin.common.actions')); ?></th>
                     </tr>
                 </thead>
                 <tbody data-ajax-tbody="1">
                     <?php if (empty($rooms)): ?>
                         <tr>
                             <td colspan="3">
-                                <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">Chưa có phòng học nào.</div>
+                                <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500"><?= e(t('admin.rooms.empty')); ?></div>
                             </td>
                         </tr>
                     <?php else: ?>
@@ -120,10 +120,10 @@ $canShowForm = $editingRoom ? $canUpdateRoom : ($canCreateRoom || $canUpdateRoom
                                             data-admin-row-detail="1"
                                             data-detail-url="<?= e(page_url('rooms-manage', ['edit' => $roomId, 'room_page' => $roomPage, 'room_per_page' => $roomPerPage, 'search' => $searchQuery])); ?>"
                                             data-skip-action-icon="1"
-                                            title="Xem chi tiết"
-                                            aria-label="Xem chi tiết"
+                                            title="<?= e(t('admin.common.view_detail')); ?>"
+                                            aria-label="<?= e(t('admin.common.view_detail')); ?>"
                                         >
-                                            <span class="admin-action-icon-label">Xem chi tiết</span>
+                                            <span class="admin-action-icon-label"><?= e(t('admin.common.view_detail')); ?></span>
                                             <span class="admin-action-icon-glyph" aria-hidden="true">
                                                 <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12z"></path></svg>
                                             </span>
@@ -134,27 +134,27 @@ $canShowForm = $editingRoom ? $canUpdateRoom : ($canCreateRoom || $canUpdateRoom
                                                 class="admin-action-icon-btn"
                                                 data-action-kind="edit"
                                                 data-skip-action-icon="1"
-                                                title="Sửa"
-                                                aria-label="Sửa"
+                                                title="<?= e(t('admin.common.edit')); ?>"
+                                                aria-label="<?= e(t('admin.common.edit')); ?>"
                                             >
-                                                <span class="admin-action-icon-label">Sửa</span>
+                                                <span class="admin-action-icon-label"><?= e(t('admin.common.edit')); ?></span>
                                                 <span class="admin-action-icon-glyph" aria-hidden="true">
                                                     <svg viewBox="0 0 24 24"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
                                                 </span>
                                             </a>
                                         <?php endif; ?>
                                         <?php if ($canDeleteRoom): ?>
-                                            <form class="inline-block" method="post" action="/api/rooms/delete?id=<?= $roomId; ?>" onsubmit="return confirm('Bạn có chắc muốn xóa phòng học này?');">
+                                            <form class="inline-block" method="post" action="/api/rooms/delete?id=<?= $roomId; ?>" onsubmit="return confirm(<?= e(json_encode(t('admin.rooms.delete_confirm'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)); ?>);">
                                                 <?= csrf_input(); ?>
                                                 <button
                                                     class="<?= ui_btn_danger_classes('sm'); ?> admin-action-icon-btn"
                                                     data-action-kind="delete"
                                                     data-skip-action-icon="1"
                                                     type="submit"
-                                                    title="Xóa"
-                                                    aria-label="Xóa"
+                                                    title="<?= e(t('admin.common.delete')); ?>"
+                                                    aria-label="<?= e(t('admin.common.delete')); ?>"
                                                 >
-                                                    <span class="admin-action-icon-label">Xóa</span>
+                                                    <span class="admin-action-icon-label"><?= e(t('admin.common.delete')); ?></span>
                                                     <span class="admin-action-icon-glyph" aria-hidden="true">
                                                         <svg viewBox="0 0 24 24"><path d="M3 6h18"></path><path d="M8 6V4h8v2"></path><path d="M19 6l-1 14H6L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>
                                                     </span>
@@ -162,7 +162,7 @@ $canShowForm = $editingRoom ? $canUpdateRoom : ($canCreateRoom || $canUpdateRoom
                                             </form>
                                         <?php endif; ?>
                                         <?php if (!$canUpdateRoom && !$canDeleteRoom): ?>
-                                            <span class="text-sm text-slate-500">Chỉ có quyền xem</span>
+                                            <span class="text-sm text-slate-500"><?= e(t('admin.common.view_only')); ?></span>
                                         <?php endif; ?>
                                     </span>
                                 </td>
@@ -175,12 +175,12 @@ $canShowForm = $editingRoom ? $canUpdateRoom : ($canCreateRoom || $canUpdateRoom
             <?php if ($roomTotal > 0): ?>
                 <div class="border-t border-slate-200 bg-slate-50/80 px-3 py-2" data-ajax-pagination="1">
                     <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600">
-                        <span class="min-w-0 flex-1 font-medium" data-ajax-row-info="1">Trang <?= (int) $roomPage; ?>/<?= (int) $roomTotalPages; ?> - Tổng <?= (int) $roomTotal; ?> phòng học</span>
+                        <span class="min-w-0 flex-1 font-medium" data-ajax-row-info="1"><?= e(t('admin.rooms.page_info', ['current' => (string) $roomPage, 'total' => (string) $roomTotalPages, 'count' => (string) $roomTotal])); ?></span>
                         <div class="ml-auto inline-flex items-center gap-1.5">
                             <form class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2 py-1" method="get" action="<?= e(page_url('rooms-manage')); ?>">
                                 <input type="hidden" name="page" value="rooms-manage">
                                 <input type="hidden" name="search" value="<?= e($searchQuery); ?>">
-                                <label class="text-[11px] font-semibold text-slate-500" for="room-per-page">Số dòng</label>
+                                <label class="text-[11px] font-semibold text-slate-500" for="room-per-page"><?= e(t('admin.common.rows')); ?></label>
                                 <select id="room-per-page" name="room_per_page" data-ajax-per-page="1" class="h-7 rounded-md border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700">
                                     <?php foreach ($roomPerPageOptions as $option): ?>
                                         <option value="<?= (int) $option; ?>" <?= $roomPerPage === (int) $option ? 'selected' : ''; ?>><?= (int) $option; ?></option>
@@ -189,15 +189,15 @@ $canShowForm = $editingRoom ? $canUpdateRoom : ($canCreateRoom || $canUpdateRoom
                             </form>
 
                             <?php if ($roomPage > 1): ?>
-                                <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('rooms-manage', ['room_page' => $roomPage - 1, 'room_per_page' => $roomPerPage, 'search' => $searchQuery])); ?>">Trước</a>
+                                <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('rooms-manage', ['room_page' => $roomPage - 1, 'room_per_page' => $roomPerPage, 'search' => $searchQuery])); ?>"><?= e(t('admin.common.previous')); ?></a>
                             <?php else: ?>
-                                <span class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 text-xs font-semibold text-slate-400">Trước</span>
+                                <span class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 text-xs font-semibold text-slate-400"><?= e(t('admin.common.previous')); ?></span>
                             <?php endif; ?>
 
                             <?php if ($roomPage < $roomTotalPages): ?>
-                                <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('rooms-manage', ['room_page' => $roomPage + 1, 'room_per_page' => $roomPerPage, 'search' => $searchQuery])); ?>">Sau</a>
+                                <a class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" href="<?= e(page_url('rooms-manage', ['room_page' => $roomPage + 1, 'room_per_page' => $roomPerPage, 'search' => $searchQuery])); ?>"><?= e(t('admin.common.next')); ?></a>
                             <?php else: ?>
-                                <span class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 text-xs font-semibold text-slate-400">Sau</span>
+                                <span class="inline-flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 text-xs font-semibold text-slate-400"><?= e(t('admin.common.next')); ?></span>
                             <?php endif; ?>
                         </div>
                     </div>

@@ -1,5 +1,5 @@
 <?php
-set_flash('info', 'Trang giao vien da duoc hop nhat vao khu vuc quan tri.');
+set_flash('info', t('teacher.dashboard.redirect_info'));
 redirect(page_url('admin'));
 
 $user = auth_user();

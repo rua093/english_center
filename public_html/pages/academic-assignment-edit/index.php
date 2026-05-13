@@ -14,7 +14,10 @@ $lessonRows = $academicModel->assignmentLookups();
 $lessons = array_map(static function (array $lesson): array {
     $title = trim((string) ($lesson['actual_title'] ?? ''));
     if ($title === '') {
-        $title = 'Buổi học ' . ($lesson['study_date'] ?? '') . ' ' . ($lesson['start_time'] ?? '');
+        $title = t('admin.assignment_edit.lesson_fallback', [
+            'date' => (string) ($lesson['study_date'] ?? ''),
+            'time' => (string) ($lesson['start_time'] ?? ''),
+        ]);
     }
     $className = trim((string) ($lesson['class_name'] ?? ''));
     return [
@@ -34,7 +37,7 @@ foreach ($lessons as $lesson) {
 
     $assignmentClasses[$classId] = [
         'id' => $classId,
-        'class_name' => (string) ($lesson['class_name'] ?? ('Lớp #' . $classId)),
+        'class_name' => (string) ($lesson['class_name'] ?? t('admin.assignment_edit.class_fallback', ['id' => (string) $classId])),
     ];
 }
 
@@ -80,40 +83,40 @@ $deadlineValue = !empty($editingAssignment['deadline']) ? date('Y-m-d\TH:i', str
 $existingAssignmentFileUrl = normalize_public_file_url((string) ($editingAssignment['file_url'] ?? ''));
 
 $module = 'assignments';
-$adminTitle = $editingAssignment ? 'Học vụ - Sửa bài tập' : 'Học vụ - Thêm bài tập';
+$adminTitle = $editingAssignment ? t('admin.assignment_edit.title_edit') : t('admin.assignment_edit.title_add');
 ?>
 <div class="grid gap-4">
     <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h2><?= $editingAssignment ? 'Chỉnh sửa bài tập' : 'Thêm bài tập'; ?></h2>
+        <h2><?= e($editingAssignment ? t('admin.assignment_edit.heading_edit') : t('admin.assignment_edit.heading_add')); ?></h2>
         <form class="grid gap-3" method="post" action="/api/assignments/save" enctype="multipart/form-data">
                 <?= csrf_input(); ?>
                 <input type="hidden" name="id" value="<?= (int) ($editingAssignment['id'] ?? 0); ?>">
                 <input type="hidden" name="existing_file_url" value="<?= e($existingAssignmentFileUrl); ?>">
-                <label>Lớp học
+                <label><?= e(t('admin.assignment_edit.class')); ?>
                     <select id="assignment-class-select" name="class_id" required>
-                        <option value="">-- Chọn lớp --</option>
+                        <option value=""><?= e(t('admin.assignment_edit.choose_class')); ?></option>
                         <?php foreach ($assignmentClasses as $assignmentClass): ?>
                             <option value="<?= (int) $assignmentClass['id']; ?>" <?= $selectedAssignmentClassId === (int) $assignmentClass['id'] ? 'selected' : ''; ?>><?= e((string) $assignmentClass['class_name']); ?></option>
                         <?php endforeach; ?>
                     </select>
                 </label>
-                <label>Buổi học
+                <label><?= e(t('admin.assignment_edit.lesson')); ?>
                     <select id="assignment-lesson-select" name="schedule_id" required>
-                        <option value="">-- Chọn buổi học --</option>
+                        <option value=""><?= e(t('admin.assignment_edit.choose_lesson')); ?></option>
                         <?php foreach ($lessons as $lesson): ?>
                             <option data-class-id="<?= (int) ($lesson['class_id'] ?? 0); ?>" value="<?= (int) $lesson['id']; ?>" <?= $selectedAssignmentScheduleId === (int) $lesson['id'] ? 'selected' : ''; ?>><?= e((string) $lesson['title']); ?></option>
                         <?php endforeach; ?>
                     </select>
                 </label>
-                <label>Tiêu đề<input type="text" name="title" value="<?= e((string) ($editingAssignment['title'] ?? '')); ?>" required></label>
-                <label>Mô tả<textarea name="description" rows="4"><?= e((string) ($editingAssignment['description'] ?? '')); ?></textarea></label>
-                <label>Hạn nộp<input type="datetime-local" name="deadline" value="<?= e($deadlineValue); ?>" required></label>
-                <label>Tải lên file đính kèm<input type="file" name="assignment_file" accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.png"></label>
+                <label><?= e(t('admin.assignment_edit.assignment_title')); ?><input type="text" name="title" value="<?= e((string) ($editingAssignment['title'] ?? '')); ?>" required></label>
+                <label><?= e(t('admin.assignment_edit.description')); ?><textarea name="description" rows="4"><?= e((string) ($editingAssignment['description'] ?? '')); ?></textarea></label>
+                <label><?= e(t('admin.assignment_edit.deadline')); ?><input type="datetime-local" name="deadline" value="<?= e($deadlineValue); ?>" required></label>
+                <label><?= e(t('admin.assignment_edit.upload_file')); ?><input type="file" name="assignment_file" accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.png"></label>
                 <?php if ($existingAssignmentFileUrl !== ''): ?>
-                    <p class="text-xs text-slate-500">File hiện tại: <a class="font-semibold text-blue-700 hover:underline" href="<?= e($existingAssignmentFileUrl); ?>" target="_blank" rel="noopener noreferrer">Mở file</a>. Chọn file mới để thay thế.</p>
+                    <p class="text-xs text-slate-500"><?= e(t('admin.assignment_edit.current_file')); ?>: <a class="font-semibold text-blue-700 hover:underline" href="<?= e($existingAssignmentFileUrl); ?>" target="_blank" rel="noopener noreferrer"><?= e(t('admin.assignment_edit.open_file')); ?></a>. <?= e(t('admin.assignment_edit.replace_hint')); ?></p>
                 <?php endif; ?>
-            <button class="<?= ui_btn_primary_classes(); ?>" type="submit">Lưu bài tập</button>
-            <a class="<?= ui_btn_secondary_classes(); ?>" href="<?= e(page_url('assignments-academic')); ?>">Quay lại</a>
+            <button class="<?= ui_btn_primary_classes(); ?>" type="submit"><?= e(t('admin.assignment_edit.save')); ?></button>
+            <a class="<?= ui_btn_secondary_classes(); ?>" href="<?= e(page_url('assignments-academic')); ?>"><?= e(t('admin.common.back')); ?></a>
         </form>
     </article>
 </div>
@@ -142,7 +145,7 @@ $adminTitle = $editingAssignment ? 'Học vụ - Sửa bài tập' : 'Học vụ
 
         const placeholder = document.createElement('option');
         placeholder.value = '';
-        placeholder.textContent = '-- Chọn buổi học --';
+        placeholder.textContent = <?= json_encode(t('admin.assignment_edit.choose_lesson'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
         lessonSelect.appendChild(placeholder);
 
         const matchingLessons = selectedClassId === '' ? [] : lessonOptions.filter(function (lesson) {
