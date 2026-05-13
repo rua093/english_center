@@ -78,8 +78,10 @@ foreach ($teacherRows as $teacherRow) {
     }
 </style>
 
-<section class="min-h-screen bg-slate-50 font-jakarta pb-24">
-   <div class="relative bg-slate-900 pt-24 pb-32 overflow-hidden">
+<section class="relative min-h-screen overflow-hidden bg-lime-100 font-jakarta pb-24">
+    <div class="absolute inset-0 z-0 pointer-events-none opacity-[0.08]" style="background-image: radial-gradient(#475569 1.5px, transparent 1.5px); background-size: 24px 24px;"></div>
+    <div class="absolute inset-x-0 top-0 z-0 h-72 pointer-events-none bg-gradient-to-b from-lime-200/75 via-lime-100/45 to-transparent"></div>
+    <div class="relative z-10 bg-lime-100 pt-24 pb-32 overflow-hidden">
     <div class="absolute inset-0">
         <img src="<?= e('/assets/images/teacher_page_banner.jpg'); ?>" alt="Banner đội ngũ giảng viên" class="w-full h-full object-cover object-center opacity-100">
     </div>

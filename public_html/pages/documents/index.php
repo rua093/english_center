@@ -60,7 +60,9 @@ $fileBadge = static function (string $filePath): array {
     .filter-checkbox:checked + div svg { opacity: 1; transform: scale(1); }
 </style>
 
-<section class="relative pt-12 pb-16 overflow-hidden">
+<section class="relative pt-12 pb-16 overflow-hidden bg-lime-100">
+    <div class="absolute inset-0 z-0 pointer-events-none opacity-[0.08]" style="background-image: radial-gradient(#475569 1.5px, transparent 1.5px); background-size: 24px 24px;"></div>
+    <div class="absolute inset-x-0 top-0 z-0 h-72 pointer-events-none bg-gradient-to-b from-lime-200/75 via-lime-100/45 to-transparent"></div>
     <div class="absolute top-0 left-0 w-full h-full pointer-events-none -z-10">
         <div class="absolute top-0 right-0 w-[300px] h-[300px] bg-emerald-50/50 rounded-full blur-[80px]"></div>
         <div class="absolute bottom-0 left-0 w-[400px] h-[400px] bg-blue-50/40 rounded-full blur-[100px]"></div>
@@ -69,10 +71,10 @@ $fileBadge = static function (string $filePath): array {
     <div class="mx-auto px-4 w-[96%] max-w-[1700px]"> 
         
         <div class="text-center mb-10" data-aos="fade-down">
-            <h1 class="text-3xl md:text-4xl font-black text-slate-900 mb-3">
+            <h1 class="text-3xl md:text-4xl font-black text-slate-950 mb-3 drop-shadow-[0_1px_0_rgba(255,255,255,0.55)]">
                 Kho Tài Liệu <span class="text-emerald-600">Học Tập</span>
             </h1>
-            <p class="text-slate-500 text-sm font-medium">Tìm kiếm, lọc và tải xuống hàng ngàn tài liệu miễn phí</p>
+            <p class="text-slate-700 text-sm md:text-base font-semibold leading-relaxed max-w-2xl mx-auto">Tìm kiếm, lọc và tải xuống hàng ngàn tài liệu miễn phí</p>
         </div>
 
         <div class="flex flex-col gap-6" data-aos="fade-up" data-aos-delay="100">

@@ -69,7 +69,6 @@ $showConfirmTestButtons = false;
 					<div>
 						<p class="text-sm font-bold uppercase tracking-[0.3em] text-slate-400">Chi tiết hoạt động</p>
 						<h1 class="mt-2 text-3xl font-extrabold tracking-tight text-slate-800"><?= e((string) ($activity['activity_name'] ?? '')); ?></h1>
-						<p class="mt-2 text-slate-500">Hiển thị dữ liệu trực tiếp từ database và trạng thái đăng ký theo tài khoản hiện tại.</p>
 					</div>
 				</header>
 

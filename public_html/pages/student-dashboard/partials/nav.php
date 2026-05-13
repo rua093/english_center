@@ -13,6 +13,14 @@ $studentDashboardActiveTab = (string) ($studentDashboardActiveTab ?? 'dashboard-
 	</div>
 
     <div class="grid grid-cols-2 gap-2 sm:grid-cols-2 lg:block lg:space-y-3 lg:gap-0">
+		<a href="<?= e(page_url('student-notification')); ?>"
+           class="group flex min-h-[4.3rem] flex-col items-start gap-2 rounded-2xl px-3 py-3 text-[13px] transition-all duration-300 sm:min-h-0 sm:flex-row sm:items-center sm:gap-3 sm:px-4 sm:py-3.5 <?= $studentDashboardActiveTab === 'student-notification' ? 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-lg shadow-blue-200' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800' ?>">
+			<span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-colors <?= $studentDashboardActiveTab === 'student-notification' ? 'bg-white/20 text-white' : 'bg-blue-50 text-blue-600 group-hover:bg-blue-100' ?>">
+				<i class="fa-solid fa-bell"></i>
+			</span>
+			<span class="font-bold leading-tight">Thông báo</span>
+		</a>
+
 		<a href="<?= e(page_url('dashboard-student')); ?>"
            class="group flex min-h-[4.3rem] flex-col items-start gap-2 rounded-2xl px-3 py-3 text-[13px] transition-all duration-300 sm:min-h-0 sm:flex-row sm:items-center sm:gap-3 sm:px-4 sm:py-3.5 <?= $studentDashboardActiveTab === 'dashboard-student' ? 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-lg shadow-blue-200' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800' ?>">
 			<span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-colors <?= $studentDashboardActiveTab === 'dashboard-student' ? 'bg-white/20 text-white' : 'bg-blue-50 text-blue-600 group-hover:bg-blue-100' ?>">

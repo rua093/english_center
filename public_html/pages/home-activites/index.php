@@ -55,7 +55,10 @@ $pageActivities = array_slice($activities, ($activityPage - 1) * $activityPerPag
 </style>
 
 
-<section class="py-12 md:py-16">
+<section class="relative overflow-hidden py-12 md:py-16 bg-lime-100">
+    <div class="absolute inset-0 z-0 pointer-events-none opacity-[0.08]" style="background-image: radial-gradient(#475569 1.5px, transparent 1.5px); background-size: 24px 24px;"></div>
+    <div class="absolute inset-x-0 top-0 z-0 h-64 pointer-events-none bg-gradient-to-b from-lime-200/75 via-lime-100/45 to-transparent"></div>
+    <div class="relative z-10">
     <div class="container mx-auto px-4 max-w-[1400px]">
         
         <div class="text-center mb-12" data-aos="fade-up">
@@ -148,6 +151,7 @@ $pageActivities = array_slice($activities, ($activityPage - 1) * $activityPerPag
                 <?php endif; ?>
             </div>
         <?php endif; ?>
+    </div>
     </div>
 </section>
 

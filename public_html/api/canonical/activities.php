@@ -224,7 +224,7 @@ function api_activities_add_student_action(): void
 
 function api_activities_join_action(): void
 {
-	require_role(['student', 'admin']);
+	require_login();
 	api_require_post(page_url('activities-student'));
 
 	$user = auth_user() ?? [];
