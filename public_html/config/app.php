@@ -14,7 +14,7 @@ if (!defined('APP_NAME')) {
 }
 
 if (!defined('APP_ENV')) {
-    define('APP_ENV', 'local');
+    define('APP_ENV', 'production');
 }
 
 if (!defined('ASSET_VERSION')) {

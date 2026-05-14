@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 if (!defined('APP_SECRET')) {
-    define('APP_SECRET', 'change-this-to-a-long-random-secret');
+    define('APP_SECRET', 'change-this-secret-in-config-local-php-before-production');
 }
 
 if (!defined('UPLOAD_STORAGE_PATH')) {

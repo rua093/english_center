@@ -6,3 +6,4 @@ pnpm-debug.log*
 *.tmp
 .DS_Store
 Thumbs.db
+public_html/config/local.php
