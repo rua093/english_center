@@ -19,6 +19,23 @@ $homeFormatFeedbackDate = static function (?string $value): string {
 
     return date('d/m/Y H:i', $timestamp);
 };
+
+$renderBbcode = static function (string $text): string {
+    $text = trim($text);
+    if ($text === '') {
+        return '';
+    }
+
+    if (function_exists('ui_render_bbcode')) {
+        return ui_render_bbcode($text);
+    }
+
+    if (function_exists('bbcode_to_html')) {
+        return bbcode_to_html($text);
+    }
+
+    return nl2br(e($text), false);
+};
 ?>
 
 <main class="font-jakarta relative overflow-hidden">
@@ -1040,6 +1057,7 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                             $portfolioAvatar = (string) ($portfolio['avatar_url'] ?? $portfolio['avatar'] ?? '');
                             $portfolioMedia = (string) ($portfolio['media_url'] ?? '');
                             $portfolioDescription = trim((string) ($portfolio['description'] ?? ''));
+                            $portfolioDescriptionHtml = $renderBbcode($portfolioDescription);
                             $portfolioResult = trim((string) ($portfolio['result'] ?? t('home.portfolio_badge')));
                             
                             // Nếu không có avatar, dùng avatar mặc định
@@ -1079,10 +1097,10 @@ $homeFormatFeedbackDate = static function (?string $value): string {
                                             </span>
                                         </div>
 
-                                        <?php if ($portfolioDescription !== ''): ?>
-                                            <p class="text-xs sm:text-sm md:text-base leading-relaxed text-slate-600 line-clamp-2">
-                                                "<?= e($portfolioDescription); ?>"
-                                            </p>
+                                        <?php if ($portfolioDescriptionHtml !== ''): ?>
+                                            <div class="text-xs sm:text-sm md:text-base leading-relaxed text-slate-600 line-clamp-2 [&_a]:text-emerald-600 [&_a]:underline [&_a]:underline-offset-2 [&_blockquote]:border-l-4 [&_blockquote]:border-lime-200 [&_blockquote]:pl-3 [&_blockquote]:italic [&_code]:rounded-lg [&_code]:bg-slate-100 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[0.92em]">
+                                                "<?= $portfolioDescriptionHtml; ?>"
+                                            </div>
                                         <?php endif; ?>
                                     </div>
                                 </article>

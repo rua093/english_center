@@ -86,16 +86,16 @@ foreach ($teacherRows as $teacherRow) {
         <img src="<?= e('/assets/images/teacher_page_banner.jpg'); ?>" alt="<?= e(t('teachers.banner_alt')); ?>" class="w-full h-full object-cover object-center opacity-100">
     </div>
     
-    <div class="container mx-auto px-4 max-w-6xl relative z-10 text-left">
+    <div class="container mx-auto px-4 max-w-6xl relative z-10 text-left" data-aos="fade-up" data-aos-duration="700">
         
-        <span class="inline-block px-4 py-1.5 rounded-full bg-black/30 text-white text-xs font-bold uppercase tracking-widest border border-white/40 shadow-sm mb-6 backdrop-blur-md"><?= e(t('teachers.kicker')); ?></span>
+        <span class="inline-block px-4 py-1.5 rounded-full bg-black/30 text-white text-xs font-bold uppercase tracking-widest border border-white/40 shadow-sm mb-6 backdrop-blur-md" data-aos="zoom-in" data-aos-delay="220"><?= e(t('teachers.kicker')); ?></span>
         
-        <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tight mb-6">
+        <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tight mb-6" data-aos="fade-right" data-aos-delay="420">
             <span class="inline-block [text-shadow:0px_5px_15px_rgba(0,0,0,0.85)]"><?= e(t('teachers.hero_line_1')); ?></span>
             <span class="block mt-2 [text-shadow:0px_5px_15px_rgba(0,0,0,0.85)]"><?= e(t('teachers.hero_line_2')); ?></span>
         </h1>
         
-        <p class="text-white text-lg md:text-xl max-w-2xl font-medium leading-relaxed [text-shadow:0px_3px_8px_rgba(0,0,0,0.9)]">
+        <p class="text-white text-lg md:text-xl max-w-2xl font-medium leading-relaxed [text-shadow:0px_3px_8px_rgba(0,0,0,0.9)]" data-aos="fade-up" data-aos-delay="560">
             <?= e(t('teachers.hero_copy')); ?>
         </p>
         
@@ -103,8 +103,8 @@ foreach ($teacherRows as $teacherRow) {
 </div>
 
     <div class="container mx-auto px-4 max-w-6xl relative z-20 -mt-16">
-        <div id="danh-sach-giang-vien" class="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3">
-            <?php $teacherDelay = 0; ?>
+        <div id="danh-sach-giang-vien" class="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3" data-aos="fade-up" data-aos-delay="360">
+            <?php $teacherDelay = 300; ?>
             <?php foreach($teachers as $teacher): ?>
             <div class="teacher-card bg-white/95 rounded-[2rem] p-4 border border-white shadow-[0_14px_40px_rgba(15,23,42,0.08)] flex flex-col group cursor-pointer relative overflow-hidden transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_24px_60px_rgba(15,23,42,0.14)]" onclick="window.location.href='/teacher-detail?id=<?= $teacher['id'] ?>'" data-aos="fade-up" data-aos-delay="<?= $teacherDelay; ?>" data-aos-duration="700">
                 <div class="mb-5 overflow-hidden rounded-[1.5rem] bg-slate-100">

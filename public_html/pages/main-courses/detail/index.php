@@ -27,6 +27,23 @@ $resolveCourseImage = static function (?string $value): string {
     return str_starts_with($value, '/') ? $value : '/' . ltrim($value, '/');
 };
 
+$renderBbcode = static function (string $text): string {
+    $text = trim($text);
+    if ($text === '') {
+        return '';
+    }
+
+    if (function_exists('ui_render_bbcode')) {
+        return ui_render_bbcode($text);
+    }
+
+    if (function_exists('bbcode_to_html')) {
+        return bbcode_to_html($text);
+    }
+
+    return nl2br(e($text), false);
+};
+
 $dbCourses = [];
 foreach ($courseRows as $row) {
     $courseName = trim((string) ($row['course_name'] ?? ''));
@@ -140,9 +157,9 @@ $relatedCourses = array_slice($relatedCourses, 0, 4);
                             <?= e($course['title']); ?>
                         </h1>
 
-                        <p class="text-base md:text-lg leading-relaxed text-slate-600 max-w-2xl font-medium">
-                            <?= e($course['short_desc']); ?>
-                        </p>
+                        <div class="text-base md:text-lg leading-relaxed text-slate-600 max-w-2xl font-medium [&_a]:text-emerald-600 [&_a]:underline [&_a]:underline-offset-2 [&_blockquote]:border-l-4 [&_blockquote]:border-emerald-200 [&_blockquote]:pl-3 [&_blockquote]:italic [&_code]:rounded-lg [&_code]:bg-white [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[0.92em]">
+                            <?= $renderBbcode((string) ($course['short_desc'] ?? '')); ?>
+                        </div>
                     </div>
 
                     <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -198,9 +215,9 @@ $relatedCourses = array_slice($relatedCourses, 0, 4);
                                     <span class="text-white/60">•</span>
                                     <span><?= e($course['instructor']['name']); ?></span>
                                 </div>
-                                <p class="mt-2 max-w-xl text-sm leading-relaxed text-white/85">
-                                    <?= e($course['instructor']['role']); ?>
-                                </p>
+                                <div class="mt-2 max-w-xl text-sm leading-relaxed text-white/85 [&_a]:text-lime-200 [&_a]:underline [&_a]:underline-offset-2 [&_blockquote]:border-l-4 [&_blockquote]:border-lime-200 [&_blockquote]:pl-3 [&_blockquote]:italic [&_code]:rounded-lg [&_code]:bg-black/20 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[0.92em]">
+                                    <?= $renderBbcode((string) ($course['instructor']['role'] ?? '')); ?>
+                                </div>
                             </div>
                         </div>
 
@@ -233,7 +250,9 @@ $relatedCourses = array_slice($relatedCourses, 0, 4);
                             <i class="fa-solid fa-check"></i>
                         </div>
                         <h3 class="text-lg font-black text-slate-950">Giá trị nổi bật</h3>
-                        <p class="mt-2 text-sm leading-relaxed text-slate-600"><?= e($benefit); ?></p>
+                        <div class="mt-2 text-sm leading-relaxed text-slate-600 [&_a]:text-emerald-600 [&_a]:underline [&_a]:underline-offset-2 [&_blockquote]:border-l-4 [&_blockquote]:border-emerald-200 [&_blockquote]:pl-3 [&_blockquote]:italic [&_code]:rounded-lg [&_code]:bg-slate-100 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[0.92em]">
+                            <?= $renderBbcode((string) $benefit); ?>
+                        </div>
                     </div>
                 <?php endforeach; ?>
             </div>
@@ -259,7 +278,9 @@ $relatedCourses = array_slice($relatedCourses, 0, 4);
                                         </span>
                                         <div class="min-w-0 flex-1">
                                             <h3 class="text-base font-black text-slate-950"><?= e($step['title']); ?></h3>
-                                            <p class="mt-1 text-sm leading-relaxed text-slate-600"><?= e($step['desc']); ?></p>
+                                            <div class="mt-1 text-sm leading-relaxed text-slate-600 [&_a]:text-emerald-600 [&_a]:underline [&_a]:underline-offset-2 [&_blockquote]:border-l-4 [&_blockquote]:border-emerald-200 [&_blockquote]:pl-3 [&_blockquote]:italic [&_code]:rounded-lg [&_code]:bg-slate-100 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[0.92em]">
+                                                <?= $renderBbcode((string) ($step['desc'] ?? '')); ?>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -276,7 +297,9 @@ $relatedCourses = array_slice($relatedCourses, 0, 4);
                         <div class="mt-6 grid gap-4 md:grid-cols-2">
                             <?php foreach ($course['outcomes'] as $outcome): ?>
                                 <div class="rounded-2xl border border-slate-100 bg-gradient-to-br from-white to-slate-50 p-5">
-                                    <p class="text-sm font-bold text-slate-700"><?= e($outcome); ?></p>
+                                    <div class="text-sm font-bold text-slate-700 [&_a]:text-emerald-600 [&_a]:underline [&_a]:underline-offset-2 [&_blockquote]:border-l-4 [&_blockquote]:border-emerald-200 [&_blockquote]:pl-3 [&_blockquote]:italic [&_code]:rounded-lg [&_code]:bg-slate-100 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[0.92em]">
+                                        <?= $renderBbcode((string) $outcome); ?>
+                                    </div>
                                 </div>
                             <?php endforeach; ?>
                         </div>
@@ -302,8 +325,8 @@ $relatedCourses = array_slice($relatedCourses, 0, 4);
                             <p>Khóa học này phù hợp cho:</p>
                             <div class="flex flex-wrap gap-2">
                                 <?php foreach ($course['suitable_for'] as $item): ?>
-                                    <span class="rounded-full border border-slate-200 bg-white px-4 py-2 font-bold text-slate-700 shadow-sm">
-                                        <?= e($item); ?>
+                                    <span class="rounded-full border border-slate-200 bg-white px-4 py-2 font-bold text-slate-700 shadow-sm [&_a]:text-emerald-600 [&_a]:underline [&_a]:underline-offset-2 [&_blockquote]:border-l-4 [&_blockquote]:border-emerald-200 [&_blockquote]:pl-3 [&_blockquote]:italic [&_code]:rounded-lg [&_code]:bg-slate-100 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[0.92em]">
+                                        <?= $renderBbcode((string) $item); ?>
                                     </span>
                                 <?php endforeach; ?>
                             </div>

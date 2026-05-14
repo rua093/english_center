@@ -38,6 +38,23 @@ $resolveCourseImage = static function (?string $value): string {
     return str_starts_with($value, '/') ? $value : '/' . ltrim($value, '/');
 };
 
+$renderBbcode = static function (string $text): string {
+    $text = trim($text);
+    if ($text === '') {
+        return '';
+    }
+
+    if (function_exists('ui_render_bbcode')) {
+        return ui_render_bbcode($text);
+    }
+
+    if (function_exists('bbcode_to_html')) {
+        return bbcode_to_html($text);
+    }
+
+    return nl2br(e($text), false);
+};
+
 $courses = [];
 foreach ($courseRows as $row) {
     $courseName = trim((string) ($row['course_name'] ?? ''));
@@ -205,6 +222,7 @@ $stats = [
             <div class="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
                 <?php $courseDelay = 0; ?>
                 <?php foreach ($courses as $course): ?>
+                    <?php $courseDescription = trim((string) ($course['short_desc'] ?? '')); ?>
                     <article class="course-card group overflow-hidden rounded-[2rem] border border-white bg-white/95 shadow-[0_14px_40px_rgba(15,23,42,0.08)] transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_24px_60px_rgba(15,23,42,0.14)]" data-aos="fade-up" data-aos-delay="<?= $courseDelay; ?>" data-aos-duration="700">
                         <div class="morph-content">
                         <div class="relative h-56 overflow-hidden">
@@ -230,9 +248,9 @@ $stats = [
 
                         <div class="p-6">
                             <h3 class="text-xl font-black leading-tight text-slate-950 transition-colors group-hover:text-rose-600"><?= e($course['title']); ?></h3>
-                            <p class="mt-3 text-sm leading-relaxed text-slate-600">
-                                <?= e(t('courses.card_desc')); ?>
-                            </p>
+                            <div class="mt-3 text-sm leading-relaxed text-slate-600 [&_a]:text-emerald-600 [&_a]:underline [&_a]:underline-offset-2 [&_blockquote]:border-l-4 [&_blockquote]:border-emerald-200 [&_blockquote]:pl-3 [&_blockquote]:italic [&_code]:rounded-lg [&_code]:bg-slate-100 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[0.92em]">
+                                <?= $courseDescription !== '' ? $renderBbcode($courseDescription) : e(t('courses.card_desc')); ?>
+                            </div>
 
                             <div class="mt-5 flex items-center justify-between border-t border-slate-100 pt-4">
                                 <div>
