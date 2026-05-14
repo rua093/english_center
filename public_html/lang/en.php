@@ -21,7 +21,7 @@ return [
 	'nav.activities' => 'Activities',
 	'nav.jobs' => 'Careers',
 	'nav.system' => 'System',
-	'nav.documents' => 'Learning materials',
+	'nav.documents' => 'Materials',
 	'nav.consultation' => 'Request consultation',
 	'nav.login' => 'Log in',
 	'nav.logout' => 'Log out',
@@ -34,6 +34,7 @@ return [
 	'nav.student_page' => 'Student portal',
 	'nav.admin' => 'Admin console',
 	'nav.account' => 'Account: :name',
+	'nav.account_short' => 'Account',
 
 	'flash.invalid_request' => 'Invalid request. Please try again.',
 	'flash.internal_error' => 'Something went wrong. Please try again.',

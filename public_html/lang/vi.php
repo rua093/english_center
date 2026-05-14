@@ -21,7 +21,7 @@ return [
 	'nav.activities' => 'Ngoại khoá',
 	'nav.jobs' => 'Tuyển dụng',
 	'nav.system' => 'Hệ thống',
-	'nav.documents' => 'Tài liệu học tập',
+	'nav.documents' => 'Tài liệu',
 	'nav.consultation' => 'Đăng ký tư vấn',
 	'nav.login' => 'Đăng nhập',
 	'nav.logout' => 'Đăng xuất',
@@ -34,6 +34,7 @@ return [
 	'nav.student_page' => 'Trang Học viên',
 	'nav.admin' => 'Quản trị hệ thống',
 	'nav.account' => 'Tài khoản: :name',
+	'nav.account_short' => 'Tài khoản',
 
 	'flash.invalid_request' => 'Yêu cầu không hợp lệ. Vui lòng thử lại.',
 	'flash.internal_error' => 'Có lỗi xảy ra. Vui lòng thử lại.',
