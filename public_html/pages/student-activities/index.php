@@ -23,6 +23,23 @@ $resolveActivityImage = static function (?string $value): string {
 	return str_starts_with($value, '/') ? $value : '/' . ltrim($value, '/');
 };
 
+$renderBbcode = static function (string $text): string {
+	$text = trim($text);
+	if ($text === '') {
+		return '';
+	}
+
+	if (function_exists('ui_render_bbcode')) {
+		return ui_render_bbcode($text);
+	}
+
+	if (function_exists('bbcode_to_html')) {
+		return bbcode_to_html($text);
+	}
+
+	return nl2br(e($text), false);
+};
+
 $activityFilter = strtolower(trim((string) ($_GET['filter'] ?? 'all')));
 if (!in_array($activityFilter, ['all', 'registered', 'available'], true)) {
 	$activityFilter = 'all';
@@ -141,13 +158,13 @@ $shouldShowAvailable = $activityFilter === 'all' || $activityFilter === 'availab
 			</aside>
 
 			<div class="relative z-10 min-w-0 space-y-8">
-				<header class="flex flex-col gap-2">
+				<header class="flex flex-col gap-2" data-aos="fade-down" data-aos-duration="650" data-aos-delay="160">
 					<div>
-						<h1 class="text-3xl font-extrabold text-slate-800 tracking-tight"><?= e(t('student.activities.title')); ?> <span class="text-blue-600"><?= e(t('student.activities.highlight')); ?></span></h1>
+						<h1 class="text-3xl font-extrabold text-slate-800 tracking-tight" data-aos="fade-right" data-aos-delay="180"><?= e(t('student.activities.title')); ?> <span class="text-blue-600"><?= e(t('student.activities.highlight')); ?></span></h1>
 					</div>
 				</header>
 
-				<form class="mb-8 max-w-sm" method="get" action="/">
+				<form class="mb-8 max-w-sm" method="get" action="/" data-aos="fade-up" data-aos-delay="240">
 					<input type="hidden" name="page" value="activities-student">
 					<label for="activity-filter" class="mb-2 block text-sm font-semibold text-slate-600"><?= e(t('student.activities.filter_label')); ?></label>
 					<div class="relative">
@@ -169,7 +186,7 @@ $shouldShowAvailable = $activityFilter === 'all' || $activityFilter === 'availab
 
 				<?php if ($shouldShowRegistered): ?>
 					<div class="mb-10">
-						<div class="mb-5 flex items-center justify-between gap-4">
+						<div class="mb-5 flex items-center justify-between gap-4" data-aos="fade-up" data-aos-delay="160">
 							<h2 class="text-2xl font-black text-slate-800"><?= e(t('student.activities.registered_title')); ?></h2>
 							<span class="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700"><?= e(t('student.activities.count', ['count' => $registeredTotal])); ?></span>
 						</div>
@@ -180,7 +197,7 @@ $shouldShowAvailable = $activityFilter === 'all' || $activityFilter === 'availab
 							</div>
 						<?php else: ?>
 							<div class="activity-card-carousel grid grid-cols-1 gap-6 items-stretch sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-								<?php $registeredDelay = 0; ?>
+								<?php $registeredDelay = 120; ?>
 								<?php foreach ($registeredActivitiesPage as $activity): ?>
 									<article class="activity-card flex flex-col overflow-hidden rounded-[2rem] border border-slate-300 bg-white shadow-[0_22px_65px_rgba(15,23,42,0.16)] group transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_32px_85px_rgba(15,23,42,0.22)]" data-aos="fade-up" data-aos-delay="<?= $registeredDelay; ?>" data-aos-duration="700">
 										<div class="relative h-56 overflow-hidden">
@@ -197,7 +214,9 @@ $shouldShowAvailable = $activityFilter === 'all' || $activityFilter === 'availab
 												<span class="text-[10px] font-bold uppercase tracking-wider text-slate-400"><?= e($activity['status_label']); ?></span>
 											</div>
 											<h3 class="mb-2 text-base font-bold leading-tight text-slate-800 transition group-hover:text-blue-600"><?= e($activity['title']); ?></h3>
-											<p class="mb-4 line-clamp-2 text-sm text-slate-500"><?= e($activity['description']); ?></p>
+											<div class="mb-4 line-clamp-2 text-sm leading-relaxed text-slate-500 [&_a]:text-blue-600 [&_a]:underline [&_a]:underline-offset-2 [&_blockquote]:border-l-4 [&_blockquote]:border-slate-200 [&_blockquote]:pl-3 [&_blockquote]:italic [&_code]:rounded-lg [&_code]:bg-slate-100 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[0.92em]">
+												<?= $renderBbcode(trim((string) ($activity['content'] ?? '')) !== '' ? (string) ($activity['content'] ?? '') : (string) ($activity['description'] ?? '')); ?>
+											</div>
 
 											<div class="mt-auto space-y-4">
 												<div class="grid grid-cols-2 gap-3 text-xs">
@@ -227,16 +246,16 @@ $shouldShowAvailable = $activityFilter === 'all' || $activityFilter === 'availab
 											</div>
 										</div>
 									</article>
-									<?php $registeredDelay += 100; ?>
+									<?php $registeredDelay += 120; ?>
 								<?php endforeach; ?>
 							</div>
 						<?php endif; ?>
 
 						<?php if ($registeredTotalPages > 1): ?>
-							<div class="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-lg shadow-slate-200/50 text-xs font-semibold text-slate-600">
+							<div class="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-lg shadow-slate-200/50 text-xs font-semibold text-slate-600" data-aos="fade-up" data-aos-delay="220">
 								<div>
 									<?= e(t('student.activities.page_info', ['current' => (int) $activityPage, 'total' => (int) $registeredTotalPages, 'per_page' => (int) $activityPerPage])); ?>
-								</div>
+								<div>
 								<form class="flex items-center gap-2" method="get" action="<?= e(page_url('activities-student')); ?>">
 									<input type="hidden" name="page" value="activities-student">
 									<input type="hidden" name="filter" value="<?= e($activityFilter); ?>">
@@ -279,7 +298,7 @@ $shouldShowAvailable = $activityFilter === 'all' || $activityFilter === 'availab
 							</div>
 						<?php else: ?>
 								<div class="activity-card-carousel grid grid-cols-1 gap-6 items-stretch sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-									<?php $availableDelay = 0; ?>
+									<?php $availableDelay = 120; ?>
 									<?php foreach ($availableActivitiesPage as $activity): ?>
 									<article class="activity-card flex flex-col overflow-hidden rounded-[2rem] border border-slate-300 bg-white shadow-[0_22px_65px_rgba(15,23,42,0.16)] group transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_32px_85px_rgba(15,23,42,0.22)]" data-aos="fade-up" data-aos-delay="<?= $availableDelay; ?>" data-aos-duration="700">
 										<div class="relative h-56 overflow-hidden">
@@ -296,7 +315,9 @@ $shouldShowAvailable = $activityFilter === 'all' || $activityFilter === 'availab
 												<span class="text-[10px] font-bold uppercase tracking-wider text-slate-400"><?= e($activity['status_label']); ?></span>
 											</div>
 											<h3 class="mb-2 text-base font-bold leading-tight text-slate-800 transition group-hover:text-blue-600"><?= e($activity['title']); ?></h3>
-											<p class="mb-4 line-clamp-2 text-sm text-slate-500"><?= e($activity['description']); ?></p>
+											<div class="mb-4 line-clamp-2 text-sm leading-relaxed text-slate-500 [&_a]:text-blue-600 [&_a]:underline [&_a]:underline-offset-2 [&_blockquote]:border-l-4 [&_blockquote]:border-slate-200 [&_blockquote]:pl-3 [&_blockquote]:italic [&_code]:rounded-lg [&_code]:bg-slate-100 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[0.92em]">
+												<?= $renderBbcode(trim((string) ($activity['content'] ?? '')) !== '' ? (string) ($activity['content'] ?? '') : (string) ($activity['description'] ?? '')); ?>
+											</div>
 
 											<div class="mt-auto space-y-4">
 												<div class="grid grid-cols-2 gap-3 text-xs">
@@ -321,13 +342,13 @@ $shouldShowAvailable = $activityFilter === 'all' || $activityFilter === 'availab
 											</div>
 										</div>
 									</article>
-									<?php $availableDelay += 100; ?>
+									<?php $availableDelay += 120; ?>
 								<?php endforeach; ?>
 							</div>
 						<?php endif; ?>
 
 						<?php if ($availableTotalPages > 1): ?>
-							<div class="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-lg shadow-slate-200/50 text-xs font-semibold text-slate-600">
+							<div class="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-lg shadow-slate-200/50 text-xs font-semibold text-slate-600" data-aos="fade-up" data-aos-delay="220">
 								<div>
 									<?= e(t('student.activities.page_info', ['current' => (int) $activityPage, 'total' => (int) $availableTotalPages, 'per_page' => (int) $activityPerPage])); ?>
 								</div>

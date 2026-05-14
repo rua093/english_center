@@ -21,6 +21,9 @@ $fileBadge = static function (string $filePath): array {
 };
 ?>
 
+<link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css">
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
 <style>
     .resource-card:hover { transform: translateY(-5px); border-color: #10b981; }
     .btn-download-gradient { background: linear-gradient(135deg, #065f46 0%, #10b981 100%); }
@@ -70,14 +73,14 @@ $fileBadge = static function (string $filePath): array {
 
     <div class="mx-auto px-4 w-[96%] max-w-[1700px]"> 
         
-        <div class="text-center mb-10" data-aos="fade-down">
+        <div class="text-center mb-10" data-aos="fade-down" data-aos-duration="650">
             <h1 class="text-3xl md:text-4xl font-black text-slate-950 mb-3 drop-shadow-[0_1px_0_rgba(255,255,255,0.55)]">
                 <?= e(t('documents.title')); ?> <span class="text-emerald-600"><?= e(t('documents.highlight')); ?></span>
             </h1>
             <p class="text-slate-700 text-sm md:text-base font-semibold leading-relaxed max-w-2xl mx-auto"><?= e(t('documents.subtitle')); ?></p>
         </div>
 
-        <div class="flex flex-col gap-6" data-aos="fade-up" data-aos-delay="100">
+        <div class="flex flex-col gap-6" data-aos="fade-up" data-aos-delay="220">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-3">
                 <div class="text-center sm:text-left">
                     <p class="text-sm font-bold text-slate-500"><?= e(t('documents.found', ['count' => number_format($materialTotal, 0, ',', '.')])); ?></p>
@@ -107,7 +110,7 @@ $fileBadge = static function (string $filePath): array {
                         $courseName = trim((string) ($doc['course_name'] ?? ''));
                         $description = trim((string) ($doc['description'] ?? ''));
                         ?>
-                        <article class="resource-card group relative bg-white rounded-2xl border border-slate-100 p-4 transition-all duration-300 shadow-lg shadow-slate-200/40">
+                        <article class="resource-card group relative bg-white rounded-2xl border border-slate-100 p-4 transition-all duration-300 shadow-lg shadow-slate-200/40" data-aos="fade-up" data-aos-delay="240" data-aos-duration="650">
                             <div class="flex items-start justify-between gap-3 mb-3">
                                 <div class="min-w-0">
                                     <p class="text-[9px] font-black uppercase tracking-[0.28em] text-slate-400 mb-1.5"><?= e(t('documents.card_kicker')); ?></p>
@@ -156,7 +159,7 @@ $fileBadge = static function (string $filePath): array {
             <?php endif; ?>
 
             <?php if ($materialTotal > 0 && $materialTotalPages > 1): ?>
-                <div class="mt-6 flex flex-wrap items-center justify-center gap-2">
+                <div class="mt-6 flex flex-wrap items-center justify-center gap-2" data-aos="fade-up" data-aos-delay="260">
                     <?php if ($materialPage > 1): ?>
                         <a class="w-10 h-10 rounded-xl border border-slate-200 flex items-center justify-center text-slate-400 hover:bg-white hover:text-emerald-600 hover:border-emerald-200 transition-all shadow-sm" href="<?= e(page_url('documents', ['material_page' => $materialPage - 1, 'material_per_page' => $materialPerPage])); ?>">
                             <i class="fa-solid fa-chevron-left text-xs"></i>
@@ -175,3 +178,16 @@ $fileBadge = static function (string $filePath): array {
         </div>
     </div>
 </section>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        if (typeof AOS !== 'undefined') {
+            AOS.init({
+                duration: 650,
+                once: true,
+                offset: 0,
+                easing: 'ease-out-cubic'
+            });
+        }
+    });
+</script>

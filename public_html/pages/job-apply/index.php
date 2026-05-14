@@ -1,10 +1,13 @@
 
+<link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css">
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
 <main class="relative overflow-hidden py-12 md:py-16 font-jakarta bg-lime-100">
     <div class="absolute inset-0 z-0 pointer-events-none opacity-[0.08]" style="background-image: radial-gradient(#475569 1.5px, transparent 1.5px); background-size: 24px 24px;"></div>
     <div class="absolute inset-x-0 top-0 z-0 h-72 pointer-events-none bg-gradient-to-b from-lime-200/75 via-lime-100/45 to-transparent"></div>
     <div class="relative z-10 container mx-auto px-4 max-w-7xl">
         
-<section id="gioi-thieu" class="mb-16" data-aos="fade-up">
+<section id="gioi-thieu" class="mb-16" data-aos="fade-up" data-aos-delay="180">
             <div class="relative overflow-hidden rounded-[2.5rem] shadow-2xl shadow-slate-200/50">
                 
                 <div class="absolute inset-0 z-0">
@@ -22,12 +25,12 @@
                                 <?= e(t('job.apply.about_badge')); ?>
                             </span>
                             
-                            <h2 class="text-3xl md:text-5xl font-black text-white leading-tight tracking-tight mb-5">
+                            <h2 class="text-3xl md:text-5xl font-black text-white leading-tight tracking-tight mb-5" data-aos="fade-right" data-aos-delay="420">
                                 <?= e(t('job.apply.hero_title')); ?> <br class="hidden md:block">
                                 <span class="text-transparent bg-clip-text bg-gradient-to-r from-rose-300 to-rose-500"><?= e(t('job.apply.hero_highlight')); ?></span>
                             </h2>
                             
-                            <p class="text-slate-300 font-medium text-sm md:text-base leading-relaxed max-w-2xl mx-auto mb-8">
+                            <p class="text-slate-300 font-medium text-sm md:text-base leading-relaxed max-w-2xl mx-auto mb-8" data-aos="fade-up" data-aos-delay="600">
                                 <?= t('job.apply.hero_copy'); ?>
                             </p>
 
@@ -38,7 +41,7 @@
                         </div>
 
                         <div class="grid md:grid-cols-3 gap-5 md:gap-6 text-left mt-8">
-                            <div class="p-6 bg-white/10 backdrop-blur-md rounded-2xl border border-white/10 shadow-xl transition-all hover:-translate-y-1 hover:bg-white/15">
+                            <div class="p-6 bg-white/10 backdrop-blur-md rounded-2xl border border-white/10 shadow-xl transition-all hover:-translate-y-1 hover:bg-white/15" data-aos="fade-up" data-aos-delay="300">
                                 <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0 mb-4 text-white shadow-inner">
                                     <i class="fa-solid fa-award text-xl"></i>
                                 </div>
@@ -46,7 +49,7 @@
                                 <p class="text-slate-300 font-medium text-xs leading-relaxed"><?= e(t('job.apply.benefit_1_copy')); ?></p>
                             </div>
 
-                            <div class="p-6 bg-white/10 backdrop-blur-md rounded-2xl border border-white/10 shadow-xl transition-all hover:-translate-y-1 hover:bg-white/15">
+                            <div class="p-6 bg-white/10 backdrop-blur-md rounded-2xl border border-white/10 shadow-xl transition-all hover:-translate-y-1 hover:bg-white/15" data-aos="fade-up" data-aos-delay="460">
                                 <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0 mb-4 text-white shadow-inner">
                                     <i class="fa-solid fa-lightbulb text-xl"></i>
                                 </div>
@@ -54,7 +57,7 @@
                                 <p class="text-slate-300 font-medium text-xs leading-relaxed"><?= e(t('job.apply.benefit_2_copy')); ?></p>
                             </div>
 
-                            <div class="p-6 bg-white/10 backdrop-blur-md rounded-2xl border border-white/10 shadow-xl transition-all hover:-translate-y-1 hover:bg-white/15">
+                            <div class="p-6 bg-white/10 backdrop-blur-md rounded-2xl border border-white/10 shadow-xl transition-all hover:-translate-y-1 hover:bg-white/15" data-aos="fade-up" data-aos-delay="620">
                                 <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0 mb-4 text-white shadow-inner">
                                     <i class="fa-solid fa-hands-helping text-xl"></i>
                                 </div>
@@ -73,7 +76,7 @@
             <div class="w-20 h-1 bg-gradient-to-r from-rose-600 to-orange-600 mx-auto rounded-full"></div>
         </div>
 
-        <div id="form-section" class="mb-12 text-center" data-aos="fade-down">
+        <div id="form-section" class="mb-12 text-center" data-aos="fade-down" data-aos-duration="650" data-aos-delay="320">
             <h1 class="text-4xl md:text-5xl font-black text-slate-900 mb-4"><?= e(t('job.apply.form_title')); ?> <span class="text-rose-600"><?= e(t('job.apply.form_highlight')); ?></span></h1>
             <p class="text-slate-500 font-medium"><?= e(t('job.apply.form_subtitle')); ?></p>
         </div>
@@ -84,7 +87,7 @@
                 <div class="lg:col-span-8 space-y-8">
                     
                     <div class="form-card animate-card p-8 md:p-10 shadow-xl shadow-slate-200/50" data-animate-card>
-                        <h2 class="section-title"><?= e(t('job.apply.personal_info')); ?></h2>
+                        <h2 class="section-title" data-aos="fade-right" data-aos-delay="320"><?= e(t('job.apply.personal_info')); ?></h2>
                         
                         <div class="grid md:grid-cols-2 gap-5 mb-5">
                             <div class="space-y-1.5">
@@ -126,7 +129,7 @@
                     </div>
 
                     <div class="form-card p-8 md:p-10 shadow-xl shadow-slate-200/50">
-                        <div class="flex justify-between items-center mb-6">
+                        <div class="flex justify-between items-center mb-6" data-aos="fade-up" data-aos-delay="340">
                             <h2 class="section-title mb-0"><?= e(t('job.apply.experience')); ?></h2>
                             <button type="button" onclick="addExperience()" class="btn-add"><i class="fa-solid fa-plus mr-1"></i> <?= e(t('job.apply.add_experience')); ?></button>
                         </div>
@@ -152,10 +155,10 @@
                     </div>
 
                 <div class="form-card animate-card p-8 md:p-10 shadow-xl shadow-slate-200/50" data-animate-card>
-                    <h2 class="section-title"><?= e(t('job.apply.skills')); ?></h2>
+                    <h2 class="section-title" data-aos="fade-right" data-aos-delay="320"><?= e(t('job.apply.skills')); ?></h2>
                     
                     <div class="mb-10">
-                        <div class="flex justify-between items-center mb-4 border-b border-slate-100 pb-2">
+                        <div class="flex justify-between items-center mb-4 border-b border-slate-100 pb-2" data-aos="fade-up" data-aos-delay="380">
                             <h3 class="sub-title text-rose-600"><i class="fa-solid fa-laptop-code mr-2"></i><?= e(t('job.apply.professional_skills')); ?></h3>
                             <button type="button" onclick="addProSkill()" class="text-xs font-bold text-lime-600 bg-lime-100 px-3 py-1.5 rounded-lg hover:bg-lime-200 transition-colors"><i class="fa-solid fa-plus mr-1"></i> <?= e(t('job.apply.add_line')); ?></button>
                         </div>
@@ -167,7 +170,7 @@
                     </div>
 
                     <div>
-                        <div class="flex justify-between items-center mb-4 border-b border-slate-100 pb-2">
+                        <div class="flex justify-between items-center mb-4 border-b border-slate-100 pb-2" data-aos="fade-up" data-aos-delay="380">
                             <h3 class="sub-title text-emerald-600"><i class="fa-solid fa-users mr-2"></i><?= e(t('job.apply.other_skills')); ?></h3>
                             <button type="button" onclick="addOtherSkill()" class="text-xs font-bold text-lime-600 bg-lime-100 px-3 py-1.5 rounded-lg hover:bg-lime-200 transition-colors"><i class="fa-solid fa-plus mr-1"></i> <?= e(t('job.apply.add_line')); ?></button>
                         </div>
@@ -180,7 +183,7 @@
                 </div>
 
                     <div class="form-card animate-card p-8 md:p-10 shadow-xl shadow-slate-200/50" data-animate-card>
-                        <h2 class="section-title"><?= e(t('job.apply.bio')); ?></h2>
+                        <h2 class="section-title" data-aos="fade-right" data-aos-delay="320"><?= e(t('job.apply.bio')); ?></h2>
                         <textarea name="bio" required placeholder="<?= e(t('job.apply.bio_placeholder')); ?>" class="w-full px-5 py-4 rounded-2xl bg-slate-50 outline-none focus-lime font-bold h-32 resize-none"></textarea>
                     </div>
 
@@ -188,7 +191,7 @@
 
                 <div class="lg:col-span-4 space-y-8">
                     <div class="form-card animate-card p-8 shadow-xl border-t-8 border-rose-600" data-animate-card>
-                        <h3 class="text-xl font-black text-slate-800 mb-6 uppercase tracking-tight"><?= e(t('job.apply.job_details')); ?></h3>
+                        <h3 class="text-xl font-black text-slate-800 mb-6 uppercase tracking-tight" data-aos="fade-right" data-aos-delay="320"><?= e(t('job.apply.job_details')); ?></h3>
                         
                         <div class="space-y-6">
                             <div class="space-y-1.5">
@@ -225,4 +228,16 @@
             </div>
         </form>
     </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            if (typeof AOS !== 'undefined') {
+                AOS.init({
+                    duration: 650,
+                    once: true,
+                    offset: 0,
+                    easing: 'ease-out-cubic'
+                });
+            }
+        });
+    </script>
 </main>
