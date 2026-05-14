@@ -53,18 +53,28 @@ final class UserModel
         if (!empty($result['created'])) {
             $detail = $this->submissionsTable->findDetailedByAssignmentAndStudent($assignmentId, $studentId);
             if (is_array($detail)) {
-                $this->backofficeNotificationService->notifyNewSubmission(
-                    (int) ($detail['id'] ?? 0),
-                    trim((string) ($detail['student_name'] ?? '')),
-                    trim((string) ($detail['class_name'] ?? '')),
-                    trim((string) ($detail['assignment_title'] ?? '')),
-                    (int) ($detail['class_id'] ?? 0),
-                    (int) ($detail['course_id'] ?? 0),
-                    (int) ($detail['schedule_id'] ?? 0),
-                    trim((string) ($detail['study_date'] ?? '')),
-                    (int) ($detail['assignment_id'] ?? 0),
-                    $studentId
-                );
+                try {
+                    $this->backofficeNotificationService->notifyNewSubmission(
+                        (int) ($detail['id'] ?? 0),
+                        trim((string) ($detail['student_name'] ?? '')),
+                        trim((string) ($detail['class_name'] ?? '')),
+                        trim((string) ($detail['assignment_title'] ?? '')),
+                        (int) ($detail['class_id'] ?? 0),
+                        (int) ($detail['course_id'] ?? 0),
+                        (int) ($detail['schedule_id'] ?? 0),
+                        trim((string) ($detail['study_date'] ?? '')),
+                        (int) ($detail['assignment_id'] ?? 0),
+                        $studentId
+                    );
+                } catch (Throwable $exception) {
+                    app_log('warning', 'Backoffice submission notification failed', [
+                        'error' => $exception->getMessage(),
+                        'file' => $exception->getFile(),
+                        'line' => $exception->getLine(),
+                        'assignment_id' => $assignmentId,
+                        'student_id' => $studentId,
+                    ]);
+                }
             }
         }
     }

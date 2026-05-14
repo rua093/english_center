@@ -4,6 +4,8 @@ $success = get_flash('success');
 $authLocale = current_locale();
 ?>
 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
 <style>
     /* Custom Animations & Utils - TONE ĐỎ XANH LÁ */
     .login-background {
@@ -143,9 +145,9 @@ $authLocale = current_locale();
                             <input type="password" id="passwordInput" name="password" required placeholder="••••••••" 
                                 class="w-full py-4 pr-12 bg-transparent text-slate-800 font-semibold placeholder-slate-400 outline-none">
                             
-                            <button type="button" id="togglePasswordBtn" class="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center text-slate-500 hover:text-rose-700 hover:bg-slate-200/60 rounded-full transition-all focus:outline-none">
-                                <i id="eyeOpenIcon" class="fa-solid fa-eye text-base"></i>
-                                <i id="eyeClosedIcon" class="fa-solid fa-eye-slash hidden text-base"></i>
+                            <button type="button" id="togglePasswordBtn" class="absolute right-2 top-1/2 z-20 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-slate-500 shadow-[0_1px_2px_rgba(15,23,42,0.06)] transition-all hover:border-slate-300 hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-200">
+                                <i id="eyeOpenIcon" class="fa-solid fa-eye text-[17px] leading-none"></i>
+                                <i id="eyeClosedIcon" class="fa-solid fa-eye-slash hidden text-[17px] leading-none"></i>
                             </button>
                         </div>
                     </div>

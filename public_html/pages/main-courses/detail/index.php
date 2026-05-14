@@ -514,7 +514,7 @@ $relatedCourses = array_slice($relatedCourses, 0, 4);
         </div>
     </section>
 
-    <?php $notifyShowTestButtons = false; require __DIR__ . '/../notification/notification.php'; ?>
+    <?php $notifyShowTestButtons = false; require __DIR__ . '/../../notification/notification.php'; ?>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {

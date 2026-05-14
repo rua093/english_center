@@ -114,9 +114,9 @@
                
                 
                 <div class="relative group py-6">
-                    <button class="inline-flex items-center gap-1.5 whitespace-nowrap text-[16px] font-extrabold transition-colors <?= $isActivePage(['register-consultation', 'documents']) ? 'text-blue-600' : 'text-slate-800 hover:text-blue-600' ?>" type="button">
+                    <button class="inline-flex items-center gap-1.5 whitespace-nowrap text-[16px] font-extrabold transition-colors <?= $isActivePage(['documents', 'home']) ? 'text-blue-600' : 'text-slate-800 hover:text-blue-600' ?>" type="button">
                         <?= e(t('nav.system')); ?>
-                        <i class="fa-solid fa-chevron-down text-[10px] transition-transform duration-300 group-hover:rotate-180 <?= $isActivePage(['register-consultation', 'documents']) ? 'text-blue-600' : 'text-slate-800 group-hover:text-blue-600' ?>"></i>
+                        <i class="fa-solid fa-chevron-down text-[10px] transition-transform duration-300 group-hover:rotate-180 <?= $isActivePage(['documents', 'home']) ? 'text-blue-600' : 'text-slate-800 group-hover:text-blue-600' ?>"></i>
                     </button>
                         <div class="absolute left-1/2 -translate-x-1/2 top-full z-50 w-56 opacity-0 invisible translate-y-2 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 transition-all duration-200">
                         <div class="rounded-xl border border-slate-100 bg-white shadow-[0_10px_30px_rgba(0,0,0,0.08)] py-2">

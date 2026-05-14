@@ -2,8 +2,6 @@
 declare(strict_types=1);
 
 require_login();
-
-require_once __DIR__ . '/../../../models/tables/ClassStudentsTableModel.php';
 require_once __DIR__ . '/../../../models/tables/AttendanceTableModel.php';
 require_once __DIR__ . '/../../../models/tables/TuitionFeesTableModel.php';
 require_once __DIR__ . '/../../../models/tables/AssignmentsTableModel.php';
@@ -788,6 +786,14 @@ foreach ($examRows as $examRow) {
                 const noteInput = document.getElementById('homework-note');
                 const noteDisplay = document.getElementById('homework-note-display');
                 const fileInput = document.getElementById('homework-file');
+                const homeworkForm = modal.querySelector('form');
+                const submitButton = homeworkForm ? homeworkForm.querySelector('button[type="submit"]') : null;
+
+                function notify(type, message) {
+                    if (typeof showNotify === 'function') {
+                        showNotify(type, message);
+                    }
+                }
 
                 let assignmentRequestId = 0;
                 let assignmentRequestController = null;
@@ -832,6 +838,56 @@ foreach ($examRows as $examRow) {
                     modal.classList.add('hidden');
                     modal.classList.remove('flex');
                     document.body.classList.remove('overflow-hidden');
+                }
+
+                async function submitHomework(event) {
+                    event.preventDefault();
+
+                    if (!(homeworkForm instanceof HTMLFormElement)) {
+                        return;
+                    }
+
+                    if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+                        notify('warning', 'Vui lòng tải lên file bài làm.');
+                        return;
+                    }
+
+                    if (submitButton instanceof HTMLButtonElement) {
+                        submitButton.disabled = true;
+                        submitButton.dataset.originalText = submitButton.textContent || '';
+                        submitButton.textContent = 'Đang nộp...';
+                    }
+
+                    try {
+                        const response = await fetch(homeworkForm.action, {
+                            method: 'POST',
+                            credentials: 'same-origin',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Accept': 'application/json'
+                            },
+                            body: new FormData(homeworkForm)
+                        });
+
+                        const payload = await response.json().catch(function () {
+                            return null;
+                        });
+
+                        if (!response.ok || !payload || payload.status !== 'success') {
+                            throw new Error((payload && payload.message) || 'Nộp bài thất bại. Vui lòng thử lại.');
+                        }
+
+                        closeModal();
+                        notify('success', payload.message || 'Đã nộp bài thành công.');
+                    } catch (error) {
+                        notify('error', error instanceof Error ? error.message : 'Nộp bài thất bại. Vui lòng thử lại.');
+                    } finally {
+                        if (submitButton instanceof HTMLButtonElement) {
+                            submitButton.disabled = false;
+                            submitButton.textContent = submitButton.dataset.originalText || 'Nộp bài';
+                            delete submitButton.dataset.originalText;
+                        }
+                    }
                 }
 
                 function setAssignmentPanelLoading(isLoading) {
@@ -975,6 +1031,10 @@ foreach ($examRows as $examRow) {
 
                     loadAssignmentPanel(url, true);
                 });
+
+                if (homeworkForm instanceof HTMLFormElement) {
+                    homeworkForm.addEventListener('submit', submitHomework);
+                }
 
                 modal.addEventListener('click', function (event) {
                     if (event.target === modal) {

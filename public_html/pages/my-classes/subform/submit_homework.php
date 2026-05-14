@@ -39,14 +39,21 @@ $assignmentTitle = trim((string) ($_POST['assignment_title'] ?? ''));
 $deadline = trim((string) ($_POST['assignment_deadline'] ?? ''));
 $note = trim((string) ($_POST['note'] ?? ''));
 
-if ($className === '' || $assignmentTitle === '') {
-	set_flash('error', t('student.assignment.missing_class_assignment'));
+$respondError = static function (string $message) {
+	if (api_expects_json()) {
+		api_error($message, ['code' => 'VALIDATION_ERROR'], 400);
+	}
+
+	set_flash('error', $message);
 	redirect(page_url('classes-my'));
+};
+
+if ($className === '' || $assignmentTitle === '') {
+	$respondError(t('student.assignment.missing_class_assignment'));
 }
 
 if (empty($_FILES['submission_file']['name'])) {
-	set_flash('error', t('student.assignment.missing_file'));
-	redirect(page_url('classes-my'));
+	$respondError(t('student.assignment.missing_file'));
 }
 
 $studentClasses = $classStudentsTable->listMyClassesForStudent((int) $user['id']);
@@ -59,8 +66,7 @@ foreach ($studentClasses as $studentClass) {
 }
 
 if ($classId <= 0) {
-	set_flash('error', t('student.assignment.class_not_found'));
-	redirect(page_url('classes-my'));
+	$respondError(t('student.assignment.class_not_found'));
 }
 
 	if ($assignmentId <= 0) {
@@ -73,14 +79,12 @@ if ($classId <= 0) {
 	}
 
 if ($assignmentId <= 0) {
-	set_flash('error', t('student.assignment.assignment_not_found'));
-	redirect(page_url('classes-my'));
+	$respondError(t('student.assignment.assignment_not_found'));
 }
 
 $fileUpload = store_uploaded_file($_FILES['submission_file'], sprintf('submission-%d', (int) $user['id']), 'homeworks');
 if ($fileUpload === null) {
-	set_flash('error', t('student.assignment.upload_failed'));
-	redirect(page_url('classes-my'));
+	$respondError(t('student.assignment.upload_failed'));
 }
 
 $submissionsTable->upsertStudentSubmission((int) $user['id'], $assignmentId, $fileUpload);
@@ -91,6 +95,13 @@ if ($deadline !== '') {
 }
 if ($note !== '') {
 	$successMessage .= ' ' . t('student.assignment.note_recorded');
+}
+
+if (api_expects_json()) {
+	api_success($successMessage, [
+		'assignment_id' => $assignmentId,
+		'class_name' => $className,
+	]);
 }
 
 set_flash('success', $successMessage);
