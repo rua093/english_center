@@ -24,8 +24,8 @@ function bbcode_renderer_filepath(): string
 function bbcode_ensure_cache_dir(): void
 {
     $cacheDir = bbcode_cache_dir();
-    if (!is_dir($cacheDir)) {
-        mkdir($cacheDir, 0775, true);
+    if (!app_ensure_directory($cacheDir)) {
+        throw new RuntimeException('BBCode cache directory is not writable: ' . $cacheDir);
     }
 }
 
@@ -82,6 +82,10 @@ function bbcode_prepare_input(?string $text): string
 function bbcode_generate_bundle(): void
 {
     bbcode_ensure_cache_dir();
+
+    if (!is_writable(bbcode_cache_dir())) {
+        throw new RuntimeException('BBCode cache directory is not writable: ' . bbcode_cache_dir());
+    }
 
     $configurator = new Configurator;
     $configurator->rendering->setEngine('PHP', bbcode_cache_dir());

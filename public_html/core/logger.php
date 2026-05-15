@@ -7,7 +7,7 @@ function app_log(string $level, string $message, array $context = []): void
 	$normalizedLevel = in_array(strtolower($level), $allowedLevels, true) ? strtolower($level) : 'info';
 
 	$logDir = defined('APP_LOG_DIR') ? (string) APP_LOG_DIR : (BASE_PATH . '/storage/logs');
-	if (!is_dir($logDir) && !mkdir($logDir, 0775, true) && !is_dir($logDir)) {
+	if (!app_ensure_directory($logDir)) {
 		error_log(sprintf('[%s] %s', strtoupper($normalizedLevel), $message));
 		return;
 	}

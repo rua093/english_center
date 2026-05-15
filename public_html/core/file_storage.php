@@ -63,7 +63,7 @@ function store_uploaded_file(array $file, string $prefix, ?string $subdir = null
 	}
 
 	$uploadDir = upload_storage_dir($subdir);
-	if (!is_dir($uploadDir) && !mkdir($uploadDir, 0775, true) && !is_dir($uploadDir)) {
+	if (!app_ensure_directory($uploadDir)) {
 		return null;
 	}
 

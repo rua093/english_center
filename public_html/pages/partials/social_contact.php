@@ -42,21 +42,25 @@
 	}
 </style>
 
+<?php
+$centerPhone = '0899925259';
+$centerZaloUrl = 'https://zalo.me/0867592259';
+$centerFacebookUrl = 'https://www.facebook.com/share/1GNiDnkkcd/?mibextid=wwXIfr';
+$centerYoutubeUrl = 'https://www.youtube.com/@hoctienganhcungnhueminh8329?si=6HWvleY3hQj8ZJQ_';
+?>
+
 <div class="fixed bottom-5 right-4 z-50 flex flex-col items-end gap-3 sm:bottom-6 sm:right-6">
 	<button type="button" class="social-top-button group flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-slate-800 text-white shadow-[0_10px_25px_rgba(15,23,42,0.28)] ring-2 ring-white transition-all hover:-translate-y-1 hover:bg-slate-700" aria-label="Lên đầu trang" data-social-top-button>
 			<i class="fa-solid fa-arrow-up text-[15px] sm:text-base transition-transform duration-300 group-hover:-translate-y-0.5"></i>
 		</button>
-    <a href="https://www.facebook.com/" target="_blank" rel="noopener noreferrer" class="group contact-bell flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-[#1877F2] text-white shadow-[0_10px_25px_rgba(24,119,242,0.28)] ring-2 ring-white transition-all hover:-translate-y-1 hover:scale-105" aria-label="Facebook" style="animation-delay: 0s;">
+    <a href="<?= e($centerFacebookUrl); ?>" target="_blank" rel="noopener noreferrer" class="group contact-bell flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-[#1877F2] text-white shadow-[0_10px_25px_rgba(24,119,242,0.28)] ring-2 ring-white transition-all hover:-translate-y-1 hover:scale-105" aria-label="Facebook" style="animation-delay: 0s;">
 			<i class="fa-brands fa-facebook-f text-[15px] sm:text-base"></i>
 		</a>
-    <a href="https://zalo.me/" target="_blank" rel="noopener noreferrer" class="group contact-bell flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-[#0068FF] text-white shadow-[0_10px_25px_rgba(0,104,255,0.28)] ring-2 ring-white transition-all hover:-translate-y-1 hover:scale-105" aria-label="Zalo" style="animation-delay: 0.15s;">
+    <a href="<?= e($centerZaloUrl); ?>" target="_blank" rel="noopener noreferrer" class="group contact-bell flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-[#0068FF] text-white shadow-[0_10px_25px_rgba(0,104,255,0.28)] ring-2 ring-white transition-all hover:-translate-y-1 hover:scale-105" aria-label="Zalo" style="animation-delay: 0.15s;">
 			<span class="text-[13px] sm:text-sm font-black leading-none tracking-tight">Z</span>
 		</a>
-    <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer" class="group contact-bell flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-gradient-to-br from-[#f09433] via-[#e6683c] via-[#dc2743] to-[#bc1888] text-white shadow-[0_10px_25px_rgba(220,39,67,0.28)] ring-2 ring-white transition-all hover:-translate-y-1 hover:scale-105" aria-label="Instagram" style="animation-delay: 0.3s;">
-			<i class="fa-brands fa-instagram text-[15px] sm:text-base"></i>
-		</a>
-    <a href="https://www.messenger.com/" target="_blank" rel="noopener noreferrer" class="group contact-bell flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-[#0084FF] text-white shadow-[0_10px_25px_rgba(0,132,255,0.28)] ring-2 ring-white transition-all hover:-translate-y-1 hover:scale-105" aria-label="Messenger" style="animation-delay: 0.45s;">
-			<i class="fa-brands fa-facebook-messenger text-[15px] sm:text-base"></i>
+    <a href="<?= e($centerYoutubeUrl); ?>" target="_blank" rel="noopener noreferrer" class="group contact-bell flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-[#FF0000] text-white shadow-[0_10px_25px_rgba(255,0,0,0.28)] ring-2 ring-white transition-all hover:-translate-y-1 hover:scale-105" aria-label="YouTube" style="animation-delay: 0.3s;">
+			<i class="fa-brands fa-youtube text-[15px] sm:text-base"></i>
 		</a>
 	</div>
 

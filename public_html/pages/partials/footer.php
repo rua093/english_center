@@ -1,3 +1,10 @@
+<?php
+$centerPhone = '0899925259';
+$centerPhoneDisplay = '0899925259';
+$centerZaloUrl = 'https://zalo.me/0867592259';
+$centerFacebookUrl = 'https://www.facebook.com/share/1GNiDnkkcd/?mibextid=wwXIfr';
+$centerYoutubeUrl = 'https://www.youtube.com/@hoctienganhcungnhueminh8329?si=6HWvleY3hQj8ZJQ_';
+?>
 </main> 
 <footer class="bg-blue-950 text-blue-200/70 pt-16 pb-7 relative overflow-hidden font-jakarta">
     
@@ -23,13 +30,13 @@
                     <?= e(t('site.footer.brand_copy')); ?>
                 </p>
                 <div class="flex gap-3">
-                    <a href="#" class="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/30 hover:scale-105 transition-all duration-300">
+                    <a href="<?= e($centerFacebookUrl); ?>" target="_blank" rel="noopener noreferrer" class="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/30 hover:scale-105 transition-all duration-300" aria-label="Facebook">
                         <i class="fa-brands fa-facebook-f text-base"></i>
                     </a>
-                    <a href="#" class="w-10 h-10 rounded-lg bg-gradient-to-tr from-pink-500 to-orange-500 flex items-center justify-center text-white shadow-lg shadow-pink-500/30 hover:scale-105 transition-all duration-300">
-                        <i class="fa-brands fa-instagram text-lg"></i>
+                    <a href="<?= e($centerZaloUrl); ?>" target="_blank" rel="noopener noreferrer" class="w-10 h-10 rounded-lg bg-[#0068FF] flex items-center justify-center text-white shadow-lg shadow-blue-500/30 hover:scale-105 transition-all duration-300" aria-label="Zalo">
+                        <span class="text-sm font-black leading-none tracking-tight">Z</span>
                     </a>
-                   <a href="#" class="w-10 h-10 rounded-lg bg-red-600 flex items-center justify-center text-white shadow-lg shadow-red-500/30 hover:scale-105 transition-all duration-300">
+                   <a href="<?= e($centerYoutubeUrl); ?>" target="_blank" rel="noopener noreferrer" class="w-10 h-10 rounded-lg bg-red-600 flex items-center justify-center text-white shadow-lg shadow-red-500/30 hover:scale-105 transition-all duration-300" aria-label="YouTube">
                         <i class="fa-brands fa-youtube text-base"></i>
                     </a>
                 </div>
@@ -90,8 +97,8 @@
                         <div class="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center text-white flex-shrink-0 shadow-md shadow-blue-500/30 group-hover:scale-105 group-hover:-translate-y-0.5 transition-all">
                             <i class="fa-solid fa-phone-volume text-sm"></i>
                         </div>
-                        <a href="tel:02873083333" class="text-lg font-black text-white hover:text-blue-400 transition-all">
-                            028 7308 3333
+                        <a href="tel:<?= e($centerPhone); ?>" class="text-lg font-black text-white hover:text-blue-400 transition-all">
+                            <?= e($centerPhoneDisplay); ?>
                         </a>
                     </div>
                 </div>

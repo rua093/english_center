@@ -7,6 +7,9 @@ declare(strict_types=1);
 |--------------------------------------------------------------------------
 | Copy this file to `local.php` and update the values for each environment.
 | The real `local.php` is ignored by git.
+| `BASE_PATH` and `APP_NAME` are available before this file is loaded.
+| Other config values below will be loaded first here, then any missing
+| defaults will be filled by `config/app.php` and the other config files.
 */
 
 define('APP_ENV', 'production');

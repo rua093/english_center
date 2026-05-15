@@ -11,7 +11,7 @@ require_once dirname(__DIR__) . '/core/bootstrap.php';
 require_once dirname(__DIR__) . '/models/MailModel.php';
 
 $lockDir = dirname(__DIR__) . '/storage/locks';
-if (!is_dir($lockDir) && !mkdir($lockDir, 0775, true) && !is_dir($lockDir)) {
+if (!app_ensure_directory($lockDir)) {
     fwrite(STDERR, "Cannot create lock directory: {$lockDir}\n");
     exit(1);
 }
