@@ -32,6 +32,22 @@ $teacherCertificates = $academicModel->listTeacherCertificatesByUserId($teacherI
 ?>
 
 <style>
+    .course-detail-bg {
+        background:
+            radial-gradient(circle 1400px at 0% 0%, rgba(244, 63, 94, 0.28) 0%, rgba(244, 63, 94, 0.12) 60%, transparent 100%),
+            radial-gradient(circle 1200px at 100% 0%, rgba(132, 204, 22, 0.25) 0%, rgba(132, 204, 22, 0.1) 60%, transparent 100%),
+            radial-gradient(circle 900px at 50% 50%, rgba(6, 182, 212, 0.14) 0%, rgba(56, 189, 248, 0.04) 55%, transparent 100%),
+            radial-gradient(circle 900px at 100% 55%, rgba(93, 199, 245, 0.08) 0%, transparent 100%),
+            radial-gradient(circle 900px at 50% 100%, rgba(78, 143, 247, 0.12) 0%, transparent 100%),
+            linear-gradient(180deg,
+                #fff3f0 0%,
+                #c2e4f6 70%,
+                #cdf8dc 80%,
+                #f4fbf7 90%,
+                #ffffff 100%
+            );
+    }
+
     .teacher-detail-page {
         font-family: 'Be Vietnam Pro', ui-sans-serif, system-ui, sans-serif;
     }
@@ -69,7 +85,7 @@ $teacherCertificates = $academicModel->listTeacherCertificatesByUserId($teacherI
     }
 </style>
 
-<section class="teacher-detail-page min-h-screen bg-[#f8fafc] font-jakarta pb-24 relative">
+<section class="teacher-detail-page course-detail-bg min-h-screen font-jakarta pb-24 relative">
     
     <div class="absolute inset-0 overflow-hidden pointer-events-none -z-10">
         <div class="absolute top-0 right-0 w-[600px] h-[600px] bg-emerald-200/30 rounded-full blur-[100px]"></div>

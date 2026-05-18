@@ -63,6 +63,22 @@ foreach ($teacherRows as $teacherRow) {
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 
 <style>
+    .course-detail-bg {
+        background:
+            radial-gradient(circle 1400px at 0% 0%, rgba(244, 63, 94, 0.28) 0%, rgba(244, 63, 94, 0.12) 60%, transparent 100%),
+            radial-gradient(circle 1200px at 100% 0%, rgba(132, 204, 22, 0.25) 0%, rgba(132, 204, 22, 0.1) 60%, transparent 100%),
+            radial-gradient(circle 900px at 50% 50%, rgba(6, 182, 212, 0.14) 0%, rgba(56, 189, 248, 0.04) 55%, transparent 100%),
+            radial-gradient(circle 900px at 100% 55%, rgba(93, 199, 245, 0.08) 0%, transparent 100%),
+            radial-gradient(circle 900px at 50% 100%, rgba(78, 143, 247, 0.12) 0%, transparent 100%),
+            linear-gradient(180deg,
+                #fff3f0 0%,
+                #c2e4f6 70%,
+                #cdf8dc 80%,
+                #f4fbf7 90%,
+                #ffffff 100%
+            );
+    }
+
     .teacher-card:hover .teacher-card-img {
         transform: scale(1.08);
     }
@@ -78,10 +94,9 @@ foreach ($teacherRows as $teacherRow) {
     }
 </style>
 
-<section class="relative min-h-screen overflow-hidden bg-lime-100 font-jakarta pb-24">
+<section class="course-detail-bg relative min-h-screen overflow-hidden font-jakarta pb-24">
     <div class="absolute inset-0 z-0 pointer-events-none opacity-[0.08]" style="background-image: radial-gradient(#475569 1.5px, transparent 1.5px); background-size: 24px 24px;"></div>
-    <div class="absolute inset-x-0 top-0 z-0 h-72 pointer-events-none bg-gradient-to-b from-lime-200/75 via-lime-100/45 to-transparent"></div>
-    <div class="relative z-10 bg-lime-100 pt-24 pb-32 overflow-hidden">
+    <div class="relative z-10 pt-24 pb-32 overflow-hidden">
     <div class="absolute inset-0">
         <img src="<?= e('/assets/images/teacher_page_banner.jpg'); ?>" alt="<?= e(t('teachers.banner_alt')); ?>" class="w-full h-full object-cover object-center opacity-100">
     </div>

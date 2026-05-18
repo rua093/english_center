@@ -55,14 +55,29 @@ $pageActivities = array_slice($activities, ($activityPage - 1) * $activityPerPag
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 
 <style>
+    .course-detail-bg {
+        background:
+            radial-gradient(circle 1400px at 0% 0%, rgba(244, 63, 94, 0.28) 0%, rgba(244, 63, 94, 0.12) 60%, transparent 100%),
+            radial-gradient(circle 1200px at 100% 0%, rgba(132, 204, 22, 0.25) 0%, rgba(132, 204, 22, 0.1) 60%, transparent 100%),
+            radial-gradient(circle 900px at 50% 50%, rgba(6, 182, 212, 0.14) 0%, rgba(56, 189, 248, 0.04) 55%, transparent 100%),
+            radial-gradient(circle 900px at 100% 55%, rgba(93, 199, 245, 0.08) 0%, transparent 100%),
+            radial-gradient(circle 900px at 50% 100%, rgba(78, 143, 247, 0.12) 0%, transparent 100%),
+            linear-gradient(180deg,
+                #fff3f0 0%,
+                #c2e4f6 70%,
+                #cdf8dc 80%,
+                #f4fbf7 90%,
+                #ffffff 100%
+            );
+    }
+
     .activity-card:hover { transform: translateY(-10px); }
     .text-gradient-red-green { background: linear-gradient(to right, #e11d48, #10b981); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 </style>
 
 
-<section class="relative overflow-hidden py-12 md:py-16 bg-lime-100">
+<section class="course-detail-bg relative overflow-hidden py-12 md:py-16">
     <div class="absolute inset-0 z-0 pointer-events-none opacity-[0.08]" style="background-image: radial-gradient(#475569 1.5px, transparent 1.5px); background-size: 24px 24px;"></div>
-    <div class="absolute inset-x-0 top-0 z-0 h-64 pointer-events-none bg-gradient-to-b from-lime-200/75 via-lime-100/45 to-transparent"></div>
     <div class="relative z-10">
     <div class="container mx-auto px-4 max-w-[1400px]">
         

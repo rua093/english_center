@@ -25,6 +25,22 @@ $fileBadge = static function (string $filePath): array {
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 
 <style>
+    .course-detail-bg {
+        background:
+            radial-gradient(circle 1400px at 0% 0%, rgba(244, 63, 94, 0.28) 0%, rgba(244, 63, 94, 0.12) 60%, transparent 100%),
+            radial-gradient(circle 1200px at 100% 0%, rgba(132, 204, 22, 0.25) 0%, rgba(132, 204, 22, 0.1) 60%, transparent 100%),
+            radial-gradient(circle 900px at 50% 50%, rgba(6, 182, 212, 0.14) 0%, rgba(56, 189, 248, 0.04) 55%, transparent 100%),
+            radial-gradient(circle 900px at 100% 55%, rgba(93, 199, 245, 0.08) 0%, transparent 100%),
+            radial-gradient(circle 900px at 50% 100%, rgba(78, 143, 247, 0.12) 0%, transparent 100%),
+            linear-gradient(180deg,
+                #fff3f0 0%,
+                #c2e4f6 70%,
+                #cdf8dc 80%,
+                #f4fbf7 90%,
+                #ffffff 100%
+            );
+    }
+
     .resource-card:hover { transform: translateY(-5px); border-color: #10b981; }
     .btn-download-gradient { background: linear-gradient(135deg, #065f46 0%, #10b981 100%); }
     .compact-text { font-size: 0.8rem; line-height: 1.25rem; }
@@ -63,9 +79,8 @@ $fileBadge = static function (string $filePath): array {
     .filter-checkbox:checked + div svg { opacity: 1; transform: scale(1); }
 </style>
 
-<section class="relative pt-12 pb-16 overflow-hidden bg-lime-100">
+<section class="course-detail-bg relative pt-12 pb-16 overflow-hidden">
     <div class="absolute inset-0 z-0 pointer-events-none opacity-[0.08]" style="background-image: radial-gradient(#475569 1.5px, transparent 1.5px); background-size: 24px 24px;"></div>
-    <div class="absolute inset-x-0 top-0 z-0 h-72 pointer-events-none bg-gradient-to-b from-lime-200/75 via-lime-100/45 to-transparent"></div>
     <div class="absolute top-0 left-0 w-full h-full pointer-events-none -z-10">
         <div class="absolute top-0 right-0 w-[300px] h-[300px] bg-emerald-50/50 rounded-full blur-[80px]"></div>
         <div class="absolute bottom-0 left-0 w-[400px] h-[400px] bg-blue-50/40 rounded-full blur-[100px]"></div>

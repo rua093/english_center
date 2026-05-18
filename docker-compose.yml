@@ -1,4 +1,3 @@
-
 services:
   php-apache:
     build: . # Thay vì dùng image gốc, ta gọi Dockerfile vừa tạo
@@ -7,7 +6,6 @@ services:
       - "0.0.0.0:8080:80"
     volumes:
       - ./public_html:/var/www/html
-      - ./src:/var/www/src
     networks:
       - app-network
     depends_on:

@@ -53,7 +53,25 @@ $activityDescriptionHtml = $activityDescription !== '' ? ui_render_bbcode($activ
 $activityContentHtml = $activityContent !== '' ? ui_render_bbcode($activityContent) : '';
 ?>
 
-<main class="pb-16 bg-slate-50">
+<style>
+    .course-detail-bg {
+        background:
+            radial-gradient(circle 1400px at 0% 0%, rgba(244, 63, 94, 0.28) 0%, rgba(244, 63, 94, 0.12) 60%, transparent 100%),
+            radial-gradient(circle 1200px at 100% 0%, rgba(132, 204, 22, 0.25) 0%, rgba(132, 204, 22, 0.1) 60%, transparent 100%),
+            radial-gradient(circle 900px at 50% 50%, rgba(6, 182, 212, 0.14) 0%, rgba(56, 189, 248, 0.04) 55%, transparent 100%),
+            radial-gradient(circle 900px at 100% 55%, rgba(93, 199, 245, 0.08) 0%, transparent 100%),
+            radial-gradient(circle 900px at 50% 100%, rgba(78, 143, 247, 0.12) 0%, transparent 100%),
+            linear-gradient(180deg,
+                #fff3f0 0%,
+                #c2e4f6 70%,
+                #cdf8dc 80%,
+                #f4fbf7 90%,
+                #ffffff 100%
+            );
+    }
+</style>
+
+<main class="course-detail-bg pb-16">
     <section class="relative h-[52vh] min-h-[420px] overflow-hidden">
         <img src="<?= e($activityImage); ?>" class="w-full h-full object-cover">
         <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/35 to-transparent"></div>

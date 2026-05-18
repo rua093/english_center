@@ -108,6 +108,22 @@ $stats = [
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 
 <style>
+    .course-detail-bg {
+        background:
+            radial-gradient(circle 1400px at 0% 0%, rgba(244, 63, 94, 0.28) 0%, rgba(244, 63, 94, 0.12) 60%, transparent 100%),
+            radial-gradient(circle 1200px at 100% 0%, rgba(132, 204, 22, 0.25) 0%, rgba(132, 204, 22, 0.1) 60%, transparent 100%),
+            radial-gradient(circle 900px at 50% 50%, rgba(6, 182, 212, 0.14) 0%, rgba(56, 189, 248, 0.04) 55%, transparent 100%),
+            radial-gradient(circle 900px at 100% 55%, rgba(93, 199, 245, 0.08) 0%, transparent 100%),
+            radial-gradient(circle 900px at 50% 100%, rgba(78, 143, 247, 0.12) 0%, transparent 100%),
+            linear-gradient(180deg,
+                #fff3f0 0%,
+                #c2e4f6 70%,
+                #cdf8dc 80%,
+                #f4fbf7 90%,
+                #ffffff 100%
+            );
+    }
+
     .course-card:hover .course-img {
         transform: scale(1.08);
     }
@@ -124,6 +140,14 @@ $stats = [
         background: linear-gradient(135deg, rgba(16,185,129,0.16), rgba(16,185,129,0.08));
     }
 
+    .course-card-desc {
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 4;
+        overflow: hidden;
+        min-height: calc(1.75rem * 4);
+    }
+
     @media (prefers-reduced-motion: reduce) {
         .course-card:hover .course-img {
             transition: none !important;
@@ -133,9 +157,8 @@ $stats = [
     }
 </style>
 
-<main class="relative bg-lime-100 text-slate-800 overflow-hidden">
+<main class="course-detail-bg relative text-slate-800 overflow-hidden">
     <div class="absolute inset-0 z-0 pointer-events-none opacity-[0.08]" style="background-image: radial-gradient(#475569 1.5px, transparent 1.5px); background-size: 24px 24px;"></div>
-    <div class="absolute inset-x-0 top-0 z-0 h-72 pointer-events-none bg-gradient-to-b from-lime-200/75 via-lime-100/45 to-transparent"></div>
     <section id="gioi-thieu" class="relative py-20 lg:py-32 overflow-hidden">
         <div class="absolute inset-0 z-0">
             <img src="/assets/images/course3.jpg" alt="<?= e(t('courses.image_alt')); ?>" class="h-full w-full object-cover">
@@ -246,13 +269,13 @@ $stats = [
                         </div>
                         </div>
 
-                        <div class="p-6">
+                        <div class="flex h-[calc(100%-14rem)] flex-col p-6">
                             <h3 class="text-xl font-black leading-tight text-slate-950 transition-colors group-hover:text-rose-600"><?= e($course['title']); ?></h3>
-                            <div class="mt-3 text-sm leading-relaxed text-slate-600 [&_a]:text-emerald-600 [&_a]:underline [&_a]:underline-offset-2 [&_blockquote]:border-l-4 [&_blockquote]:border-emerald-200 [&_blockquote]:pl-3 [&_blockquote]:italic [&_code]:rounded-lg [&_code]:bg-slate-100 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[0.92em]">
+                            <div class="course-card-desc mt-3 text-sm leading-7 text-slate-600 [&_a]:text-emerald-600 [&_a]:underline [&_a]:underline-offset-2 [&_blockquote]:border-l-4 [&_blockquote]:border-emerald-200 [&_blockquote]:pl-3 [&_blockquote]:italic [&_code]:rounded-lg [&_code]:bg-slate-100 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[0.92em]">
                                 <?= $courseDescription !== '' ? $renderBbcode($courseDescription) : e(t('courses.card_desc')); ?>
                             </div>
 
-                            <div class="mt-5 flex items-center justify-between border-t border-slate-100 pt-4">
+                            <div class="mt-auto flex items-center justify-between border-t border-slate-100 pt-4">
                                 <div>
                                     <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400"><?= e(t('courses.price_from')); ?></p>
                                     <p class="text-xl font-black text-slate-950"><?= e($course['price']); ?></p>

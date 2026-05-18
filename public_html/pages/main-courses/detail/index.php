@@ -46,6 +46,7 @@ $renderBbcode = static function (string $text): string {
 
 $dbCourses = [];
 foreach ($courseRows as $row) {
+    $courseId = (int) ($row['id'] ?? 0);
     $courseName = trim((string) ($row['course_name'] ?? ''));
     if ($courseName === '') {
         continue;
@@ -53,8 +54,20 @@ foreach ($courseRows as $row) {
 
     $slug = $buildCourseSlug($courseName);
     $priceValue = number_format((float) ($row['base_price'] ?? 0), 0, ',', '.') . 'đ';
+    $roadmapCount = max(0, (int) ($row['roadmap_count'] ?? 0));
+    $roadmapRows = $courseId > 0 && $roadmapCount > 0
+        ? $academicModel->listRoadmapsByCoursePage($courseId, 1, $roadmapCount)
+        : [];
+    $outline = [];
+    foreach ($roadmapRows as $roadmapRow) {
+        $outline[] = [
+            'title' => (string) ($roadmapRow['topic_title'] ?? ''),
+            'desc' => (string) ($roadmapRow['outline_content'] ?? ''),
+        ];
+    }
 
     $dbCourses[$slug] = [
+        'id' => $courseId,
         'slug' => $slug,
         'title' => $courseName,
         'tag' => '',
@@ -72,7 +85,7 @@ foreach ($courseRows as $row) {
             'role' => '',
         ],
         'benefits' => [],
-        'outline' => [],
+        'outline' => $outline,
         'suitable_for' => [],
         'outcomes' => [],
     ];
@@ -97,6 +110,18 @@ if ($requestedSlug !== '' && isset($dbCourses[$requestedSlug])) {
 
 $relatedCourses = array_values(array_filter($dbCourses, static fn(array $item): bool => ($item['slug'] ?? '') !== ($course['slug'] ?? '')));
 $relatedCourses = array_slice($relatedCourses, 0, 4);
+
+$courseRating = (float) ($course['rating'] ?? 0);
+$instructorName = trim((string) ($course['instructor']['name'] ?? ''));
+$instructorRole = trim((string) ($course['instructor']['role'] ?? ''));
+$benefits = array_values(array_filter(
+    $course['benefits'] ?? [],
+    static fn($item): bool => trim((string) $item) !== ''
+));
+$suitableFor = array_values(array_filter(
+    $course['suitable_for'] ?? [],
+    static fn($item): bool => trim((string) $item) !== ''
+));
 ?>
 
 <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css">
@@ -104,18 +129,80 @@ $relatedCourses = array_slice($relatedCourses, 0, 4);
 
 <style>
     .course-detail-bg {
-        background:
-            radial-gradient(circle at top left, rgba(225, 29, 72, 0.16), transparent 28%),
-            radial-gradient(circle at top right, rgba(163, 230, 53, 0.18), transparent 26%),
-            linear-gradient(180deg, #fbfcfa 0%, #f8fafc 100%);
-    }
+    background:
+        radial-gradient(circle 1400px at 0% 0%, rgba(244, 63, 94, 0.28) 0%, rgba(244, 63, 94, 0.12) 60%, transparent 100%),
+        
+        radial-gradient(circle 1200px at 100% 0%, rgba(132, 204, 22, 0.25) 0%, rgba(132, 204, 22, 0.1) 60%, transparent 100%),
+        
+        radial-gradient(circle 900px at 50% 50%, rgba(6, 182, 212, 0.14) 0%, rgba(56, 189, 248, 0.04) 55%, transparent 100%),
+        
+        radial-gradient(circle 900px at 100% 55%, rgba(93, 199, 245, 0.08) 0%, transparent 100%),
+        
+        radial-gradient(circle 900px at 50% 100%, rgba(78, 143, 247, 0.12) 0%, transparent 100%),
+        
+        linear-gradient(180deg, 
+            #fff3f0 0%,      /* Đỉnh trang mang sắc ấm nhẹ */
+            #c2e4f6 70%,     /* 1/3 trang chuyển sang màu xanh trời trong vắt */
+            #cdf8dc 80%,     /* 2/3 trang (giữa trang) mang sắc xanh mầm dịu nhẹ */
+            #f4fbf7 90%,     /* Sáng dần khi về gần cuối */
+            #ffffff 100%     /* Kết thúc bằng màu trắng tinh khiết ở đáy */
+        );
+}
 
     .detail-card {
-        box-shadow: 0 24px 80px rgba(15, 23, 42, 0.08);
+        box-shadow:
+            0 24px 80px rgba(15, 23, 42, 0.1),
+            0 6px 24px rgba(255, 255, 255, 0.35) inset;
     }
 
     .detail-chip {
         background: linear-gradient(135deg, rgba(225, 29, 72, 0.12), rgba(163, 230, 53, 0.12));
+    }
+
+    .roadmap-shell {
+        position: relative;
+        overflow: hidden;
+        background:
+            radial-gradient(circle at top left, rgba(244, 63, 94, 0.12), transparent 26%),
+            radial-gradient(circle at bottom right, rgba(132, 204, 22, 0.14), transparent 30%),
+            linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.96) 100%);
+    }
+
+    .roadmap-shell::before {
+        content: "";
+        position: absolute;
+        left: 28px;
+        top: 172px;
+        bottom: 42px;
+        width: 2px;
+        background: linear-gradient(180deg, rgba(244, 63, 94, 0.26) 0%, rgba(132, 204, 22, 0.34) 100%);
+        opacity: 0.9;
+    }
+
+    .roadmap-step {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .roadmap-step::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(244, 63, 94, 0.08), rgba(132, 204, 22, 0.1));
+        opacity: 0;
+        transition: opacity 260ms ease;
+    }
+
+    .roadmap-step:hover::before {
+        opacity: 1;
+    }
+
+    @media (max-width: 767px) {
+        .roadmap-shell::before {
+            left: 21px;
+            top: 236px;
+            bottom: 36px;
+        }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -128,14 +215,9 @@ $relatedCourses = array_slice($relatedCourses, 0, 4);
     }
 </style>
 
-<main class="course-detail-bg overflow-hidden text-slate-800">
-    <section class="relative overflow-hidden pt-16 pb-14 md:pt-24 md:pb-20">
-        <div class="absolute inset-0 pointer-events-none">
-            <div class="absolute -top-20 right-[-10%] h-72 w-72 rounded-full bg-red-200/40 blur-3xl"></div>
-            <div class="absolute top-16 left-[-8%] h-80 w-80 rounded-full bg-lime-200/40 blur-3xl"></div>
-            <div class="absolute bottom-[-12%] right-1/3 h-64 w-64 rounded-full bg-emerald-200/25 blur-3xl"></div>
-        </div>
-
+<main class="overflow-hidden bg-white text-slate-800">
+    <div class="course-detail-bg relative overflow-hidden">
+    <section class="relative pt-16 pb-14 md:pt-24 md:pb-20">
         <div class="mx-auto max-w-[1450px] px-4 sm:px-6 relative z-10">
             <div class="grid gap-8 lg:grid-cols-[1.15fr_0.85fr] items-center">
                 <div class="space-y-7" data-aos="fade-right" data-aos-duration="700">
@@ -163,22 +245,15 @@ $relatedCourses = array_slice($relatedCourses, 0, 4);
                     </div>
 
                     <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                        <div class="rounded-3xl border border-white bg-white/85 p-5 shadow-[0_12px_30px_rgba(15,23,42,0.05)] backdrop-blur-md" data-aos="fade-up" data-aos-delay="0">
+                        <div class="rounded-3xl border border-slate-100 bg-white p-5 shadow-[0_12px_30px_rgba(15,23,42,0.05)]" data-aos="fade-up" data-aos-delay="0">
                             <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">Học phí</p>
                             <p class="mt-2 text-2xl font-black text-slate-950"><?= e($course['price']); ?></p>
                             <p class="mt-1 text-xs text-slate-400 line-through"><?= e($course['original_price']); ?></p>
                         </div>
-                        <div class="rounded-3xl border border-white bg-white/85 p-5 shadow-[0_12px_30px_rgba(15,23,42,0.05)] backdrop-blur-md" data-aos="fade-up" data-aos-delay="100">
-                            <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">Cấp độ</p>
-                            <p class="mt-2 text-2xl font-black text-slate-950"><?= e($course['level']); ?></p>
-                        </div>
-                        <div class="rounded-3xl border border-white bg-white/85 p-5 shadow-[0_12px_30px_rgba(15,23,42,0.05)] backdrop-blur-md" data-aos="fade-up" data-aos-delay="200">
+
+                        <div class="rounded-3xl border border-slate-100 bg-white p-5 shadow-[0_12px_30px_rgba(15,23,42,0.05)]" data-aos="fade-up" data-aos-delay="200">
                             <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">Thời lượng</p>
                             <p class="mt-2 text-2xl font-black text-slate-950"><?= e($course['duration']); ?></p>
-                        </div>
-                        <div class="rounded-3xl border border-white bg-white/85 p-5 shadow-[0_12px_30px_rgba(15,23,42,0.05)] backdrop-blur-md" data-aos="fade-up" data-aos-delay="300">
-                            <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">Bài học</p>
-                            <p class="mt-2 text-2xl font-black text-slate-950"><?= e((string) $course['lessons_count']); ?> buổi</p>
                         </div>
                     </div>
 
@@ -187,7 +262,7 @@ $relatedCourses = array_slice($relatedCourses, 0, 4);
                             Đăng ký tư vấn
                             <i class="fa-solid fa-arrow-right"></i>
                         </a>
-                        <a href="<?= e(page_url('courses')); ?>" class="inline-flex items-center gap-3 rounded-full border border-lime-300 bg-white/85 px-7 py-3.5 text-sm font-black text-emerald-700 shadow-sm transition-transform hover:-translate-y-1">
+                        <a href="<?= e(page_url('courses')); ?>" class="inline-flex items-center gap-3 rounded-full border border-lime-300 bg-white px-7 py-3.5 text-sm font-black text-emerald-700 shadow-sm transition-transform hover:-translate-y-1">
                             Quay lại danh sách
                             <i class="fa-solid fa-arrow-left"></i>
                         </a>
@@ -195,37 +270,36 @@ $relatedCourses = array_slice($relatedCourses, 0, 4);
                 </div>
 
                 <div class="relative" data-aos="fade-left" data-aos-duration="800">
-                    <div class="absolute inset-0 translate-x-6 translate-y-6 rounded-[2.5rem] bg-gradient-to-br from-red-200/50 to-lime-200/50 blur-2xl"></div>
-                    <div class="detail-card relative overflow-hidden rounded-[2.5rem] border border-white bg-white/85 p-4 backdrop-blur-md">
+                    <div class="detail-card relative overflow-hidden rounded-[2.5rem] border border-slate-100 bg-white p-4">
                         <div class="relative h-[380px] overflow-hidden rounded-[2rem]">
                             <img src="<?= e($course['image']); ?>" alt="<?= e($course['title']); ?>" class="h-full w-full object-cover">
                             <div class="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-950/20 to-transparent"></div>
-                            <div class="absolute left-5 top-5 flex flex-wrap gap-2">
-                                <span class="detail-chip rounded-full px-4 py-2 text-[10px] font-black uppercase tracking-[0.22em] text-rose-600 backdrop-blur">
-                                    <?= e($course['tag']); ?>
-                                </span>
-                                <span class="rounded-full bg-white/90 px-4 py-2 text-[10px] font-black uppercase tracking-[0.22em] text-slate-700 backdrop-blur">
-                                    <?= e($course['students']); ?> học viên
-                                </span>
-                            </div>
+
                             <div class="absolute inset-x-0 bottom-0 p-5 text-white">
-                                <div class="flex items-center gap-3 text-sm font-bold text-amber-300">
-                                    <i class="fa-solid fa-star"></i>
-                                    <span><?= e((string) $course['rating']); ?>/5.0</span>
-                                    <span class="text-white/60">•</span>
-                                    <span><?= e($course['instructor']['name']); ?></span>
-                                </div>
-                                <div class="mt-2 max-w-xl text-sm leading-relaxed text-white/85 [&_a]:text-lime-200 [&_a]:underline [&_a]:underline-offset-2 [&_blockquote]:border-l-4 [&_blockquote]:border-lime-200 [&_blockquote]:pl-3 [&_blockquote]:italic [&_code]:rounded-lg [&_code]:bg-black/20 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[0.92em]">
-                                    <?= $renderBbcode((string) ($course['instructor']['role'] ?? '')); ?>
-                                </div>
+                                <?php if ($courseRating > 0 || $instructorName !== ''): ?>
+                                    <div class="flex items-center gap-3 text-sm font-bold text-amber-300">
+                                        <?php if ($courseRating > 0): ?>
+                                            <i class="fa-solid fa-star"></i>
+                                            <span><?= e(number_format($courseRating, 1)); ?>/5.0</span>
+                                        <?php endif; ?>
+                                        <?php if ($courseRating > 0 && $instructorName !== ''): ?>
+                                            <span class="text-white/60">•</span>
+                                        <?php endif; ?>
+                                        <?php if ($instructorName !== ''): ?>
+                                            <span><?= e($instructorName); ?></span>
+                                        <?php endif; ?>
+                                    </div>
+                                <?php endif; ?>
+                                <?php if ($instructorRole !== ''): ?>
+                                    <div class="mt-2 max-w-xl text-sm leading-relaxed text-white/85 [&_a]:text-lime-200 [&_a]:underline [&_a]:underline-offset-2 [&_blockquote]:border-l-4 [&_blockquote]:border-lime-200 [&_blockquote]:pl-3 [&_blockquote]:italic [&_code]:rounded-lg [&_code]:bg-black/20 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[0.92em]">
+                                        <?= $renderBbcode($instructorRole); ?>
+                                    </div>
+                                <?php endif; ?>
                             </div>
                         </div>
 
                         <div class="grid gap-3 p-5 sm:grid-cols-3">
-                            <div class="rounded-2xl bg-slate-50 p-4">
-                                <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Đối tượng</p>
-                                <p class="mt-1 text-sm font-black text-slate-900"><?= e($course['level']); ?></p>
-                            </div>
+                        
                             <div class="rounded-2xl bg-slate-50 p-4">
                                 <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Nhịp học</p>
                                 <p class="mt-1 text-sm font-black text-slate-900"><?= e($course['duration']); ?></p>
@@ -241,11 +315,12 @@ $relatedCourses = array_slice($relatedCourses, 0, 4);
         </div>
     </section>
 
+    <?php if ($benefits !== []): ?>
     <section class="py-10 md:py-14">
         <div class="mx-auto max-w-[1450px] px-4 sm:px-6">
             <div class="grid gap-4 md:grid-cols-3">
-                <?php foreach ($course['benefits'] as $index => $benefit): ?>
-                    <div class="rounded-[2rem] border border-white bg-white/90 p-6 shadow-[0_12px_30px_rgba(15,23,42,0.05)] backdrop-blur-md" data-aos="fade-up" data-aos-delay="<?= $index * 100; ?>" data-aos-duration="600">
+                <?php foreach ($benefits as $index => $benefit): ?>
+                    <div class="rounded-[2rem] border border-slate-100 bg-white p-6 shadow-[0_12px_30px_rgba(15,23,42,0.05)]" data-aos="fade-up" data-aos-delay="<?= $index * 100; ?>" data-aos-duration="600">
                         <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-red-500 to-lime-400 text-white shadow-sm">
                             <i class="fa-solid fa-check"></i>
                         </div>
@@ -258,79 +333,47 @@ $relatedCourses = array_slice($relatedCourses, 0, 4);
             </div>
         </div>
     </section>
+    <?php endif; ?>
 
     <section class="py-8 md:py-12">
         <div class="mx-auto max-w-[1450px] px-4 sm:px-6">
-            <div class="grid gap-8 lg:grid-cols-[1.05fr_0.95fr] items-start">
-                <div class="space-y-8">
-                    <div class="detail-card rounded-[2.5rem] border border-white bg-white p-8 md:p-10" data-aos="fade-up">
-                        <div class="flex items-center gap-3">
-                            <span class="h-8 w-2 rounded-full bg-rose-500"></span>
-                            <h2 class="text-2xl md:text-3xl font-black text-slate-950">Lộ trình học tập</h2>
-                        </div>
-
-                        <div class="mt-8 space-y-4">
-                            <?php foreach ($course['outline'] as $stepIndex => $step): ?>
-                                <div class="group rounded-2xl border border-slate-100 bg-slate-50/80 p-5 transition-all hover:border-lime-300 hover:bg-white">
-                                    <div class="flex items-start gap-4">
-                                        <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white font-black text-slate-400 shadow-sm transition-colors group-hover:bg-lime-50 group-hover:text-lime-600">
-                                            <?= str_pad((string) ($stepIndex + 1), 2, '0', STR_PAD_LEFT); ?>
-                                        </span>
-                                        <div class="min-w-0 flex-1">
-                                            <h3 class="text-base font-black text-slate-950"><?= e($step['title']); ?></h3>
-                                            <div class="mt-1 text-sm leading-relaxed text-slate-600 [&_a]:text-emerald-600 [&_a]:underline [&_a]:underline-offset-2 [&_blockquote]:border-l-4 [&_blockquote]:border-emerald-200 [&_blockquote]:pl-3 [&_blockquote]:italic [&_code]:rounded-lg [&_code]:bg-slate-100 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[0.92em]">
-                                                <?= $renderBbcode((string) ($step['desc'] ?? '')); ?>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            <?php endforeach; ?>
-                        </div>
-                    </div>
-
-                    <div class="detail-card rounded-[2.5rem] border border-white bg-white p-8 md:p-10" data-aos="fade-up">
-                        <div class="flex items-center gap-3">
-                            <span class="h-8 w-2 rounded-full bg-lime-500"></span>
-                            <h2 class="text-2xl md:text-3xl font-black text-slate-950">Kết quả học tập</h2>
-                        </div>
-
-                        <div class="mt-6 grid gap-4 md:grid-cols-2">
-                            <?php foreach ($course['outcomes'] as $outcome): ?>
-                                <div class="rounded-2xl border border-slate-100 bg-gradient-to-br from-white to-slate-50 p-5">
-                                    <div class="text-sm font-bold text-slate-700 [&_a]:text-emerald-600 [&_a]:underline [&_a]:underline-offset-2 [&_blockquote]:border-l-4 [&_blockquote]:border-emerald-200 [&_blockquote]:pl-3 [&_blockquote]:italic [&_code]:rounded-lg [&_code]:bg-slate-100 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[0.92em]">
-                                        <?= $renderBbcode((string) $outcome); ?>
-                                    </div>
-                                </div>
-                            <?php endforeach; ?>
+            <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_380px] items-start">
+                <div>
+                    <div class="detail-card relative overflow-hidden rounded-[2.5rem] border border-slate-100 bg-white p-8 md:p-10" data-aos="fade-up" data-aos-delay="40">
+                        <div class="relative z-10">
+                            <div class="flex items-center gap-3">
+                                <span class="h-8 w-2 rounded-full bg-sky-500"></span>
+                                <h2 class="text-2xl md:text-3xl font-black text-slate-950">Tổng quan khóa học</h2>
+                            </div>
+                            <div class="mt-5 rounded-[2rem] border border-slate-100 bg-white p-5 text-sm leading-7 text-slate-600 shadow-[0_18px_50px_rgba(15,23,42,0.05)] md:p-6 md:text-[15px] [&_a]:text-emerald-600 [&_a]:underline [&_a]:underline-offset-2 [&_blockquote]:border-l-4 [&_blockquote]:border-emerald-200 [&_blockquote]:pl-3 [&_blockquote]:italic [&_code]:rounded-lg [&_code]:bg-slate-100 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[0.92em]">
+                                <?php if (trim((string) ($course['short_desc'] ?? '')) !== ''): ?>
+                                    <?= $renderBbcode((string) ($course['short_desc'] ?? '')); ?>
+                                <?php else: ?>
+                                    <p>Thông tin mô tả cho khóa học này đang được cập nhật.</p>
+                                <?php endif; ?>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="space-y-8">
-                    <div class="detail-card sticky top-28 rounded-[2.5rem] border border-white bg-white p-8 md:p-10" data-aos="fade-left">
+                <div>
+                    <div class="detail-card rounded-[2.5rem] border border-slate-100 bg-white p-8 md:p-10 lg:sticky lg:top-28" data-aos="fade-left">
                         <div class="flex items-center gap-3">
                             <span class="h-8 w-2 rounded-full bg-emerald-500"></span>
                             <h2 class="text-2xl font-black text-slate-950">Tư vấn nhanh</h2>
                         </div>
 
-                        <div class="mt-6 flex items-center gap-4 rounded-[2rem] bg-slate-50 p-4">
-                            <img src="https://i.pravatar.cc/160?u=<?= e($course['slug']); ?>" alt="<?= e($course['instructor']['name']); ?>" class="h-16 w-16 rounded-2xl object-cover ring-4 ring-white">
-                            <div>
-                                <p class="text-lg font-black text-slate-950"><?= e($course['instructor']['name']); ?></p>
-                                <p class="text-sm text-slate-500"><?= e($course['instructor']['role']); ?></p>
+                        <?php if ($suitableFor !== []): ?>
+                            <div class="mt-6 space-y-4 text-sm text-slate-600">
+                                <div class="flex flex-wrap gap-2">
+                                    <?php foreach ($suitableFor as $item): ?>
+                                        <span class="rounded-full border border-slate-200 bg-white px-4 py-2 font-bold text-slate-700 shadow-sm [&_a]:text-emerald-600 [&_a]:underline [&_a]:underline-offset-2 [&_blockquote]:border-l-4 [&_blockquote]:border-emerald-200 [&_blockquote]:pl-3 [&_blockquote]:italic [&_code]:rounded-lg [&_code]:bg-slate-100 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[0.92em]">
+                                            <?= $renderBbcode((string) $item); ?>
+                                        </span>
+                                    <?php endforeach; ?>
+                                </div>
                             </div>
-                        </div>
-
-                        <div class="mt-6 space-y-4 text-sm text-slate-600">
-                            <p>Khóa học này phù hợp cho:</p>
-                            <div class="flex flex-wrap gap-2">
-                                <?php foreach ($course['suitable_for'] as $item): ?>
-                                    <span class="rounded-full border border-slate-200 bg-white px-4 py-2 font-bold text-slate-700 shadow-sm [&_a]:text-emerald-600 [&_a]:underline [&_a]:underline-offset-2 [&_blockquote]:border-l-4 [&_blockquote]:border-emerald-200 [&_blockquote]:pl-3 [&_blockquote]:italic [&_code]:rounded-lg [&_code]:bg-slate-100 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[0.92em]">
-                                        <?= $renderBbcode((string) $item); ?>
-                                    </span>
-                                <?php endforeach; ?>
-                            </div>
-                        </div>
+                        <?php endif; ?>
 
                         <div class="mt-8 rounded-[2rem] bg-gradient-to-br from-slate-950 to-slate-800 p-6 text-white">
                             <p class="text-xs font-black uppercase tracking-[0.2em] text-white/60">Học phí</p>
@@ -346,9 +389,79 @@ $relatedCourses = array_slice($relatedCourses, 0, 4);
                         </div>
                     </div>
                 </div>
+
+                <div class="lg:col-span-2">
+                    <div class="roadmap-shell detail-card rounded-[2.5rem] border border-slate-100 p-8 md:p-10" data-aos="fade-up">
+                        <div class="relative z-10 rounded-[2rem] border border-slate-100 bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.06)] md:p-7">
+                            <div class="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
+                                <div class="max-w-3xl">
+                                    <div class="flex items-center gap-3">
+                                        <span class="h-8 w-2 rounded-full bg-rose-500"></span>
+                                        <h2 class="text-2xl md:text-3xl font-black text-slate-950">Lộ trình học tập</h2>
+                                    </div>
+                                    <div class="mt-4 text-sm leading-7 text-slate-600 md:text-[15px]">
+                                        Hành trình học được chia thành từng giai đoạn rõ ràng để người học theo dõi tiến độ, mục tiêu và năng lực cần hoàn thiện sau mỗi chặng.
+                                    </div>
+                                </div>
+                                <div class="grid shrink-0 gap-3 sm:grid-cols-2 md:w-[280px]">
+                                    <div class="rounded-2xl border border-rose-100 bg-gradient-to-br from-rose-50 to-white p-4 shadow-sm">
+                                        <p class="text-[10px] font-black uppercase tracking-[0.2em] text-rose-400">Số chặng</p>
+                                        <p class="mt-2 text-2xl font-black text-slate-950"><?= e((string) count($course['outline'])); ?></p>
+                                        <p class="mt-1 text-xs font-semibold text-slate-500">Giai đoạn học tập</p>
+                                    </div>
+                                    <div class="rounded-2xl border border-lime-100 bg-gradient-to-br from-lime-50 to-white p-4 shadow-sm">
+                                        <p class="text-[10px] font-black uppercase tracking-[0.2em] text-lime-500">Thời lượng</p>
+                                        <p class="mt-2 text-2xl font-black text-slate-950"><?= e($course['duration']); ?></p>
+                                        <p class="mt-1 text-xs font-semibold text-slate-500">Tiến độ toàn khóa</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="relative z-10 mt-8 space-y-5">
+                            <?php if ($course['outline'] === []): ?>
+                                <div class="rounded-2xl border border-dashed border-slate-200 bg-slate-50/80 p-5 text-sm font-medium text-slate-500">
+                                    Lộ trình khóa học đang được cập nhật.
+                                </div>
+                            <?php else: ?>
+                                <?php foreach ($course['outline'] as $stepIndex => $step): ?>
+                                    <div class="roadmap-step group rounded-[2rem] border border-slate-200 bg-white p-5 shadow-[0_22px_60px_rgba(15,23,42,0.1),0_1px_0_rgba(255,255,255,0.9)_inset] transition-all duration-300 hover:-translate-y-1.5 hover:border-lime-300 hover:shadow-[0_32px_80px_rgba(15,23,42,0.14),0_0_0_1px_rgba(190,242,100,0.45)] md:p-6" data-aos="zoom-in-up" data-aos-delay="<?= $stepIndex * 80; ?>">
+                                        <div class="relative flex items-start gap-4 md:gap-5">
+                                            <div class="relative shrink-0">
+                                                <span class="absolute inset-0 rounded-2xl bg-gradient-to-br from-rose-300/40 to-lime-300/40 blur-md transition-opacity duration-300 group-hover:opacity-100"></span>
+                                                <span class="relative flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-950 font-black text-white shadow-[0_12px_30px_rgba(15,23,42,0.22)] transition-transform duration-300 group-hover:scale-105">
+                                                    <?= str_pad((string) ($stepIndex + 1), 2, '0', STR_PAD_LEFT); ?>
+                                                </span>
+                                            </div>
+                                            <div class="min-w-0 flex-1">
+                                                <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                                                    <div>
+                                                        <div class="inline-flex items-center gap-2 rounded-full border border-rose-100 bg-rose-50/80 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-rose-500">
+                                                            <span class="h-1.5 w-1.5 rounded-full bg-lime-400"></span>
+                                                            Giai đoạn <?= e((string) ($stepIndex + 1)); ?>
+                                                        </div>
+                                                        <h3 class="mt-3 text-lg font-black text-slate-950 md:text-xl"><?= e($step['title']); ?></h3>
+                                                    </div>
+                                                    <div class="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-500">
+                                                        Step <?= str_pad((string) ($stepIndex + 1), 2, '0', STR_PAD_LEFT); ?>
+                                                    </div>
+                                                </div>
+                                                <div class="mt-4 rounded-[1.5rem] border border-slate-200 bg-gradient-to-br from-white via-white to-slate-50 p-4 text-sm leading-7 text-slate-600 shadow-[0_10px_28px_rgba(15,23,42,0.05)] md:p-5 [&_a]:text-emerald-600 [&_a]:underline [&_a]:underline-offset-2 [&_blockquote]:border-l-4 [&_blockquote]:border-emerald-200 [&_blockquote]:pl-3 [&_blockquote]:italic [&_code]:rounded-lg [&_code]:bg-slate-100 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[0.92em]">
+                                                    <?= $renderBbcode((string) ($step['desc'] ?? '')); ?>
+                                                </div>
+                                            
+                                            </div>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
+    </div>
 
     <!-- <section class="py-12 md:py-20">
         <div class="mx-auto max-w-[1450px] px-4 sm:px-6">
