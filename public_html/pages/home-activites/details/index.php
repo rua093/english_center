@@ -6,6 +6,7 @@ require_once __DIR__ . '/../../../models/AcademicModel.php';
 $academicModel = new AcademicModel();
 $activityId = (int) ($_GET['id'] ?? 0);
 $actDetail = $activityId > 0 ? $academicModel->findActivity($activityId) : null;
+$locale = current_locale();
 
 if (!is_array($actDetail)) {
 	http_response_code(404);
@@ -13,18 +14,29 @@ if (!is_array($actDetail)) {
 	exit;
 }
 
-$activityTitle = (string) ($actDetail['activity_name'] ?? '');
-$activityDescription = trim((string) ($actDetail['description'] ?? ''));
-$activityContent = trim((string) ($actDetail['content'] ?? ''));
-$activityLocation = trim((string) ($actDetail['location'] ?? ''));
+$localizedField = static function (array $source, string $baseKey, string $locale): string {
+	if ($locale === 'en') {
+		$englishValue = trim((string) ($source[$baseKey . '_en'] ?? ''));
+		if ($englishValue !== '') {
+			return $englishValue;
+		}
+	}
+
+	return trim((string) ($source[$baseKey] ?? ''));
+};
+
+$activityTitle = $localizedField($actDetail, 'activity_name', $locale);
+$activityDescription = $localizedField($actDetail, 'description', $locale);
+$activityContent = $localizedField($actDetail, 'content', $locale);
+$activityLocation = $localizedField($actDetail, 'location', $locale);
 $activityDate = !empty($actDetail['start_date']) ? date('d/m/Y', strtotime((string) $actDetail['start_date'])) : '---';
 $activityTime = !empty($actDetail['start_date']) ? date('H:i', strtotime((string) $actDetail['start_date'])) : '--:--';
 $activityFee = (float) ($actDetail['fee'] ?? 0);
 $activityStatus = (string) ($actDetail['status'] ?? 'upcoming');
 $activityStatusLabel = match ($activityStatus) {
-	'ongoing' => 'Đang diễn ra',
-	'finished' => 'Đã kết thúc',
-	default => 'Sắp diễn ra',
+	'ongoing' => t('activities.status.ongoing'),
+	'finished' => t('activities.status.finished'),
+	default => t('activities.status.upcoming'),
 };
 
 $currentUser = function_exists('auth_user') ? (auth_user() ?? []) : [];
@@ -46,7 +58,7 @@ $resolveActivityImagePath = static function (string $imagePath): string {
 
 $benefitItems = array_values(array_filter(array_map('trim', preg_split('/\r\n|\r|\n/', $activityContent !== '' ? $activityContent : $activityDescription) ?: [])));
 if ($benefitItems === []) {
-	$benefitItems = [$activityDescription !== '' ? $activityDescription : 'Chưa có mô tả chi tiết từ database.'];
+	$benefitItems = [$activityDescription !== '' ? $activityDescription : t('activity.detail.content_fallback')];
 }
 $activityImage = $resolveActivityImagePath((string) ($actDetail['image_thumbnail'] ?? ''));
 $activityDescriptionHtml = $activityDescription !== '' ? ui_render_bbcode($activityDescription) : '';
@@ -88,7 +100,7 @@ $activityContentHtml = $activityContent !== '' ? ui_render_bbcode($activityConte
                 <p class="mt-4 max-w-2xl text-sm md:text-base text-slate-100/95 font-medium leading-relaxed">
                     <?= $activityDescriptionHtml !== ''
                         ? $activityDescriptionHtml
-                        : e('Trải nghiệm kết hợp học thuật và vận động ngoài trời, giúp học viên rèn tiếng Anh tự nhiên trong một không gian an toàn và giàu cảm hứng.'); ?>
+                        : e(t('activity.detail.hero_fallback')); ?>
                 </p>
             </div>
         </div>
@@ -101,17 +113,17 @@ $activityContentHtml = $activityContent !== '' ? ui_render_bbcode($activityConte
                 <div class="rounded-[2rem] border border-white/60 bg-white/95 p-6 md:p-8 shadow-[0_20px_50px_rgba(15,23,42,0.08)] backdrop-blur-sm">
                     <h2 class="text-lg md:text-xl font-black text-slate-800 mb-5 flex items-center gap-3">
                         <span class="w-2 h-6 bg-rose-500 rounded-full"></span>
-                        Thông tin chương trình
+                        <?= e(t('activity.detail.program_info')); ?>
                     </h2>
                     <p class="text-slate-600 leading-relaxed mb-6 font-medium text-sm md:text-base max-w-3xl">
                         <?= $activityContentHtml !== ''
                             ? $activityContentHtml
                             : ($activityDescriptionHtml !== ''
                                 ? $activityDescriptionHtml
-                                : e('Chưa có mô tả chi tiết từ database.')); ?>
+                                : e(t('activity.detail.content_fallback'))); ?>
                     </p>
                     
-                    <h3 class="text-base md:text-lg font-black text-slate-800 mb-4">Bạn sẽ nhận được gì?</h3>
+                    <h3 class="text-base md:text-lg font-black text-slate-800 mb-4"><?= e(t('activity.detail.benefits_title')); ?></h3>
                     <div class="grid md:grid-cols-1 gap-3">
                         <?php foreach($benefitItems as $b): ?>
                         <div class="flex items-center gap-3 bg-emerald-50 p-4 rounded-2xl border border-emerald-100">
@@ -140,7 +152,7 @@ $activityContentHtml = $activityContent !== '' ? ui_render_bbcode($activityConte
                     
                     <div class="space-y-5">
                         <div>
-                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Thời gian</p>
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2"><?= e(t('activity.detail.time')); ?></p>
                             <div class="flex items-center gap-2.5 font-black text-slate-800 text-sm md:text-base">
                                 <i class="fa-solid fa-clock text-rose-500 text-lg"></i>
                                 <?= e($activityTime . ' - ' . $activityDate); ?>
@@ -148,7 +160,7 @@ $activityContentHtml = $activityContent !== '' ? ui_render_bbcode($activityConte
                         </div>
 
                         <div>
-                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Địa điểm</p>
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2"><?= e(t('activity.detail.location')); ?></p>
                             <div class="flex items-center gap-2.5 font-black text-slate-800 leading-snug text-sm md:text-base">
                                 <i class="fa-solid fa-location-dot text-rose-500 text-lg"></i>
                                 <?= e($activityLocation !== '' ? $activityLocation : '---'); ?>
@@ -156,25 +168,25 @@ $activityContentHtml = $activityContent !== '' ? ui_render_bbcode($activityConte
                         </div>
 
                         <div>
-                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Chi phí</p>
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2"><?= e(t('activity.detail.cost')); ?></p>
                             <div class="text-xl md:text-2xl font-black text-emerald-600">
-                                <?= $activityFee > 0 ? number_format($activityFee) . ' VNĐ / học viên' : 'Miễn phí'; ?>
+                                <?= $activityFee > 0 ? e(t('activity.detail.fee_per_student', ['fee' => number_format($activityFee)])) : e(t('activity.detail.free')); ?>
                             </div>
                         </div>
 
-                        <form method="post" action="/api/index.php?action=do-register-activity" class="space-y-3" <?= $canRegisterActivity ? 'onsubmit="event.preventDefault(); showConfirm(\'success\', \'Đăng ký hoạt động?\', \'Bạn chắc chắn muốn đăng ký tham gia hoạt động này chứ?\', () => this.submit());"' : ''; ?>>
+                        <form method="post" action="/api/index.php?action=do-register-activity" class="space-y-3" <?= $canRegisterActivity ? 'onsubmit="event.preventDefault(); showConfirm(\'success\', ' . json_encode(t('activity.detail.register_confirm_title'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . ', ' . json_encode(t('activity.detail.register_confirm_message'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . ', () => this.submit());"' : ''; ?>>
                             <?= csrf_input(); ?>
-                            <input type="hidden" name="activity_id" value="<?= (int) $activity['id']; ?>">
+                            <input type="hidden" name="activity_id" value="<?= $activityId; ?>">
                             <button type="submit" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-black py-4 rounded-2xl shadow-xl shadow-rose-600/20 transition-all hover:-translate-y-1 uppercase tracking-widest text-sm disabled:cursor-not-allowed disabled:opacity-50">
-                                <?= e('Đăng ký tham gia ngay'); ?>
+                                <?= e(t('activity.detail.register_now')); ?>
                             </button>
                         </form>
 
                         <?php if (!$isLoggedIn): ?>
-                            <p class="text-center text-[10px] text-slate-400 font-bold uppercase">Bạn sẽ được chuyển đến trang đăng nhập để tiếp tục.</p>
+                            <p class="text-center text-[10px] text-slate-400 font-bold uppercase"><?= e(t('activity.detail.login_notice')); ?></p>
                         <?php endif; ?>
 
-                        <p class="text-center text-[10px] text-slate-400 font-bold uppercase">Ưu đãi 10% khi đăng ký nhóm 3 người</p>
+                        <p class="text-center text-[10px] text-slate-400 font-bold uppercase"><?= e(t('activity.detail.group_offer')); ?></p>
                     </div>
                 </div>
             </div>

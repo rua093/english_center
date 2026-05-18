@@ -44,10 +44,22 @@ $renderBbcode = static function (string $text): string {
     return nl2br(e($text), false);
 };
 
+$locale = current_locale();
+$localizedField = static function (array $source, string $baseKey, string $locale): string {
+    if ($locale === 'en') {
+        $englishValue = trim((string) ($source[$baseKey . '_en'] ?? ''));
+        if ($englishValue !== '') {
+            return $englishValue;
+        }
+    }
+
+    return trim((string) ($source[$baseKey] ?? ''));
+};
+
 $dbCourses = [];
 foreach ($courseRows as $row) {
     $courseId = (int) ($row['id'] ?? 0);
-    $courseName = trim((string) ($row['course_name'] ?? ''));
+    $courseName = $localizedField($row, 'course_name', $locale);
     if ($courseName === '') {
         continue;
     }
@@ -61,8 +73,8 @@ foreach ($courseRows as $row) {
     $outline = [];
     foreach ($roadmapRows as $roadmapRow) {
         $outline[] = [
-            'title' => (string) ($roadmapRow['topic_title'] ?? ''),
-            'desc' => (string) ($roadmapRow['outline_content'] ?? ''),
+            'title' => $localizedField($roadmapRow, 'topic_title', $locale),
+            'desc' => $localizedField($roadmapRow, 'outline_content', $locale),
         ];
     }
 
@@ -71,7 +83,7 @@ foreach ($courseRows as $row) {
         'slug' => $slug,
         'title' => $courseName,
         'tag' => '',
-        'short_desc' => (string) ($row['description'] ?? ''),
+        'short_desc' => $localizedField($row, 'description', $locale),
         'price' => $priceValue,
         'original_price' => '',
         'duration' => ((int) ($row['total_sessions'] ?? 0)) . ' buổi',
@@ -114,6 +126,8 @@ $relatedCourses = array_slice($relatedCourses, 0, 4);
 $courseRating = (float) ($course['rating'] ?? 0);
 $instructorName = trim((string) ($course['instructor']['name'] ?? ''));
 $instructorRole = trim((string) ($course['instructor']['role'] ?? ''));
+$courseSessionLabel = t('courses.sessions', ['count' => (string) ($course['lessons_count'] ?? 0)]);
+$courseRoadmapCount = count($course['outline'] ?? []);
 $benefits = array_values(array_filter(
     $course['benefits'] ?? [],
     static fn($item): bool => trim((string) $item) !== ''
@@ -223,14 +237,14 @@ $suitableFor = array_values(array_filter(
                 <div class="space-y-7" data-aos="fade-right" data-aos-duration="700">
                     <div class="inline-flex items-center gap-2 rounded-full border border-red-200 bg-white/80 px-4 py-2 text-xs font-black uppercase tracking-[0.2em] text-rose-600 shadow-sm backdrop-blur">
                         <span class="h-2 w-2 rounded-full bg-lime-400"></span>
-                        Khóa học chi tiết
+                        <?= e(t('course.detail.kicker')); ?>
                     </div>
 
                     <div class="space-y-5 max-w-3xl">
                         <nav class="flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-slate-500">
-                            <a href="/" class="hover:text-rose-600 transition-colors">Trang chủ</a>
+                            <a href="/" class="hover:text-rose-600 transition-colors"><?= e(t('nav.home')); ?></a>
                             <span>/</span>
-                            <a href="<?= e(page_url('courses')); ?>" class="hover:text-rose-600 transition-colors">Chương trình học</a>
+                            <a href="<?= e(page_url('courses')); ?>" class="hover:text-rose-600 transition-colors"><?= e(t('course.detail.breadcrumb_list')); ?></a>
                             <span>/</span>
                             <span class="text-slate-800"><?= e($course['title']); ?></span>
                         </nav>
@@ -246,24 +260,24 @@ $suitableFor = array_values(array_filter(
 
                     <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                         <div class="rounded-3xl border border-slate-100 bg-white p-5 shadow-[0_12px_30px_rgba(15,23,42,0.05)]" data-aos="fade-up" data-aos-delay="0">
-                            <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">Học phí</p>
+                            <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400"><?= e(t('course.detail.price')); ?></p>
                             <p class="mt-2 text-2xl font-black text-slate-950"><?= e($course['price']); ?></p>
                             <p class="mt-1 text-xs text-slate-400 line-through"><?= e($course['original_price']); ?></p>
                         </div>
 
                         <div class="rounded-3xl border border-slate-100 bg-white p-5 shadow-[0_12px_30px_rgba(15,23,42,0.05)]" data-aos="fade-up" data-aos-delay="200">
-                            <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">Thời lượng</p>
-                            <p class="mt-2 text-2xl font-black text-slate-950"><?= e($course['duration']); ?></p>
+                            <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400"><?= e(t('course.detail.duration')); ?></p>
+                            <p class="mt-2 text-2xl font-black text-slate-950"><?= e($courseSessionLabel); ?></p>
                         </div>
                     </div>
 
                     <div class="flex flex-wrap gap-3" data-aos="fade-up" data-aos-delay="350">
                         <a href="#dang-ky-tu-van" class="inline-flex items-center gap-3 rounded-full bg-rose-600 px-7 py-3.5 text-sm font-black text-white shadow-lg shadow-rose-600/25 transition-transform hover:-translate-y-1">
-                            Đăng ký tư vấn
+                            <?= e(t('course.detail.enroll_now')); ?>
                             <i class="fa-solid fa-arrow-right"></i>
                         </a>
                         <a href="<?= e(page_url('courses')); ?>" class="inline-flex items-center gap-3 rounded-full border border-lime-300 bg-white px-7 py-3.5 text-sm font-black text-emerald-700 shadow-sm transition-transform hover:-translate-y-1">
-                            Quay lại danh sách
+                            <?= e(t('course.detail.back_to_list')); ?>
                             <i class="fa-solid fa-arrow-left"></i>
                         </a>
                     </div>
@@ -301,12 +315,12 @@ $suitableFor = array_values(array_filter(
                         <div class="grid gap-3 p-5 sm:grid-cols-3">
                         
                             <div class="rounded-2xl bg-slate-50 p-4">
-                                <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Nhịp học</p>
-                                <p class="mt-1 text-sm font-black text-slate-900"><?= e($course['duration']); ?></p>
+                                <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400"><?= e(t('course.detail.learning_pace')); ?></p>
+                                <p class="mt-1 text-sm font-black text-slate-900"><?= e($courseSessionLabel); ?></p>
                             </div>
                             <div class="rounded-2xl bg-slate-50 p-4">
-                                <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Lộ trình</p>
-                                <p class="mt-1 text-sm font-black text-slate-900"><?= e((string) count($course['outline'])); ?> giai đoạn</p>
+                                <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400"><?= e(t('course.detail.roadmap')); ?></p>
+                                <p class="mt-1 text-sm font-black text-slate-900"><?= $courseRoadmapCount; ?> <?= e(mb_strtolower(t('course.detail.roadmap_count'))); ?></p>
                             </div>
                         </div>
                     </div>
@@ -324,7 +338,7 @@ $suitableFor = array_values(array_filter(
                         <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-red-500 to-lime-400 text-white shadow-sm">
                             <i class="fa-solid fa-check"></i>
                         </div>
-                        <h3 class="text-lg font-black text-slate-950">Giá trị nổi bật</h3>
+                        <h3 class="text-lg font-black text-slate-950"><?= e(t('course.detail.benefits_title')); ?></h3>
                         <div class="mt-2 text-sm leading-relaxed text-slate-600 [&_a]:text-emerald-600 [&_a]:underline [&_a]:underline-offset-2 [&_blockquote]:border-l-4 [&_blockquote]:border-emerald-200 [&_blockquote]:pl-3 [&_blockquote]:italic [&_code]:rounded-lg [&_code]:bg-slate-100 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[0.92em]">
                             <?= $renderBbcode((string) $benefit); ?>
                         </div>
@@ -343,13 +357,13 @@ $suitableFor = array_values(array_filter(
                         <div class="relative z-10">
                             <div class="flex items-center gap-3">
                                 <span class="h-8 w-2 rounded-full bg-sky-500"></span>
-                                <h2 class="text-2xl md:text-3xl font-black text-slate-950">Tổng quan khóa học</h2>
+                                <h2 class="text-2xl md:text-3xl font-black text-slate-950"><?= e(t('course.detail.overview')); ?></h2>
                             </div>
                             <div class="mt-5 rounded-[2rem] border border-slate-100 bg-white p-5 text-sm leading-7 text-slate-600 shadow-[0_18px_50px_rgba(15,23,42,0.05)] md:p-6 md:text-[15px] [&_a]:text-emerald-600 [&_a]:underline [&_a]:underline-offset-2 [&_blockquote]:border-l-4 [&_blockquote]:border-emerald-200 [&_blockquote]:pl-3 [&_blockquote]:italic [&_code]:rounded-lg [&_code]:bg-slate-100 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[0.92em]">
                                 <?php if (trim((string) ($course['short_desc'] ?? '')) !== ''): ?>
                                     <?= $renderBbcode((string) ($course['short_desc'] ?? '')); ?>
                                 <?php else: ?>
-                                    <p>Thông tin mô tả cho khóa học này đang được cập nhật.</p>
+                                    <p><?= e(t('course.detail.overview_fallback')); ?></p>
                                 <?php endif; ?>
                             </div>
                         </div>
@@ -360,7 +374,7 @@ $suitableFor = array_values(array_filter(
                     <div class="detail-card rounded-[2.5rem] border border-slate-100 bg-white p-8 md:p-10 lg:sticky lg:top-28" data-aos="fade-left">
                         <div class="flex items-center gap-3">
                             <span class="h-8 w-2 rounded-full bg-emerald-500"></span>
-                            <h2 class="text-2xl font-black text-slate-950">Tư vấn nhanh</h2>
+                            <h2 class="text-2xl font-black text-slate-950"><?= e(t('course.detail.quick_consultation')); ?></h2>
                         </div>
 
                         <?php if ($suitableFor !== []): ?>
@@ -376,14 +390,14 @@ $suitableFor = array_values(array_filter(
                         <?php endif; ?>
 
                         <div class="mt-8 rounded-[2rem] bg-gradient-to-br from-slate-950 to-slate-800 p-6 text-white">
-                            <p class="text-xs font-black uppercase tracking-[0.2em] text-white/60">Học phí</p>
+                            <p class="text-xs font-black uppercase tracking-[0.2em] text-white/60"><?= e(t('course.detail.price')); ?></p>
                             <div class="mt-2 flex items-end gap-3">
                                 <span class="text-3xl font-black"><?= e($course['price']); ?></span>
                                 <span class="text-sm text-white/45 line-through"><?= e($course['original_price']); ?></span>
                             </div>
-                            <p class="mt-3 text-sm leading-relaxed text-white/70">Liên hệ để nhận tư vấn lộ trình, lịch học và ưu đãi hiện hành.</p>
+                            <p class="mt-3 text-sm leading-relaxed text-white/70"><?= e(t('course.detail.quick_consultation_copy')); ?></p>
                             <a href="#dang-ky-tu-van" class="mt-5 inline-flex w-full items-center justify-center gap-3 rounded-full bg-lime-400 px-6 py-3.5 font-black text-slate-950 transition-transform hover:-translate-y-1">
-                                Nhận tư vấn ngay
+                                <?= e(t('course.detail.enroll_now')); ?>
                                 <i class="fa-solid fa-paper-plane"></i>
                             </a>
                         </div>
@@ -397,22 +411,20 @@ $suitableFor = array_values(array_filter(
                                 <div class="max-w-3xl">
                                     <div class="flex items-center gap-3">
                                         <span class="h-8 w-2 rounded-full bg-rose-500"></span>
-                                        <h2 class="text-2xl md:text-3xl font-black text-slate-950">Lộ trình học tập</h2>
+                                        <h2 class="text-2xl md:text-3xl font-black text-slate-950"><?= e(t('course.detail.roadmap_title')); ?></h2>
                                     </div>
-                                    <div class="mt-4 text-sm leading-7 text-slate-600 md:text-[15px]">
-                                        Hành trình học được chia thành từng giai đoạn rõ ràng để người học theo dõi tiến độ, mục tiêu và năng lực cần hoàn thiện sau mỗi chặng.
-                                    </div>
+                                    <div class="mt-4 text-sm leading-7 text-slate-600 md:text-[15px]"><?= e(t('course.detail.roadmap_copy')); ?></div>
                                 </div>
                                 <div class="grid shrink-0 gap-3 sm:grid-cols-2 md:w-[280px]">
                                     <div class="rounded-2xl border border-rose-100 bg-gradient-to-br from-rose-50 to-white p-4 shadow-sm">
-                                        <p class="text-[10px] font-black uppercase tracking-[0.2em] text-rose-400">Số chặng</p>
-                                        <p class="mt-2 text-2xl font-black text-slate-950"><?= e((string) count($course['outline'])); ?></p>
-                                        <p class="mt-1 text-xs font-semibold text-slate-500">Giai đoạn học tập</p>
+                                        <p class="text-[10px] font-black uppercase tracking-[0.2em] text-rose-400"><?= e(t('course.detail.roadmap_count')); ?></p>
+                                        <p class="mt-2 text-2xl font-black text-slate-950"><?= $courseRoadmapCount; ?></p>
+                                        <p class="mt-1 text-xs font-semibold text-slate-500"><?= e(t('course.detail.stage')); ?></p>
                                     </div>
                                     <div class="rounded-2xl border border-lime-100 bg-gradient-to-br from-lime-50 to-white p-4 shadow-sm">
-                                        <p class="text-[10px] font-black uppercase tracking-[0.2em] text-lime-500">Thời lượng</p>
-                                        <p class="mt-2 text-2xl font-black text-slate-950"><?= e($course['duration']); ?></p>
-                                        <p class="mt-1 text-xs font-semibold text-slate-500">Tiến độ toàn khóa</p>
+                                        <p class="text-[10px] font-black uppercase tracking-[0.2em] text-lime-500"><?= e(t('course.detail.duration')); ?></p>
+                                        <p class="mt-2 text-2xl font-black text-slate-950"><?= e($courseSessionLabel); ?></p>
+                                        <p class="mt-1 text-xs font-semibold text-slate-500"><?= e(t('course.detail.course_progress')); ?></p>
                                     </div>
                                 </div>
                             </div>
@@ -421,7 +433,7 @@ $suitableFor = array_values(array_filter(
                         <div class="relative z-10 mt-8 space-y-5">
                             <?php if ($course['outline'] === []): ?>
                                 <div class="rounded-2xl border border-dashed border-slate-200 bg-slate-50/80 p-5 text-sm font-medium text-slate-500">
-                                    Lộ trình khóa học đang được cập nhật.
+                                    <?= e(t('course.detail.roadmap_empty')); ?>
                                 </div>
                             <?php else: ?>
                                 <?php foreach ($course['outline'] as $stepIndex => $step): ?>
@@ -438,7 +450,7 @@ $suitableFor = array_values(array_filter(
                                                     <div>
                                                         <div class="inline-flex items-center gap-2 rounded-full border border-rose-100 bg-rose-50/80 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-rose-500">
                                                             <span class="h-1.5 w-1.5 rounded-full bg-lime-400"></span>
-                                                            Giai đoạn <?= e((string) ($stepIndex + 1)); ?>
+                                                            <?= e(t('course.detail.stage')); ?> <?= e((string) ($stepIndex + 1)); ?>
                                                         </div>
                                                         <h3 class="mt-3 text-lg font-black text-slate-950 md:text-xl"><?= e($step['title']); ?></h3>
                                                     </div>
@@ -527,16 +539,16 @@ $suitableFor = array_values(array_filter(
                 <div class="max-w-2xl" data-aos="fade-right" data-aos-duration="700">
                     <span class="inline-flex items-center gap-2 rounded-full border border-rose-300/40 bg-gradient-to-r from-rose-600 to-rose-500 px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-white shadow-lg shadow-rose-500/25 backdrop-blur-sm transition-transform hover:-translate-y-0.5">
                         <span class="h-2 w-2 rounded-full bg-white animate-pulse"></span>
-                        Tư vấn nhanh 1:1
+                        <?= e(t('public.common.quick_consultation')); ?>
                     </span>
 
                     <h2 class="mt-8 text-4xl md:text-5xl lg:text-6xl font-black leading-tight tracking-tight text-white">
-                        Bắt đầu hành trình <br>
-                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-rose-200 to-orange-200">chinh phục Anh ngữ</span>
+                        <?= e(t('public.common.start_english_journey')); ?> <br>
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-rose-200 to-orange-200"><?= e(t('public.common.conquer_english')); ?></span>
                     </h2>
                     
                     <p class="mt-6 max-w-xl text-base md:text-lg leading-relaxed text-white/85">
-                        Hãy để lại thông tin, đội ngũ học thuật của chúng tôi sẽ thiết kế riêng một lộ trình tối ưu nhất dựa trên mục tiêu và năng lực của bạn.
+                        <?= e(t('public.common.consultation_copy')); ?>
                     </p>
 
                     <div class="mt-10 grid gap-4 sm:grid-cols-3 max-w-lg">
@@ -545,21 +557,21 @@ $suitableFor = array_values(array_filter(
                                 <i class="fa-regular fa-clock text-sm"></i>
                             </div>
                             <p class="text-2xl font-black text-white">15'</p>
-                            <p class="mt-1 text-[9px] font-bold uppercase tracking-widest text-white/70">Liên hệ ngay</p>
+                            <p class="mt-1 text-[9px] font-bold uppercase tracking-widest text-white/70"><?= e(t('public.common.contact_now')); ?></p>
                         </div>
                         <div class="rounded-[1.5rem] border border-white/18 bg-white/10 p-5 backdrop-blur-sm shadow-lg">
                             <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 text-white">
                                 <i class="fa-solid fa-user-group text-sm"></i>
                             </div>
                             <p class="text-2xl font-black text-white">1:1</p>
-                            <p class="mt-1 text-[9px] font-bold uppercase tracking-widest text-white/70">Chuyên gia</p>
+                            <p class="mt-1 text-[9px] font-bold uppercase tracking-widest text-white/70"><?= e(t('public.common.expert')); ?></p>
                         </div>
                         <div class="rounded-[1.5rem] border border-white/18 bg-white/10 p-5 backdrop-blur-sm shadow-lg">
                             <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 text-white">
                                 <i class="fa-solid fa-wand-magic-sparkles text-sm"></i>
                             </div>
                             <p class="text-2xl font-black text-white">100%</p>
-                            <p class="mt-1 text-[9px] font-bold uppercase tracking-widest text-white/70">Cá nhân hóa</p>
+                            <p class="mt-1 text-[9px] font-bold uppercase tracking-widest text-white/70"><?= e(t('public.common.personalized')); ?></p>
                         </div>
                     </div>
                 </div>
@@ -582,17 +594,17 @@ $suitableFor = array_values(array_filter(
                             0 8px 16px rgba(15, 23, 42, 0.25),
                             0 0 1px rgba(255, 255, 255, 0.8);
                         ">
-                            Đăng ký tư vấn
+                            <?= e(t('public.common.free_consultation')); ?>
                             <span class="ml-2 text-transparent bg-clip-text bg-gradient-to-r from-rose-400 to-rose-600" style="text-shadow: 
                                 2px 2px 0 rgba(244, 63, 94, 0.2),
                                 4px 4px 0 rgba(244, 63, 94, 0.15),
                                 0 6px 12px rgba(244, 63, 94, 0.2);
-                            ">miễn phí</span>
+                            "><?= e(t('public.common.free')); ?></span>
                         </h3>
                         <!-- Subheading: Trust messaging (emerald psychology) -->
                         <p class="text-sm font-semibold text-white/85">
                             <i class="fa-solid fa-check-circle text-emerald-500 mr-2"></i>
-                            Chuyên gia sẽ thiết kế lộ trình phù hợp cho bạn
+                            <?= e(t('public.common.route_for_you')); ?>
                         </p>
                     </div>
 
@@ -603,11 +615,11 @@ $suitableFor = array_values(array_filter(
                         <div class="sm:col-span-2 group">
                             <label class="mb-3 flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.16em] text-white group-focus-within:text-rose-300 transition-colors">
                                 <i class="fa-solid fa-user text-rose-500"></i>
-                                Họ và tên <span class="text-rose-500 text-base">*</span>
+                                <?= e(t('public.common.full_name')); ?> <span class="text-rose-500 text-base">*</span>
                             </label>
                             <div class="relative">
                                 <span class="absolute left-5 top-1/2 -translate-y-1/2 text-rose-400 group-focus-within:text-rose-500 transition-colors"><i class="fa-regular fa-user"></i></span>
-                                <input type="text" name="full_name" required placeholder="Nhập họ và tên của bạn" class="w-full rounded-2xl border border-slate-200 bg-white py-4 pl-14 pr-5 text-sm font-bold text-slate-900 shadow-sm outline-none transition-all placeholder:text-slate-400 placeholder:font-medium focus:border-rose-400 focus:ring-4 focus:ring-rose-500/15 focus:shadow-lg focus:shadow-rose-500/10">
+                                <input type="text" name="full_name" required placeholder="<?= e(t('public.common.full_name_placeholder')); ?>" class="w-full rounded-2xl border border-slate-200 bg-white py-4 pl-14 pr-5 text-sm font-bold text-slate-900 shadow-sm outline-none transition-all placeholder:text-slate-400 placeholder:font-medium focus:border-rose-400 focus:ring-4 focus:ring-rose-500/15 focus:shadow-lg focus:shadow-rose-500/10">
                             </div>
                         </div>
 
@@ -615,7 +627,7 @@ $suitableFor = array_values(array_filter(
                         <div class="group">
                             <label class="mb-3 flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.16em] text-white group-focus-within:text-rose-300 transition-colors">
                                 <i class="fa-solid fa-phone text-rose-500"></i>
-                                Số điện thoại <span class="text-rose-500 text-base">*</span>
+                                <?= e(t('public.common.phone')); ?> <span class="text-rose-500 text-base">*</span>
                             </label>
                             <div class="relative">
                                 <span class="absolute left-5 top-1/2 -translate-y-1/2 text-rose-400 group-focus-within:text-rose-500 transition-colors"><i class="fa-solid fa-phone"></i></span>
@@ -627,7 +639,7 @@ $suitableFor = array_values(array_filter(
                         <div class="group">
                             <label class="mb-3 flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.16em] text-white group-focus-within:text-emerald-300 transition-colors">
                                 <i class="fa-solid fa-calendar text-emerald-500"></i>
-                                Ngày sinh
+                                <?= e(t('public.common.birthdate')); ?>
                             </label>
                             <div class="relative">
                                 <span class="absolute left-5 top-1/2 -translate-y-1/2 text-emerald-400 group-focus-within:text-emerald-500 transition-colors"><i class="fa-regular fa-calendar"></i></span>
@@ -638,7 +650,7 @@ $suitableFor = array_values(array_filter(
                         <!-- CTA Button: Rose (urgency/action psychology) + Emerald accent (trust) -->
                         <button type="submit" class="sm:col-span-2 mt-2 group relative inline-flex items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-rose-500 to-rose-600 px-8 py-4 text-sm font-black uppercase tracking-widest text-white shadow-lg shadow-rose-500/30 transition-all duration-300 hover:-translate-y-1.5 hover:from-rose-600 hover:to-rose-700 hover:shadow-rose-600/50 active:translate-y-0 active:shadow-rose-500/20">
                             <span class="flex items-center gap-2">
-                                Gửi yêu cầu ngay
+                                <?= e(t('public.common.send_request')); ?>
                                 <i class="fa-solid fa-arrow-right transition-transform group-hover:translate-x-1"></i>
                             </span>
                             <!-- Subtle success indicator (emerald) -->
