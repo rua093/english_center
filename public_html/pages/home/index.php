@@ -54,7 +54,38 @@ foreach ($courseRows as $row) {
 }
 
 $homeActivities = $academicModel->listActivitiesPage(1, 4);
-$homeTeachers = $academicModel->feedbackLookups()['teachers'] ?? [];
+$homeTeacherRows = $academicModel->listActiveTeachersPage(1, 8);
+$homeTeachers = [];
+foreach ($homeTeacherRows as $teacherRow) {
+	$teacherId = (int) ($teacherRow['id'] ?? 0);
+	if ($teacherId <= 0) {
+		continue;
+	}
+
+	$teacherUser = $academicModel->findActiveUser($teacherId);
+	if (!$teacherUser || (string) ($teacherUser['role_name'] ?? '') !== 'teacher') {
+		continue;
+	}
+
+	$teacherProfile = is_array($teacherUser['role_profile'] ?? null) ? $teacherUser['role_profile'] : [];
+	$teacherDegree = trim((string) ($teacherProfile['teacher_degree'] ?? ''));
+	$teacherExperience = max(0, (int) ($teacherProfile['teacher_experience_years'] ?? 0));
+	$teacherBio = trim((string) ($teacherProfile['teacher_bio'] ?? ''));
+	$teacherAvatar = trim((string) ($teacherUser['avatar'] ?? ''));
+
+	if ($teacherAvatar !== '' && function_exists('normalize_public_file_url')) {
+		$teacherAvatar = normalize_public_file_url($teacherAvatar);
+	}
+
+	$homeTeachers[] = [
+		'id' => $teacherId,
+		'full_name' => (string) ($teacherUser['full_name'] ?? ''),
+		'avatar' => $teacherAvatar,
+		'degree' => $teacherDegree,
+		'experience' => $teacherExperience,
+		'bio' => $teacherBio,
+	];
+}
 $homeFeedbacks = $academicModel->listPublicFeedbacks(6);
 $homeFeedbackAverage = 0.0;
 if (!empty($homeFeedbacks)) {

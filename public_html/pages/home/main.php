@@ -904,8 +904,12 @@ $renderBbcode = static function (string $text): string {
                     <?php else: ?>
                     <?php foreach ($teachers as $teacher): ?>
                     <?php
+                    $teacherId = (int) ($teacher['id'] ?? 0);
                     $teacherName = (string) ($teacher['full_name'] ?? '');
                     $teacherRole = t('home.teacher_role');
+                    $teacherDegree = trim((string) ($teacher['degree'] ?? ''));
+                    $teacherExperience = max(0, (int) ($teacher['experience'] ?? 0));
+                    $teacherBio = trim((string) ($teacher['bio'] ?? ''));
                     $teacherAvatar = trim((string) ($teacher['avatar'] ?? ''));
                     if ($teacherAvatar !== '' && function_exists('normalize_public_file_url')) {
                         $teacherAvatar = normalize_public_file_url($teacherAvatar);
@@ -913,18 +917,62 @@ $renderBbcode = static function (string $text): string {
                     if ($teacherAvatar === '') {
                         $teacherAvatar = 'https://ui-avatars.com/api/?name=' . urlencode($teacherName !== '' ? $teacherName : 'Teacher') . '&background=2e3192&color=fff&size=600&bold=true';
                     }
+                    $teacherDetailUrl = $teacherId > 0 ? page_url('teacher-detail', ['id' => $teacherId]) : page_url('teacher-introduce');
+                    $teacherHighlights = [];
+                    if ($teacherDegree !== '') {
+                        $teacherHighlights[] = $teacherDegree;
+                    }
+                    if ($teacherExperience > 0) {
+                        $teacherHighlights[] = $teacherExperience . ' năm kinh nghiệm';
+                    }
+                    if ($teacherBio !== '') {
+                        $teacherHighlights[] = mb_strimwidth($teacherBio, 0, 52, '...');
+                    }
+                    $teacherHighlights = array_slice($teacherHighlights, 0, 2);
                     ?>
                     <div class="swiper-slide h-auto">
-                        <article class="flex flex-col gap-3 sm:gap-4 group cursor-pointer">
-                            <div class="relative w-full aspect-[4/5] rounded-2xl sm:rounded-3xl overflow-hidden bg-slate-200 shadow-[0_10px_30px_rgba(0,0,0,0.05)]">
-                                <img src="<?= e($teacherAvatar) ?>" alt="<?= e($teacherName) ?>" class="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105">
-                                <div class="absolute inset-0 bg-blue-900/0 group-hover:bg-blue-900/10 transition-colors duration-300"></div>
-                            </div>
-                            <div class="px-1 text-left">
-                                <h4 class="text-base sm:text-lg md:text-xl font-extrabold text-slate-800 group-hover:text-blue-600 transition-colors"><?= e($teacherName) ?></h4>
-                                <p class="text-xs sm:text-sm font-medium text-slate-500 mt-0.5 sm:mt-1"><?= e($teacherRole) ?></p>
-                            </div>
-                        </article>
+                        <a href="<?= e($teacherDetailUrl); ?>" class="group block h-full">
+                            <article class="flex h-full flex-col overflow-hidden rounded-[2rem] border border-white/90 bg-white/92 p-4 shadow-[0_16px_40px_rgba(15,23,42,0.08)] transition-all duration-500 hover:-translate-y-2 hover:border-blue-200 hover:shadow-[0_28px_60px_rgba(46,49,146,0.14)]">
+                                <div class="relative overflow-hidden rounded-[1.75rem] bg-slate-100">
+                                    <div class="aspect-[4/4.4] w-full">
+                                        <img src="<?= e($teacherAvatar) ?>" alt="<?= e($teacherName) ?>" class="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105">
+                                        <div class="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-950/10 to-transparent opacity-90"></div>
+                                        <div class="absolute left-4 top-4 inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-blue-700 shadow-sm">
+                                            <span class="h-2 w-2 rounded-full bg-emerald-400"></span>
+                                            <?= e($teacherRole); ?>
+                                        </div>
+                                        <?php if ($teacherExperience > 0): ?>
+                                            <div class="absolute bottom-4 right-4 rounded-2xl bg-white/92 px-3 py-2 text-right shadow-sm">
+                                                <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">Kinh nghiệm</p>
+                                                <p class="text-sm font-black text-slate-900"><?= e((string) $teacherExperience); ?> năm</p>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+
+                                <div class="flex flex-1 flex-col px-2 pb-2 pt-5 text-left">
+                                    <h4 class="text-lg sm:text-xl font-extrabold text-slate-800 transition-colors group-hover:text-blue-600"><?= e($teacherName) ?></h4>
+                                    <p class="mt-1 text-sm font-semibold text-slate-500"><?= e($teacherDegree !== '' ? $teacherDegree : $teacherRole) ?></p>
+
+                                    <?php if ($teacherHighlights !== []): ?>
+                                        <div class="mt-4 flex flex-wrap gap-2">
+                                            <?php foreach ($teacherHighlights as $highlight): ?>
+                                                <span class="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[10px] font-black uppercase tracking-[0.08em] text-slate-600">
+                                                    <?= e($highlight); ?>
+                                                </span>
+                                            <?php endforeach; ?>
+                                        </div>
+                                    <?php endif; ?>
+
+                                    <div class="mt-auto pt-5">
+                                        <div class="inline-flex items-center gap-2 text-sm font-black text-blue-700 transition-transform duration-300 group-hover:translate-x-1">
+                                            Xem hồ sơ
+                                            <i class="fa-solid fa-arrow-right text-xs"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </article>
+                        </a>
                     </div>
                     <?php endforeach; ?>
                     <?php endif; ?>
@@ -935,7 +983,7 @@ $renderBbcode = static function (string $text): string {
         </div>
 
         <div class="mt-6 sm:mt-8 flex justify-center">
-            <a href="<?= e(page_url('dashboard-teacher')); ?>" class="inline-flex items-center justify-center gap-2 rounded-full bg-[#2e3192] px-5 sm:px-6 py-3 sm:py-3.5 text-xs sm:text-sm font-bold text-white shadow-md transition-transform hover:-translate-y-0.5 hover:bg-blue-600">
+            <a href="<?= e(page_url('teacher-introduce')); ?>" class="inline-flex items-center justify-center gap-2 rounded-full bg-[#2e3192] px-5 sm:px-6 py-3 sm:py-3.5 text-xs sm:text-sm font-bold text-white shadow-md transition-transform hover:-translate-y-0.5 hover:bg-blue-600">
                 <?= e(t('home.view_more')); ?> <i class="fa-solid fa-arrow-right text-[10px] sm:text-xs"></i>
             </a>
         </div>
