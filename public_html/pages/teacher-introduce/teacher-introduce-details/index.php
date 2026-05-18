@@ -32,7 +32,7 @@ $teacherCertificates = $academicModel->listTeacherCertificatesByUserId($teacherI
 ?>
 
 <style>
-    .course-detail-bg {
+    /* .course-detail-bg {
         background:
             radial-gradient(circle 1400px at 0% 0%, rgba(244, 63, 94, 0.28) 0%, rgba(244, 63, 94, 0.12) 60%, transparent 100%),
             radial-gradient(circle 1200px at 100% 0%, rgba(132, 204, 22, 0.25) 0%, rgba(132, 204, 22, 0.1) 60%, transparent 100%),
@@ -46,7 +46,7 @@ $teacherCertificates = $academicModel->listTeacherCertificatesByUserId($teacherI
                 #f4fbf7 90%,
                 #ffffff 100%
             );
-    }
+    } */
 
     .teacher-detail-page {
         font-family: 'Be Vietnam Pro', ui-sans-serif, system-ui, sans-serif;
@@ -244,20 +244,7 @@ $teacherCertificates = $academicModel->listTeacherCertificatesByUserId($teacherI
                     </div>
                 </div>
 
-                <div class="bg-gradient-to-br from-slate-900 to-emerald-900 rounded-[2rem] p-8 text-center relative overflow-hidden shadow-2xl">
-                    <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
-                    <div class="relative z-10">
-                        <div class="w-14 h-14 bg-emerald-500 rounded-full flex items-center justify-center text-white text-2xl mx-auto mb-4 shadow-[0_0_20px_rgba(16,185,129,0.5)]">
-                            <i class="fa-regular fa-calendar-check"></i>
-                        </div>
-                        <h3 class="text-xl font-black text-white mb-2">Đăng ký học</h3>
-                        <p class="text-xs text-slate-300 font-medium mb-6">Trải nghiệm phương pháp học chuẩn quốc tế cùng <?= e($teacherName) ?></p>
-                        
-                        <a href="/courses" class="block w-full py-4 rounded-xl bg-white hover:bg-emerald-50 text-slate-900 font-black text-xs uppercase tracking-widest transition-colors">
-                            Xem lịch khai giảng
-                        </a>
-                    </div>
-                </div>
+               
 
             </div>
 

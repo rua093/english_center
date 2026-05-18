@@ -516,10 +516,11 @@ $error = get_flash('error');
 
                                 <div class="mt-6 space-y-2">
                                     <label class="text-xs font-black text-slate-500 uppercase tracking-widest ml-1"><?= e(t('profile.parent_social_links')); ?></label>
-                                    <textarea name="student_parent_social_links" rows="4" class="input-modern w-full px-4 py-4 rounded-2xl bg-white text-slate-800 text-sm font-bold border border-slate-200 transition-all" placeholder='<?= e(t('profile.parent_social_placeholder')); ?>'><?= e((string) (($profileUser['role_profile']['student_parent_social_links'] ?? '') ?: ($profileUser['student_parent_social_links'] ?? ''))) ?></textarea>
+                                    <textarea name="student_parent_social_links" rows="4" class="input-modern w-full px-4 py-4 rounded-2xl bg-white text-slate-800 text-sm font-bold border border-slate-200 transition-all" ; ?><?= e((string) (($profileUser['role_profile']['student_parent_social_links'] ?? '') ?: ($profileUser['student_parent_social_links'] ?? ''))) ?></textarea>
                                 </div>
                             </div>
                             <?php endif; ?>
+
 
                             <?php if ($isTeacher): ?>
                             <div class="rounded-[1.75rem] border border-slate-200/70 bg-slate-50 p-5 md:p-6">
