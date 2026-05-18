@@ -338,9 +338,9 @@ $stats = [
         </div>
     </section>
 
-    <section id="dang-ky-tu-van" class="relative py-20 md:py-32 overflow-hidden">
+    <section id="dang-ky-tu-van" class="relative -mt-14 overflow-hidden pt-32 pb-20 md:-mt-20 md:pt-40 md:pb-32">
         <!-- Background image hero banner -->
-        <div class="absolute inset-0">
+        <div class="absolute inset-0" style="-webkit-mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.2) 10%, #000 24%, #000 100%); mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.2) 10%, #000 24%, #000 100%);">
             <img src="/assets/images/consult2.jpg" alt="<?= e(t('courses.image_alt')); ?>" class="h-full w-full object-cover brightness-110 contrast-105 saturate-105">
             <!-- Lighter overlay so the banner stays bright and open -->
             <div class="absolute inset-0 bg-gradient-to-r from-slate-900/35 via-slate-900/12 to-transparent"></div>
@@ -351,6 +351,7 @@ $stats = [
             <!-- Subtle light reflection (white psychology - cleanliness, trust) -->
             <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(255,255,255,0.16),_transparent_45%)]"></div>
         </div>
+        <div class="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-transparent via-[#d9f6f0]/45 to-transparent pointer-events-none md:h-32"></div>
 
         <!-- Content overlay -->
         <div class="relative z-10 mx-auto max-w-[1450px] px-4 sm:px-6">
