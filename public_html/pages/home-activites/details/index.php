@@ -56,13 +56,18 @@ $resolveActivityImagePath = static function (string $imagePath): string {
     return '/assets/uploads/' . ltrim($imagePath, '/');
 };
 
-$benefitItems = array_values(array_filter(array_map('trim', preg_split('/\r\n|\r|\n/', $activityContent !== '' ? $activityContent : $activityDescription) ?: [])));
-if ($benefitItems === []) {
-	$benefitItems = [$activityDescription !== '' ? $activityDescription : t('activity.detail.content_fallback')];
-}
 $activityImage = $resolveActivityImagePath((string) ($actDetail['image_thumbnail'] ?? ''));
 $activityDescriptionHtml = $activityDescription !== '' ? ui_render_bbcode($activityDescription) : '';
 $activityContentHtml = $activityContent !== '' ? ui_render_bbcode($activityContent) : '';
+$registerOnsubmit = '';
+
+if ($canRegisterActivity) {
+	$registerOnsubmit = 'event.preventDefault(); showConfirm(\'success\', '
+		. json_encode(t('activity.detail.register_confirm_title'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+		. ', '
+		. json_encode(t('activity.detail.register_confirm_message'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+		. ', () => this.submit());';
+}
 ?>
 
 <style>
@@ -84,8 +89,7 @@ $activityContentHtml = $activityContent !== '' ? ui_render_bbcode($activityConte
 </style>
 
 <main class="course-detail-bg pb-16">
-    <section class="relative h-[52vh] min-h-[420px] overflow-hidden">
-        <img src="<?= e($activityImage); ?>" class="w-full h-full object-cover">
+<section class="relative h-[65vh] min-h-[500px] md:h-[75vh] md:min-h-[580px] lg:h-[80vh] overflow-hidden">    <img src="<?= e($activityImage); ?>" class="w-full h-full object-cover object-center">
         <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/35 to-transparent"></div>
         <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.18),transparent_42%),radial-gradient(circle_at_top_right,rgba(244,63,94,0.18),transparent_38%)]"></div>
         <div class="absolute bottom-0 left-0 w-full p-6 md:p-10 lg:p-14">
@@ -122,18 +126,6 @@ $activityContentHtml = $activityContent !== '' ? ui_render_bbcode($activityConte
                                 ? $activityDescriptionHtml
                                 : e(t('activity.detail.content_fallback'))); ?>
                     </p>
-                    
-                    <h3 class="text-base md:text-lg font-black text-slate-800 mb-4"><?= e(t('activity.detail.benefits_title')); ?></h3>
-                    <div class="grid md:grid-cols-1 gap-3">
-                        <?php foreach($benefitItems as $b): ?>
-                        <div class="flex items-center gap-3 bg-emerald-50 p-4 rounded-2xl border border-emerald-100">
-                            <div class="w-7 h-7 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-sm">
-                                <i class="fa-solid fa-check text-xs"></i>
-                            </div>
-                            <span class="font-bold text-emerald-800 text-xs md:text-sm"><?= ui_render_bbcode($b); ?></span>
-                        </div>
-                        <?php endforeach; ?>
-                    </div>
                 </div>
 
                 <!-- <div class="rounded-[2rem] border border-slate-100 bg-white p-6 md:p-8 shadow-[0_18px_45px_rgba(15,23,42,0.08)]">
@@ -174,7 +166,7 @@ $activityContentHtml = $activityContent !== '' ? ui_render_bbcode($activityConte
                             </div>
                         </div>
 
-                        <form method="post" action="/api/index.php?action=do-register-activity" class="space-y-3" <?= $canRegisterActivity ? 'onsubmit="event.preventDefault(); showConfirm(\'success\', ' . json_encode(t('activity.detail.register_confirm_title'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . ', ' . json_encode(t('activity.detail.register_confirm_message'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . ', () => this.submit());"' : ''; ?>>
+                        <form method="post" action="/api/index.php?action=do-register-activity" class="space-y-3"<?= $registerOnsubmit !== '' ? ' onsubmit="' . e($registerOnsubmit) . '"' : ''; ?>>
                             <?= csrf_input(); ?>
                             <input type="hidden" name="activity_id" value="<?= $activityId; ?>">
                             <button type="submit" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-black py-4 rounded-2xl shadow-xl shadow-rose-600/20 transition-all hover:-translate-y-1 uppercase tracking-widest text-sm disabled:cursor-not-allowed disabled:opacity-50">

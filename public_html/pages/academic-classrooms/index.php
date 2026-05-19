@@ -1466,15 +1466,18 @@ $adminTitle = t('admin.classrooms.title');
     animation: classroomTodayPulse 2.2s ease-in-out infinite;
 }
 
-.classroom-attendance-choice:has(input:checked) {
-    border-color: rgb(59 130 246 / 0.45);
-    background-color: rgb(239 246 255 / 1);
-    color: rgb(30 64 175 / 1);
-}
-
 .classroom-attendance-choice {
     position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
+    width: 2.2rem;
+    height: 2.2rem;
+    margin: 0 auto;
+    border-radius: 0.75rem;
+    border-width: 1.5px;
+    transition: border-color 0.15s ease, background-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .classroom-attendance-choice input[data-attendance-radio="1"] {
@@ -1486,6 +1489,62 @@ $adminTitle = t('admin.classrooms.title');
 .classroom-attendance-choice:focus-within {
     outline: none;
     box-shadow: none;
+}
+
+.classroom-attendance-choice::after {
+    content: '✓';
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    font-size: 1.1rem;
+    font-weight: 800;
+    line-height: 1;
+    opacity: 0;
+    transform: scale(0.7);
+    transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.classroom-attendance-choice:has(input:checked) {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 14px rgba(15, 23, 42, 0.06);
+}
+
+.classroom-attendance-choice:has(input:checked)::after {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.classroom-attendance-choice[data-attendance-type="present"]:has(input:checked) {
+    border-color: rgb(52 211 153 / 0.8);
+    background-color: rgb(236 253 245 / 1);
+    color: rgb(5 150 105 / 1);
+}
+
+.classroom-attendance-choice[data-attendance-type="late"]:has(input:checked) {
+    border-color: rgb(96 165 250 / 0.8);
+    background-color: rgb(239 246 255 / 1);
+    color: rgb(37 99 235 / 1);
+}
+
+.classroom-attendance-choice[data-attendance-type="absent"]:has(input:checked) {
+    border-color: rgb(251 113 133 / 0.8);
+    background-color: rgb(255 241 242 / 1);
+    color: rgb(225 29 72 / 1);
+}
+
+.classroom-attendance-col {
+    width: 6.25rem;
+    min-width: 6.25rem;
+    max-width: 6.25rem;
+}
+
+.classroom-attendance-cell {
+    padding-left: 0.75rem;
+    padding-right: 0.5rem;
+    text-align: left;
+    vertical-align: middle;
 }
 
 @keyframes classroomTodayPulse {
@@ -4300,24 +4359,27 @@ $adminTitle = t('admin.classrooms.title');
                 + '<tr data-attendance-row="1" class="border-b border-slate-100 last:border-b-0">'
                     + '<td class="px-4 py-3 align-top text-slate-600">' + studentCode + '</td>'
                     + '<td class="px-4 py-3 align-top font-semibold text-slate-800">' + studentName + '</td>'
-                    + '<td class="px-3 py-3 align-top">'
+                    + '<td class="classroom-attendance-col classroom-attendance-cell py-3">'
                         + '<input type="hidden" name="attendance_status[' + studentId + ']" value="">'
-                        + '<label class="classroom-attendance-choice flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700">'
-                            + '<input data-attendance-radio="1" type="radio" name="attendance_status[' + studentId + ']" value="present" class="mr-2 h-4 w-4 border-slate-300 text-emerald-600"' + optionPresent + statusDisabledAttr + '>'
-                            + escapeHtml(classroomI18n.present)
+                        + '<div class="flex w-full items-center justify-start">'
+                        + '<label class="classroom-attendance-choice rounded-lg border border-slate-300 bg-white text-slate-700" data-attendance-type="present" title="' + escapeHtml(classroomI18n.present) + '">'
+                            + '<input data-attendance-radio="1" type="radio" name="attendance_status[' + studentId + ']" value="present" aria-label="' + escapeHtml(classroomI18n.present) + '" class="h-4 w-4 border-slate-300 text-emerald-600"' + optionPresent + statusDisabledAttr + '>'
                         + '</label>'
+                        + '</div>'
                     + '</td>'
-                    + '<td class="px-3 py-3 align-top">'
-                        + '<label class="classroom-attendance-choice flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700">'
-                            + '<input data-attendance-radio="1" type="radio" name="attendance_status[' + studentId + ']" value="late" class="mr-2 h-4 w-4 border-slate-300 text-blue-600"' + optionLate + statusDisabledAttr + '>'
-                            + escapeHtml(classroomI18n.late)
+                    + '<td class="classroom-attendance-col classroom-attendance-cell py-3">'
+                        + '<div class="flex w-full items-center justify-start">'
+                        + '<label class="classroom-attendance-choice rounded-lg border border-slate-300 bg-white text-slate-700" data-attendance-type="late" title="' + escapeHtml(classroomI18n.late) + '">'
+                            + '<input data-attendance-radio="1" type="radio" name="attendance_status[' + studentId + ']" value="late" aria-label="' + escapeHtml(classroomI18n.late) + '" class="h-4 w-4 border-slate-300 text-blue-600"' + optionLate + statusDisabledAttr + '>'
                         + '</label>'
+                        + '</div>'
                     + '</td>'
-                    + '<td class="px-3 py-3 align-top">'
-                        + '<label class="classroom-attendance-choice flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700">'
-                            + '<input data-attendance-radio="1" type="radio" name="attendance_status[' + studentId + ']" value="absent" class="mr-2 h-4 w-4 border-slate-300 text-rose-600"' + optionAbsent + statusDisabledAttr + '>'
-                            + escapeHtml(classroomI18n.absent)
+                    + '<td class="classroom-attendance-col classroom-attendance-cell py-3">'
+                        + '<div class="flex w-full items-center justify-start">'
+                        + '<label class="classroom-attendance-choice rounded-lg border border-slate-300 bg-white text-slate-700" data-attendance-type="absent" title="' + escapeHtml(classroomI18n.absent) + '">'
+                            + '<input data-attendance-radio="1" type="radio" name="attendance_status[' + studentId + ']" value="absent" aria-label="' + escapeHtml(classroomI18n.absent) + '" class="h-4 w-4 border-slate-300 text-rose-600"' + optionAbsent + statusDisabledAttr + '>'
                         + '</label>'
+                        + '</div>'
                     + '</td>'
                     + '<td class="px-4 py-3 align-top">'
                         + '<input type="text" name="attendance_note[' + studentId + ']" value="' + attendanceNote + '" placeholder="' + escapeHtml(classroomI18n.notePlaceholder) + '" class="h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-700"' + noteReadonlyAttr + '>'
@@ -4327,14 +4389,22 @@ $adminTitle = t('admin.classrooms.title');
 
         attendanceList.innerHTML = ''
             + '<div class="overflow-x-auto">'
-                + '<table class="min-w-full border-collapse text-sm">'
+                + '<table class="min-w-full table-fixed border-collapse text-sm">'
+                    + '<colgroup>'
+                        + '<col class="w-[160px]">'
+                        + '<col>'
+                        + '<col class="classroom-attendance-col">'
+                        + '<col class="classroom-attendance-col">'
+                        + '<col class="classroom-attendance-col">'
+                        + '<col class="w-[270px]">'
+                    + '</colgroup>'
                     + '<thead class="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">'
                         + '<tr>'
                             + '<th class="px-4 py-3">' + escapeHtml(classroomI18n.studentCode) + '</th>'
                             + '<th class="px-4 py-3">' + escapeHtml(classroomI18n.student) + '</th>'
-                            + '<th class="px-3 py-3 text-center">' + escapeHtml(classroomI18n.present) + '</th>'
-                            + '<th class="px-3 py-3 text-center">' + escapeHtml(classroomI18n.late) + '</th>'
-                            + '<th class="px-3 py-3 text-center">' + escapeHtml(classroomI18n.absent) + '</th>'
+                            + '<th class="classroom-attendance-col px-3 py-3 text-left">' + escapeHtml(classroomI18n.present) + '</th>'
+                            + '<th class="classroom-attendance-col px-3 py-3 text-left">' + escapeHtml(classroomI18n.late) + '</th>'
+                            + '<th class="classroom-attendance-col px-3 py-3 text-left">' + escapeHtml(classroomI18n.absent) + '</th>'
                             + '<th class="px-4 py-3">' + escapeHtml(classroomI18n.note) + '</th>'
                         + '</tr>'
                     + '</thead>'
