@@ -51,6 +51,28 @@ function ui_format_datetime(?string $value, string $fallback = '—'): string
 	}
 }
 
+function ui_truncate_text(?string $value, int $limit = 120, string $suffix = '…'): string
+{
+	$text = trim((string) $value);
+	if ($text === '') {
+		return '';
+	}
+
+	if (function_exists('mb_strlen') && function_exists('mb_substr')) {
+		if (mb_strlen($text, 'UTF-8') <= $limit) {
+			return $text;
+		}
+
+		return rtrim(mb_substr($text, 0, max(0, $limit - 1), 'UTF-8')) . $suffix;
+	}
+
+	if (strlen($text) <= $limit) {
+		return $text;
+	}
+
+	return rtrim(substr($text, 0, max(0, $limit - 1))) . $suffix;
+}
+
 function ui_format_date_range(?string $startDate, ?string $endDate, string $fallback = 'Không giới hạn'): string
 {
 	$start = trim((string) $startDate);

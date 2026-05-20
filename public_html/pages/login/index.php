@@ -93,7 +93,6 @@ $authLocale = current_locale();
 
         <article class="p-8 sm:p-12 lg:p-16 flex flex-col justify-center lg:col-span-7 bg-white/88 relative">
             <div class="max-w-md w-full mx-auto relative z-10">
-                
                 <div class="text-center mb-10">
                     <!-- <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-rose-50 text-rose-600 mb-6 shadow-inner">
                         <i class="fa-solid fa-user-graduate text-3xl"></i>
@@ -173,6 +172,16 @@ $authLocale = current_locale();
                         <div class="relative z-10 w-2 h-2 rounded-full bg-lime-400 group-hover:scale-150 transition-transform"></div>
                         <div class="absolute inset-0 h-full w-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></div>
                     </button>
+
+                    <div class="pt-2 text-center">
+                        <a
+                            href="<?= e(page_url('home')); ?>"
+                            class="inline-flex items-center gap-2 text-sm font-semibold text-slate-500 transition hover:text-rose-600"
+                        >
+                            <i class="fa-solid fa-arrow-left text-xs"></i>
+                            <span>Quay về <?= e(t('nav.home')); ?></span>
+                        </a>
+                    </div>
 
                 </form>
 

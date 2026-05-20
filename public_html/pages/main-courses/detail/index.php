@@ -518,10 +518,10 @@ $suitableFor = array_values(array_filter(
         </div>
     </section> -->
 
-    <section id="dang-ky-tu-van" class="relative py-20 md:py-32 overflow-hidden">
+    <section id="dang-ky-tu-van" class="relative -mt-14 overflow-hidden scroll-mt-24 pt-32 pb-20 isolate md:-mt-20 md:scroll-mt-28 md:pt-40 md:pb-32">
         <!-- Background image hero banner -->
-        <div class="absolute inset-0">
-            <img src="/assets/images/consult3.jpg" alt="Sinh viên học tập" class="h-full w-full object-cover brightness-110 contrast-105 saturate-105">
+        <div class="absolute inset-0" style="-webkit-mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.2) 10%, #000 24%, #000 100%); mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.2) 10%, #000 24%, #000 100%);">
+            <img src="/assets/images/course_detail.png" alt="Sinh viên học tập" class="h-full w-full object-cover brightness-110 contrast-105 saturate-105">
             <!-- Lighter overlay so the banner stays bright and open -->
             <div class="absolute inset-0 bg-gradient-to-r from-slate-900/35 via-slate-900/12 to-transparent"></div>
             <!-- Vertical edge fade: soften the top and bottom edges like the side fade reference -->
@@ -531,6 +531,8 @@ $suitableFor = array_values(array_filter(
             <!-- Subtle light reflection (white psychology - cleanliness, trust) -->
             <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(255,255,255,0.16),_transparent_45%)]"></div>
         </div>
+        <div class="absolute inset-x-0 -top-16 z-[1] h-32 bg-gradient-to-b from-[#eef8fb] via-[#eef8fb]/92 to-transparent blur-2xl pointer-events-none md:-top-20 md:h-44"></div>
+        <div class="absolute inset-x-0 top-0 z-[1] h-24 bg-gradient-to-b from-[#eef8fb]/90 via-[#d9f6f0]/55 to-transparent pointer-events-none md:h-32"></div>
 
         <!-- Content overlay -->
         <div class="relative z-10 mx-auto max-w-[1450px] px-4 sm:px-6">

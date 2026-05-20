@@ -178,13 +178,25 @@ $selectedOutlineContent = trim((string) ($editingRoadmap['outline_content'] ?? '
                                 <tr>
                                     <td>#<?= (int) ($roadmap['order'] ?? 0); ?></td>
                                     <td>
-                                        <div class="font-semibold text-slate-800"><?= e((string) ($roadmap['topic_title'] ?? t('admin.roadmaps.topic_fallback', ['id' => $roadmapId]))); ?></div>
+                                        <?php $topicTitle = (string) ($roadmap['topic_title'] ?? t('admin.roadmaps.topic_fallback', ['id' => $roadmapId])); ?>
+                                        <div
+                                            class="admin-table-truncate font-semibold text-slate-800"
+                                            style="--admin-truncate-width: 16rem;"
+                                            title="<?= e($topicTitle); ?>"
+                                            data-full-value="<?= e($topicTitle); ?>"
+                                        ><?= e(ui_truncate_text($topicTitle, 80)); ?></div>
                                     </td>
                                     <td>
                                         <?php if ($outlineText === ''): ?>
                                             <span class="text-slate-400">-</span>
                                         <?php else: ?>
-                                            <div class="bbcode-content"><?= bbcode_to_html($outlineText); ?></div>
+                                            <?php $plainOutlineText = bbcode_to_plain_text($outlineText); ?>
+                                            <div
+                                                class="admin-table-truncate text-slate-700"
+                                                style="--admin-truncate-width: 26rem;"
+                                                title="<?= e($plainOutlineText); ?>"
+                                                data-full-value="<?= e($plainOutlineText); ?>"
+                                            ><?= e(bbcode_truncate_plain_text($outlineText, 140)); ?></div>
                                         <?php endif; ?>
                                     </td>
                                     <td>

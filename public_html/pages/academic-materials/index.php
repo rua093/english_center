@@ -114,7 +114,13 @@ $canDeleteMaterial = has_permission('materials.delete');
                                 <?php if ($materialDescription === ''): ?>
                                     <span class="text-slate-400">-</span>
                                 <?php else: ?>
-                                    <div class="bbcode-content"><?= bbcode_to_html($materialDescription); ?></div>
+                                    <?php $plainMaterialDescription = bbcode_to_plain_text($materialDescription); ?>
+                                    <div
+                                        class="admin-table-truncate text-slate-700"
+                                        style="--admin-truncate-width: 26rem;"
+                                        title="<?= e($plainMaterialDescription); ?>"
+                                        data-full-value="<?= e($plainMaterialDescription); ?>"
+                                    ><?= e(bbcode_truncate_plain_text($materialDescription, 140)); ?></div>
                                 <?php endif; ?>
                             </td>
                             <td>

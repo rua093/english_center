@@ -187,7 +187,14 @@ $error = get_flash('error');
                             ?>
                             <tr id="approval-row-<?= $approvalId; ?>" <?= $isHighlightedApproval ? 'class="bg-amber-50/80"' : ''; ?>>
                                 <td><?= e((string) ($approvalTypeOptions[$displayType] ?? $displayType)); ?></td>
-                                <td><?= e($displayContent); ?></td>
+                                <td>
+                                    <span
+                                        class="admin-table-truncate text-slate-700"
+                                        style="--admin-truncate-width: 24rem;"
+                                        title="<?= e($displayContent); ?>"
+                                        data-full-value="<?= e($displayContent); ?>"
+                                    ><?= e(ui_truncate_text($displayContent, 140)); ?></span>
+                                </td>
                                 <td><span class="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-bold capitalize is-<?= e((string) $app['status']); ?>"><?= e((string) $app['status']); ?></span></td>
                                 <td><?= e((string) ($app['requester_name'] ?? t('admin.approvals.name_unknown'))); ?></td>
                                 <td><?= $app['approver_name'] ? e((string) $app['approver_name']) : e(t('admin.approvals.name_unknown')); ?></td>

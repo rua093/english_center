@@ -496,7 +496,12 @@ $canDeleteLead = has_permission('student_lead.delete');
                                 </td>
                                 <td>
                                     <?php $summaryNote = trim((string) ($lead['admin_note'] ?? '')) !== '' ? (string) ($lead['admin_note'] ?? '') : (string) ($lead['parent_expectation'] ?? ''); ?>
-                                    <div class="text-sm text-slate-700" data-full-value="<?= e($summaryNote); ?>"><?= e(student_lead_short_text($summaryNote, 80)); ?></div>
+                                    <div
+                                        class="admin-table-truncate text-sm text-slate-700"
+                                        style="--admin-truncate-width: 22rem;"
+                                        title="<?= e($summaryNote); ?>"
+                                        data-full-value="<?= e($summaryNote); ?>"
+                                    ><?= e(student_lead_short_text($summaryNote, 100)); ?></div>
                                 </td>
                                 <td>
                                     <?php if ((int) ($lead['converted_user_id'] ?? 0) > 0): ?>

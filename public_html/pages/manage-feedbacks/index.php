@@ -151,7 +151,12 @@ $error = get_flash('error');
                                 <td><?= e(t('admin.feedbacks.rating_fraction', ['rating' => (int) $fb['rating'], 'total' => 5])); ?></td>
                                 <td>
                                     <?php $fullComment = (string) ($fb['comment'] ?? ''); ?>
-                                    <span data-full-value="<?= e($fullComment); ?>"><?= e((string) substr($fullComment, 0, 50)); ?></span>
+                                    <span
+                                        class="admin-table-truncate text-slate-700"
+                                        style="--admin-truncate-width: 22rem;"
+                                        title="<?= e($fullComment); ?>"
+                                        data-full-value="<?= e($fullComment); ?>"
+                                    ><?= e(ui_truncate_text($fullComment, 100)); ?></span>
                                 </td>
                                 <td>
                                     <?php $isPublicWeb = (int) ($fb['is_public_web'] ?? 0) === 1; ?>

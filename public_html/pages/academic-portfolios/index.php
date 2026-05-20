@@ -216,7 +216,13 @@ $editingPortfolioMediaPath = normalize_public_file_url((string) ($editingPortfol
                                     <?php if ($portfolioDescription === ''): ?>
                                         <span class="text-slate-400">-</span>
                                     <?php else: ?>
-                                        <div class="bbcode-content"><?= bbcode_to_html($portfolioDescription); ?></div>
+                                        <?php $plainPortfolioDescription = bbcode_to_plain_text($portfolioDescription); ?>
+                                        <div
+                                            class="admin-table-truncate text-slate-700"
+                                            style="--admin-truncate-width: 24rem;"
+                                            title="<?= e($plainPortfolioDescription); ?>"
+                                            data-full-value="<?= e($plainPortfolioDescription); ?>"
+                                        ><?= e(bbcode_truncate_plain_text($portfolioDescription, 130)); ?></div>
                                     <?php endif; ?>
                                 </td>
                                 <td>

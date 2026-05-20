@@ -469,7 +469,13 @@ $canDeleteApplication = has_permission('job_application.delete');
                                     <div class="text-xs text-slate-500"><?= e(t('admin.job_applications.created_at_label')); ?> <?= e(job_application_format_datetime((string) ($application['created_at'] ?? ''))); ?></div>
                                 </td>
                                 <td>
-                                    <div class="text-sm text-slate-700" data-full-value="<?= e((string) ($application['hr_note'] ?? '')); ?>"><?= e(job_application_short_text($application['hr_note'] ?? '', 80)); ?></div>
+                                    <?php $fullHrNote = (string) ($application['hr_note'] ?? ''); ?>
+                                    <div
+                                        class="admin-table-truncate text-sm text-slate-700"
+                                        style="--admin-truncate-width: 22rem;"
+                                        title="<?= e($fullHrNote); ?>"
+                                        data-full-value="<?= e($fullHrNote); ?>"
+                                    ><?= e(job_application_short_text($fullHrNote, 100)); ?></div>
                                 </td>
                                 <td>
                                     <?php if ((int) ($application['converted_user_id'] ?? 0) > 0): ?>

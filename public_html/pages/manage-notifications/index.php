@@ -229,8 +229,24 @@ $canManageNotifications = has_any_permission(['notifications.create', 'notificat
                             <tr>
                                 <td><?= e($senderLabel); ?></td>
                                 <td><?= e((string) ($notification['target_summary'] ?? t('admin.notifications_manage.target_unknown'))); ?></td>
-                                <td><?= e((string) ($notification['title'] ?? '')); ?></td>
-                                <td><span data-full-value="<?= e(bbcode_to_plain_text($fullMessage)); ?>"><?= e($messagePreview !== '' ? $messagePreview : '-'); ?></span></td>
+                                <?php $fullTitle = (string) ($notification['title'] ?? ''); ?>
+                                <?php $plainMessage = bbcode_to_plain_text($fullMessage); ?>
+                                <td>
+                                    <span
+                                        class="admin-table-truncate font-medium text-slate-800"
+                                        style="--admin-truncate-width: 18rem;"
+                                        title="<?= e($fullTitle); ?>"
+                                        data-full-value="<?= e($fullTitle); ?>"
+                                    ><?= e(ui_truncate_text($fullTitle, 90)); ?></span>
+                                </td>
+                                <td>
+                                    <span
+                                        class="admin-table-truncate text-slate-700"
+                                        style="--admin-truncate-width: 24rem;"
+                                        title="<?= e($plainMessage); ?>"
+                                        data-full-value="<?= e($plainMessage); ?>"
+                                    ><?= e($messagePreview !== '' ? $messagePreview : '-'); ?></span>
+                                </td>
                                 <td>
                                     <span class="inline-flex items-center rounded-full border border-sky-200 bg-sky-50 px-2.5 py-1 text-xs font-bold text-sky-700">
                                         <?= $readCount; ?>/<?= $totalRecipients; ?>

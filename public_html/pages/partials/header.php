@@ -84,7 +84,7 @@
     ?>
     
     <header class="sticky top-0 z-50 w-full bg-white shadow-[0_2px_15px_rgba(0,0,0,0.03)]" id="top">    
-        <div class="mx-auto w-full max-w-[1450px] px-4 sm:px-6 flex min-h-[85px] items-center justify-between gap-3">
+        <div class="mx-auto flex min-h-[85px] w-full max-w-[1450px] items-center justify-between gap-5 px-4 sm:px-6">
             
             <div class="flex-none flex items-center h-full">
                 <a href="/" class="flex items-center justify-center rounded-2xl px-2 py-1.5 transition-transform duration-300 hover:scale-[1.02]">
@@ -94,13 +94,13 @@
                 </a>
             </div>
 
-            <nav class="hidden min-w-0 flex-1 items-center justify-center gap-7 lg:flex lg:gap-9" aria-label="Menu chính">
+            <nav class="hidden min-w-0 flex-1 items-center justify-center gap-8 lg:flex xl:gap-10" aria-label="Menu chính">
                 
                 <a class="relative py-2 text-[15px] font-semibold transition-colors duration-300 <?= $isActivePage(['home']) ? 'text-blue-600' : 'text-slate-700 hover:text-blue-600' ?> group" href="/">
                     <?= e(t('nav.home')); ?>
                 </a>
                 
-                <div class="relative group py-6 flex items-center">
+                <div class="relative flex items-center py-5 group">
                     <a class="relative inline-flex items-center gap-1.5 text-[15px] font-semibold transition-colors duration-300 cursor-pointer <?= $isActivePage(['courses', 'course-detail']) ? 'text-blue-600' : 'text-slate-700 hover:text-blue-600' ?>" href="<?= e(page_url('courses')); ?>">
                         <?= e(t('nav.courses')); ?>
                         <span class="absolute -bottom-2 left-1/2 h-[2px] w-0 -translate-x-1/2 bg-blue-600 transition-all duration-300 group-hover:w-full <?= $isActivePage(['courses', 'course-detail']) ? 'w-full' : '' ?>"></span>
@@ -128,11 +128,11 @@
                 </a>
             </nav>
 
-            <div class="hidden min-w-0 flex-none items-center gap-5 lg:flex">
+            <div class="hidden min-w-0 flex-none items-center gap-4 xl:gap-5 lg:flex">
                 
-                <div class="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 p-1 text-[13px] font-bold shadow-sm" aria-label="<?= e(t('locale.language')); ?>">
-                    <a class="rounded-full px-3 py-1.5 transition-all <?= $currentLocale === 'vi' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-500 hover:bg-white hover:text-slate-800' ?>" href="<?= e(localized_current_url('vi')); ?>" title="<?= e(t('locale.switch_to', ['language' => 'Tiếng Việt'])); ?>">VI</a>
-                    <a class="rounded-full px-3 py-1.5 transition-all <?= $currentLocale === 'en' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-500 hover:bg-white hover:text-slate-800' ?>" href="<?= e(localized_current_url('en')); ?>" title="<?= e(t('locale.switch_to', ['language' => 'English'])); ?>">EN</a>
+                <div class="inline-flex items-center gap-1 rounded-full border border-slate-300 bg-white p-1 text-[13px] font-bold shadow-[0_4px_14px_rgba(15,23,42,0.08)]" aria-label="<?= e(t('locale.language')); ?>">
+                    <a class="rounded-full px-3.5 py-1.5 transition-all <?= $currentLocale === 'vi' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800' ?>" href="<?= e(localized_current_url('vi')); ?>" title="<?= e(t('locale.switch_to', ['language' => 'Tiếng Việt'])); ?>">VI</a>
+                    <a class="rounded-full px-3.5 py-1.5 transition-all <?= $currentLocale === 'en' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800' ?>" href="<?= e(localized_current_url('en')); ?>" title="<?= e(t('locale.switch_to', ['language' => 'English'])); ?>">EN</a>
                 </div>
 
                 <a href="<?= e(page_url('home') . '#dang-ky-tu-van'); ?>" class="group hidden lg:inline-flex items-center gap-2 rounded-full bg-rose-500 px-6 py-2.5 text-[13px] font-bold uppercase text-white transition-all duration-300 hover:bg-rose-600 hover:shadow-[0_8px_20px_-6px_rgba(225,29,72,0.5)] hover:-translate-y-0.5">
@@ -141,9 +141,9 @@
                 </a>
 
                 <?php if (is_logged_in()): ?>
-                    <div class="flex items-center gap-3 pl-3 border-l border-slate-100">
+                    <div class="flex items-center gap-3 border-l border-slate-200 pl-4">
                         <div class="relative group py-4">
-                            <button type="button" class="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-blue-200 hover:text-blue-600 hover:shadow-md" aria-label="Thông báo" aria-haspopup="true" aria-expanded="false" title="Thông báo">
+                            <button type="button" class="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-600 shadow-[0_4px_14px_rgba(15,23,42,0.08)] transition-all duration-300 hover:-translate-y-0.5 hover:border-blue-300 hover:text-blue-600 hover:shadow-md" aria-label="Thông báo" aria-haspopup="true" aria-expanded="false" title="Thông báo">
                                 <span class="absolute inset-0 rounded-full bg-gradient-to-br from-blue-50 via-white to-rose-50 opacity-0 transition-opacity duration-300 group-hover:opacity-100"></span>
                                 <i class="fa-solid fa-bell relative z-10 text-[15px] <?= $headerUnreadNotificationCount > 0 ? 'text-rose-500' : 'text-slate-600'; ?>"></i>
                                 
@@ -206,7 +206,7 @@
                         </div>
 
                         <div class="relative group py-4">
-                            <button class="inline-flex flex-none items-center gap-2 whitespace-nowrap text-[14px] font-semibold transition-colors <?= $isActivePage(['feedback', 'dashboard-student', 'classes-my', 'activities-student', 'admin']) || $isStudentProfileActive ? 'text-blue-600' : 'text-slate-700 hover:text-blue-600' ?>">
+                            <button class="inline-flex flex-none items-center gap-2.5 whitespace-nowrap text-[14px] font-semibold transition-colors <?= $isActivePage(['feedback', 'dashboard-student', 'classes-my', 'activities-student', 'admin']) || $isStudentProfileActive ? 'text-blue-600' : 'text-slate-700 hover:text-blue-600' ?>">
                                 <?php if ($headerUserAvatarUrl !== ''): ?>
                                     <img src="<?= e($headerUserAvatarUrl); ?>" alt="<?= e($headerUserDisplayName !== '' ? $headerUserDisplayName : 'User avatar'); ?>" class="h-9 w-9 rounded-full object-cover border border-slate-200 shadow-sm">
                                 <?php else: ?>

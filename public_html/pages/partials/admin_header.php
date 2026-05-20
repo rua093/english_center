@@ -433,6 +433,22 @@
             border-radius: 0.8rem;
         }
 
+        .admin-ui .admin-table-truncate {
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: var(--admin-truncate-lines, 2);
+            overflow: hidden;
+            max-width: min(100%, var(--admin-truncate-width, 24rem));
+            word-break: break-word;
+            line-height: 1.5;
+            text-overflow: ellipsis;
+        }
+
+        .admin-ui .admin-table-truncate[data-truncate-lines='1'] {
+            display: block;
+            white-space: nowrap;
+        }
+
         .admin-ui form label > input:not([type='checkbox']):not([type='hidden']):focus,
         .admin-ui form label > select:focus,
         .admin-ui form label > textarea:focus,
