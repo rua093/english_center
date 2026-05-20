@@ -4,7 +4,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/../partials/header.php'; 
 ?>
 
-<div class="bg-slate-50 min-h-screen font-jakarta">
+<div class="bg-slate-50 font-jakarta">
     <?php
     if (isset($__pageContent)) {
         echo $__pageContent;
