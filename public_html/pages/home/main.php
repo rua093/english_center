@@ -404,11 +404,10 @@ $renderBbcode = static function (string $text): string {
                             $courseTitle = (string) ($course['title'] ?? '');
                             $courseSlug = (string) ($course['slug'] ?? '');
                             $courseImage = (string) ($course['image'] ?? '');
-                            $courseDesc = trim((string) ($course['short_desc'] ?? ''));
                             $courseLink = page_url('courses', ['course' => $courseSlug]);
                             ?>
                             <article class="mobile-swipe-card group flex flex-col overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] bg-white/90 shadow-lg border border-rose-100/70 transition-all duration-300 hover:-translate-y-3 hover:shadow-xl hover:shadow-rose-100/50">
-                                <div class="relative h-48 sm:h-56 overflow-hidden bg-gradient-to-br from-rose-50 via-white to-emerald-50">
+                                <div class="relative h-40 sm:h-44 overflow-hidden bg-gradient-to-br from-rose-50 via-white to-emerald-50">
                                     <?php if ($courseImage !== ''): ?>
                                         <img src="<?= e($courseImage); ?>" alt="<?= e($courseTitle); ?>" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
                                         <div class="absolute inset-0 bg-gradient-to-t from-red-500/35 via-rose-400/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -428,26 +427,32 @@ $renderBbcode = static function (string $text): string {
                                         <span class="block text-xl sm:text-2xl font-black leading-none"><?= (int) ($course['total_sessions'] ?? 0); ?></span>
                                     </div>
                                 </div>
-                                <div class="flex flex-1 flex-col p-5 sm:p-6">
+                                <div class="flex flex-1 flex-col p-4 sm:p-5">
                                     <div class="inline-flex w-fit rounded-full bg-gradient-to-r from-emerald-50 to-rose-50 px-2.5 py-1 text-[9px] sm:text-[10px] font-black uppercase tracking-[0.18em] text-emerald-700 ring-1 ring-emerald-100/80">
                                         <?= e((string) ($course['level'] ?? t('courses.default_tag'))); ?>
                                     </div>
-                                    <h3 class="mt-2 sm:mt-3 text-lg sm:text-xl font-extrabold uppercase leading-tight text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-rose-500 to-emerald-500 transition-colors"><?= e($courseTitle); ?></h3>
-                                    <p class="mt-2 sm:mt-3 text-xs sm:text-sm font-semibold text-slate-700 flex-1 leading-relaxed line-clamp-4">
-                                        <?= e($courseDesc !== '' ? $courseDesc : t('courses.default_desc')); ?>
-                                    </p>
-                                    <div class="mt-4 sm:mt-5 pt-3 sm:pt-4 border-t-2 border-slate-100 flex flex-col gap-3 sm:gap-4">
+                                    <h3 class="mt-2 sm:mt-3 text-lg sm:text-xl font-extrabold uppercase leading-tight text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-rose-500 to-emerald-500 transition-colors line-clamp-2 min-h-[3.5rem]"><?= e($courseTitle); ?></h3>
+                                    <div class="mt-3 grid grid-cols-2 gap-2 text-[10px] sm:text-xs font-semibold text-slate-700">
+                                        <div class="rounded-2xl bg-rose-50 px-3 py-2 ring-1 ring-rose-100">
+                                            <div class="uppercase tracking-wide text-slate-500"><?= e(t('home.course_sessions')); ?></div>
+                                            <div class="mt-1 font-black text-slate-900"><?= (int) ($course['total_sessions'] ?? 0); ?> <?= e(t('home.course_sessions')); ?></div>
+                                        </div>
+                                        <div class="rounded-2xl bg-emerald-50 px-3 py-2 ring-1 ring-emerald-100">
+                                            <div class="uppercase tracking-wide text-slate-500"><?= e(t('admin.courses.roadmap')); ?></div>
+                                            <div class="mt-1 font-black text-slate-900"><?= e(t('home.roadmaps_count', ['count' => (int) ($course['roadmap_count'] ?? 0)])); ?></div>
+                                        </div>
+                                    </div>
+                                    <div class="mt-3 sm:mt-4 pt-3 border-t-2 border-slate-100 flex flex-col gap-3">
                                         <div class="flex items-end justify-between gap-3 sm:gap-4">
                                             <div>
                                                 <span class="block text-[10px] sm:text-xs font-bold text-slate-700 uppercase tracking-wide"><?= e(t('courses.price_from')); ?></span>
                                                 <span class="text-lg sm:text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-emerald-500"><?= e((string) ($course['price'] ?? '0đ')); ?></span>
                                             </div>
                                             <div class="text-right text-[10px] sm:text-xs font-semibold text-slate-700">
-                                                <div><?= e(t('home.roadmaps_count', ['count' => (int) ($course['roadmap_count'] ?? 0)])); ?></div>
                                                 <div><?= e(t('home.classes_count', ['count' => (int) ($course['class_count'] ?? 0)])); ?></div>
                                             </div>
                                         </div>
-                                        <a href="<?= e($courseLink); ?>" class="inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-red-500 via-rose-500 to-emerald-500 px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-bold text-white shadow-md transition-all hover:-translate-y-0.5 hover:from-red-600 hover:to-emerald-600 hover:shadow-lg">
+                                        <a href="<?= e($courseLink); ?>" class="inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-red-500 via-rose-500 to-emerald-500 px-4 py-2.5 text-xs sm:text-sm font-bold text-white shadow-md transition-all hover:-translate-y-0.5 hover:from-red-600 hover:to-emerald-600 hover:shadow-lg">
                                             <?= e(t('public.common.view_detail')); ?> <i class="fa-solid fa-arrow-right text-[10px] sm:text-xs"></i>
                                         </a>
                                     </div>
@@ -833,11 +838,19 @@ $renderBbcode = static function (string $text): string {
                         <?php foreach ($activities as $act): ?>
                             <?php
                             $activityTitle = (string) ($act['activity_name'] ?? '');
-                            $activityDesc = trim((string) ($act['description'] ?? ''));
                             $activityImage = trim((string) ($act['image_thumbnail'] ?? ''));
                             $activityLink = page_url('activities-home-detail', ['id' => (int) ($act['id'] ?? 0)]);
+                            $activityDate = !empty($act['start_date']) ? date('d/m/Y', strtotime((string) $act['start_date'])) : '---';
+                            $activityLocation = trim((string) ($act['location'] ?? ''));
+                            $activityFee = (float) ($act['fee'] ?? 0);
+                            $activityStatus = (string) ($act['status'] ?? 'upcoming');
+                            $activityStatusLabel = match ($activityStatus) {
+                                'ongoing' => t('activities.status.ongoing'),
+                                'finished' => t('activities.status.finished'),
+                                default => t('activities.status.upcoming'),
+                            };
                             ?>
-                            <a href="<?= e($activityLink); ?>" class="mobile-swipe-card group bg-white/80 backdrop-blur-md hover:bg-white rounded-2xl sm:rounded-3xl p-3 border border-white shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-2 cursor-pointer flex flex-col">
+                            <a href="<?= e($activityLink); ?>" class="mobile-swipe-card group bg-white/95 rounded-2xl sm:rounded-3xl p-3 border border-white shadow-[0_18px_40px_rgba(15,23,42,0.08)] hover:shadow-xl transition-all duration-300 hover:-translate-y-2 cursor-pointer flex flex-col">
                                 <div class="relative w-full aspect-[4/3] rounded-xl sm:rounded-2xl overflow-hidden mb-3 sm:mb-4 bg-slate-100">
                                     <?php if ($activityImage !== ''): ?>
                                         <img src="<?= e($activityImage); ?>" alt="<?= e($activityTitle); ?>" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
@@ -846,12 +859,31 @@ $renderBbcode = static function (string $text): string {
                                             <i class="fa-solid fa-rocket text-2xl sm:text-3xl"></i>
                                         </div>
                                     <?php endif; ?>
+                                    <div class="absolute top-4 left-4">
+                                        <span class="bg-white/90 backdrop-blur-md text-rose-600 px-3 py-1 rounded-full text-[10px] font-black uppercase shadow-sm">
+                                            <?= e($activityStatusLabel); ?>
+                                        </span>
+                                    </div>
                                 </div>
-                                <div class="px-2 pb-2 sm:pb-3 text-center flex-1 flex flex-col justify-start">
-                                    <h3 class="text-[#0d3b66] font-bold text-base sm:text-lg leading-tight mb-1.5 sm:mb-2 group-hover:text-blue-600 transition-colors"><?= e($activityTitle); ?></h3>
-                                    <p class="text-slate-500 text-xs sm:text-sm font-medium leading-snug px-1 line-clamp-2">
-                                        <?= e($activityDesc !== '' ? $activityDesc : t('home.activity_default_desc')); ?>
+                                <div class="px-2 pb-2 sm:pb-3 flex-1 flex flex-col">
+                                    <div class="flex items-center gap-3 text-emerald-600 text-[11px] font-bold mb-3">
+                                        <i class="fa-solid fa-calendar-day"></i> <?= e($activityDate); ?>
+                                    </div>
+                                    <h3 class="text-[#0d3b66] font-bold text-base sm:text-lg leading-tight mb-3 group-hover:text-blue-600 transition-colors"><?= e($activityTitle); ?></h3>
+                                    <p class="text-slate-400 text-xs font-medium mb-4 flex items-center gap-2">
+                                        <i class="fa-solid fa-location-dot"></i> <?= e($activityLocation !== '' ? $activityLocation : '---'); ?>
                                     </p>
+                                    <div class="mt-auto flex items-end justify-between gap-3">
+                                        <p class="text-xs font-semibold text-slate-500">
+                                            <?= e(t('activities.fee')); ?>: <?= $activityFee > 0 ? e(number_format($activityFee) . ' đ') : e(t('activities.free_fee')); ?>
+                                        </p>
+                                        <div class="inline-flex items-center gap-2 font-black text-slate-900 text-sm">
+                                            <?= e(t('public.common.view_detail')); ?>
+                                            <span class="w-7 h-7 rounded-full border-2 border-slate-100 flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-white group-hover:border-emerald-500 transition-all">
+                                                <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                                            </span>
+                                        </div>
+                                    </div>
                                 </div>
                             </a>
                         <?php endforeach; ?>
@@ -932,7 +964,7 @@ $renderBbcode = static function (string $text): string {
                     ?>
                     <div class="swiper-slide h-auto">
                         <a href="<?= e($teacherDetailUrl); ?>" class="group block h-full">
-                            <article class="flex h-full flex-col overflow-hidden rounded-[2rem] border border-white/90 bg-white/92 p-4 shadow-[0_16px_40px_rgba(15,23,42,0.08)] transition-all duration-500 hover:-translate-y-2 hover:border-blue-200 hover:shadow-[0_28px_60px_rgba(46,49,146,0.14)]">
+                            <article class="flex h-full flex-col overflow-hidden rounded-[2rem] border border-slate-200 bg-white p-4 shadow-[0_18px_44px_rgba(15,23,42,0.10)] transition-all duration-500 hover:-translate-y-2 hover:border-blue-200 hover:shadow-[0_28px_60px_rgba(46,49,146,0.16)]">
                                 <div class="relative overflow-hidden rounded-[1.75rem] bg-slate-100">
                                     <div class="aspect-[4/4.4] w-full">
                                         <img src="<?= e($teacherAvatar) ?>" alt="<?= e($teacherName) ?>" class="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105">
