@@ -166,9 +166,6 @@ $selectedThumbnailUrl = normalize_public_file_url((string) ($editingCourse['imag
                                         </a>
                                     <?php endif; ?>
                                     <div class="font-semibold text-slate-800"><?= e($courseName); ?></div>
-                                    <?php if (!empty($course['description'])): ?>
-                                        <div class="mt-1 text-xs text-slate-500 bbcode-content"><?= bbcode_to_html((string) $course['description']); ?></div>
-                                    <?php endif; ?>
                                 </td>
                                 <td><?= e(t('admin.courses.lesson_count', ['count' => (int) ($course['total_sessions'] ?? 0)])); ?></td>
                                 <td><?= e($basePriceText); ?> <?= e(t('admin.courses.currency_vnd')); ?></td>

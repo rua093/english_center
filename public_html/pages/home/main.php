@@ -433,7 +433,7 @@ $renderBbcode = static function (string $text): string {
                                         <?= e((string) ($course['level'] ?? t('courses.default_tag'))); ?>
                                     </div>
                                     <h3 class="mt-2 sm:mt-3 text-lg sm:text-xl font-extrabold uppercase leading-tight text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-rose-500 to-emerald-500 transition-colors"><?= e($courseTitle); ?></h3>
-                                    <p class="mt-2 sm:mt-3 text-xs sm:text-sm font-semibold text-slate-700 flex-1 leading-relaxed">
+                                    <p class="mt-2 sm:mt-3 text-xs sm:text-sm font-semibold text-slate-700 flex-1 leading-relaxed line-clamp-4">
                                         <?= e($courseDesc !== '' ? $courseDesc : t('courses.default_desc')); ?>
                                     </p>
                                     <div class="mt-4 sm:mt-5 pt-3 sm:pt-4 border-t-2 border-slate-100 flex flex-col gap-3 sm:gap-4">
