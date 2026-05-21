@@ -81,7 +81,7 @@ function api_users_update_action(): void
 			redirect(page_url('profile'));
 		}
 
-		$avatarPath = store_uploaded_file($_FILES['avatar'], 'avatar', 'profile');
+		$avatarPath = store_uploaded_file($_FILES['avatar'], 'avatar', 'users/avatars');
 		if ($avatarPath === null) {
 			set_flash('error', 'Tải ảnh đại diện thất bại. Vui lòng thử lại với tệp ảnh hợp lệ.');
 			redirect(page_url('profile'));
@@ -104,7 +104,7 @@ function api_users_update_action(): void
 				redirect(page_url('profile'));
 			}
 
-			$teacherVideoPath = store_uploaded_file($_FILES['teacher_intro_video_file'], 'teacher-video', 'teacher-videos');
+			$teacherVideoPath = store_uploaded_file($_FILES['teacher_intro_video_file'], 'teacher-video', 'users/teacher-videos');
 			if ($teacherVideoPath === null) {
 				set_flash('error', 'Tải video giới thiệu thất bại. Vui lòng thử lại với tệp video hợp lệ.');
 				redirect(page_url('profile'));

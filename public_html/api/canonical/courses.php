@@ -53,7 +53,7 @@ function api_courses_save_action(): void
         && is_array($_FILES['course_thumbnail'])
         && (int) ($_FILES['course_thumbnail']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE
     ) {
-        $storedThumbnail = store_uploaded_file($_FILES['course_thumbnail'], 'course_thumb');
+        $storedThumbnail = store_uploaded_file($_FILES['course_thumbnail'], 'course_thumb', 'courses/thumbnails');
         if ($storedThumbnail === null) {
             set_flash('error', 'Không thể tải lên ảnh minh họa khóa học. Vui lòng thử lại với tệp hợp lệ.');
 

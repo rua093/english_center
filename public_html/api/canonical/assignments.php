@@ -104,7 +104,7 @@ function api_assignments_save_action(): void
 	}
 
 	if (!empty($_FILES['assignment_file']['name'])) {
-		$fileUpload = store_uploaded_file($_FILES['assignment_file'], 'assignment');
+		$fileUpload = store_uploaded_file($_FILES['assignment_file'], 'assignment', 'assignments/files');
 		if ($fileUpload === null) {
 			$uploadErrorCode = (int) ($_FILES['assignment_file']['error'] ?? UPLOAD_ERR_OK);
 			$uploadMessage = 'Tải lên file bài tập thất bại.';
@@ -213,7 +213,7 @@ function api_assignments_submit_action(): void
 	if ($assignmentId > 0 && $user) {
 		$uploadPath = $fileUrl;
 		if (!empty($_FILES['submission_file']['name'])) {
-			$fileUpload = store_uploaded_file($_FILES['submission_file'], sprintf('submission-%d-%d', (int) $user['id'], $assignmentId), 'homeworks');
+			$fileUpload = store_uploaded_file($_FILES['submission_file'], sprintf('submission-%d-%d', (int) $user['id'], $assignmentId), 'assignments/submissions');
 			if ($fileUpload === null) {
 				if ($expectsJson) {
 					api_error('Tải lên bài làm thất bại. Vui lòng thử lại.', ['code' => 'UPLOAD_FAILED'], 400);

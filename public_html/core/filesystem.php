@@ -26,11 +26,25 @@ function app_required_writable_directories(): array
     ];
 
     if (!function_exists('app_file_storage_uses_s3') || !app_file_storage_uses_s3()) {
-        $directories[] = upload_storage_dir();
-        $directories[] = upload_storage_dir('homeworks');
-        $directories[] = upload_storage_dir('lessons');
-        $directories[] = upload_storage_dir('profile');
-        $directories[] = upload_storage_dir('teacher-videos');
+        $directories = array_merge($directories, [
+            upload_storage_dir(),
+            upload_storage_dir('activities'),
+            upload_storage_dir('activities/thumbnails'),
+            upload_storage_dir('assignments'),
+            upload_storage_dir('assignments/files'),
+            upload_storage_dir('assignments/submissions'),
+            upload_storage_dir('courses'),
+            upload_storage_dir('courses/thumbnails'),
+            upload_storage_dir('lessons'),
+            upload_storage_dir('lessons/attachments'),
+            upload_storage_dir('materials'),
+            upload_storage_dir('materials/files'),
+            upload_storage_dir('portfolios'),
+            upload_storage_dir('portfolios/media'),
+            upload_storage_dir('users'),
+            upload_storage_dir('users/avatars'),
+            upload_storage_dir('users/teacher-videos'),
+        ]);
     }
 
     return array_values(array_unique($directories));

@@ -82,7 +82,7 @@ if ($assignmentId <= 0) {
 	$respondError(t('student.assignment.assignment_not_found'));
 }
 
-$fileUpload = store_uploaded_file($_FILES['submission_file'], sprintf('submission-%d', (int) $user['id']), 'homeworks');
+$fileUpload = store_uploaded_file($_FILES['submission_file'], sprintf('submission-%d', (int) $user['id']), 'assignments/submissions');
 if ($fileUpload === null) {
 	$respondError(t('student.assignment.upload_failed'));
 }

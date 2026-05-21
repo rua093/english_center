@@ -22,7 +22,7 @@ function api_materials_save_action(): void
 	}
 
 	if (!empty($_FILES['material_file']['name'])) {
-		$fileUpload = store_uploaded_file($_FILES['material_file'], 'material');
+		$fileUpload = store_uploaded_file($_FILES['material_file'], 'material', 'materials/files');
 		if ($fileUpload === null) {
 			$uploadErrorCode = (int) ($_FILES['material_file']['error'] ?? UPLOAD_ERR_OK);
 			$uploadMessage = 'Tải lên tài liệu thất bại.';

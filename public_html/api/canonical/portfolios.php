@@ -23,7 +23,7 @@ function api_portfolios_save_action(): void
 
 	$uploadPath = trim((string) (($existing['media_url'] ?? '')));
 	if (!empty($_FILES['portfolio_file']['name'])) {
-		$fileUpload = store_uploaded_file($_FILES['portfolio_file'], 'portfolio');
+		$fileUpload = store_uploaded_file($_FILES['portfolio_file'], 'portfolio', 'portfolios/media');
 		if ($fileUpload === null) {
 			set_flash('error', 'Tải lên tệp hồ sơ tiến bộ thất bại.');
 			redirect(page_url('portfolios-academic'));

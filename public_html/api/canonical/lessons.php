@@ -161,7 +161,7 @@ function api_lessons_save_action(): void
         && is_array($_FILES['lesson_attachment_file'])
         && (int) ($_FILES['lesson_attachment_file']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE
     ) {
-        $attachmentPath = store_uploaded_file($_FILES['lesson_attachment_file'], 'lesson_attachment', 'lessons');
+        $attachmentPath = store_uploaded_file($_FILES['lesson_attachment_file'], 'lesson_attachment', 'lessons/attachments');
         if ($attachmentPath === null) {
             set_flash('error', 'Không thể tải lên tài liệu buổi học. Vui lòng thử lại với file PDF, PPT, DOC hoặc DOCX hợp lệ.');
             redirect($redirectPath);
