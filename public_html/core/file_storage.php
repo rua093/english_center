@@ -1,6 +1,40 @@
 <?php
 declare(strict_types=1);
 
+function app_file_storage_set_last_error(string $message, array $context = []): void
+{
+	$GLOBALS['app_file_storage_last_error'] = [
+		'message' => $message,
+		'context' => $context,
+	];
+}
+
+function app_file_storage_last_error_message(): string
+{
+	$lastError = $GLOBALS['app_file_storage_last_error'] ?? null;
+	if (!is_array($lastError)) {
+		return '';
+	}
+
+	return trim((string) ($lastError['message'] ?? ''));
+}
+
+function app_file_storage_last_error_context(): array
+{
+	$lastError = $GLOBALS['app_file_storage_last_error'] ?? null;
+	if (!is_array($lastError)) {
+		return [];
+	}
+
+	$context = $lastError['context'] ?? [];
+	return is_array($context) ? $context : [];
+}
+
+function app_file_storage_clear_last_error(): void
+{
+	unset($GLOBALS['app_file_storage_last_error']);
+}
+
 function app_file_storage_driver(): string
 {
 	$driver = defined('FILE_STORAGE_DRIVER') ? strtolower(trim((string) FILE_STORAGE_DRIVER)) : 'local';
@@ -32,6 +66,11 @@ function upload_public_base_path(): string
 		return s3_public_base_url();
 	}
 
+	return local_upload_public_base_path();
+}
+
+function local_upload_public_base_path(): string
+{
 	$configuredPath = defined('UPLOAD_PUBLIC_BASE_PATH') ? (string) UPLOAD_PUBLIC_BASE_PATH : '';
 	if ($configuredPath !== '') {
 		return rtrim($configuredPath, '/');
@@ -178,14 +217,53 @@ function s3_signing_key(string $secretKey, string $dateStamp, string $region, st
 	return hash_hmac('sha256', 'aws4_request', $serviceKey, true);
 }
 
+function s3_build_canonical_headers(array $headers): array
+{
+	$normalizedHeaders = [];
+
+	foreach ($headers as $name => $value) {
+		$normalizedName = strtolower(trim((string) $name));
+		if ($normalizedName === '') {
+			continue;
+		}
+
+		$normalizedValue = preg_replace('/\s+/', ' ', trim((string) $value));
+		$normalizedHeaders[$normalizedName] = $normalizedValue;
+	}
+
+	ksort($normalizedHeaders);
+
+	$canonicalHeaders = '';
+	$signedHeaders = [];
+	foreach ($normalizedHeaders as $name => $value) {
+		$canonicalHeaders .= $name . ':' . $value . "\n";
+		$signedHeaders[] = $name;
+	}
+
+	return [
+		'canonical_headers' => $canonicalHeaders,
+		'signed_headers' => implode(';', $signedHeaders),
+		'normalized_headers' => $normalizedHeaders,
+	];
+}
+
 function s3_put_object(string $localFilePath, string $objectKey): ?string
 {
-	if (!s3_is_configured() || !function_exists('curl_init')) {
+	if (!s3_is_configured()) {
+		app_file_storage_set_last_error('S3 storage is not fully configured.');
+		return null;
+	}
+
+	if (!function_exists('curl_init')) {
+		app_file_storage_set_last_error('PHP curl extension is not available for S3 uploads.');
 		return null;
 	}
 
 	$fileContents = @file_get_contents($localFilePath);
 	if ($fileContents === false) {
+		app_file_storage_set_last_error('Unable to read uploaded temporary file for S3 upload.', [
+			'tmp_path' => $localFilePath,
+		]);
 		return null;
 	}
 
@@ -206,6 +284,9 @@ function s3_put_object(string $localFilePath, string $objectKey): ?string
 
 	$parsedEndpoint = parse_url($endpoint);
 	if (!is_array($parsedEndpoint) || empty($parsedEndpoint['scheme']) || empty($parsedEndpoint['host'])) {
+		app_file_storage_set_last_error('S3 endpoint is invalid.', [
+			'endpoint' => $endpoint,
+		]);
 		return null;
 	}
 
@@ -214,23 +295,27 @@ function s3_put_object(string $localFilePath, string $objectKey): ?string
 	$basePath = isset($parsedEndpoint['path']) ? rtrim($parsedEndpoint['path'], '/') : '';
 	$requestUrl = $parsedEndpoint['scheme'] . '://' . $host . $port . $basePath . $uriPath;
 	$canonicalUri = ($basePath !== '' ? $basePath : '') . $uriPath;
-	$canonicalHeaders = 'content-type:' . $contentType . "\n"
-		. 'host:' . $host . $port . "\n"
-		. 'x-amz-content-sha256:' . $payloadHash . "\n"
-		. 'x-amz-date:' . $amzDate . "\n";
-	$signedHeaders = 'content-type;host;x-amz-content-sha256;x-amz-date';
-	$headers = [
-		'Content-Type: ' . $contentType,
-		'Host: ' . $host . $port,
-		'X-Amz-Content-Sha256: ' . $payloadHash,
-		'X-Amz-Date: ' . $amzDate,
+	$headersToSign = [
+		'content-type' => $contentType,
+		'host' => $host . $port,
+		'x-amz-content-sha256' => $payloadHash,
+		'x-amz-date' => $amzDate,
 	];
 
 	$acl = s3_object_acl();
 	if ($acl !== '') {
-		$canonicalHeaders .= 'x-amz-acl:' . $acl . "\n";
-		$signedHeaders .= ';x-amz-acl';
-		$headers[] = 'X-Amz-Acl: ' . $acl;
+		$headersToSign['x-amz-acl'] = $acl;
+	}
+
+	$canonicalHeaderParts = s3_build_canonical_headers($headersToSign);
+	$canonicalHeaders = (string) ($canonicalHeaderParts['canonical_headers'] ?? '');
+	$signedHeaders = (string) ($canonicalHeaderParts['signed_headers'] ?? '');
+	$normalizedHeaders = is_array($canonicalHeaderParts['normalized_headers'] ?? null)
+		? $canonicalHeaderParts['normalized_headers']
+		: [];
+	$headers = [];
+	foreach ($normalizedHeaders as $name => $value) {
+		$headers[] = $name . ': ' . $value;
 	}
 
 	$canonicalRequest = implode("\n", [
@@ -274,42 +359,35 @@ function s3_put_object(string $localFilePath, string $objectKey): ?string
 
 	$response = curl_exec($curl);
 	$httpCode = (int) curl_getinfo($curl, CURLINFO_HTTP_CODE);
+	$curlError = curl_error($curl);
 	curl_close($curl);
 
 	if ($response === false || $httpCode < 200 || $httpCode >= 300) {
+		$responsePreview = '';
+		if (is_string($response) && $response !== '') {
+			$responsePreview = substr($response, -2000);
+		}
+
+		app_file_storage_set_last_error('S3 upload request failed.', [
+			'http_code' => $httpCode,
+			'curl_error' => $curlError,
+			'request_url' => $requestUrl,
+			'object_key' => $objectKey,
+			'response_preview' => $responsePreview,
+		]);
 		return null;
 	}
 
 	return s3_object_public_url($objectKey);
 }
 
-function store_uploaded_file(array $file, string $prefix, ?string $subdir = null): ?string
+function store_uploaded_file_locally(string $tmpPath, string $storedName, string $normalizedSubdir): ?string
 {
-	if (empty($file['name']) || (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
-		return null;
-	}
-
-	if ((int) ($file['error'] ?? UPLOAD_ERR_OK) !== UPLOAD_ERR_OK) {
-		return null;
-	}
-
-	$originalName = basename((string) $file['name']);
-	$safeName = preg_replace('/[^A-Za-z0-9._-]/', '_', $originalName) ?: 'upload.bin';
-	$storedName = sprintf('%s-%d-%s', $prefix, time(), $safeName);
-	$tmpPath = (string) ($file['tmp_name'] ?? '');
-	$normalizedSubdir = $subdir !== null ? trim(str_replace('\\', '/', $subdir), '/') : '';
-
-	if ($tmpPath === '' || !is_file($tmpPath)) {
-		return null;
-	}
-
-	if (app_file_storage_uses_s3()) {
-		$objectKey = $normalizedSubdir !== '' ? $normalizedSubdir . '/' . $storedName : $storedName;
-		return s3_put_object($tmpPath, $objectKey);
-	}
-
-	$uploadDir = upload_storage_dir($subdir);
+	$uploadDir = upload_storage_dir($normalizedSubdir);
 	if (!app_ensure_directory($uploadDir)) {
+		app_file_storage_set_last_error('Unable to create local upload directory.', [
+			'upload_dir' => $uploadDir,
+		]);
 		return null;
 	}
 
@@ -324,13 +402,78 @@ function store_uploaded_file(array $file, string $prefix, ?string $subdir = null
 	}
 
 	if (!$moveSucceeded && !copy($tmpPath, $targetPath)) {
+		app_file_storage_set_last_error('Unable to move uploaded file into local storage.', [
+			'tmp_path' => $tmpPath,
+			'target_path' => $targetPath,
+		]);
 		return null;
 	}
 
-	$publicBase = upload_public_base_path();
+	$publicBase = local_upload_public_base_path();
 	if ($normalizedSubdir !== '') {
 		return $publicBase . '/' . $normalizedSubdir . '/' . $storedName;
 	}
 
 	return $publicBase . '/' . $storedName;
+}
+
+function store_uploaded_file(array $file, string $prefix, ?string $subdir = null): ?string
+{
+	app_file_storage_clear_last_error();
+
+	if (empty($file['name']) || (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
+		app_file_storage_set_last_error('No upload file was provided.');
+		return null;
+	}
+
+	if ((int) ($file['error'] ?? UPLOAD_ERR_OK) !== UPLOAD_ERR_OK) {
+		app_file_storage_set_last_error('Upload finished with a PHP upload error.', [
+			'upload_error' => (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE),
+		]);
+		return null;
+	}
+
+	$originalName = basename((string) $file['name']);
+	$safeName = preg_replace('/[^A-Za-z0-9._-]/', '_', $originalName) ?: 'upload.bin';
+	$storedName = sprintf('%s-%d-%s', $prefix, time(), $safeName);
+	$tmpPath = (string) ($file['tmp_name'] ?? '');
+	$normalizedSubdir = $subdir !== null ? trim(str_replace('\\', '/', $subdir), '/') : '';
+
+	if ($tmpPath === '' || !is_file($tmpPath)) {
+		app_file_storage_set_last_error('Uploaded temporary file is missing.', [
+			'tmp_path' => $tmpPath,
+		]);
+		return null;
+	}
+
+	if (app_file_storage_uses_s3()) {
+		$objectKey = $normalizedSubdir !== '' ? $normalizedSubdir . '/' . $storedName : $storedName;
+		$s3Url = s3_put_object($tmpPath, $objectKey);
+		if ($s3Url !== null) {
+			return $s3Url;
+		}
+
+		$s3Error = app_file_storage_last_error_message();
+		$s3ErrorContext = app_file_storage_last_error_context();
+		app_log('warning', 'S3 upload failed, falling back to local storage.', [
+			'driver' => app_file_storage_driver(),
+			'subdir' => $normalizedSubdir,
+			'filename' => $storedName,
+			's3_error' => $s3Error,
+			's3_error_context' => $s3ErrorContext,
+		]);
+		app_file_storage_clear_last_error();
+	}
+
+	$localUrl = store_uploaded_file_locally($tmpPath, $storedName, $normalizedSubdir);
+	if ($localUrl === null) {
+		app_log('error', 'File upload failed for all storage backends.', [
+			'driver' => app_file_storage_driver(),
+			'subdir' => $normalizedSubdir,
+			'filename' => $storedName,
+			'storage_error' => app_file_storage_last_error_message(),
+		]);
+	}
+
+	return $localUrl;
 }

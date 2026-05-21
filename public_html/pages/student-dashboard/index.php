@@ -86,7 +86,7 @@ if ($studentId > 0) {
                 'room' => trim((string) ($scheduleRow['room_name'] ?? '')),
                 'lesson_title' => trim((string) ($scheduleRow['lesson_title'] ?? '')),
                 'lesson_content' => trim((string) ($scheduleRow['lesson_content'] ?? '')),
-                'lesson_attachment_file_path' => trim((string) ($scheduleRow['lesson_attachment_file_path'] ?? '')),
+                'lesson_attachment_file_path' => normalize_public_file_url((string) ($scheduleRow['lesson_attachment_file_path'] ?? '')),
                 'type' => $palette($className . '|' . $date . '|' . (string) ($scheduleRow['schedule_id'] ?? '') . '|' . $startTime . '|' . $endTime),
             ];
         }
