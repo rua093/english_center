@@ -2309,7 +2309,7 @@ $adminTitle = t('admin.classrooms.title');
             return slashed;
         }
 
-        return '/assets/uploads/' + slashed.replace(/^\/+/, '');
+        return <?= json_encode(rtrim(upload_public_base_path(), '/'), JSON_UNESCAPED_SLASHES); ?> + '/' + slashed.replace(/^\/+/, '');
     }
 
     function escapeHtml(value) {

@@ -23,12 +23,15 @@ function app_required_writable_directories(): array
         BASE_PATH . '/storage/locks',
         BASE_PATH . '/storage/logs',
         BASE_PATH . '/storage/tmp',
-        upload_storage_dir(),
-        upload_storage_dir('homeworks'),
-        upload_storage_dir('lessons'),
-        upload_storage_dir('profile'),
-        upload_storage_dir('teacher-videos'),
     ];
+
+    if (!function_exists('app_file_storage_uses_s3') || !app_file_storage_uses_s3()) {
+        $directories[] = upload_storage_dir();
+        $directories[] = upload_storage_dir('homeworks');
+        $directories[] = upload_storage_dir('lessons');
+        $directories[] = upload_storage_dir('profile');
+        $directories[] = upload_storage_dir('teacher-videos');
+    }
 
     return array_values(array_unique($directories));
 }

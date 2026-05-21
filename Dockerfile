@@ -1,7 +1,11 @@
 FROM php:8.2-apache
 
+RUN apt-get update \
+	&& apt-get install -y --no-install-recommends libcurl4-openssl-dev \
+	&& rm -rf /var/lib/apt/lists/*
+
 # Cài đặt các extension để PHP kết nối được với MySQL
-RUN docker-php-ext-install pdo pdo_mysql mysqli
+RUN docker-php-ext-install curl pdo pdo_mysql mysqli
 
 # Nới giới hạn upload để ảnh đại diện thực tế không bị chặn quá sớm
 RUN { \

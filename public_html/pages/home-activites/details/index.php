@@ -49,11 +49,9 @@ $resolveActivityImagePath = static function (string $imagePath): string {
         return 'https://images.unsplash.com/photo-1533227268428-f9ed0900fb3b?w=1200&q=80';
     }
 
-    if (preg_match('#^(?:https?://|/)#i', $imagePath)) {
-        return $imagePath;
-    }
-
-    return '/assets/uploads/' . ltrim($imagePath, '/');
+    return function_exists('normalize_public_file_url')
+        ? normalize_public_file_url($imagePath)
+        : $imagePath;
 };
 
 $activityImage = $resolveActivityImagePath((string) ($actDetail['image_thumbnail'] ?? ''));
