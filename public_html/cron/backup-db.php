@@ -335,6 +335,10 @@ function sendSignedS3Request(
         CURLOPT_CONNECTTIMEOUT => 15,
     ];
 
+    if (strtoupper($method) === 'HEAD') {
+        $curlOptions[CURLOPT_NOBODY] = true;
+    }
+
     if ($body !== null) {
         $curlOptions[CURLOPT_POSTFIELDS] = $body;
         $curlOptions[CURLOPT_POSTFIELDSIZE] = $payloadLength;
