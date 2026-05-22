@@ -14,6 +14,7 @@ declare(strict_types=1);
 
 define('APP_ENV', 'production');
 define('APP_BASE_URL', 'https://your-domain.com');
+define('MAINTENANCE_MODE', false);
 
 define('DB_HOST', 'localhost');
 define('DB_PORT', '3306');
@@ -22,6 +23,7 @@ define('DB_USER', 'your_database_user');
 define('DB_PASS', 'your_database_password');
 
 define('APP_SECRET', 'replace-with-a-long-random-secret');
+define('INTERNAL_API_TOKEN', 'replace-with-a-long-random-internal-token');
 
 /*
 | Shared hosting note:
@@ -45,6 +47,18 @@ define('S3_SECRET_KEY', '');
 define('S3_PUBLIC_BASE_URL', '');
 define('S3_USE_PATH_STYLE', true);
 define('S3_OBJECT_ACL', '');
+
+/*
+| Optional internal-only API access list for sync-backup.php
+| Accepts either an array or a comma-separated string of IPs/CIDR ranges.
+*/
+define('SYNC_BACKUP_ALLOWED_IPS', [
+    '127.0.0.1',
+    '::1',
+    '10.0.0.0/8',
+    '172.16.0.0/12',
+    '192.168.0.0/16',
+]);
 
 /*
 | Optional mail settings

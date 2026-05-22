@@ -2,6 +2,19 @@ RewriteEngine On
 
 # Handler files are internal and must be executed via api/index.php.
 
+<Files "sync-backup.php">
+    <RequireAny>
+        Require ip 127.0.0.1
+        Require ip ::1
+        Require ip 10.0.0.0/8
+        Require ip 172.16.0.0/12
+        Require ip 192.168.0.0/16
+    </RequireAny>
+</Files>
+
+RewriteRule ^sync-backup\.php$ - [L]
+RewriteRule ^export-sandbox\.php$ - [L]
+RewriteRule ^import-fallback\.php$ - [L]
 RewriteRule ^(?!index\.php$).+\.php$ - [F,L]
 
 RewriteRule ^([a-z0-9-]+)/([a-z0-9-]+)/?$ index.php?resource=$1&method=$2 [QSA,L]
