@@ -341,7 +341,9 @@ function sendSignedS3Request(
 
     if ($body !== null) {
         $curlOptions[CURLOPT_POSTFIELDS] = $body;
-        $curlOptions[CURLOPT_POSTFIELDSIZE] = $payloadLength;
+        if (defined('CURLOPT_POSTFIELDSIZE')) {
+            $curlOptions[CURLOPT_POSTFIELDSIZE] = $payloadLength;
+        }
     }
 
     curl_setopt_array($curl, $curlOptions);
