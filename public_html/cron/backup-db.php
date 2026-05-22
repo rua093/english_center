@@ -263,6 +263,7 @@ function sendSignedS3Request(
     $basePath = isset($parsedEndpoint['path']) ? rtrim($parsedEndpoint['path'], '/') : '';
     $requestUrl = $parsedEndpoint['scheme'] . '://' . $host . $port . $basePath . $uriPath;
     $canonicalUri = ($basePath !== '' ? $basePath : '') . $uriPath;
+    $payloadLength = $body !== null ? strlen($body) : 0;
 
     $headersToSign = array_merge($extraHeaders, [
         'host' => $host . $port,
@@ -275,6 +276,10 @@ function sendSignedS3Request(
         $headersToSign['x-amz-acl'] = $acl;
     }
 
+    if (strtoupper($method) === 'PUT') {
+        $headersToSign['content-length'] = (string) $payloadLength;
+    }
+
     $canonicalHeaderParts = s3_build_canonical_headers($headersToSign);
     $canonicalHeaders = (string) ($canonicalHeaderParts['canonical_headers'] ?? '');
     $signedHeaders = (string) ($canonicalHeaderParts['signed_headers'] ?? '');
@@ -285,6 +290,11 @@ function sendSignedS3Request(
     $headers = [];
     foreach ($normalizedHeaders as $name => $value) {
         $headers[] = $name . ': ' . $value;
+    }
+
+    if (strtoupper($method) === 'PUT') {
+        // Avoid delayed uploads on some S3-compatible providers that do not handle 100-continue well.
+        $headers[] = 'Expect:';
     }
 
     $canonicalRequest = implode("\n", [
@@ -321,12 +331,13 @@ function sendSignedS3Request(
         CURLOPT_HTTPHEADER => $headers,
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_HEADER => true,
-        CURLOPT_TIMEOUT => 60,
+        CURLOPT_TIMEOUT => 300,
         CURLOPT_CONNECTTIMEOUT => 15,
     ];
 
     if ($body !== null) {
         $curlOptions[CURLOPT_POSTFIELDS] = $body;
+        $curlOptions[CURLOPT_POSTFIELDSIZE] = $payloadLength;
     }
 
     curl_setopt_array($curl, $curlOptions);
