@@ -14,6 +14,7 @@ declare(strict_types=1);
 
 define('APP_ENV', 'production');
 define('APP_BASE_URL', 'https://your-domain.com');
+define('APP_SERVER_ROLE', 'primary'); // primary | sandbox
 define('MAINTENANCE_MODE', false);
 
 define('DB_HOST', 'localhost');
@@ -24,6 +25,9 @@ define('DB_PASS', 'your_database_password');
 
 define('APP_SECRET', 'replace-with-a-long-random-secret');
 define('INTERNAL_API_TOKEN', 'replace-with-a-long-random-internal-token');
+define('SYNC_CONTROL_PASSWORD', 'replace-with-sync-control-password');
+define('SANDBOX_SYNC_ACK_URL', '');
+define('SANDBOX_SYNC_ACK_TOKEN', '');
 
 /*
 | Shared hosting note:

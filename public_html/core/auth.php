@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/database.php';
 require_once __DIR__ . '/functions.php';
+require_once __DIR__ . '/failover.php';
 
 if (session_status() !== PHP_SESSION_ACTIVE) {
 	session_start();
@@ -39,11 +40,24 @@ function login_attempt(string $username, string $password): bool
 
 	if (!$valid && $stored !== '' && hash_equals($stored, $password)) {
 		$valid = true;
-		$upgrade = $pdo->prepare('UPDATE users SET password = :password WHERE id = :id');
-		$upgrade->execute([
-			'id' => (int) $user['id'],
-			'password' => password_hash($password, PASSWORD_DEFAULT),
-		]);
+		$upgradedPasswordHash = password_hash($password, PASSWORD_DEFAULT);
+		sync_change_log_execute_statement(
+			$pdo,
+			'UPDATE users SET password = :password WHERE id = :id',
+			[
+				'id' => (int) $user['id'],
+				'password' => $upgradedPasswordHash,
+			],
+			static function () use ($pdo, $user, $upgradedPasswordHash): int {
+				$upgrade = $pdo->prepare('UPDATE users SET password = :password WHERE id = :id');
+				$upgrade->execute([
+					'id' => (int) $user['id'],
+					'password' => $upgradedPasswordHash,
+				]);
+
+				return $upgrade->rowCount();
+			}
+		);
 	}
 
 	if (!$valid) {
@@ -307,6 +321,8 @@ function can_access_page(string $page): bool
 		case 'portfolios-academic':
 			return has_any_permission(['academic.portfolios.view']);
 		case 'dashboard-admin':
+			return in_array($role, ['admin'], true) && has_permission('admin.dashboard.view');
+		case 'sync-control-admin':
 			return in_array($role, ['admin'], true) && has_permission('admin.dashboard.view');
 		case 'users-admin':
 			return has_any_permission(['admin.user.view']);

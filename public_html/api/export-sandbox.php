@@ -5,6 +5,7 @@ require_once dirname(__DIR__) . '/core/bootstrap.php';
 require_once dirname(__DIR__) . '/core/api_helpers.php';
 
 set_time_limit(0);
+failover_guard_sandbox_server();
 
 $requestMethod = strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'));
 if ($requestMethod !== 'POST') {

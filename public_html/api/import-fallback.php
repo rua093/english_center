@@ -5,6 +5,7 @@ require_once dirname(__DIR__) . '/core/bootstrap.php';
 require_once dirname(__DIR__) . '/core/api_helpers.php';
 
 set_time_limit(0);
+failover_guard_primary_server();
 
 $requestMethod = strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'));
 if ($requestMethod !== 'POST') {
@@ -12,11 +13,8 @@ if ($requestMethod !== 'POST') {
 }
 
 fallback_import_require_admin_or_internal_token();
+fallback_import_validate_web_confirmation();
 fallback_import_ensure_requirements();
-
-if (!app_is_maintenance_mode()) {
-    api_error('Please enable MAINTENANCE_MODE before importing fallback data.', ['code' => 'MAINTENANCE_REQUIRED'], 409);
-}
 
 $lockDir = BASE_PATH . '/storage/locks';
 if (!app_ensure_directory($lockDir)) {
@@ -44,15 +42,22 @@ try {
     }
 
     $pdo = Database::connection();
-    fallback_import_reset_database($pdo);
+    $batchToken = sync_change_log_extract_batch_token($sqlContents);
     fallback_import_sql_dump($pdo, $sqlContents);
+    $ackResult = null;
+    if ($batchToken !== '') {
+        $ackResult = sync_change_log_acknowledge_remote_batch($batchToken);
+    }
 
     fallback_import_cleanup_uploaded_file($uploadedSqlPath);
     flock($lockHandle, LOCK_UN);
     fclose($lockHandle);
 
-    api_success('Hồi sinh dữ liệu từ Sandbox thành công.', [
+    api_success('Đã áp dụng SQL thay đổi từ Sandbox vào server chính.', [
         'imported_file' => basename($uploadedSqlPath),
+        'import_mode' => 'incremental',
+        'batch_token' => $batchToken,
+        'acknowledgement' => $ackResult,
     ]);
 } catch (Throwable $exception) {
     app_log('error', 'Primary fallback import failed', [
@@ -115,6 +120,22 @@ function fallback_import_has_valid_internal_token(): bool
     return false;
 }
 
+function fallback_import_validate_web_confirmation(): void
+{
+    if (fallback_import_has_valid_internal_token()) {
+        return;
+    }
+
+    if (!validate_csrf_token(request_csrf_token())) {
+        api_error('Phiên thao tác không hợp lệ. Vui lòng thử lại.', ['code' => 'INVALID_CSRF'], 419);
+    }
+
+    $syncPassword = (string) ($_POST['sync_control_password'] ?? '');
+    if (!app_sync_control_password_is_valid($syncPassword)) {
+        api_error('Mật khẩu xác nhận điều phối không đúng.', ['code' => 'INVALID_SYNC_CONTROL_PASSWORD'], 403);
+    }
+}
+
 function fallback_import_ensure_requirements(): void
 {
     if (!isset($_FILES['sql_file']) || !is_array($_FILES['sql_file'])) {
@@ -152,41 +173,6 @@ function fallback_import_resolve_uploaded_file(): string
     return $targetPath;
 }
 
-function fallback_import_reset_database(PDO $pdo): void
-{
-    $schemaName = (string) DB_NAME;
-    $viewsStatement = $pdo->prepare(
-        'SELECT TABLE_NAME FROM information_schema.views WHERE table_schema = :schema_name ORDER BY TABLE_NAME ASC'
-    );
-    $viewsStatement->execute(['schema_name' => $schemaName]);
-    $views = $viewsStatement->fetchAll(PDO::FETCH_COLUMN);
-
-    $tablesStatement = $pdo->prepare(
-        'SELECT TABLE_NAME FROM information_schema.tables WHERE table_schema = :schema_name AND table_type = :table_type ORDER BY TABLE_NAME ASC'
-    );
-    $tablesStatement->execute([
-        'schema_name' => $schemaName,
-        'table_type' => 'BASE TABLE',
-    ]);
-    $tables = $tablesStatement->fetchAll(PDO::FETCH_COLUMN);
-
-    $pdo->exec('SET FOREIGN_KEY_CHECKS = 0');
-
-    try {
-        foreach ($views as $viewName) {
-            $normalizedViewName = fallback_import_quote_identifier((string) $viewName);
-            $pdo->exec('DROP VIEW IF EXISTS ' . $normalizedViewName);
-        }
-
-        foreach ($tables as $tableName) {
-            $normalizedTableName = fallback_import_quote_identifier((string) $tableName);
-            $pdo->exec('DROP TABLE IF EXISTS ' . $normalizedTableName);
-        }
-    } finally {
-        $pdo->exec('SET FOREIGN_KEY_CHECKS = 1');
-    }
-}
-
 function fallback_import_sql_dump(PDO $pdo, string $sqlContents): void
 {
     $sqlContents = trim($sqlContents);
@@ -203,11 +189,6 @@ function fallback_import_sql_dump(PDO $pdo, string $sqlContents): void
     } finally {
         $pdo->exec('SET FOREIGN_KEY_CHECKS = 1');
     }
-}
-
-function fallback_import_quote_identifier(string $identifier): string
-{
-    return '`' . str_replace('`', '``', $identifier) . '`';
 }
 
 function fallback_import_cleanup_uploaded_file(string $uploadedSqlPath): void

@@ -1815,6 +1815,7 @@ $pageSlug = resolve_page_slug((string) ($_GET['page'] ?? 'dashboard-admin'));
 if ($activeModule === '') {
     $moduleByPage = [
         'dashboard-admin' => 'dashboard',
+        'sync-control-admin' => 'sync-control',
         'users-admin' => 'users',
         'tuition-finance' => 'tuition',
         'registration-finance' => 'registration',
@@ -1845,6 +1846,7 @@ if ($activeModule === '') {
 
 $adminPageTitleMap = [
     'dashboard' => t('admin.page_title.dashboard'),
+    'sync-control' => 'Điều phối đồng bộ',
     'tuition' => t('admin.page_title.tuition'),
     'registration' => t('admin.page_title.registration'),
     'promotions' => t('admin.page_title.promotions'),
@@ -1870,6 +1872,7 @@ $adminPageTitleMap = [
 
 $adminPageDescriptionMap = [
     'dashboard' => t('admin.page_desc.dashboard'),
+    'sync-control' => 'Quản lý maintenance mode, đồng bộ backup và xuất SQL thay đổi giữa server chính và sandbox.',
     'tuition' => t('admin.page_desc.tuition'),
     'registration' => t('admin.page_desc.registration'),
     'promotions' => t('admin.page_desc.promotions'),
@@ -1931,6 +1934,15 @@ if ($displayAdminDescription === '') {
                         <svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8"></rect><rect x="13" y="3" width="8" height="5"></rect><rect x="13" y="10" width="8" height="11"></rect><rect x="3" y="13" width="8" height="8"></rect></svg>
                     </span>
                     <span class="admin-sidebar-link-label"><?= e(t('admin.nav.dashboard')); ?></span>
+                </a>
+            <?php endif; ?>
+
+            <?php if (can_access_page('sync-control-admin')): ?>
+                <a class="admin-sidebar-link<?= $activeModule === 'sync-control' ? ' is-active' : ''; ?>" href="<?= e(page_url('sync-control-admin')); ?>" title="Điều phối đồng bộ">
+                    <span class="admin-sidebar-link-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 13.66-5.66L20 8"></path><path d="M20 4v4h-4"></path><path d="M20 12a8 8 0 0 1-13.66 5.66L4 16"></path><path d="M4 20v-4h4"></path></svg>
+                    </span>
+                    <span class="admin-sidebar-link-label">Điều phối đồng bộ</span>
                 </a>
             <?php endif; ?>
 

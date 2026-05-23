@@ -13,6 +13,7 @@ RewriteEngine On
 </Files>
 
 RewriteRule ^sync-backup\.php$ - [L]
+RewriteRule ^admin-sync-ops\.php$ - [L]
 RewriteRule ^export-sandbox\.php$ - [L]
 RewriteRule ^import-fallback\.php$ - [L]
 RewriteRule ^(?!index\.php$).+\.php$ - [F,L]

@@ -27,6 +27,7 @@ function page_route_definitions(): array
 		'student-notification' => ['directory' => 'student-notification', 'aliases' => ['student-notifications', 'notifications-student']],
 		'dashboard-teacher' => ['directory' => 'teacher-dashboard', 'aliases' => ['teacher-dashboard']],
 		'dashboard-admin' => ['directory' => 'admin-dashboard', 'aliases' => ['admin-dashboard']],
+		'sync-control-admin' => ['directory' => 'admin-sync-control', 'aliases' => ['admin-sync-control']],
 		'users-admin' => ['directory' => 'admin-users', 'aliases' => ['admin-users']],
 		'tuition-finance' => ['directory' => 'finance-tuition', 'aliases' => ['finance-tuition']],
 		'registration-finance' => ['directory' => 'finance-registration', 'aliases' => ['finance-registration']],

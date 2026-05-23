@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/database.php';
+require_once __DIR__ . '/failover.php';
 
 trait TableModelUtils
 {
@@ -58,7 +59,12 @@ trait TableModelUtils
 
     protected function executeStatement(string $sql, array $params = []): int
     {
-        return $this->prepareAndExecute($sql, $params)->rowCount();
+        return sync_change_log_execute_statement(
+            $this->pdo,
+            $sql,
+            $params,
+            fn (): int => $this->prepareAndExecute($sql, $params)->rowCount()
+        );
     }
 
     protected function clampLimit(int $limit, int $default = 10, int $max = 500): int
