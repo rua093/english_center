@@ -130,7 +130,7 @@ final class StudentLeadsTableModel
 
         $this->executeStatement($sql, $values);
 
-        return (int) $this->pdo->lastInsertId();
+        return $this->lastStatementInsertId();
     }
 
     public function saveConsultationLead(array $data): int
@@ -222,7 +222,7 @@ final class StudentLeadsTableModel
 
         $this->executeStatement($sql, $values);
 
-        return (int) $this->pdo->lastInsertId();
+        return $this->lastStatementInsertId();
     }
 
     public function updateConsultationLead(int $id, array $data): void

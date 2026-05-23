@@ -299,7 +299,7 @@ final class NotificationsTableModel
                     );
                 }
 
-                $notificationId = (int) $this->pdo->lastInsertId();
+                $notificationId = $this->lastStatementInsertId();
             }
 
             foreach ($targets as $target) {
@@ -1238,6 +1238,6 @@ final class NotificationsTableModel
             );
         }
 
-        return (int) $this->pdo->lastInsertId();
+        return $this->lastStatementInsertId();
     }
 }

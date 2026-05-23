@@ -63,7 +63,7 @@ final class PasswordResetTokensTableModel extends BaseTableModel
             );
         });
 
-        return (int) $this->pdo->lastInsertId();
+        return $this->lastStatementInsertId();
     }
 
     public function countRecentRequests(string $email, string $requestedIp, int $minutes = 30): int

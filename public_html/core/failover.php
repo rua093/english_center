@@ -1051,11 +1051,20 @@ function sync_change_log_finalize_statement_context(
     }
 }
 
-function sync_change_log_execute_statement(PDO $pdo, string $sql, array $params, callable $executor): int
+function sync_change_log_execute_statement(PDO $pdo, string $sql, array $params, callable $executor, ?int &$statementInsertId = null): int
 {
+    $statementInsertId = null;
     $context = sync_change_log_prepare_statement_context($pdo, $sql, $params);
     if ($context === null) {
-        return (int) $executor();
+        $affectedRows = (int) $executor();
+        if ($affectedRows > 0 && preg_match('/^\s*INSERT\s+INTO\b/i', $sql)) {
+            $capturedInsertId = (string) $pdo->lastInsertId();
+            if ($capturedInsertId !== '' && $capturedInsertId !== '0' && ctype_digit($capturedInsertId)) {
+                $statementInsertId = (int) $capturedInsertId;
+            }
+        }
+
+        return $affectedRows;
     }
 
     $ownsTransaction = !$pdo->inTransaction();
@@ -1073,6 +1082,7 @@ function sync_change_log_execute_statement(PDO $pdo, string $sql, array $params,
             $capturedInsertId = (string) $pdo->lastInsertId();
             if ($capturedInsertId !== '' && $capturedInsertId !== '0' && ctype_digit($capturedInsertId)) {
                 $businessInsertId = $capturedInsertId;
+                $statementInsertId = (int) $capturedInsertId;
             }
         }
 

@@ -124,7 +124,7 @@ final class ApprovalsTableModel
             'status' => $data['status'],
         ]);
 
-        return (int) $this->pdo->lastInsertId();
+        return $this->lastStatementInsertId();
     }
 
     public function updateDecision(int $approvalId, int $approverId, string $status, string $content): void

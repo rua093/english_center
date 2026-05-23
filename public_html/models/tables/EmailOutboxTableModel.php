@@ -53,7 +53,7 @@ final class EmailOutboxTableModel extends BaseTableModel
             ]
         );
 
-        return (int) $this->pdo->lastInsertId();
+        return $this->lastStatementInsertId();
     }
 
     public function claimPendingBatch(int $limit, int $maxAttempts): array

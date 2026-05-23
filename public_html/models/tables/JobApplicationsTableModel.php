@@ -130,7 +130,7 @@ final class JobApplicationsTableModel
             'status' => 'PENDING',
         ]);
 
-        return (int) $this->pdo->lastInsertId();
+        return $this->lastStatementInsertId();
     }
 
     public function updateReview(int $id, string $status, string $adminNote): void

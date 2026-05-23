@@ -371,7 +371,7 @@ final class TuitionFeesTableModel extends BaseTableModel
             ]
         );
 
-        return (int) $this->pdo->lastInsertId();
+        return $this->lastStatementInsertId();
     }
 
     public function findLatestByStudent(int $studentId): ?array

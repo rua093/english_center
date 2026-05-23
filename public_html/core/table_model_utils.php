@@ -7,6 +7,7 @@ require_once __DIR__ . '/failover.php';
 trait TableModelUtils
 {
     protected PDO $pdo;
+    protected ?int $lastStatementInsertId = null;
 
     public function __construct(?PDO $pdo = null)
     {
@@ -59,12 +60,19 @@ trait TableModelUtils
 
     protected function executeStatement(string $sql, array $params = []): int
     {
+        $this->lastStatementInsertId = null;
         return sync_change_log_execute_statement(
             $this->pdo,
             $sql,
             $params,
-            fn (): int => $this->prepareAndExecute($sql, $params)->rowCount()
+            fn (): int => $this->prepareAndExecute($sql, $params)->rowCount(),
+            $this->lastStatementInsertId
         );
+    }
+
+    protected function lastStatementInsertId(): int
+    {
+        return $this->lastStatementInsertId ?? 0;
     }
 
     protected function clampLimit(int $limit, int $default = 10, int $max = 500): int

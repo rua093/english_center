@@ -76,18 +76,34 @@ final class AdminModel
             $oldRoleName = is_array($existing) ? strtolower((string) ($existing['role_name'] ?? '')) : '';
         }
 
-        $savedUserId = $this->usersTable->save($data);
         $newRoleName = strtolower((string) ($role['role_name'] ?? ''));
-        $this->usersTable->saveRoleProfile($savedUserId, $newRoleName, $data);
+        $savedUserId = 0;
 
-        // Nếu đổi vai trò thì xóa profile của vai trò cũ để tránh tồn profile thừa
-        if ($id > 0 && $oldRoleName !== '' && $oldRoleName !== $newRoleName) {
-            $this->usersTable->removeRoleProfile($savedUserId, $oldRoleName);
-        }
+        $this->usersTable->executeInTransaction(function () use (
+            $data,
+            $id,
+            $oldRoleName,
+            $newRoleName,
+            $password,
+            &$savedUserId
+        ): void {
+            $savedUserId = $this->usersTable->save($data);
+            $this->usersTable->saveRoleProfile($savedUserId, $newRoleName, $data);
 
-        if ($id > 0 && $password !== '') {
-            $this->updateUserPassword($savedUserId, $password);
-        }
+            if ($id > 0 && $oldRoleName !== '' && $oldRoleName !== $newRoleName) {
+                $this->usersTable->removeRoleProfile($savedUserId, $oldRoleName);
+            }
+
+            if ($id > 0 && $password !== '') {
+                $this->updateUserPassword($savedUserId, $password);
+            }
+
+            if (!$this->usersTable->activeUserExists($savedUserId)) {
+                throw new RuntimeException('Không thể xác nhận tài khoản vừa lưu.');
+            }
+
+            $this->assertRoleProfileSavedInTransaction($savedUserId, $newRoleName, $data);
+        });
 
         $savedUser = $this->findUser($savedUserId);
         if (!$savedUser) {
@@ -105,6 +121,32 @@ final class AdminModel
         if ($password !== '') {
             $savedUser['id'] = $savedUserId;
             $this->mailModel->queuePasswordChangedEmail($savedUser);
+        }
+    }
+
+    private function assertRoleProfileSavedInTransaction(int $userId, string $roleName, array $data): void
+    {
+        $normalizedRole = strtolower(trim($roleName));
+        if ($normalizedRole === 'student') {
+            if (!$this->usersTable->hasStudentProfileCode($userId)) {
+                $this->usersTable->saveRoleProfile($userId, 'student', $data);
+            }
+
+            if (!$this->usersTable->hasStudentProfileCode($userId)) {
+                throw new RuntimeException('Không thể tạo mã học viên cho tài khoản mới.');
+            }
+
+            return;
+        }
+
+        if ($normalizedRole === 'teacher') {
+            if (!$this->usersTable->hasTeacherProfileCode($userId)) {
+                $this->usersTable->saveRoleProfile($userId, 'teacher', $data);
+            }
+
+            if (!$this->usersTable->hasTeacherProfileCode($userId)) {
+                throw new RuntimeException('Không thể tạo mã giáo viên cho tài khoản mới.');
+            }
         }
     }
 

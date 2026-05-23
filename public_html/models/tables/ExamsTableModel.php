@@ -167,7 +167,7 @@ final class ExamsTableModel extends BaseTableModel
             ]
         );
 
-        return (int) $this->pdo->lastInsertId();
+        return $this->lastStatementInsertId();
     }
 
     public function updateExamResult(

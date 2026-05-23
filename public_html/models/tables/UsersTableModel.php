@@ -239,7 +239,7 @@ final class UsersTableModel extends BaseTableModel
             'status' => $status,
         ]);
 
-        return (int) $this->pdo->lastInsertId();
+        return $this->lastStatementInsertId();
     }
 
     public function saveRoleProfile(int $userId, string $roleName, array $data): void
@@ -262,6 +262,57 @@ final class UsersTableModel extends BaseTableModel
         if ($normalizedRole === 'student') {
             $this->saveStudentProfile($userId, $data);
         }
+    }
+
+    public function activeUserExists(int $userId): bool
+    {
+        if ($userId <= 0) {
+            return false;
+        }
+
+        return (int) $this->fetchScalar(
+            'SELECT COUNT(*) AS total
+             FROM users
+             WHERE id = :id
+               AND deleted_at IS NULL',
+            ['id' => $userId],
+            'total',
+            0
+        ) > 0;
+    }
+
+    public function hasStudentProfileCode(int $userId): bool
+    {
+        if ($userId <= 0) {
+            return false;
+        }
+
+        return trim((string) $this->fetchScalar(
+            'SELECT student_code
+             FROM student_profiles
+             WHERE user_id = :user_id
+             LIMIT 1',
+            ['user_id' => $userId],
+            'student_code',
+            ''
+        )) !== '';
+    }
+
+    public function hasTeacherProfileCode(int $userId): bool
+    {
+        if ($userId <= 0) {
+            return false;
+        }
+
+        return trim((string) $this->fetchScalar(
+            'SELECT teacher_code
+             FROM teacher_profiles
+             WHERE user_id = :user_id
+             LIMIT 1',
+            ['user_id' => $userId],
+            'teacher_code',
+            ''
+        )) !== '';
     }
 
     public function softDelete(int $id): void
@@ -719,7 +770,7 @@ final class UsersTableModel extends BaseTableModel
             $params
         );
 
-        return (int) $this->pdo->lastInsertId();
+        return $this->lastStatementInsertId();
     }
 
     private function hasParentProfileData(array $data): bool
