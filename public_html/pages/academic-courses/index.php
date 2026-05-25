@@ -47,12 +47,13 @@ $selectedThumbnailUrl = normalize_public_file_url((string) ($editingCourse['imag
     <?php if ($canCreateCourse || $canUpdateCourse): ?>
         <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <h3><?= e($editingCourse ? t('admin.courses.edit') : t('admin.courses.add')); ?></h3>
-            <form class="grid gap-3 md:grid-cols-2" method="post" action="/api/courses/save" enctype="multipart/form-data">
+            <form id="course-upload-form" class="grid gap-3 md:grid-cols-2" method="post" action="/api/courses/save" enctype="multipart/form-data">
                 <?= csrf_input(); ?>
                 <input type="hidden" name="id" value="<?= (int) ($editingCourse['id'] ?? 0); ?>">
                 <input type="hidden" name="course_page" value="<?= (int) $coursePage; ?>">
                 <input type="hidden" name="course_per_page" value="<?= (int) $coursePerPage; ?>">
                 <input type="hidden" name="existing_image_thumbnail" value="<?= e((string) ($editingCourse['image_thumbnail'] ?? '')); ?>">
+                <input type="hidden" id="courseUploadedThumbnailUrl" name="uploaded_thumbnail_url" value="">
 
                 <label>
                     <?= e(t('admin.courses.course_name')); ?>
@@ -76,8 +77,9 @@ $selectedThumbnailUrl = normalize_public_file_url((string) ($editingCourse['imag
 
                 <label class="md:col-span-2">
                     <?= e(t('admin.courses.thumbnail')); ?>
-                    <input type="file" name="course_thumbnail" accept=".jpg,.jpeg,.png,.gif,.webp">
+                    <input id="courseThumbnailInput" type="file" name="course_thumbnail" accept=".jpg,.jpeg,.png,.gif,.webp" data-direct-upload-preset="course_thumbnail">
                 </label>
+                <p id="courseUploadStatus" class="md:col-span-2 text-xs text-slate-500">Ảnh minh họa sẽ được tải lên khi bạn chọn file.</p>
                 <?php if ($selectedThumbnailUrl !== ''): ?>
                     <div class="md:col-span-2 text-xs text-slate-500">
                         <?= e(t('admin.courses.current_image')); ?>:
@@ -265,3 +267,100 @@ $selectedThumbnailUrl = normalize_public_file_url((string) ($editingCourse['imag
         </div>
     </article>
 </div>
+<script>
+(function () {
+    const form = document.getElementById('course-upload-form');
+    const fileInput = document.getElementById('courseThumbnailInput');
+    const hiddenInput = document.getElementById('courseUploadedThumbnailUrl');
+    const status = document.getElementById('courseUploadStatus');
+    const submitButton = form ? form.querySelector('button[type="submit"]') : null;
+    let isUploading = false;
+
+    if (!(form instanceof HTMLFormElement) || !(fileInput instanceof HTMLInputElement) || !(hiddenInput instanceof HTMLInputElement)) {
+        return;
+    }
+
+    function setUploadingState(uploading, message) {
+        isUploading = uploading;
+        if (submitButton instanceof HTMLButtonElement) {
+            submitButton.disabled = uploading;
+        }
+        if (status instanceof HTMLElement && typeof message === 'string') {
+            status.textContent = message;
+        }
+    }
+
+    async function requestDirectUpload(file) {
+        const response = await fetch('/api/index.php?resource=uploads&method=direct-sign&format=json', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json',
+            },
+            body: new URLSearchParams({
+                preset: 'course_thumbnail',
+                filename: file.name,
+                content_type: file.type || 'application/octet-stream',
+                file_size: String(file.size || 0),
+                _token: <?= json_encode(csrf_token(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
+            }),
+        });
+        const payload = await response.json().catch(function () { return null; });
+        if (!response.ok || !payload || payload.status !== 'success' || !payload.data) {
+            throw new Error((payload && payload.message) || 'Không thể tải file lên lúc này.');
+        }
+
+        return payload.data;
+    }
+
+    async function uploadDirect(file) {
+        const spec = await requestDirectUpload(file);
+        const headers = Object.assign({}, spec.headers || {});
+        if (!headers['Content-Type']) {
+            headers['Content-Type'] = file.type || 'application/octet-stream';
+        }
+
+        const uploadResponse = await fetch(spec.upload_url, {
+            method: spec.method || 'PUT',
+            headers: headers,
+            body: file,
+        });
+        if (!uploadResponse.ok) {
+            throw new Error('Không thể tải ảnh lên.');
+        }
+
+        hiddenInput.value = String(spec.public_url || '');
+        fileInput.value = '';
+    }
+
+    fileInput.addEventListener('change', async function () {
+        const file = fileInput.files && fileInput.files[0] ? fileInput.files[0] : null;
+        hiddenInput.value = '';
+
+        if (!file) {
+            setUploadingState(false, 'Ảnh minh họa sẽ được tải lên khi bạn chọn file.');
+            return;
+        }
+
+        try {
+            setUploadingState(true, 'Đang tải ảnh minh họa lên...');
+            await uploadDirect(file);
+            setUploadingState(false, 'Đã tải ảnh xong. Bạn có thể lưu khóa học.');
+        } catch (error) {
+            hiddenInput.value = '';
+            setUploadingState(false, 'Không thể tải trực tiếp. Bạn vẫn có thể lưu để tải ảnh lên theo cách thông thường.');
+        }
+    });
+
+    form.addEventListener('submit', function (event) {
+        if (isUploading) {
+            event.preventDefault();
+            setUploadingState(false, 'Ảnh vẫn đang được tải lên. Vui lòng chờ hoàn tất.');
+            return;
+        }
+
+    });
+})();
+</script>

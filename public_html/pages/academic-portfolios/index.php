@@ -59,9 +59,10 @@ $editingPortfolioMediaPath = normalize_public_file_url((string) ($editingPortfol
 
     <article class="order-2 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <h3><?= e($editingPortfolio ? t('admin.portfolios.edit') : t('admin.portfolios.add')); ?></h3>
-        <form class="grid gap-3" method="post" action="/api/portfolios/save" enctype="multipart/form-data">
+        <form id="portfolioUploadForm" class="grid gap-3" method="post" action="/api/portfolios/save" enctype="multipart/form-data">
             <?= csrf_input(); ?>
             <input type="hidden" name="id" value="<?= (int) ($editingPortfolio['id'] ?? 0); ?>">
+            <input type="hidden" id="portfolioUploadedMediaUrl" name="uploaded_media_url" value="">
 
             <label>
                 <?= e(t('admin.portfolios.student')); ?>
@@ -92,8 +93,9 @@ $editingPortfolioMediaPath = normalize_public_file_url((string) ($editingPortfol
 
             <label>
                 <?= e(t('admin.portfolios.upload_media')); ?>
-                <input type="file" name="portfolio_file" accept=".jpg,.jpeg,.png,.mp4,.mov,.webm" <?= $editingPortfolio ? '' : 'required'; ?>>
+                <input id="portfolioFileInput" type="file" name="portfolio_file" accept=".jpg,.jpeg,.png,.mp4,.mov,.webm" data-direct-upload-preset="portfolio_media" <?= $editingPortfolio ? '' : 'required'; ?>>
             </label>
+            <p id="portfolioUploadStatus" class="text-xs text-slate-500">Ảnh hoặc video sẽ được tải lên khi bạn chọn file.</p>
 
             <?php if ($editingPortfolioMediaPath !== ''): ?>
                 <p class="text-xs text-slate-500">
@@ -312,3 +314,123 @@ $editingPortfolioMediaPath = normalize_public_file_url((string) ($editingPortfol
         </div>
     </article>
 </div>
+
+<script>
+(() => {
+    const form = document.getElementById('portfolioUploadForm');
+    const fileInput = document.getElementById('portfolioFileInput');
+    const uploadedUrlField = document.getElementById('portfolioUploadedMediaUrl');
+    const status = document.getElementById('portfolioUploadStatus');
+
+    if (!form || !fileInput || !uploadedUrlField || !status) {
+        return;
+    }
+
+    let isUploading = false;
+
+    const isVideoFile = (file) => {
+        if (!file) {
+            return false;
+        }
+
+        const type = String(file.type || '').toLowerCase();
+        if (type.startsWith('video/')) {
+            return true;
+        }
+
+        return /\.(mp4|mov|webm|avi|m4v)$/i.test(String(file.name || ''));
+    };
+
+    const setUploadingState = (uploading) => {
+        isUploading = uploading;
+        const submitButton = form.querySelector('button[type="submit"]');
+        if (submitButton) {
+            submitButton.disabled = uploading;
+        }
+    };
+
+    const csrfField = form.querySelector('input[name="_csrf"]');
+    const csrfToken = csrfField ? csrfField.value : '';
+
+    const requestDirectUpload = async (file, preset) => {
+        const payload = new URLSearchParams();
+        payload.set('_csrf', csrfToken);
+        payload.set('preset', preset);
+        payload.set('filename', file.name);
+        payload.set('content_type', file.type || 'application/octet-stream');
+        payload.set('file_size', String(file.size || 0));
+        payload.set('format', 'json');
+
+        const response = await fetch('/api/index.php?resource=uploads&method=direct-sign&format=json', {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: payload.toString()
+        });
+
+        const result = await response.json().catch(() => null);
+        if (!response.ok || !result || result.status !== 'success' || !result.data) {
+            throw new Error(result && result.message ? result.message : 'Không thể tải file lên lúc này.');
+        }
+
+        return result.data;
+    };
+
+    fileInput.addEventListener('change', async () => {
+        if (!fileInput.files || !fileInput.files[0]) {
+            uploadedUrlField.value = '';
+            fileInput.required = <?= $editingPortfolio ? 'false' : 'true'; ?>;
+            status.textContent = 'Ảnh hoặc video sẽ được tải lên khi bạn chọn file.';
+            return;
+        }
+
+        const file = fileInput.files[0];
+        uploadedUrlField.value = '';
+        setUploadingState(true);
+        status.textContent = 'Đang tải file lên...';
+
+        try {
+            const spec = await requestDirectUpload(file, fileInput.dataset.directUploadPreset || 'portfolio_media');
+            const uploadResponse = await fetch(spec.upload_url, {
+                method: spec.method || 'PUT',
+                headers: spec.headers || {},
+                body: file
+            });
+
+            if (!uploadResponse.ok) {
+                throw new Error('Không thể tải file lên.');
+            }
+
+            uploadedUrlField.value = spec.public_url || '';
+            fileInput.required = false;
+            fileInput.value = '';
+            status.textContent = 'Đã tải file xong. Bạn có thể lưu hồ sơ tiến bộ.';
+        } catch (error) {
+            uploadedUrlField.value = '';
+            status.textContent = isVideoFile(file)
+                ? 'Video chưa được tải lên. Vui lòng thử lại.'
+                : 'Không thể tải file lên lúc này. Bạn vẫn có thể lưu theo cách thông thường.';
+        } finally {
+            setUploadingState(false);
+        }
+    });
+
+    form.addEventListener('submit', (event) => {
+        if (isUploading) {
+            event.preventDefault();
+            status.textContent = 'File vẫn đang được tải lên. Vui lòng chờ hoàn tất rồi lưu lại.';
+            return;
+        }
+
+        const hasSelectedFile = !!(fileInput.files && fileInput.files[0]);
+        const hasDirectUrl = String(uploadedUrlField.value || '').trim() !== '';
+        if (hasSelectedFile && !hasDirectUrl && isVideoFile(fileInput.files[0])) {
+            event.preventDefault();
+            status.textContent = 'Video chưa được tải lên. Vui lòng thử lại.';
+        }
+    });
+})();
+</script>

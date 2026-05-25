@@ -4,7 +4,7 @@ declare(strict_types=1);
 use s9e\TextFormatter\Configurator;
 
 const BBCODE_BUNDLE_CLASS = 'App\\BbcodeBundle';
-const BBCODE_BUNDLE_VERSION = 's9e-text-formatter-v2';
+const BBCODE_BUNDLE_VERSION = 's9e-text-formatter-v3';
 
 function bbcode_cache_dir(): string
 {
@@ -19,6 +19,24 @@ function bbcode_bundle_filepath(): string
 function bbcode_renderer_filepath(): string
 {
     return bbcode_cache_dir() . '/BbcodeRenderer.php';
+}
+
+function bbcode_patch_bundle_source(string $bundleSource): string
+{
+    $pattern = '/if \(!class_exists\(\'App_BbcodeRenderer\', false\)\s*'
+        . '&& file_exists\(\'[^\']*BbcodeRenderer\.php\'\)\)\s*'
+        . '\{\s*include \'[^\']*BbcodeRenderer\.php\';\s*\}/';
+
+    $replacement = "if (!class_exists('App_BbcodeRenderer', false))\n"
+        . "\t\t{\n"
+        . "\t\t\t\$rendererPath = __DIR__ . '/BbcodeRenderer.php';\n"
+        . "\t\t\tif (file_exists(\$rendererPath))\n"
+        . "\t\t\t{\n"
+        . "\t\t\t\tinclude \$rendererPath;\n"
+        . "\t\t\t}\n"
+        . "\t\t}";
+
+    return (string) preg_replace($pattern, $replacement, $bundleSource, 1);
 }
 
 function bbcode_ensure_cache_dir(): void
@@ -105,6 +123,8 @@ function bbcode_generate_bundle(): void
         . "declare(strict_types=1);\n"
         . "// " . BBCODE_BUNDLE_VERSION . "\n"
         . $configurator->bundleGenerator->generate(BBCODE_BUNDLE_CLASS);
+
+    $bundleSource = bbcode_patch_bundle_source($bundleSource);
 
     file_put_contents(bbcode_bundle_filepath(), $bundleSource);
 }

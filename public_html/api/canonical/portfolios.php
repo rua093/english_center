@@ -22,13 +22,28 @@ function api_portfolios_save_action(): void
 	}
 
 	$uploadPath = trim((string) (($existing['media_url'] ?? '')));
-	if (!empty($_FILES['portfolio_file']['name'])) {
-		$fileUpload = store_uploaded_file($_FILES['portfolio_file'], 'portfolio', 'portfolios/media');
-		if ($fileUpload === null) {
-			set_flash('error', 'Tải lên tệp hồ sơ tiến bộ thất bại.');
+	$directUploadPath = trim((string) ($_POST['uploaded_media_url'] ?? ''));
+	if ($directUploadPath !== '') {
+		if (!is_trusted_uploaded_file_url($directUploadPath)) {
+			set_flash('error', 'File tải lên chưa hợp lệ. Vui lòng thử lại.');
 			redirect(page_url('portfolios-academic'));
 		}
-		$uploadPath = $fileUpload;
+
+		$uploadPath = normalize_public_file_url($directUploadPath);
+	}
+	if (!empty($_FILES['portfolio_file']['name'])) {
+		if (app_uploaded_file_looks_like_video($_FILES['portfolio_file'])) {
+			set_flash('error', 'Video hồ sơ tiến bộ chưa được tải lên. Vui lòng thử lại.');
+			redirect(page_url('portfolios-academic'));
+		}
+
+		$storedPath = store_uploaded_file_for_preset($_FILES['portfolio_file'], 'portfolio_media');
+		if ($storedPath === null) {
+			set_flash('error', 'Không thể tải tệp hồ sơ tiến bộ lên. Vui lòng thử lại.');
+			redirect(page_url('portfolios-academic'));
+		}
+
+		$uploadPath = $storedPath;
 	}
 
 	if ($uploadPath === '') {

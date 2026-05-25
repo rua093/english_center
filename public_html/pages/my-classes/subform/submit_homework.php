@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../../../core/bootstrap.php';
+require_once __DIR__ . '/../../../core/file_storage.php';
 require_once __DIR__ . '/../../../models/tables/ClassStudentsTableModel.php';
 require_once __DIR__ . '/../../../models/tables/AssignmentsTableModel.php';
 require_once __DIR__ . '/../../../models/tables/SubmissionsTableModel.php';
@@ -38,6 +39,7 @@ $className = trim((string) ($_POST['class_name'] ?? ''));
 $assignmentTitle = trim((string) ($_POST['assignment_title'] ?? ''));
 $deadline = trim((string) ($_POST['assignment_deadline'] ?? ''));
 $note = trim((string) ($_POST['note'] ?? ''));
+$uploadedSubmissionUrl = trim((string) ($_POST['uploaded_submission_url'] ?? ''));
 
 $respondError = static function (string $message) {
 	if (api_expects_json()) {
@@ -52,7 +54,7 @@ if ($className === '' || $assignmentTitle === '') {
 	$respondError(t('student.assignment.missing_class_assignment'));
 }
 
-if (empty($_FILES['submission_file']['name'])) {
+if ($uploadedSubmissionUrl === '' && empty($_FILES['submission_file']['name'])) {
 	$respondError(t('student.assignment.missing_file'));
 }
 
@@ -82,9 +84,24 @@ if ($assignmentId <= 0) {
 	$respondError(t('student.assignment.assignment_not_found'));
 }
 
-$fileUpload = store_uploaded_file($_FILES['submission_file'], sprintf('submission-%d', (int) $user['id']), 'assignments/submissions');
-if ($fileUpload === null) {
-	$respondError(t('student.assignment.upload_failed'));
+$fileUpload = '';
+if ($uploadedSubmissionUrl !== '') {
+	if (!is_trusted_uploaded_file_url($uploadedSubmissionUrl)) {
+		$respondError(t('student.assignment.upload_failed'));
+	}
+
+	$fileUpload = normalize_public_file_url($uploadedSubmissionUrl);
+} elseif (!empty($_FILES['submission_file']['name'])) {
+	if (app_uploaded_file_looks_like_video($_FILES['submission_file'])) {
+		$respondError(t('student.assignment.video_direct_required'));
+	}
+
+	$storedPath = store_uploaded_file_for_preset($_FILES['submission_file'], 'assignment_submission');
+	if ($storedPath === null) {
+		$respondError('Không thể tải bài làm lên. Vui lòng thử lại.');
+	}
+
+	$fileUpload = $storedPath;
 }
 
 $submissionsTable->upsertStudentSubmission((int) $user['id'], $assignmentId, $fileUpload);

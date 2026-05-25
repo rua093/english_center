@@ -972,6 +972,7 @@ $adminTitle = t('admin.classrooms.title');
                 <?= csrf_input(); ?>
                 <input id="classroom-lesson-id" type="hidden" name="id" value="0">
                 <input id="classroom-lesson-existing-attachment-file-path" type="hidden" name="existing_attachment_file_path" value="">
+                <input id="classroom-lesson-uploaded-attachment-url" type="hidden" name="uploaded_attachment_url" value="">
                 <input type="hidden" name="redirect_page" value="classrooms-academic">
                 <input type="hidden" name="course_id" value="<?= (int) $selectedCourseId; ?>">
                 <input type="hidden" name="class_id" value="<?= (int) $selectedClassId; ?>">
@@ -1004,7 +1005,7 @@ $adminTitle = t('admin.classrooms.title');
                 </div>
                 <label>
                     <?= e(t('admin.classrooms.lesson_attachment')); ?>
-                    <input id="classroom-lesson-attachment-file" type="file" name="lesson_attachment_file" accept=".pdf,.ppt,.pptx,.doc,.docx">
+                    <input id="classroom-lesson-attachment-file" type="file" name="lesson_attachment_file" accept=".pdf,.ppt,.pptx,.doc,.docx" data-direct-upload-preset="lesson_attachment">
                 </label>
                 <p id="classroom-lesson-attachment-hint" class="text-xs text-slate-500"><?= e(t('admin.classrooms.lesson_attachment_hint')); ?></p>
 
@@ -1093,6 +1094,7 @@ $adminTitle = t('admin.classrooms.title');
             <?= csrf_input(); ?>
             <input id="classroom-assignment-id" type="hidden" name="id" value="0">
             <input id="classroom-assignment-existing-file-url" type="hidden" name="existing_file_url" value="">
+            <input id="classroom-assignment-uploaded-file-url" type="hidden" name="uploaded_file_url" value="">
             <input type="hidden" name="redirect_page" value="classrooms-academic">
             <input type="hidden" name="course_id" value="<?= (int) $selectedCourseId; ?>">
             <input type="hidden" name="class_id" value="<?= (int) $selectedClassId; ?>">
@@ -1118,7 +1120,7 @@ $adminTitle = t('admin.classrooms.title');
             </label>
             <label>
                 <?= e(t('admin.classrooms.assignment_file_optional')); ?>
-                <input id="classroom-assignment-file" type="file" name="assignment_file" accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.png">
+                <input id="classroom-assignment-file" type="file" name="assignment_file" accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.png" data-direct-upload-preset="assignment_file">
             </label>
             <p id="classroom-assignment-file-hint" class="text-xs text-slate-500"><?= e(t('admin.classrooms.assignment_file_hint')); ?></p>
 
@@ -2011,6 +2013,8 @@ $adminTitle = t('admin.classrooms.title');
     const lessonContentInput = document.getElementById('classroom-lesson-actual-content');
     const lessonScheduleInput = document.getElementById('classroom-lesson-schedule-id');
     const lessonFocusScheduleInput = document.getElementById('classroom-lesson-focus-schedule-id');
+    const lessonAttachmentFileInput = document.getElementById('classroom-lesson-attachment-file');
+    const lessonUploadedAttachmentUrlInput = document.getElementById('classroom-lesson-uploaded-attachment-url');
 
     const lessonInfoModal = document.getElementById('classroom-lesson-info-modal');
     const lessonInfoContext = document.getElementById('classroom-lesson-info-context');
@@ -2035,12 +2039,14 @@ $adminTitle = t('admin.classrooms.title');
     const assignmentTitleInput = document.getElementById('classroom-assignment-title');
     const assignmentDescriptionInput = document.getElementById('classroom-assignment-description');
     const assignmentDeadlineInput = document.getElementById('classroom-assignment-deadline');
+    const assignmentFileInput = document.getElementById('classroom-assignment-file');
     const assignmentFileHint = document.getElementById('classroom-assignment-file-hint');
     const assignmentSubmitButton = document.getElementById('classroom-assignment-submit');
     const assignmentScheduleIdInput = document.getElementById('classroom-assignment-schedule-id');
     const assignmentFocusScheduleIdInput = document.getElementById('classroom-assignment-focus-schedule-id');
     const assignmentIdInput = document.getElementById('classroom-assignment-id');
     const assignmentExistingFileUrlInput = document.getElementById('classroom-assignment-existing-file-url');
+    const assignmentUploadedFileUrlInput = document.getElementById('classroom-assignment-uploaded-file-url');
 
     const gradingModal = document.getElementById('classroom-grading-modal');
     const gradingForm = document.getElementById('classroom-grading-form');
@@ -2310,6 +2316,53 @@ $adminTitle = t('admin.classrooms.title');
         }
 
         return <?= json_encode(rtrim(upload_public_base_path(), '/'), JSON_UNESCAPED_SLASHES); ?> + '/' + slashed.replace(/^\/+/, '');
+    }
+
+    async function requestDirectUploadSpec(preset, file) {
+        const response = await fetch('/api/index.php?resource=uploads&method=direct-sign&format=json', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json',
+            },
+            body: new URLSearchParams({
+                preset: preset,
+                filename: String(file && file.name ? file.name : ''),
+                content_type: String(file && file.type ? file.type : 'application/octet-stream'),
+                file_size: String(file && file.size ? file.size : 0),
+                _token: csrfToken,
+            }),
+        });
+
+        const payload = await response.json().catch(function () {
+            return null;
+        });
+        if (!response.ok || !payload || payload.status !== 'success' || !payload.data) {
+            throw new Error((payload && payload.message) || 'Không thể tải file lên lúc này.');
+        }
+
+        return payload.data;
+    }
+
+    async function uploadFileDirectToStorage(preset, file) {
+        const spec = await requestDirectUploadSpec(preset, file);
+        const headers = Object.assign({}, spec.headers || {});
+        if (!headers['Content-Type']) {
+            headers['Content-Type'] = file.type || 'application/octet-stream';
+        }
+
+        const uploadResponse = await fetch(spec.upload_url, {
+            method: spec.method || 'PUT',
+            headers: headers,
+            body: file,
+        });
+        if (!uploadResponse.ok) {
+            throw new Error('Không thể tải file lên.');
+        }
+
+        return String(spec.public_url || '');
     }
 
     function escapeHtml(value) {
@@ -4841,6 +4894,9 @@ $adminTitle = t('admin.classrooms.title');
         if (lessonExistingAttachmentInput instanceof HTMLInputElement) {
             lessonExistingAttachmentInput.value = String(isEditing ? (lessonRecord.attachment_file_path || '') : '');
         }
+        if (lessonUploadedAttachmentUrlInput instanceof HTMLInputElement) {
+            lessonUploadedAttachmentUrlInput.value = '';
+        }
         if (lessonAttachmentHint instanceof HTMLElement) {
             if (isEditing && normalizeText(lessonRecord.attachment_file_path) !== '') {
                 const attachmentUrl = normalizePublicFileUrl(lessonRecord.attachment_file_path);
@@ -5331,6 +5387,9 @@ $adminTitle = t('admin.classrooms.title');
         if (assignmentExistingFileUrlInput instanceof HTMLInputElement) {
             assignmentExistingFileUrlInput.value = '';
         }
+        if (assignmentUploadedFileUrlInput instanceof HTMLInputElement) {
+            assignmentUploadedFileUrlInput.value = '';
+        }
         if (assignmentScheduleIdInput instanceof HTMLInputElement) {
             assignmentScheduleIdInput.value = String(context.scheduleId);
         }
@@ -5413,6 +5472,9 @@ $adminTitle = t('admin.classrooms.title');
         if (assignmentExistingFileUrlInput instanceof HTMLInputElement) {
             assignmentExistingFileUrlInput.value = fileUrl;
         }
+        if (assignmentUploadedFileUrlInput instanceof HTMLInputElement) {
+            assignmentUploadedFileUrlInput.value = '';
+        }
         if (assignmentScheduleIdInput instanceof HTMLInputElement) {
             assignmentScheduleIdInput.value = String(scheduleId);
         }
@@ -5453,6 +5515,87 @@ $adminTitle = t('admin.classrooms.title');
                 window.adminBbcode.refreshUi(assignmentDescriptionInput, false);
             });
         }
+    }
+
+    if (lessonAttachmentFileInput instanceof HTMLInputElement) {
+        lessonAttachmentFileInput.addEventListener('change', async function () {
+            const file = lessonAttachmentFileInput.files && lessonAttachmentFileInput.files[0] ? lessonAttachmentFileInput.files[0] : null;
+            const lessonAttachmentHint = document.getElementById('classroom-lesson-attachment-hint');
+            if (lessonUploadedAttachmentUrlInput instanceof HTMLInputElement) {
+                lessonUploadedAttachmentUrlInput.value = '';
+            }
+
+            if (!file) {
+                return;
+            }
+
+            try {
+                if (lessonSubmitButton instanceof HTMLButtonElement) {
+                    lessonSubmitButton.disabled = true;
+                }
+                if (lessonAttachmentHint instanceof HTMLElement) {
+                    lessonAttachmentHint.textContent = 'Đang tải tài liệu buổi học lên...';
+                }
+                const publicUrl = await uploadFileDirectToStorage('lesson_attachment', file);
+                if (lessonUploadedAttachmentUrlInput instanceof HTMLInputElement) {
+                    lessonUploadedAttachmentUrlInput.value = publicUrl;
+                }
+                lessonAttachmentFileInput.value = '';
+                if (lessonAttachmentHint instanceof HTMLElement) {
+                    lessonAttachmentHint.innerHTML = escapeHtml(classroomI18n.currentMaterial) + ': <a class="font-semibold text-blue-700 hover:underline" href="'
+                        + escapeHtml(publicUrl)
+                        + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(classroomI18n.openFile) + '</a>. ' + escapeHtml(classroomI18n.replaceFileHint);
+                }
+            } catch (error) {
+                if (lessonAttachmentHint instanceof HTMLElement) {
+                    lessonAttachmentHint.textContent = 'Không thể tải trực tiếp. Bạn vẫn có thể lưu để tải tài liệu theo cách thông thường.';
+                }
+            } finally {
+                if (lessonSubmitButton instanceof HTMLButtonElement) {
+                    lessonSubmitButton.disabled = false;
+                }
+            }
+        });
+    }
+
+    if (assignmentFileInput instanceof HTMLInputElement) {
+        assignmentFileInput.addEventListener('change', async function () {
+            const file = assignmentFileInput.files && assignmentFileInput.files[0] ? assignmentFileInput.files[0] : null;
+            if (assignmentUploadedFileUrlInput instanceof HTMLInputElement) {
+                assignmentUploadedFileUrlInput.value = '';
+            }
+
+            if (!file) {
+                return;
+            }
+
+            try {
+                if (assignmentSubmitButton instanceof HTMLButtonElement) {
+                    assignmentSubmitButton.disabled = true;
+                }
+                if (assignmentFileHint instanceof HTMLElement) {
+                    assignmentFileHint.textContent = 'Đang tải file bài tập lên...';
+                }
+                const publicUrl = await uploadFileDirectToStorage('assignment_file', file);
+                if (assignmentUploadedFileUrlInput instanceof HTMLInputElement) {
+                    assignmentUploadedFileUrlInput.value = publicUrl;
+                }
+                assignmentFileInput.value = '';
+                if (assignmentFileHint instanceof HTMLElement) {
+                    assignmentFileHint.innerHTML = escapeHtml(classroomI18n.currentFile) + ': <a class="font-semibold text-blue-700 hover:underline" href="'
+                        + escapeHtml(publicUrl)
+                        + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(classroomI18n.openFile) + '</a>. ' + escapeHtml(classroomI18n.replaceFileHint);
+                }
+            } catch (error) {
+                if (assignmentFileHint instanceof HTMLElement) {
+                    assignmentFileHint.textContent = 'Không thể tải trực tiếp. Bạn vẫn có thể lưu để tải file theo cách thông thường.';
+                }
+            } finally {
+                if (assignmentSubmitButton instanceof HTMLButtonElement) {
+                    assignmentSubmitButton.disabled = false;
+                }
+            }
+        });
     }
 
     function populateGradingAssignments(context) {

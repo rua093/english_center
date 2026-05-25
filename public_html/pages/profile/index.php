@@ -532,7 +532,7 @@ $error = get_flash('error');
                                     </div>
                                 </div>
 
-                                <input type="hidden" name="teacher_intro_video_url_hidden" value="<?= e($teacherIntroVideoUrl) ?>">
+                                <input type="hidden" id="teacherIntroVideoUrlHidden" name="teacher_intro_video_url_hidden" value="<?= e($teacherIntroVideoUrl) ?>">
 
                                 <div id="teacherVideoPreviewWrap" class="mb-4 <?= $teacherIntroVideoUrl !== '' ? '' : 'hidden'; ?> overflow-hidden rounded-[1.25rem] border border-slate-200 bg-white shadow-sm">
                                     <video id="teacherVideoPreview" class="w-full max-h-72 bg-black" controls playsinline preload="metadata" <?= $teacherIntroVideoUrl !== '' ? '' : 'muted'; ?>>
@@ -544,7 +544,7 @@ $error = get_flash('error');
                                 </div>
 
                                 <label class="group relative flex flex-col items-center justify-center rounded-[1.5rem] border-2 border-dashed border-slate-300 bg-white p-6 text-center transition-all hover:border-rose-500 hover:bg-rose-50 cursor-pointer">
-                                    <input id="teacherIntroVideoInput" type="file" name="teacher_intro_video_file" accept="video/*" class="absolute inset-0 z-10 cursor-pointer opacity-0" onchange="previewTeacherIntroVideo(this, <?= (int) $teacherVideoMaxBytes; ?>)">
+                                    <input id="teacherIntroVideoInput" type="file" name="teacher_intro_video_file" accept="video/*" class="absolute inset-0 z-10 cursor-pointer opacity-0" onchange="previewTeacherIntroVideo(this, <?= (int) $teacherVideoMaxBytes; ?>)" data-direct-upload-preset="teacher_intro_video">
                                     <div id="teacherVideoUploadIcon" class="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-50 text-rose-500 group-hover:scale-110 transition-transform">
                                         <i class="fa-solid fa-cloud-arrow-up text-xl"></i>
                                     </div>
@@ -593,6 +593,7 @@ $error = get_flash('error');
             <form id="avatarUpdateForm" action="/api/index.php?resource=users&method=update" method="POST" enctype="multipart/form-data" class="flex flex-col items-center">
                 <?= csrf_input(); ?>
                 <input type="hidden" name="update_mode" value="avatar">
+                <input type="hidden" id="avatarUploadedUrl" name="avatar_uploaded_url" value="">
                 
                 <div class="relative h-40 w-40 rounded-full border-[6px] border-slate-100 mb-8 overflow-hidden bg-slate-50 shadow-inner group">
                     <img id="modalAvatarPreview" src="<?= e($avatarUrl) ?>" class="w-full h-full object-cover">
@@ -601,12 +602,12 @@ $error = get_flash('error');
                 
                 <div class="w-full">
                     <label class="group relative w-full border-2 border-dashed border-slate-300 rounded-[1.5rem] p-6 flex flex-col items-center justify-center hover:border-emerald-500 hover:bg-emerald-50 transition-colors cursor-pointer bg-slate-50">
-                        <input type="file" name="avatar" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer z-10" onchange="previewImage(this)">
+                        <input id="avatarInput" type="file" name="avatar" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer z-10" onchange="previewImage(this)" data-direct-upload-preset="avatar">
                         <div class="w-12 h-12 rounded-full bg-white shadow-sm border border-slate-100 flex items-center justify-center text-emerald-500 mb-3 group-hover:scale-110 transition-transform">
                             <i class="fa-solid fa-cloud-arrow-up text-xl"></i>
                         </div>
                         <p class="text-sm font-bold text-slate-700"><?= e(t('profile.upload_image')); ?></p>
-                        <p class="text-xs font-bold text-slate-400 mt-1 uppercase">PNG, JPG (< 2MB)</p>
+                        <p class="text-xs font-bold text-slate-400 mt-1 uppercase">PNG, JPG, WEBP (< 10MB)</p>
                     </label>
                 </div>
                 
@@ -686,8 +687,13 @@ $error = get_flash('error');
         uploadNewVideo: <?= json_encode(t('profile.upload_new_video'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
         videoUploadMeta: <?= json_encode(t('profile.video_upload_meta'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
         videoTooLarge: <?= json_encode(t('profile.video_too_large'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
+        avatarTooLarge: <?= json_encode(t('profile.avatar_too_large'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
         selectedPrefix: <?= json_encode(t('profile.selected_prefix'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
         saveVideoHint: <?= json_encode(t('profile.save_video_hint'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
+        directUploading: <?= json_encode(t('profile.direct_uploading'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
+        directUploadComplete: <?= json_encode(t('profile.direct_upload_complete'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
+        directUploadFailed: <?= json_encode(t('profile.direct_upload_failed'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
+        directUploadUnavailable: <?= json_encode(t('profile.direct_upload_unavailable'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
         confirmProfileTitle: <?= json_encode(t('profile.confirm_profile_title'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
         confirmProfileMessage: <?= json_encode(t('profile.confirm_profile_message'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
         confirmAvatarTitle: <?= json_encode(t('profile.confirm_avatar_title'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
@@ -698,6 +704,86 @@ $error = get_flash('error');
         confirmPasswordTitle: <?= json_encode(t('profile.confirm_password_title'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
         confirmPasswordMessage: <?= json_encode(t('profile.confirm_password_message'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>
     };
+
+    const profileUploadState = {
+        avatarUploading: false,
+        videoUploading: false,
+        directUploadWarningShown: false
+    };
+
+    function profileCsrfToken() {
+        const field = document.querySelector('input[name="_csrf"]');
+        return field ? field.value : '';
+    }
+
+    function profileSetUploadingState(kind, isUploading) {
+        if (kind === 'avatar') {
+            profileUploadState.avatarUploading = isUploading;
+            const saveButton = document.getElementById('avatarSaveButton');
+            if (saveButton) {
+                saveButton.disabled = isUploading;
+            }
+            return;
+        }
+
+        if (kind === 'video') {
+            profileUploadState.videoUploading = isUploading;
+            const form = document.getElementById('profileUpdateForm');
+            if (!form) {
+                return;
+            }
+
+            const submitButton = form.querySelector('button[type="submit"]');
+            if (submitButton) {
+                submitButton.disabled = isUploading;
+            }
+        }
+    }
+
+    async function profileRequestDirectUpload(file, preset) {
+        const csrfToken = profileCsrfToken();
+        const payload = new URLSearchParams();
+        payload.set('_csrf', csrfToken);
+        payload.set('preset', preset);
+        payload.set('filename', file.name);
+        payload.set('content_type', file.type || 'application/octet-stream');
+        payload.set('file_size', String(file.size || 0));
+        payload.set('format', 'json');
+
+        const response = await fetch('/api/index.php?resource=uploads&method=direct-sign&format=json', {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: payload.toString()
+        });
+
+        const result = await response.json().catch(() => null);
+        if (!response.ok || !result || result.status !== 'success' || !result.data) {
+            const errorMessage = result && result.message ? result.message : profileI18n.directUploadFailed;
+            throw new Error(errorMessage);
+        }
+
+        return result.data;
+    }
+
+    async function profileUploadFileDirect(file, preset) {
+        const spec = await profileRequestDirectUpload(file, preset);
+        const uploadHeaders = spec.headers && typeof spec.headers === 'object' ? spec.headers : {};
+        const uploadResponse = await fetch(spec.upload_url, {
+            method: spec.method || 'PUT',
+            headers: uploadHeaders,
+            body: file
+        });
+
+        if (!uploadResponse.ok) {
+            throw new Error(profileI18n.directUploadFailed);
+        }
+
+        return spec;
+    }
 
     function switchTab(tabName) {
         const tabOverview = document.getElementById('tab-overview');
@@ -782,32 +868,62 @@ $error = get_flash('error');
         }, 300);
     }
 
-    function previewImage(input) {
+    async function previewImage(input) {
         if (input.files && input.files[0]) {
+            const file = input.files[0];
+            const avatarUrlField = document.getElementById('avatarUploadedUrl');
+            if (avatarUrlField) {
+                avatarUrlField.value = '';
+            }
+
+            if (file.size > 10 * 1024 * 1024) {
+                input.value = '';
+                alert(profileI18n.avatarTooLarge);
+                return;
+            }
+
             var reader = new FileReader();
             reader.onload = function(e) {
                 document.getElementById('modalAvatarPreview').src = e.target.result;
                 document.getElementById('sidebarAvatar').src = e.target.result;
-                const saveButton = document.getElementById('avatarSaveButton');
-                if (saveButton) saveButton.disabled = false;
             }
-            reader.readAsDataURL(input.files[0]);
+            reader.readAsDataURL(file);
+
+            profileSetUploadingState('avatar', true);
+            try {
+                const spec = await profileUploadFileDirect(file, input.dataset.directUploadPreset || 'avatar');
+                if (avatarUrlField) {
+                    avatarUrlField.value = spec.public_url || '';
+                }
+                input.value = '';
+                profileSetUploadingState('avatar', false);
+            } catch (error) {
+                profileSetUploadingState('avatar', false);
+                const saveButton = document.getElementById('avatarSaveButton');
+                if (saveButton) {
+                    saveButton.disabled = false;
+                }
+            }
         }
     }
 
-    function previewTeacherIntroVideo(input, maxBytes) {
+    async function previewTeacherIntroVideo(input, maxBytes) {
         const previewWrap = document.getElementById('teacherVideoPreviewWrap');
         const preview = document.getElementById('teacherVideoPreview');
         const previewSource = document.getElementById('teacherVideoPreviewSource');
         const emptyState = document.getElementById('teacherVideoEmptyState');
         const uploadTitle = document.getElementById('teacherVideoUploadTitle');
         const uploadMeta = document.getElementById('teacherVideoUploadMeta');
+        const hiddenField = document.getElementById('teacherIntroVideoUrlHidden');
 
         if (!input || !input.files || !input.files[0]) {
             return;
         }
 
         const file = input.files[0];
+        if (hiddenField) {
+            hiddenField.value = '';
+        }
         if (typeof maxBytes === 'number' && maxBytes > 0 && file.size > maxBytes) {
             input.value = '';
             if (uploadTitle) {
@@ -840,6 +956,33 @@ $error = get_flash('error');
             const fileSizeMb = (file.size / (1024 * 1024)).toFixed(2);
             uploadMeta.textContent = fileSizeMb + ' MB - ' + profileI18n.saveVideoHint;
         }
+
+        profileSetUploadingState('video', true);
+        if (uploadMeta) {
+            uploadMeta.textContent = profileI18n.directUploading;
+        }
+
+        try {
+            const spec = await profileUploadFileDirect(file, input.dataset.directUploadPreset || 'teacher_intro_video');
+            if (hiddenField) {
+                hiddenField.value = spec.public_url || '';
+            }
+            input.value = '';
+            if (uploadMeta) {
+                uploadMeta.textContent = profileI18n.directUploadComplete;
+            }
+            profileSetUploadingState('video', false);
+        } catch (error) {
+            profileSetUploadingState('video', false);
+            input.value = '';
+            if (uploadMeta) {
+                uploadMeta.textContent = profileI18n.directUploadFailed;
+            }
+            if (!profileUploadState.directUploadWarningShown) {
+                alert(profileI18n.directUploadFailed);
+                profileUploadState.directUploadWarningShown = true;
+            }
+        }
     }
 
     function togglePasswordField(fieldId, button) {
@@ -855,6 +998,19 @@ $error = get_flash('error');
     const profileUpdateForm = document.getElementById('profileUpdateForm');
     if (profileUpdateForm) {
         profileUpdateForm.addEventListener('submit', function(event) {
+            if (profileUploadState.videoUploading) {
+                event.preventDefault();
+                return;
+            }
+            const teacherVideoInput = document.getElementById('teacherIntroVideoInput');
+            const teacherVideoUrlHidden = document.getElementById('teacherIntroVideoUrlHidden');
+            const hasSelectedVideo = !!(teacherVideoInput && teacherVideoInput.files && teacherVideoInput.files[0]);
+            const hasUploadedVideoUrl = !!(teacherVideoUrlHidden && String(teacherVideoUrlHidden.value || '').trim() !== '');
+            if (hasSelectedVideo && !hasUploadedVideoUrl) {
+                event.preventDefault();
+                alert(profileI18n.directUploadFailed);
+                return;
+            }
             event.preventDefault();
             if(typeof showConfirm === 'function') {
                 showConfirm('success', profileI18n.confirmProfileTitle, profileI18n.confirmProfileMessage, () => profileUpdateForm.submit());
@@ -867,6 +1023,14 @@ $error = get_flash('error');
     const avatarUpdateForm = document.getElementById('avatarUpdateForm');
     if (avatarUpdateForm) {
         avatarUpdateForm.addEventListener('submit', function(event) {
+            if (profileUploadState.avatarUploading) {
+                event.preventDefault();
+                return;
+            }
+            const avatarInput = document.getElementById('avatarInput');
+            const avatarUploadedUrl = document.getElementById('avatarUploadedUrl');
+            const hasSelectedAvatar = !!(avatarInput && avatarInput.files && avatarInput.files[0]);
+            const hasUploadedAvatarUrl = !!(avatarUploadedUrl && String(avatarUploadedUrl.value || '').trim() !== '');
             event.preventDefault();
             if(typeof showConfirm === 'function') {
                 showConfirm('success', profileI18n.confirmAvatarTitle, profileI18n.confirmAvatarMessage, () => avatarUpdateForm.submit());

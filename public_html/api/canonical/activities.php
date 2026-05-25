@@ -19,15 +19,26 @@ function api_activities_save_action(): void
 	$payload['id'] = $activityId;
 
 	$thumbnailPath = trim((string) ($_POST['existing_image_thumbnail'] ?? ''));
-	if (isset($_FILES['activity_thumbnail']) && is_array($_FILES['activity_thumbnail']) && (int) ($_FILES['activity_thumbnail']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
-		$storedThumbnail = store_uploaded_file($_FILES['activity_thumbnail'], 'activity_thumb', 'activities/thumbnails');
-		if ($storedThumbnail === null) {
-			set_flash('error', 'Không thể tải lên ảnh thumbnail. Vui lòng thử lại với tệp hợp lệ.');
+	$directThumbnailUrl = input_string($_POST, 'uploaded_thumbnail_url');
+	if ($directThumbnailUrl !== '') {
+		if (!is_trusted_uploaded_file_url($directThumbnailUrl)) {
+			set_flash('error', 'Link ảnh thumbnail không hợp lệ.');
 			$query = $activityId > 0 ? ['edit' => $activityId] : [];
 			redirect(page_url('activities-manage', $query));
 		}
 
-		$thumbnailPath = $storedThumbnail;
+		$thumbnailPath = normalize_public_file_url($directThumbnailUrl);
+	}
+
+	if (isset($_FILES['activity_thumbnail']) && is_array($_FILES['activity_thumbnail']) && (int) ($_FILES['activity_thumbnail']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
+		$storedPath = store_uploaded_file_for_preset($_FILES['activity_thumbnail'], 'activity_thumbnail');
+		if ($storedPath === null) {
+			set_flash('error', 'Không thể tải ảnh thumbnail lên. Vui lòng thử lại.');
+			$query = $activityId > 0 ? ['edit' => $activityId] : [];
+			redirect(page_url('activities-manage', $query));
+		}
+
+		$thumbnailPath = $storedPath;
 	}
 
 	$payload['image_thumbnail'] = $thumbnailPath;

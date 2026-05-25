@@ -16,24 +16,34 @@ function api_materials_save_action(): void
 	$payload = $_POST;
 
 	$uploadPath = input_string($payload, 'existing_file_path');
+	$directUploadPath = input_string($payload, 'uploaded_file_url');
+	if ($directUploadPath !== '') {
+		if (!is_trusted_uploaded_file_url($directUploadPath)) {
+			set_flash('error', 'Tài liệu tải lên chưa hợp lệ. Vui lòng thử lại.');
+			redirect($editPath);
+		}
+
+		$uploadPath = normalize_public_file_url($directUploadPath);
+	}
+
 	$manualFilePath = input_string($payload, 'file_path');
 	if ($manualFilePath !== '') {
 		$uploadPath = $manualFilePath;
 	}
 
 	if (!empty($_FILES['material_file']['name'])) {
-		$fileUpload = store_uploaded_file($_FILES['material_file'], 'material', 'materials/files');
-		if ($fileUpload === null) {
-			$uploadErrorCode = (int) ($_FILES['material_file']['error'] ?? UPLOAD_ERR_OK);
-			$uploadMessage = 'Tải lên tài liệu thất bại.';
-			if ($uploadErrorCode === UPLOAD_ERR_INI_SIZE || $uploadErrorCode === UPLOAD_ERR_FORM_SIZE) {
-				$uploadMessage = 'File tài liệu vượt quá giới hạn dung lượng cho phép.';
-			}
-
-			set_flash('error', $uploadMessage);
+		if (app_uploaded_file_looks_like_video($_FILES['material_file'])) {
+			set_flash('error', 'Video tài liệu chưa được tải lên. Vui lòng thử lại.');
 			redirect($editPath);
 		}
-		$uploadPath = $fileUpload;
+
+		$storedPath = store_uploaded_file_for_preset($_FILES['material_file'], 'material_file');
+		if ($storedPath === null) {
+			set_flash('error', 'Không thể tải tài liệu lên. Vui lòng thử lại.');
+			redirect($editPath);
+		}
+
+		$uploadPath = $storedPath;
 	}
 
 	if (

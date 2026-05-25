@@ -104,10 +104,11 @@ $canUpdateMaterial = has_permission('materials.update');
         <?php if ($canCreateAssignment || $canUpdateAssignment): ?>
         <article class="order-2 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <h3><?= e($editingAssignment ? t('admin.assignments.edit') : t('admin.assignments.add')); ?></h3>
-            <form class="grid gap-3" method="post" action="/api/assignments/save" enctype="multipart/form-data">
+            <form id="assignments-upload-form" class="grid gap-3" method="post" action="/api/assignments/save" enctype="multipart/form-data">
                 <?= csrf_input(); ?>
                 <input type="hidden" name="id" value="<?= (int) ($editingAssignment['id'] ?? 0); ?>">
                 <input type="hidden" name="existing_file_url" value="<?= e((string) ($editingAssignment['file_url'] ?? '')); ?>">
+                <input type="hidden" id="assignmentsUploadedFileUrl" name="uploaded_file_url" value="">
                 <label>
                     <?= e(t('admin.assignment_edit.class')); ?>
                     <select id="assignment-class-select" name="class_id" required>
@@ -149,8 +150,9 @@ $canUpdateMaterial = has_permission('materials.update');
                 </label>
                 <label>
                     <?= e(t('admin.assignment_edit.upload_file')); ?>
-                    <input type="file" name="assignment_file" accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.png">
+                    <input id="assignmentsFileInput" type="file" name="assignment_file" accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.png" data-direct-upload-preset="assignment_file">
                 </label>
+                <p id="assignmentsUploadStatus" class="text-xs text-slate-500">File bài tập sẽ được tải lên khi bạn chọn file.</p>
                 <?php if ($editingAssignmentFileUrl !== ''): ?>
                     <p class="text-xs text-slate-500"><?= e(t('admin.assignment_edit.current_file')); ?>: <a class="font-semibold text-blue-700 hover:underline" href="<?= e($editingAssignmentFileUrl); ?>" target="_blank" rel="noopener noreferrer"><?= e(t('admin.assignment_edit.open_file')); ?></a>. <?= e(t('admin.assignment_edit.replace_hint')); ?></p>
                 <?php endif; ?>
@@ -379,6 +381,99 @@ $canUpdateMaterial = has_permission('materials.update');
     });
 
     renderLessonOptions(initialLessonValue);
+})();
+</script>
+<script>
+(function () {
+    const form = document.getElementById('assignments-upload-form');
+    const fileInput = document.getElementById('assignmentsFileInput');
+    const hiddenInput = document.getElementById('assignmentsUploadedFileUrl');
+    const status = document.getElementById('assignmentsUploadStatus');
+    const submitButton = form ? form.querySelector('button[type="submit"]') : null;
+    let isUploading = false;
+
+    if (!(form instanceof HTMLFormElement) || !(fileInput instanceof HTMLInputElement) || !(hiddenInput instanceof HTMLInputElement)) {
+        return;
+    }
+
+    function setUploadingState(uploading, message) {
+        isUploading = uploading;
+        if (submitButton instanceof HTMLButtonElement) {
+            submitButton.disabled = uploading;
+        }
+        if (status instanceof HTMLElement && typeof message === 'string') {
+            status.textContent = message;
+        }
+    }
+
+    async function uploadDirect(file) {
+        const signResponse = await fetch('/api/index.php?resource=uploads&method=direct-sign&format=json', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json',
+            },
+            body: new URLSearchParams({
+                preset: 'assignment_file',
+                filename: file.name,
+                content_type: file.type || 'application/octet-stream',
+                file_size: String(file.size || 0),
+                _token: <?= json_encode(csrf_token(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
+            }),
+        });
+        const signPayload = await signResponse.json().catch(function () { return null; });
+        if (!signResponse.ok || !signPayload || signPayload.status !== 'success' || !signPayload.data) {
+            throw new Error((signPayload && signPayload.message) || 'Không thể tải file lên lúc này.');
+        }
+
+        const spec = signPayload.data;
+        const headers = Object.assign({}, spec.headers || {});
+        if (!headers['Content-Type']) {
+            headers['Content-Type'] = file.type || 'application/octet-stream';
+        }
+
+        const uploadResponse = await fetch(spec.upload_url, {
+            method: spec.method || 'PUT',
+            headers: headers,
+            body: file,
+        });
+        if (!uploadResponse.ok) {
+            throw new Error('Không thể tải file bài tập lên.');
+        }
+
+        hiddenInput.value = String(spec.public_url || '');
+        fileInput.value = '';
+    }
+
+    fileInput.addEventListener('change', async function () {
+        const file = fileInput.files && fileInput.files[0] ? fileInput.files[0] : null;
+        hiddenInput.value = '';
+
+        if (!file) {
+            setUploadingState(false, 'File bài tập sẽ được tải lên khi bạn chọn file.');
+            return;
+        }
+
+        try {
+            setUploadingState(true, 'Đang tải file bài tập lên...');
+            await uploadDirect(file);
+            setUploadingState(false, 'Đã tải file xong. Bạn có thể lưu bài tập.');
+        } catch (error) {
+            hiddenInput.value = '';
+            setUploadingState(false, 'Không thể tải trực tiếp. Bạn vẫn có thể lưu để tải file lên theo cách thông thường.');
+        }
+    });
+
+    form.addEventListener('submit', function (event) {
+        if (isUploading) {
+            event.preventDefault();
+            setUploadingState(false, 'File vẫn đang được tải lên. Vui lòng chờ hoàn tất.');
+            return;
+        }
+
+    });
 })();
 </script>
 

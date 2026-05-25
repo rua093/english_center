@@ -57,6 +57,7 @@ function api_users_update_action(): void
 	$email = trim((string) ($_POST['email'] ?? ''));
 	$phone = normalize_phone_string((string) ($_POST['phone'] ?? ''));
 	$teacherIntroVideoUrl = trim((string) ($_POST['teacher_intro_video_url_hidden'] ?? ''));
+	$avatarDirectUrl = trim((string) ($_POST['avatar_uploaded_url'] ?? ''));
 	$studentFatherName = trim((string) ($_POST['student_father_name'] ?? ''));
 	$studentFatherPhone = normalize_phone_string((string) ($_POST['student_father_phone'] ?? ''));
 	$studentFatherIdCard = trim((string) ($_POST['student_father_id_card'] ?? ''));
@@ -66,50 +67,37 @@ function api_users_update_action(): void
 	$studentParentSocialLinks = trim((string) ($_POST['student_parent_social_links'] ?? ''));
 
 	$avatarPath = null;
-	if (isset($_FILES['avatar']) && (int) ($_FILES['avatar']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
-		$avatarError = (int) ($_FILES['avatar']['error'] ?? UPLOAD_ERR_NO_FILE);
-		if ($avatarError !== UPLOAD_ERR_OK) {
-			$errorMessage = match ($avatarError) {
-				UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE => 'Ảnh đại diện quá lớn. Vui lòng chọn tệp nhỏ hơn 10MB.',
-				UPLOAD_ERR_PARTIAL => 'Tệp ảnh đại diện bị tải lên dang dở. Vui lòng thử lại.',
-				UPLOAD_ERR_NO_TMP_DIR => 'Máy chủ đang thiếu thư mục tạm để xử lý upload ảnh.',
-				UPLOAD_ERR_CANT_WRITE => 'Máy chủ không thể ghi ảnh đại diện lên đĩa.',
-				UPLOAD_ERR_EXTENSION => 'Một tiện ích mở rộng của máy chủ đã chặn ảnh đại diện này.',
-				default => 'Tải ảnh đại diện thất bại. Vui lòng thử lại với tệp ảnh hợp lệ.',
-			};
-			set_flash('error', $errorMessage);
+	if ($avatarDirectUrl !== '') {
+		if (!is_trusted_uploaded_file_url($avatarDirectUrl)) {
+			set_flash('error', 'Ảnh đại diện tải lên chưa hợp lệ. Vui lòng thử lại.');
 			redirect(page_url('profile'));
 		}
 
-		$avatarPath = store_uploaded_file($_FILES['avatar'], 'avatar', 'users/avatars');
-		if ($avatarPath === null) {
-			set_flash('error', 'Tải ảnh đại diện thất bại. Vui lòng thử lại với tệp ảnh hợp lệ.');
+		$avatarPath = normalize_public_file_url($avatarDirectUrl);
+	}
+	if (isset($_FILES['avatar']) && (int) ($_FILES['avatar']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
+		$storedAvatarPath = store_uploaded_file_for_preset($_FILES['avatar'], 'avatar');
+		if ($storedAvatarPath === null) {
+			set_flash('error', 'Không thể tải ảnh đại diện lên. Vui lòng thử lại.');
 			redirect(page_url('profile'));
 		}
+
+		$avatarPath = $storedAvatarPath;
 	}
 
 	if ($existingProfile && (string) ($existingProfile['role_name'] ?? '') === 'teacher') {
-		if (isset($_FILES['teacher_intro_video_file']) && (int) ($_FILES['teacher_intro_video_file']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
-			$teacherVideoError = (int) ($_FILES['teacher_intro_video_file']['error'] ?? UPLOAD_ERR_NO_FILE);
-			if ($teacherVideoError !== UPLOAD_ERR_OK) {
-				$errorMessage = match ($teacherVideoError) {
-					UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE => 'Video giới thiệu quá lớn. Vui lòng chọn tệp nhỏ hơn giới hạn cho phép.',
-					UPLOAD_ERR_PARTIAL => 'Video giới thiệu chỉ được tải lên một phần. Vui lòng thử lại.',
-					UPLOAD_ERR_NO_TMP_DIR => 'Máy chủ đang thiếu thư mục tạm để xử lý video.',
-					UPLOAD_ERR_CANT_WRITE => 'Máy chủ không thể ghi video lên đĩa.',
-					UPLOAD_ERR_EXTENSION => 'Một tiện ích mở rộng của máy chủ đã chặn video này.',
-					default => 'Tải video giới thiệu thất bại. Vui lòng thử lại.',
-				};
-				set_flash('error', $errorMessage);
-				redirect(page_url('profile'));
-			}
+		if ($teacherIntroVideoUrl !== '' && !is_trusted_uploaded_file_url($teacherIntroVideoUrl)) {
+			set_flash('error', 'Video giới thiệu tải lên chưa hợp lệ. Vui lòng thử lại.');
+			redirect(page_url('profile'));
+		}
 
-			$teacherVideoPath = store_uploaded_file($_FILES['teacher_intro_video_file'], 'teacher-video', 'users/teacher-videos');
-			if ($teacherVideoPath === null) {
-				set_flash('error', 'Tải video giới thiệu thất bại. Vui lòng thử lại với tệp video hợp lệ.');
-				redirect(page_url('profile'));
-			}
-			$teacherIntroVideoUrl = $teacherVideoPath;
+		if (isset($_FILES['teacher_intro_video_file']) && (int) ($_FILES['teacher_intro_video_file']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
+			set_flash('error', 'Video giới thiệu chưa được tải lên. Vui lòng thử lại.');
+			redirect(page_url('profile'));
+		}
+
+		if ($teacherIntroVideoUrl !== '') {
+			$teacherIntroVideoUrl = normalize_public_file_url($teacherIntroVideoUrl);
 		}
 	}
 

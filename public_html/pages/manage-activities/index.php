@@ -92,10 +92,11 @@ $editingThumbnailUrl = normalize_public_file_url((string) ($editingActivity['ima
     <?php if ($canCreateActivity || $canUpdateActivity): ?>
         <article class="order-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <h3><?= e($editingActivity ? t('admin.activities.edit') : t('admin.activities.add')); ?></h3>
-            <form class="grid gap-3 md:grid-cols-2" method="post" action="/api/activities/save" enctype="multipart/form-data">
+            <form id="activity-upload-form" class="grid gap-3 md:grid-cols-2" method="post" action="/api/activities/save" enctype="multipart/form-data">
                 <?= csrf_input(); ?>
                 <input type="hidden" name="id" value="<?= (int) ($editingActivity['id'] ?? 0); ?>">
                 <input type="hidden" name="existing_image_thumbnail" value="<?= e((string) ($editingActivity['image_thumbnail'] ?? '')); ?>">
+                <input type="hidden" id="activityUploadedThumbnailUrl" name="uploaded_thumbnail_url" value="">
                 <label>
                     <?= e(t('admin.activities.name')); ?>
                     <input type="text" name="activity_name" value="<?= e((string) ($editingActivity['activity_name'] ?? '')); ?>" required>
@@ -130,8 +131,9 @@ $editingThumbnailUrl = normalize_public_file_url((string) ($editingActivity['ima
                 </label>
                 <label>
                     <?= e(t('admin.activities.thumbnail')); ?>
-                    <input type="file" name="activity_thumbnail" accept=".jpg,.jpeg,.png,.gif,.webp">
+                    <input id="activityThumbnailInput" type="file" name="activity_thumbnail" accept=".jpg,.jpeg,.png,.gif,.webp" data-direct-upload-preset="activity_thumbnail">
                 </label>
+                <p id="activityUploadStatus" class="md:col-span-2 text-xs text-slate-500">Ảnh thumbnail sẽ được tải lên khi bạn chọn file.</p>
                 <?php if ($editingThumbnailUrl !== ''): ?>
                     <div class="md:col-span-2 flex flex-wrap items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-600">
                         <img class="h-16 w-24 rounded-lg border border-slate-200 object-cover" src="<?= e($editingThumbnailUrl); ?>" alt="<?= e(t('admin.activities.thumbnail_alt')); ?>">
@@ -535,6 +537,99 @@ $editingThumbnailUrl = normalize_public_file_url((string) ($editingActivity['ima
         }
         // Nếu là activity khác, trình duyệt sẽ tự load trang, 
         // và bước 1 (DOMContentLoaded) sẽ lo việc scroll sau khi trang mới nạp.
+    });
+})();
+</script>
+<script>
+(function () {
+    const form = document.getElementById('activity-upload-form');
+    const fileInput = document.getElementById('activityThumbnailInput');
+    const hiddenInput = document.getElementById('activityUploadedThumbnailUrl');
+    const status = document.getElementById('activityUploadStatus');
+    const submitButton = form ? form.querySelector('button[type="submit"]') : null;
+    let isUploading = false;
+
+    if (!(form instanceof HTMLFormElement) || !(fileInput instanceof HTMLInputElement) || !(hiddenInput instanceof HTMLInputElement)) {
+        return;
+    }
+
+    function setUploadingState(uploading, message) {
+        isUploading = uploading;
+        if (submitButton instanceof HTMLButtonElement) {
+            submitButton.disabled = uploading;
+        }
+        if (status instanceof HTMLElement && typeof message === 'string') {
+            status.textContent = message;
+        }
+    }
+
+    async function uploadDirect(file) {
+        const signResponse = await fetch('/api/index.php?resource=uploads&method=direct-sign&format=json', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json',
+            },
+            body: new URLSearchParams({
+                preset: 'activity_thumbnail',
+                filename: file.name,
+                content_type: file.type || 'application/octet-stream',
+                file_size: String(file.size || 0),
+                _token: <?= json_encode(csrf_token(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
+            }),
+        });
+        const signPayload = await signResponse.json().catch(function () { return null; });
+        if (!signResponse.ok || !signPayload || signPayload.status !== 'success' || !signPayload.data) {
+            throw new Error((signPayload && signPayload.message) || 'Không thể tải file lên lúc này.');
+        }
+
+        const spec = signPayload.data;
+        const headers = Object.assign({}, spec.headers || {});
+        if (!headers['Content-Type']) {
+            headers['Content-Type'] = file.type || 'application/octet-stream';
+        }
+
+        const uploadResponse = await fetch(spec.upload_url, {
+            method: spec.method || 'PUT',
+            headers: headers,
+            body: file,
+        });
+        if (!uploadResponse.ok) {
+            throw new Error('Không thể tải ảnh lên.');
+        }
+
+        hiddenInput.value = String(spec.public_url || '');
+        fileInput.value = '';
+    }
+
+    fileInput.addEventListener('change', async function () {
+        const file = fileInput.files && fileInput.files[0] ? fileInput.files[0] : null;
+        hiddenInput.value = '';
+
+        if (!file) {
+            setUploadingState(false, 'Ảnh thumbnail sẽ được tải lên khi bạn chọn file.');
+            return;
+        }
+
+        try {
+            setUploadingState(true, 'Đang tải ảnh thumbnail lên...');
+            await uploadDirect(file);
+            setUploadingState(false, 'Đã tải ảnh xong. Bạn có thể lưu hoạt động.');
+        } catch (error) {
+            hiddenInput.value = '';
+            setUploadingState(false, 'Không thể tải trực tiếp. Bạn vẫn có thể lưu để tải ảnh lên theo cách thông thường.');
+        }
+    });
+
+    form.addEventListener('submit', function (event) {
+        if (isUploading) {
+            event.preventDefault();
+            setUploadingState(false, 'Ảnh vẫn đang được tải lên. Vui lòng chờ hoàn tất.');
+            return;
+        }
+
     });
 })();
 </script>

@@ -721,6 +721,7 @@ foreach ($examRows as $examRow) {
                     <?= csrf_input(); ?>
                     <input type="hidden" name="redirect_to" value="<?= e(page_url('classes-my', ['class_id' => (int) $selectedClassId])); ?>">
                     <input type="hidden" name="assignment_id" id="homework-assignment-id" value="">
+                    <input type="hidden" name="uploaded_submission_url" id="homework-uploaded-submission-url" value="">
                     <div class="grid gap-5 md:grid-cols-2">
                         <div>
                             <label class="mb-2 block text-sm font-bold text-slate-700"><?= e(t('my_classes.class')); ?></label>
@@ -749,8 +750,8 @@ foreach ($examRows as $examRow) {
                     <div>
                         <label class="mb-2 block text-sm font-bold text-slate-700"><?= e(t('my_classes.homework_file')); ?></label>
                         <div class="rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 px-4 py-5 transition hover:border-blue-300 hover:bg-blue-50/40">
-                            <input type="file" name="submission_file" id="homework-file" accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png" class="block w-full text-sm text-slate-600 file:mr-4 file:rounded-xl file:border-0 file:bg-slate-800 file:px-4 file:py-2 file:text-sm file:font-bold file:text-white hover:file:bg-blue-600">
-                            <p class="mt-3 text-xs text-slate-500"><?= e(t('my_classes.accepted_files')); ?></p>
+                            <input type="file" name="submission_file" id="homework-file" accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png,.mp4,.mov,.webm" class="block w-full text-sm text-slate-600 file:mr-4 file:rounded-xl file:border-0 file:bg-slate-800 file:px-4 file:py-2 file:text-sm file:font-bold file:text-white hover:file:bg-blue-600">
+                            <p id="homework-upload-status" class="mt-3 text-xs text-slate-500"><?= e(t('my_classes.accepted_files')); ?></p>
                         </div>
                     </div>
 
@@ -786,13 +787,77 @@ foreach ($examRows as $examRow) {
                 const noteInput = document.getElementById('homework-note');
                 const noteDisplay = document.getElementById('homework-note-display');
                 const fileInput = document.getElementById('homework-file');
+                const uploadedSubmissionUrlInput = document.getElementById('homework-uploaded-submission-url');
+                const uploadStatus = document.getElementById('homework-upload-status');
                 const homeworkForm = modal.querySelector('form');
                 const submitButton = homeworkForm ? homeworkForm.querySelector('button[type="submit"]') : null;
+                let isDirectUploading = false;
 
                 function notify(type, message) {
                     if (typeof showNotify === 'function') {
                         showNotify(type, message);
                     }
+                }
+
+                function setUploadStatus(message) {
+                    if (uploadStatus instanceof HTMLElement) {
+                        uploadStatus.textContent = message;
+                    }
+                }
+
+                function isVideoFile(file) {
+                    if (!file) {
+                        return false;
+                    }
+
+                    const type = String(file.type || '').toLowerCase();
+                    if (type.startsWith('video/')) {
+                        return true;
+                    }
+
+                    return /\.(mp4|mov|webm|avi|m4v)$/i.test(String(file.name || ''));
+                }
+
+                async function uploadHomeworkDirect(file) {
+                    const signResponse = await fetch('/api/index.php?resource=uploads&method=direct-sign&format=json', {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        },
+                        body: new URLSearchParams({
+                            preset: 'assignment_submission',
+                            filename: file.name,
+                            content_type: file.type || 'application/octet-stream',
+                            file_size: String(file.size || 0),
+                            _token: <?= json_encode(csrf_token(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>
+                        })
+                    });
+                    const signPayload = await signResponse.json().catch(function () {
+                        return null;
+                    });
+                    if (!signResponse.ok || !signPayload || signPayload.status !== 'success' || !signPayload.data) {
+                        throw new Error((signPayload && signPayload.message) || 'Không thể tải file lên lúc này.');
+                    }
+
+                    const spec = signPayload.data;
+                    const headers = Object.assign({}, spec.headers || {});
+                    if (!headers['Content-Type']) {
+                        headers['Content-Type'] = file.type || 'application/octet-stream';
+                    }
+
+                    const uploadResponse = await fetch(spec.upload_url, {
+                        method: spec.method || 'PUT',
+                        headers: headers,
+                        body: file
+                    });
+                    if (!uploadResponse.ok) {
+                        throw new Error('Không thể tải bài làm lên.');
+                    }
+
+                    return String(spec.public_url || '');
                 }
 
                 let assignmentRequestId = 0;
@@ -829,6 +894,10 @@ foreach ($examRows as $examRow) {
                     if (fileInput) {
                         fileInput.value = '';
                     }
+                    if (uploadedSubmissionUrlInput instanceof HTMLInputElement) {
+                        uploadedSubmissionUrlInput.value = '';
+                    }
+                    setUploadStatus(<?= json_encode(t('my_classes.accepted_files'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>);
                     modal.classList.remove('hidden');
                     modal.classList.add('flex');
                     document.body.classList.add('overflow-hidden');
@@ -851,6 +920,10 @@ foreach ($examRows as $examRow) {
                         notify('warning', 'Vui lòng tải lên file bài làm.');
                         return;
                     }
+                    if (isDirectUploading) {
+                        notify('warning', 'File đang được tải lên, vui lòng chờ hoàn tất.');
+                        return;
+                    }
 
                     if (submitButton instanceof HTMLButtonElement) {
                         submitButton.disabled = true;
@@ -859,6 +932,27 @@ foreach ($examRows as $examRow) {
                     }
 
                     try {
+                        const file = fileInput.files && fileInput.files[0] ? fileInput.files[0] : null;
+                        if (file && uploadedSubmissionUrlInput instanceof HTMLInputElement && uploadedSubmissionUrlInput.value === '') {
+                            isDirectUploading = true;
+                            setUploadStatus('Đang tải bài làm lên...');
+                            try {
+                                uploadedSubmissionUrlInput.value = await uploadHomeworkDirect(file);
+                                fileInput.value = '';
+                                setUploadStatus('Đã tải bài làm xong. Đang gửi bài nộp...');
+                            } catch (error) {
+                                uploadedSubmissionUrlInput.value = '';
+                                if (isVideoFile(file)) {
+                                    setUploadStatus('Video bài làm chưa được tải lên. Vui lòng thử lại.');
+                                    return;
+                                }
+
+                                setUploadStatus('Không thể tải file lên lúc này. Hệ thống sẽ tiếp tục gửi bài làm theo cách thông thường.');
+                            } finally {
+                                isDirectUploading = false;
+                            }
+                        }
+
                         const response = await fetch(homeworkForm.action, {
                             method: 'POST',
                             credentials: 'same-origin',

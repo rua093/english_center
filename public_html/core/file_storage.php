@@ -106,6 +106,22 @@ function normalize_public_file_url(?string $path): string
 	return upload_public_base_path() . '/' . ltrim($normalized, '/');
 }
 
+function is_trusted_uploaded_file_url(?string $path): bool
+{
+	$normalized = normalize_public_file_url($path);
+	if ($normalized === '') {
+		return false;
+	}
+
+	$publicBase = rtrim(upload_public_base_path(), '/');
+	if ($publicBase !== '' && str_starts_with($normalized, $publicBase . '/')) {
+		return true;
+	}
+
+	$localBase = rtrim(local_upload_public_base_path(), '/');
+	return $localBase !== '' && str_starts_with($normalized, $localBase . '/');
+}
+
 function s3_endpoint(): string
 {
 	return rtrim(trim((string) (defined('S3_ENDPOINT') ? S3_ENDPOINT : '')), '/');
@@ -379,6 +395,305 @@ function s3_put_object(string $localFilePath, string $objectKey): ?string
 	}
 
 	return s3_object_public_url($objectKey);
+}
+
+function s3_generate_object_key(string $prefix, string $originalName, ?string $subdir = null): string
+{
+	$safeOriginalName = basename(trim($originalName));
+	$safeOriginalName = preg_replace('/[^A-Za-z0-9._-]/', '_', $safeOriginalName) ?: 'upload.bin';
+	$randomSuffix = bin2hex(random_bytes(8));
+	$storedName = sprintf('%s-%d-%s-%s', $prefix, time(), $randomSuffix, $safeOriginalName);
+	$normalizedSubdir = $subdir !== null ? trim(str_replace('\\', '/', $subdir), '/') : '';
+
+	return $normalizedSubdir !== '' ? $normalizedSubdir . '/' . $storedName : $storedName;
+}
+
+function s3_presign_put_object(string $objectKey, string $contentType, int $expiresIn = 900): ?array
+{
+	if (!s3_is_configured()) {
+		app_file_storage_set_last_error('S3 storage is not fully configured.');
+		return null;
+	}
+
+	$endpoint = s3_endpoint();
+	$bucket = s3_bucket();
+	$region = s3_region();
+	$accessKey = s3_access_key();
+	$secretKey = s3_secret_key();
+	$objectKey = s3_normalize_object_key($objectKey);
+	$encodedObjectKey = s3_encode_object_key($objectKey);
+	$contentType = trim($contentType) !== '' ? trim($contentType) : 'application/octet-stream';
+	$expiresIn = max(60, min($expiresIn, 3600));
+
+	$parsedEndpoint = parse_url($endpoint);
+	if (!is_array($parsedEndpoint) || empty($parsedEndpoint['scheme']) || empty($parsedEndpoint['host'])) {
+		app_file_storage_set_last_error('S3 endpoint is invalid.', [
+			'endpoint' => $endpoint,
+		]);
+		return null;
+	}
+
+	$host = s3_use_path_style() ? $parsedEndpoint['host'] : $bucket . '.' . $parsedEndpoint['host'];
+	$port = isset($parsedEndpoint['port']) ? ':' . $parsedEndpoint['port'] : '';
+	$basePath = isset($parsedEndpoint['path']) ? rtrim($parsedEndpoint['path'], '/') : '';
+	$uriPath = s3_use_path_style()
+		? '/' . rawurlencode($bucket) . '/' . $encodedObjectKey
+		: '/' . $encodedObjectKey;
+	$canonicalUri = ($basePath !== '' ? $basePath : '') . $uriPath;
+	$requestUrl = $parsedEndpoint['scheme'] . '://' . $host . $port . $canonicalUri;
+	$amzDate = gmdate('Ymd\THis\Z');
+	$dateStamp = gmdate('Ymd');
+	$credentialScope = $dateStamp . '/' . $region . '/s3/aws4_request';
+
+	$headersToSign = [
+		'content-type' => $contentType,
+		'host' => $host . $port,
+	];
+	$acl = s3_object_acl();
+	if ($acl !== '') {
+		$headersToSign['x-amz-acl'] = $acl;
+	}
+
+	$canonicalHeaderParts = s3_build_canonical_headers($headersToSign);
+	$signedHeaders = (string) ($canonicalHeaderParts['signed_headers'] ?? '');
+	$canonicalHeaders = (string) ($canonicalHeaderParts['canonical_headers'] ?? '');
+
+	$queryParams = [
+		'X-Amz-Algorithm' => 'AWS4-HMAC-SHA256',
+		'X-Amz-Credential' => $accessKey . '/' . $credentialScope,
+		'X-Amz-Date' => $amzDate,
+		'X-Amz-Expires' => (string) $expiresIn,
+		'X-Amz-SignedHeaders' => $signedHeaders,
+	];
+	ksort($queryParams);
+	$canonicalQueryString = http_build_query($queryParams, '', '&', PHP_QUERY_RFC3986);
+
+	$canonicalRequest = implode("\n", [
+		'PUT',
+		$canonicalUri,
+		$canonicalQueryString,
+		$canonicalHeaders,
+		$signedHeaders,
+		'UNSIGNED-PAYLOAD',
+	]);
+
+	$stringToSign = implode("\n", [
+		'AWS4-HMAC-SHA256',
+		$amzDate,
+		$credentialScope,
+		hash('sha256', $canonicalRequest),
+	]);
+
+	$signature = hash_hmac(
+		'sha256',
+		$stringToSign,
+		s3_signing_key($secretKey, $dateStamp, $region, 's3')
+	);
+
+	$queryParams['X-Amz-Signature'] = $signature;
+	$presignedUrl = $requestUrl . '?' . http_build_query($queryParams, '', '&', PHP_QUERY_RFC3986);
+
+	$requiredHeaders = [
+		'Content-Type' => $contentType,
+	];
+	if ($acl !== '') {
+		$requiredHeaders['x-amz-acl'] = $acl;
+	}
+
+	return [
+		'upload_url' => $presignedUrl,
+		'public_url' => s3_object_public_url($objectKey),
+		'object_key' => $objectKey,
+		'method' => 'PUT',
+		'headers' => $requiredHeaders,
+		'expires_in' => $expiresIn,
+	];
+}
+
+function app_direct_upload_is_available(): bool
+{
+	return app_file_storage_uses_s3() && s3_is_configured();
+}
+
+function app_direct_upload_presets(): array
+{
+	return [
+		'course_thumbnail' => [
+			'prefix' => 'course-thumb',
+			'subdir' => 'courses/thumbnails',
+			'max_bytes' => 0,
+			'extensions' => ['jpg', 'jpeg', 'png', 'gif', 'webp', 'avif'],
+			'mime_prefixes' => ['image/'],
+		],
+		'activity_thumbnail' => [
+			'prefix' => 'activity-thumb',
+			'subdir' => 'activities/thumbnails',
+			'max_bytes' => 0,
+			'extensions' => ['jpg', 'jpeg', 'png', 'gif', 'webp', 'avif'],
+			'mime_prefixes' => ['image/'],
+		],
+		'avatar' => [
+			'prefix' => 'avatar',
+			'subdir' => 'users/avatars',
+			'max_bytes' => 10 * 1024 * 1024,
+			'extensions' => ['jpg', 'jpeg', 'png', 'gif', 'webp', 'avif'],
+			'mime_prefixes' => ['image/'],
+		],
+		'teacher_intro_video' => [
+			'prefix' => 'teacher-video',
+			'subdir' => 'users/teacher-videos',
+			'max_bytes' => 64 * 1024 * 1024,
+			'extensions' => ['mp4', 'mov', 'webm'],
+			'mime_prefixes' => ['video/'],
+		],
+		'portfolio_media' => [
+			'prefix' => 'portfolio',
+			'subdir' => 'portfolios/media',
+			'max_bytes' => 0,
+			'extensions' => ['jpg', 'jpeg', 'png', 'mp4', 'mov', 'webm'],
+			'mime_prefixes' => ['image/', 'video/'],
+		],
+		'material_file' => [
+			'prefix' => 'material',
+			'subdir' => 'materials/files',
+			'max_bytes' => 0,
+			'extensions' => ['pdf', 'ppt', 'pptx', 'doc', 'docx', 'jpg', 'jpeg', 'png', 'mp4', 'mov', 'webm', 'mp3', 'avi'],
+			'mime_prefixes' => ['application/', 'image/', 'video/', 'audio/'],
+		],
+		'assignment_file' => [
+			'prefix' => 'assignment',
+			'subdir' => 'assignments/files',
+			'max_bytes' => 0,
+			'extensions' => ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'jpg', 'jpeg', 'png'],
+			'mime_prefixes' => ['application/', 'image/'],
+		],
+		'lesson_attachment' => [
+			'prefix' => 'lesson-attachment',
+			'subdir' => 'lessons/attachments',
+			'max_bytes' => 0,
+			'extensions' => ['pdf', 'ppt', 'pptx', 'doc', 'docx'],
+			'mime_prefixes' => ['application/'],
+		],
+		'assignment_submission' => [
+			'prefix' => 'submission',
+			'subdir' => 'assignments/submissions',
+			'max_bytes' => 0,
+			'extensions' => ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'jpg', 'jpeg', 'png', 'mp4', 'mov', 'webm'],
+			'mime_prefixes' => ['application/', 'image/', 'video/'],
+		],
+	];
+}
+
+function app_direct_upload_preset(string $presetKey): ?array
+{
+	$presets = app_direct_upload_presets();
+	$preset = $presets[$presetKey] ?? null;
+	return is_array($preset) ? $preset : null;
+}
+
+function app_file_path_looks_like_video(?string $path): bool
+{
+	$normalized = strtolower(trim((string) $path));
+	if ($normalized === '') {
+		return false;
+	}
+
+	$extension = strtolower((string) pathinfo(parse_url($normalized, PHP_URL_PATH) ?: $normalized, PATHINFO_EXTENSION));
+	return in_array($extension, ['mp4', 'mov', 'webm', 'avi', 'm4v'], true);
+}
+
+function app_uploaded_file_looks_like_video(array $file): bool
+{
+	$name = strtolower((string) ($file['name'] ?? ''));
+	if ($name !== '' && app_file_path_looks_like_video($name)) {
+		return true;
+	}
+
+	$type = strtolower(trim((string) ($file['type'] ?? '')));
+	return $type !== '' && str_starts_with($type, 'video/');
+}
+
+function app_direct_upload_build_spec(string $presetKey, string $originalName, string $contentType, int $fileSize = 0): ?array
+{
+	$preset = app_direct_upload_preset($presetKey);
+	if (!is_array($preset)) {
+		app_file_storage_set_last_error('Unknown direct upload preset.', [
+			'preset' => $presetKey,
+		]);
+		return null;
+	}
+
+	$originalName = trim($originalName);
+	if ($originalName === '') {
+		app_file_storage_set_last_error('Missing original filename for direct upload.');
+		return null;
+	}
+
+	$extension = strtolower((string) pathinfo($originalName, PATHINFO_EXTENSION));
+	$allowedExtensions = is_array($preset['extensions'] ?? null) ? $preset['extensions'] : [];
+	if ($extension === '' || !in_array($extension, $allowedExtensions, true)) {
+		app_file_storage_set_last_error('File extension is not allowed for direct upload.', [
+			'extension' => $extension,
+			'preset' => $presetKey,
+		]);
+		return null;
+	}
+
+	$contentType = trim($contentType) !== '' ? trim($contentType) : 'application/octet-stream';
+	$allowedMimePrefixes = is_array($preset['mime_prefixes'] ?? null) ? $preset['mime_prefixes'] : [];
+	$matchesMimePrefix = false;
+	foreach ($allowedMimePrefixes as $mimePrefix) {
+		if ($mimePrefix !== '' && str_starts_with(strtolower($contentType), strtolower((string) $mimePrefix))) {
+			$matchesMimePrefix = true;
+			break;
+		}
+	}
+	if (!$matchesMimePrefix) {
+		app_file_storage_set_last_error('File MIME type is not allowed for direct upload.', [
+			'content_type' => $contentType,
+			'preset' => $presetKey,
+		]);
+		return null;
+	}
+
+	$maxBytes = (int) ($preset['max_bytes'] ?? 0);
+	if ($maxBytes > 0 && $fileSize > 0 && $fileSize > $maxBytes) {
+		app_file_storage_set_last_error('File exceeds direct upload size limit.', [
+			'file_size' => $fileSize,
+			'max_bytes' => $maxBytes,
+			'preset' => $presetKey,
+		]);
+		return null;
+	}
+
+	$objectKey = s3_generate_object_key(
+		(string) ($preset['prefix'] ?? 'upload'),
+		$originalName,
+		(string) ($preset['subdir'] ?? '')
+	);
+	$spec = s3_presign_put_object($objectKey, $contentType);
+	if ($spec === null) {
+		return null;
+	}
+
+	$spec['max_bytes'] = $maxBytes;
+	$spec['preset'] = $presetKey;
+	return $spec;
+}
+
+function store_uploaded_file_for_preset(array $file, string $presetKey): ?string
+{
+	$preset = app_direct_upload_preset($presetKey);
+	if (!is_array($preset)) {
+		app_file_storage_set_last_error('Unknown upload preset.', [
+			'preset' => $presetKey,
+		]);
+		return null;
+	}
+
+	$prefix = trim((string) ($preset['prefix'] ?? 'upload'));
+	$subdir = trim((string) ($preset['subdir'] ?? ''));
+	return store_uploaded_file($file, $prefix !== '' ? $prefix : 'upload', $subdir !== '' ? $subdir : null);
 }
 
 function store_uploaded_file_locally(string $tmpPath, string $storedName, string $normalizedSubdir): ?string

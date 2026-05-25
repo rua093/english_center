@@ -174,9 +174,19 @@ if (!function_exists('student_lead_prefill_link')) {
             'student_personality' => trim((string) ($lead['personality'] ?? '')),
         ];
 
-        return page_url('register-consultation', [
+        $path = page_url('register-consultation', [
             'prefill' => api_encode_payload($payload),
         ]);
+
+        $baseUrl = trim((string) APP_BASE_URL);
+        if ($baseUrl !== '') {
+            return rtrim($baseUrl, '/') . '/' . ltrim($path, '/');
+        }
+
+        $scheme = (!empty($_SERVER['HTTPS']) && strtolower((string) $_SERVER['HTTPS']) !== 'off') ? 'https' : 'http';
+        $host = trim((string) ($_SERVER['HTTP_HOST'] ?? 'localhost'));
+
+        return $scheme . '://' . $host . '/' . ltrim($path, '/');
     }
 }
 

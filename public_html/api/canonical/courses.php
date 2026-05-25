@@ -34,6 +34,7 @@ function api_courses_save_action(): void
     $totalSessions = max(0, input_int($_POST, 'total_sessions'));
     $description = input_string($_POST, 'description');
     $thumbnailPath = input_string($_POST, 'existing_image_thumbnail');
+    $directThumbnailUrl = input_string($_POST, 'uploaded_thumbnail_url');
 
     $redirectQuery = courses_manage_redirect_query($_POST);
     $redirectPath = page_url('courses-academic', $redirectQuery);
@@ -48,14 +49,9 @@ function api_courses_save_action(): void
         redirect(page_url('courses-academic', $redirectQuery));
     }
 
-    if (
-        isset($_FILES['course_thumbnail'])
-        && is_array($_FILES['course_thumbnail'])
-        && (int) ($_FILES['course_thumbnail']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE
-    ) {
-        $storedThumbnail = store_uploaded_file($_FILES['course_thumbnail'], 'course_thumb', 'courses/thumbnails');
-        if ($storedThumbnail === null) {
-            set_flash('error', 'Không thể tải lên ảnh minh họa khóa học. Vui lòng thử lại với tệp hợp lệ.');
+    if ($directThumbnailUrl !== '') {
+        if (!is_trusted_uploaded_file_url($directThumbnailUrl)) {
+            set_flash('error', 'Link ảnh minh họa khóa học không hợp lệ.');
 
             if ($courseId > 0) {
                 $redirectQuery['edit'] = $courseId;
@@ -64,7 +60,26 @@ function api_courses_save_action(): void
             redirect(page_url('courses-academic', $redirectQuery));
         }
 
-        $thumbnailPath = $storedThumbnail;
+        $thumbnailPath = normalize_public_file_url($directThumbnailUrl);
+    }
+
+    if (
+        isset($_FILES['course_thumbnail'])
+        && is_array($_FILES['course_thumbnail'])
+        && (int) ($_FILES['course_thumbnail']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE
+    ) {
+        $storedPath = store_uploaded_file_for_preset($_FILES['course_thumbnail'], 'course_thumbnail');
+        if ($storedPath === null) {
+            set_flash('error', 'Không thể tải ảnh minh họa khóa học lên. Vui lòng thử lại.');
+
+            if ($courseId > 0) {
+                $redirectQuery['edit'] = $courseId;
+            }
+
+            redirect(page_url('courses-academic', $redirectQuery));
+        }
+
+        $thumbnailPath = $storedPath;
     }
 
     (new AcademicModel())->saveCourse([

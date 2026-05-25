@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../../core/api_helpers.php';
 require_once __DIR__ . '/../../core/page_actions.php';
+require_once __DIR__ . '/../../core/file_storage.php';
 require_once __DIR__ . '/../../models/AcademicModel.php';
 require_once __DIR__ . '/../../models/UserModel.php';
 
@@ -98,24 +99,29 @@ function api_assignments_save_action(): void
 	$academicModel = new AcademicModel();
 
 	$uploadPath = input_string($payload, 'existing_file_url');
+	$directUploadPath = input_string($payload, 'uploaded_file_url');
+	if ($directUploadPath !== '') {
+		if (!is_trusted_uploaded_file_url($directUploadPath)) {
+			set_flash('error', 'File bài tập tải lên chưa hợp lệ. Vui lòng thử lại.');
+			redirect($editPath);
+		}
+
+		$uploadPath = normalize_public_file_url($directUploadPath);
+	}
+
 	$manualFileUrl = input_string($payload, 'file_url');
 	if ($manualFileUrl !== '') {
 		$uploadPath = $manualFileUrl;
 	}
 
 	if (!empty($_FILES['assignment_file']['name'])) {
-		$fileUpload = store_uploaded_file($_FILES['assignment_file'], 'assignment', 'assignments/files');
-		if ($fileUpload === null) {
-			$uploadErrorCode = (int) ($_FILES['assignment_file']['error'] ?? UPLOAD_ERR_OK);
-			$uploadMessage = 'Tải lên file bài tập thất bại.';
-			if ($uploadErrorCode === UPLOAD_ERR_INI_SIZE || $uploadErrorCode === UPLOAD_ERR_FORM_SIZE) {
-				$uploadMessage = 'File tải lên vượt quá giới hạn dung lượng cho phép.';
-			}
-
-			set_flash('error', $uploadMessage);
+		$storedPath = store_uploaded_file_for_preset($_FILES['assignment_file'], 'assignment_file');
+		if ($storedPath === null) {
+			set_flash('error', 'Không thể tải file bài tập lên. Vui lòng thử lại.');
 			redirect($editPath);
 		}
-		$uploadPath = $fileUpload;
+
+		$uploadPath = $storedPath;
 	}
 
 	$requiredErrors = validate_required_fields($payload, [
@@ -212,17 +218,41 @@ function api_assignments_submit_action(): void
 
 	if ($assignmentId > 0 && $user) {
 		$uploadPath = $fileUrl;
-		if (!empty($_FILES['submission_file']['name'])) {
-			$fileUpload = store_uploaded_file($_FILES['submission_file'], sprintf('submission-%d-%d', (int) $user['id'], $assignmentId), 'assignments/submissions');
-			if ($fileUpload === null) {
+		$directSubmissionUrl = input_string($_POST, 'uploaded_submission_url');
+		if ($directSubmissionUrl !== '') {
+			if (!is_trusted_uploaded_file_url($directSubmissionUrl)) {
 				if ($expectsJson) {
-					api_error('Tải lên bài làm thất bại. Vui lòng thử lại.', ['code' => 'UPLOAD_FAILED'], 400);
+					api_error('File bài làm tải lên chưa hợp lệ. Vui lòng thử lại.', ['code' => 'INVALID_DIRECT_UPLOAD_URL'], 422);
 				}
 
-				set_flash('error', 'Tải lên bài làm thất bại. Vui lòng thử lại.');
+				set_flash('error', 'File bài làm tải lên chưa hợp lệ. Vui lòng thử lại.');
 				redirect($redirectTo);
 			}
-			$uploadPath = $fileUpload;
+
+			$uploadPath = normalize_public_file_url($directSubmissionUrl);
+		}
+
+		if (!empty($_FILES['submission_file']['name'])) {
+			if (app_uploaded_file_looks_like_video($_FILES['submission_file'])) {
+				if ($expectsJson) {
+					api_error(t('student.assignment.video_direct_required'), ['code' => 'DIRECT_UPLOAD_REQUIRED'], 422);
+				}
+
+				set_flash('error', t('student.assignment.video_direct_required'));
+				redirect($redirectTo);
+			}
+
+			$storedPath = store_uploaded_file_for_preset($_FILES['submission_file'], 'assignment_submission');
+			if ($storedPath === null) {
+				if ($expectsJson) {
+					api_error('Không thể tải bài làm lên. Vui lòng thử lại.', ['code' => 'UPLOAD_FAILED'], 422);
+				}
+
+				set_flash('error', 'Không thể tải bài làm lên. Vui lòng thử lại.');
+				redirect($redirectTo);
+			}
+
+			$uploadPath = $storedPath;
 		}
 
 		if ($uploadPath !== '') {

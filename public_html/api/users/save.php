@@ -21,37 +21,18 @@ if ($targetUserId > 0) {
 // Lấy URL cũ từ trường hidden
 $videoUrl = trim((string) ($_POST['teacher_intro_video_url_hidden'] ?? ''));
 
-// Kiểm tra chi tiết mảng $_FILES
-if (isset($_FILES['teacher_intro_video_file'])) {
-    $uploadErrorCode = (int) $_FILES['teacher_intro_video_file']['error'];
-    
-    if ($uploadErrorCode === UPLOAD_ERR_OK) {
-        // Tải lên thành công tới thư mục tạm của server, tiến hành lưu vật lý
-        try {
-            $uploadedPath = file_storage_save_from_upload($_FILES['teacher_intro_video_file'], 'teacher_videos');
-            if ($uploadedPath) {
-                $videoUrl = $uploadedPath;
-            }
-        } catch (Throwable $e) {
-            set_flash('error', 'Lỗi xử lý file video: ' . $e->getMessage());
-            redirect(page_url('users-admin'));
-        }
-    } elseif ($uploadErrorCode !== UPLOAD_ERR_NO_FILE) {
-        // BẮT CÁC LỖI TẢI LÊN ẨN CỦA PHP
-        $uploadErrorMessages = [
-            UPLOAD_ERR_INI_SIZE   => 'Dung lượng video vượt quá giới hạn cho phép của máy chủ (upload_max_filesize).',
-            UPLOAD_ERR_FORM_SIZE  => 'Dung lượng video quá lớn.',
-            UPLOAD_ERR_PARTIAL    => 'Video chỉ được tải lên một phần, do mạng chập chờn.',
-            UPLOAD_ERR_NO_TMP_DIR => 'Thiếu thư mục tạm trên máy chủ (Server error).',
-            UPLOAD_ERR_CANT_WRITE => 'Không có quyền ghi file lên đĩa (Permission denied).',
-            UPLOAD_ERR_EXTENSION  => 'Một extension PHP đã chặn tiến trình tải lên.',
-        ];
-        $errorMessage = $uploadErrorMessages[$uploadErrorCode] ?? 'Lỗi tải video không xác định (Mã lỗi: ' . $uploadErrorCode . ')';
-        
-        // Báo lỗi ra màn hình
-        set_flash('error', $errorMessage);
-        redirect(page_url('users-admin'));
-    }
+if ($videoUrl !== '' && !is_trusted_uploaded_file_url($videoUrl)) {
+    set_flash('error', 'Đường dẫn video giới thiệu không hợp lệ.');
+    redirect(page_url('users-admin'));
+}
+
+if (isset($_FILES['teacher_intro_video_file']) && (int) ($_FILES['teacher_intro_video_file']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
+    set_flash('error', 'Video giới thiệu chưa được tải lên. Vui lòng thử lại.');
+    redirect(page_url('users-admin'));
+}
+
+if ($videoUrl !== '') {
+    $videoUrl = normalize_public_file_url($videoUrl);
 }
 
 $payload = [

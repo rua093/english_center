@@ -155,19 +155,28 @@ function api_lessons_save_action(): void
         'attachment_file_path' => input_string($_POST, 'existing_attachment_file_path'),
         'schedule_id' => $scheduleId,
     ];
+    $directAttachmentUrl = input_string($_POST, 'uploaded_attachment_url');
+    if ($directAttachmentUrl !== '') {
+        if (!is_trusted_uploaded_file_url($directAttachmentUrl)) {
+            set_flash('error', 'Tài liệu buổi học tải lên chưa hợp lệ. Vui lòng thử lại.');
+            redirect($redirectPath);
+        }
+
+        $payload['attachment_file_path'] = normalize_public_file_url($directAttachmentUrl);
+    }
 
     if (
         isset($_FILES['lesson_attachment_file'])
         && is_array($_FILES['lesson_attachment_file'])
         && (int) ($_FILES['lesson_attachment_file']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE
     ) {
-        $attachmentPath = store_uploaded_file($_FILES['lesson_attachment_file'], 'lesson_attachment', 'lessons/attachments');
-        if ($attachmentPath === null) {
-            set_flash('error', 'Không thể tải lên tài liệu buổi học. Vui lòng thử lại với file PDF, PPT, DOC hoặc DOCX hợp lệ.');
+        $storedPath = store_uploaded_file_for_preset($_FILES['lesson_attachment_file'], 'lesson_attachment');
+        if ($storedPath === null) {
+            set_flash('error', 'Không thể tải tài liệu buổi học lên. Vui lòng thử lại.');
             redirect($redirectPath);
         }
 
-        $payload['attachment_file_path'] = $attachmentPath;
+        $payload['attachment_file_path'] = $storedPath;
     }
 
     try {
