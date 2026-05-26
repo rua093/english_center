@@ -52,7 +52,7 @@ $teacherIntroVideoUrl = $teacherIntroVideoUrl !== '' && function_exists('normali
 $openPasswordModal = !empty($_GET['open_password']);
 $isTeacher = $role === 'teacher';
 $isStudent = $role === 'student';
-$teacherVideoMaxBytes = 64 * 1024 * 1024;
+$teacherVideoMaxBytes = 0;
 
 $roleDisplay = match($role) {
     'teacher' => t('profile.role_teacher'),

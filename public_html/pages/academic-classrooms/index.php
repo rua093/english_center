@@ -1380,9 +1380,6 @@ $adminTitle = t('admin.classrooms.title');
                             <tr class="border-t border-slate-100">
                                 <td class="px-4 py-3 align-top">
                                     <div class="font-semibold text-slate-800"><?= e((string) $assignmentRow['title']); ?></div>
-                                    <?php if (trim((string) $assignmentRow['description']) !== ''): ?>
-                                        <div class="mt-1 text-xs text-slate-500 bbcode-content"><?= bbcode_to_html((string) $assignmentRow['description']); ?></div>
-                                    <?php endif; ?>
                                 </td>
                                 <td class="px-4 py-3 align-top text-slate-700"><?= e((string) $assignmentRow['lesson_title']); ?></td>
                                 <td class="px-4 py-3 align-top text-slate-700"><?= e((string) $assignmentRow['deadline']); ?></td>

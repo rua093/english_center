@@ -233,19 +233,13 @@ function api_assignments_submit_action(): void
 		}
 
 		if (!empty($_FILES['submission_file']['name'])) {
-			if (app_uploaded_file_looks_like_video($_FILES['submission_file'])) {
-				if ($expectsJson) {
-					api_error(t('student.assignment.video_direct_required'), ['code' => 'DIRECT_UPLOAD_REQUIRED'], 422);
-				}
-
-				set_flash('error', t('student.assignment.video_direct_required'));
-				redirect($redirectTo);
-			}
-
 			$storedPath = store_uploaded_file_for_preset($_FILES['submission_file'], 'assignment_submission');
 			if ($storedPath === null) {
 				if ($expectsJson) {
-					api_error('Không thể tải bài làm lên. Vui lòng thử lại.', ['code' => 'UPLOAD_FAILED'], 422);
+					api_error('Không thể tải bài làm lên. Vui lòng thử lại.', [
+						'code' => 'UPLOAD_FAILED',
+						'storage_error' => app_file_storage_last_error_message(),
+					], 422);
 				}
 
 				set_flash('error', 'Không thể tải bài làm lên. Vui lòng thử lại.');

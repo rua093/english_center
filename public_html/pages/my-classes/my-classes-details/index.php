@@ -240,7 +240,7 @@ foreach ($examRows as $examRow) {
         </a>
     </div>
 
-    <div class="mx-auto max-w-7xl px-4 sm:px-6 relative z-10 mt-6 space-y-6">
+    <div id="my-class-detail-page-root" class="mx-auto max-w-7xl px-4 sm:px-6 relative z-10 mt-6 space-y-6">
         
         <div class="glass-card rounded-[2rem] p-6 md:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border border-slate-200" data-aos="fade-up">
             <div class="flex items-center gap-5">
@@ -470,31 +470,52 @@ foreach ($examRows as $examRow) {
                                         <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400"><?= e(t('my_classes.score')); ?></p>
                                         <p class="text-sm font-black <?= $hw['score'] !== '--' ? ((float) $hw['score'] >= 5.0 ? 'text-emerald-600' : 'text-rose-600') : 'text-slate-300'; ?>"><?= $hw['score'] !== '--' ? e($hw['score']) : '--'; ?></p>
                                     </div>
-                                    <?php if (!empty($hw['can_submit']) || !empty($hw['can_resubmit'])): ?>
-                                        <?php
-                                            $actionClass = !empty($hw['can_resubmit'])
-                                                ? 'bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 text-white shadow-lg shadow-orange-500/20 hover:shadow-orange-500/35'
-                                                : 'bg-gradient-to-r from-blue-600 via-sky-600 to-cyan-600 text-white shadow-lg shadow-blue-500/20 hover:shadow-blue-500/35';
-                                        ?>
+                                    <div class="flex w-full flex-col gap-2 sm:w-auto sm:min-w-[13rem]">
                                         <button
                                             type="button"
-                                            class="inline-flex items-center justify-center rounded-xl border border-transparent px-3 py-2 text-[11px] font-black uppercase tracking-widest transition-all active:scale-[0.98] <?= $actionClass ?>"
-                                            data-homework-open="1"
+                                            class="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-blue-200 bg-gradient-to-r from-blue-50 via-white to-cyan-50 px-4 py-3 text-[11px] font-black uppercase tracking-[0.18em] text-blue-700 shadow-sm shadow-blue-100/80 transition-all hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md hover:shadow-blue-200/70 active:scale-[0.98]"
+                                            data-homework-detail-open="1"
                                             data-homework-assignment-id="<?= (int) ($hw['id'] ?? 0); ?>"
                                             data-homework-class="<?= e($classDetail['name']); ?>"
                                             data-homework-assignment="<?= e($hw['title']); ?>"
                                             data-homework-deadline="<?= e((string) ($hw['deadline_raw'] ?? '')); ?>"
                                             data-homework-note="<?= e((string) ($hw['note'] ?? '')); ?>"
-                                            data-homework-status="<?= e((string) ($hw['status'] ?? '')); ?>"
+                                            data-homework-file-url="<?= e(normalize_public_file_url((string) ($hw['file_url'] ?? ''))); ?>"
+                                            data-homework-can-submit="<?= (!empty($hw['can_submit']) || !empty($hw['can_resubmit'])) ? '1' : '0'; ?>"
+                                            data-homework-submit-label="<?= e(!empty($hw['can_resubmit']) ? t('my_classes.resubmit') : t('my_classes.submit_homework')); ?>"
                                             data-homework-empty="0"
                                         >
-                                            <?= e(!empty($hw['can_resubmit']) ? t('my_classes.resubmit') : t('my_classes.submit_homework')); ?>
+                                            <i class="fa-regular fa-eye text-[12px]"></i>
+                                            <?= e(t('my_classes.view_assignment_detail')); ?>
                                         </button>
-                                    <?php else: ?>
-                                        <span class="inline-flex max-w-[120px] items-center justify-center rounded-xl border border-slate-200 bg-slate-100 px-3 py-2 text-[11px] font-black uppercase tracking-widest text-slate-400 text-center leading-tight">
-                                            <?= e(t('my_classes.expired')); ?>
-                                        </span>
-                                    <?php endif; ?>
+                                        <?php if (!empty($hw['can_submit']) || !empty($hw['can_resubmit'])): ?>
+                                            <?php
+                                                $actionClass = !empty($hw['can_resubmit'])
+                                                    ? 'bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 text-white shadow-lg shadow-orange-500/20 hover:shadow-orange-500/35'
+                                                    : 'bg-gradient-to-r from-blue-600 via-sky-600 to-cyan-600 text-white shadow-lg shadow-blue-500/20 hover:shadow-blue-500/35';
+                                            ?>
+                                            <button
+                                                type="button"
+                                                class="inline-flex w-full items-center justify-center rounded-2xl border border-transparent px-4 py-3 text-[11px] font-black uppercase tracking-[0.18em] transition-all active:scale-[0.98] <?= $actionClass ?>"
+                                                data-homework-submit-open="1"
+                                                data-homework-assignment-id="<?= (int) ($hw['id'] ?? 0); ?>"
+                                                data-homework-class="<?= e($classDetail['name']); ?>"
+                                                data-homework-assignment="<?= e($hw['title']); ?>"
+                                                data-homework-deadline="<?= e((string) ($hw['deadline_raw'] ?? '')); ?>"
+                                                data-homework-note="<?= e((string) ($hw['note'] ?? '')); ?>"
+                                                data-homework-file-url="<?= e(normalize_public_file_url((string) ($hw['file_url'] ?? ''))); ?>"
+                                                data-homework-can-submit="1"
+                                                data-homework-submit-label="<?= e(!empty($hw['can_resubmit']) ? t('my_classes.resubmit') : t('my_classes.submit_homework')); ?>"
+                                                data-homework-empty="0"
+                                            >
+                                                <?= e(!empty($hw['can_resubmit']) ? t('my_classes.resubmit') : t('my_classes.submit_homework')); ?>
+                                            </button>
+                                        <?php else: ?>
+                                            <span class="inline-flex max-w-[120px] items-center justify-center rounded-xl border border-slate-200 bg-slate-100 px-3 py-2 text-[11px] font-black uppercase tracking-widest text-slate-400 text-center leading-tight">
+                                                <?= e(t('my_classes.expired')); ?>
+                                            </span>
+                                        <?php endif; ?>
+                                    </div>
                                 </div>
 
                                 <?php if (!empty($hw['teacher_comment'])): ?>
@@ -507,15 +528,15 @@ foreach ($examRows as $examRow) {
                     <?php endif; ?>
                 </div>
 
-                <table class="hidden w-full table-modern table-fixed text-left md:table">
+                <table class="hidden w-full table-modern text-left md:table">
                     <thead>
                         <tr>
-                            <th class="w-[31%]"><?= e(t('my_classes.assignment_name')); ?></th>
-                            <th class="w-[17%]"><?= e(t('my_classes.deadline')); ?></th>
-                            <th class="w-[15%]"><?= e(t('my_classes.submitted_at')); ?></th>
-                            <th class="w-[14%]"><?= e(t('my_classes.status')); ?></th>
-                            <th class="w-[10%]"><?= e(t('my_classes.score')); ?></th>
-                            <th class="w-[13%] text-right"><?= e(t('my_classes.actions')); ?></th>
+                            <th class="w-[28%]"><?= e(t('my_classes.assignment_name')); ?></th>
+                            <th class="w-[16%]"><?= e(t('my_classes.deadline')); ?></th>
+                            <th class="w-[14%]"><?= e(t('my_classes.submitted_at')); ?></th>
+                            <th class="w-[12%]"><?= e(t('my_classes.status')); ?></th>
+                            <th class="w-[8%]"><?= e(t('my_classes.score')); ?></th>
+                            <th class="w-[13rem] min-w-[13rem] text-left"><?= e(t('my_classes.actions')); ?></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -546,11 +567,11 @@ foreach ($examRows as $examRow) {
                             </td>
                             <td class="align-top">
                                 <?php if (!empty($hw['submitted_at'])): ?>
-                                    <span class="text-slate-600 font-bold bg-emerald-50 px-2 py-1 rounded-md border border-emerald-200 text-[11px]">
+                                    <span class="inline-flex items-center gap-1 whitespace-nowrap text-slate-600 font-bold bg-emerald-50 px-2 py-1 rounded-md border border-emerald-200 text-[11px]">
                                         <i class="fa-regular fa-paper-plane"></i> <?= e($hw['submitted_at']) ?>
                                     </span>
                                 <?php else: ?>
-                                    <span class="text-slate-300 font-bold bg-slate-50 px-2 py-1 rounded-md border border-slate-200 text-[11px]"><?= e(t('my_classes.not_submitted')); ?></span>
+                                    <span class="inline-flex items-center whitespace-nowrap text-slate-300 font-bold bg-slate-50 px-2 py-1 rounded-md border border-slate-200 text-[11px]"><?= e(t('my_classes.not_submitted')); ?></span>
                                 <?php endif; ?>
                             </td>
                             <td class="align-top">
@@ -580,35 +601,56 @@ foreach ($examRows as $examRow) {
                                     <span class="text-slate-300 font-black">--</span>
                                 <?php endif; ?>
                             </td>
-                            <td class="align-top text-right">
-                                <?php if (!empty($hw['can_submit']) || !empty($hw['can_resubmit'])): ?>
-                                    <?php
-                                        $actionClass = !empty($hw['can_resubmit'])
-                                            ? 'bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 text-white shadow-lg shadow-orange-500/20 hover:shadow-orange-500/35'
-                                            : 'bg-gradient-to-r from-blue-600 via-sky-600 to-cyan-600 text-white shadow-lg shadow-blue-500/20 hover:shadow-blue-500/35';
-                                    ?>
+                            <td class="align-top">
+                                <div class="flex w-full max-w-[10rem] flex-col items-stretch gap-1.5">
                                     <button
                                         type="button"
-                                        class="inline-flex items-center justify-center rounded-xl border border-transparent px-3 py-2 text-[11px] font-black uppercase tracking-widest transition-all hover:-translate-y-0.5 <?= $actionClass ?>"
-                                        data-homework-open="1"
+                                        class="inline-flex w-full items-center justify-center gap-1.5 rounded-xl border border-blue-200 bg-gradient-to-r from-blue-50 via-white to-cyan-50 px-3 py-2 text-[10px] font-black uppercase tracking-[0.12em] text-blue-700 shadow-sm shadow-blue-100/70 transition-all hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md hover:shadow-blue-200/60"
+                                        data-homework-detail-open="1"
                                         data-homework-assignment-id="<?= (int) ($hw['id'] ?? 0); ?>"
                                         data-homework-class="<?= e($classDetail['name']); ?>"
                                         data-homework-assignment="<?= e($hw['title']); ?>"
                                         data-homework-deadline="<?= e((string) ($hw['deadline_raw'] ?? '')); ?>"
                                         data-homework-note="<?= e((string) ($hw['note'] ?? '')); ?>"
-                                        data-homework-status="<?= e((string) ($hw['status'] ?? '')); ?>"
+                                        data-homework-file-url="<?= e(normalize_public_file_url((string) ($hw['file_url'] ?? ''))); ?>"
+                                        data-homework-can-submit="<?= (!empty($hw['can_submit']) || !empty($hw['can_resubmit'])) ? '1' : '0'; ?>"
+                                        data-homework-submit-label="<?= e(!empty($hw['can_resubmit']) ? t('my_classes.resubmit') : t('my_classes.submit_homework')); ?>"
                                         data-homework-empty="0"
                                     >
-                                        <?= e(!empty($hw['can_resubmit']) ? t('my_classes.resubmit') : t('my_classes.submit_homework')); ?>
+                                        <i class="fa-regular fa-eye text-[12px]"></i>
+                                        <?= e(t('my_classes.view_assignment_detail')); ?>
                                     </button>
-                                <?php else: ?>
-                                    <span class="group relative inline-flex max-w-[110px] items-center justify-center rounded-xl border border-slate-200 bg-slate-100 px-3 py-2 text-[11px] font-black uppercase tracking-widest text-slate-400 whitespace-normal text-center leading-tight cursor-not-allowed" <?= !empty($hw['disabled_reason']) ? 'title="' . e((string) $hw['disabled_reason']) . '"' : 'title="' . e(t('my_classes.expired_no_submit')) . '"'; ?>>
-                                        <?= e(t('my_classes.expired')); ?>
-                                        <span class="pointer-events-none absolute left-1/2 top-full z-[9999] mt-2 w-max max-w-[240px] -translate-x-1/2 rounded-xl bg-slate-900 px-3 py-2 text-[11px] font-semibold leading-tight text-white opacity-0 shadow-2xl transition group-hover:opacity-100">
-                                            <?= e((string) ($hw['disabled_reason'] ?: t('my_classes.expired_no_submit'))); ?>
+                                    <?php if (!empty($hw['can_submit']) || !empty($hw['can_resubmit'])): ?>
+                                        <?php
+                                            $actionClass = !empty($hw['can_resubmit'])
+                                                ? 'bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 text-white shadow-lg shadow-orange-500/20 hover:shadow-orange-500/35'
+                                                : 'bg-gradient-to-r from-blue-600 via-sky-600 to-cyan-600 text-white shadow-lg shadow-blue-500/20 hover:shadow-blue-500/35';
+                                        ?>
+                                        <button
+                                            type="button"
+                                            class="inline-flex w-full items-center justify-center rounded-xl border border-transparent px-3 py-2 text-[10px] font-black uppercase tracking-[0.12em] transition-all hover:-translate-y-0.5 <?= $actionClass ?>"
+                                            data-homework-submit-open="1"
+                                            data-homework-assignment-id="<?= (int) ($hw['id'] ?? 0); ?>"
+                                            data-homework-class="<?= e($classDetail['name']); ?>"
+                                            data-homework-assignment="<?= e($hw['title']); ?>"
+                                            data-homework-deadline="<?= e((string) ($hw['deadline_raw'] ?? '')); ?>"
+                                            data-homework-note="<?= e((string) ($hw['note'] ?? '')); ?>"
+                                            data-homework-file-url="<?= e(normalize_public_file_url((string) ($hw['file_url'] ?? ''))); ?>"
+                                            data-homework-can-submit="1"
+                                            data-homework-submit-label="<?= e(!empty($hw['can_resubmit']) ? t('my_classes.resubmit') : t('my_classes.submit_homework')); ?>"
+                                            data-homework-empty="0"
+                                        >
+                                            <?= e(!empty($hw['can_resubmit']) ? t('my_classes.resubmit') : t('my_classes.submit_homework')); ?>
+                                        </button>
+                                    <?php else: ?>
+                                        <span class="group relative inline-flex max-w-[110px] items-center justify-center rounded-xl border border-slate-200 bg-slate-100 px-3 py-2 text-[11px] font-black uppercase tracking-widest text-slate-400 whitespace-normal text-center leading-tight cursor-not-allowed" <?= !empty($hw['disabled_reason']) ? 'title="' . e((string) $hw['disabled_reason']) . '"' : 'title="' . e(t('my_classes.expired_no_submit')) . '"'; ?>>
+                                            <?= e(t('my_classes.expired')); ?>
+                                            <span class="pointer-events-none absolute left-1/2 top-full z-[9999] mt-2 w-max max-w-[240px] -translate-x-1/2 rounded-xl bg-slate-900 px-3 py-2 text-[11px] font-semibold leading-tight text-white opacity-0 shadow-2xl transition group-hover:opacity-100">
+                                                <?= e((string) ($hw['disabled_reason'] ?: t('my_classes.expired_no_submit'))); ?>
+                                            </span>
                                         </span>
-                                    </span>
-                                <?php endif; ?>
+                                    <?php endif; ?>
+                                </div>
                             </td>
                         </tr>
                         <?php endforeach; ?>
@@ -705,9 +747,67 @@ foreach ($examRows as $examRow) {
             </div>
         </div>
 
-        <div id="homework-modal" class="fixed inset-0 z-[60] hidden items-center justify-center bg-slate-950/60 px-4 py-6 backdrop-blur-sm">
-            <div class="w-full max-w-2xl overflow-hidden rounded-[2rem] bg-white shadow-2xl">
-                <div class="flex items-start justify-between gap-4 border-b border-slate-100 px-6 py-5">
+        <div id="homework-detail-modal" class="fixed inset-0 z-[10000] hidden" role="dialog" aria-modal="true">
+            <div class="absolute inset-0 bg-slate-950/60 backdrop-blur-sm" data-homework-backdrop="1"></div>
+            <div class="relative z-10 flex min-h-full items-center justify-center px-4 py-4 sm:px-6 sm:py-6" data-homework-shell="1">
+            <div class="relative isolate flex w-full max-w-3xl flex-col overflow-hidden rounded-[2rem] bg-white shadow-2xl max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-5rem)]">
+                <div class="flex shrink-0 items-start justify-between gap-4 border-b border-slate-100 bg-white px-5 py-4 sm:px-6 sm:py-5">
+                    <div>
+                        <p class="text-xs font-black uppercase tracking-[0.3em] text-blue-400"><?= e(t('my_classes.assignment_detail')); ?></p>
+                        <h3 class="mt-2 text-2xl font-black text-slate-800"><?= e(t('my_classes.view_assignment_detail')); ?></h3>
+                    </div>
+                    <button type="button" class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition hover:bg-slate-200 hover:text-slate-700" data-homework-close="1" aria-label="<?= e(t('my_classes.close')); ?>">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <div class="min-h-0 flex-1 overflow-y-auto bg-white px-5 py-4 sm:px-6 sm:py-6">
+                    <div class="space-y-5">
+                        <div class="grid gap-5 md:grid-cols-2">
+                            <div>
+                                <label class="mb-2 block text-sm font-bold text-slate-700"><?= e(t('my_classes.class')); ?></label>
+                                <input type="text" id="homework-detail-class-display" value="" disabled class="w-full rounded-2xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-500 outline-none transition cursor-not-allowed">
+                            </div>
+                            <div>
+                                <label class="mb-2 block text-sm font-bold text-slate-700"><?= e(t('my_classes.deadline')); ?></label>
+                                <input type="text" id="homework-detail-deadline-display" value="" disabled class="w-full rounded-2xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-500 outline-none transition cursor-not-allowed">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="mb-2 block text-sm font-bold text-slate-700"><?= e(t('my_classes.assignment_name')); ?></label>
+                            <input type="text" id="homework-detail-assignment-display" value="" disabled class="w-full rounded-2xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-500 outline-none transition cursor-not-allowed">
+                        </div>
+
+                        <div>
+                            <label class="mb-2 block text-sm font-bold text-slate-700"><?= e(t('my_classes.note')); ?></label>
+                            <div id="homework-detail-note-display" class="min-h-[140px] rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold leading-relaxed text-slate-600"></div>
+                        </div>
+
+                        <div id="homework-detail-file-shell" class="rounded-2xl border border-slate-200 bg-blue-50 px-4 py-4 text-sm font-semibold text-slate-600"></div>
+                    </div>
+                </div>
+
+                <div class="shrink-0 border-t border-slate-100 bg-white px-5 py-4 sm:px-6">
+                    <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
+                        <a href="<?= e(page_url('classes-my', ['class_id' => (int) $selectedClassId])); ?>" class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50">
+                            <i class="fa-solid fa-arrow-right mr-2 text-[11px]"></i> <?= e(t('my_classes.view_this_class')); ?>
+                        </a>
+                        <div class="flex flex-col gap-3 sm:flex-row">
+                            <button type="button" class="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-600 transition hover:bg-slate-50" data-homework-close="1"><?= e(t('my_classes.close')); ?></button>
+                            <button type="button" id="homework-detail-submit-button" class="hidden rounded-2xl bg-blue-600 px-6 py-3 text-sm font-black text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700"></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <div id="homework-modal" class="fixed inset-0 z-[10000] hidden" role="dialog" aria-modal="true">
+            <div class="absolute inset-0 bg-slate-950/60 backdrop-blur-sm" data-homework-backdrop="1"></div>
+            <div class="relative z-10 flex min-h-full items-center justify-center px-4 py-4 sm:px-6 sm:py-6" data-homework-shell="1">
+            <div class="relative isolate flex w-full max-w-xl flex-col overflow-hidden rounded-[2rem] bg-white shadow-2xl max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-5rem)]">
+                <div class="flex shrink-0 items-start justify-between gap-4 border-b border-slate-100 bg-white px-5 py-4 sm:px-6 sm:py-5">
                     <div>
                         <p class="text-xs font-black uppercase tracking-[0.3em] text-blue-400"><?= e(t('my_classes.submit_homework')); ?></p>
                         <h3 class="mt-2 text-2xl font-black text-slate-800"><?= e(t('my_classes.upload_homework_title')); ?></h3>
@@ -717,52 +817,52 @@ foreach ($examRows as $examRow) {
                     </button>
                 </div>
 
-                <form class="space-y-5 px-6 py-6" method="post" action="<?= e('/api/index.php?resource=assignments&method=submit'); ?>" enctype="multipart/form-data">
+                <form class="min-h-0 flex flex-1 flex-col overflow-hidden" method="post" action="<?= e('/api/index.php?resource=assignments&method=submit'); ?>" enctype="multipart/form-data">
                     <?= csrf_input(); ?>
                     <input type="hidden" name="redirect_to" value="<?= e(page_url('classes-my', ['class_id' => (int) $selectedClassId])); ?>">
                     <input type="hidden" name="assignment_id" id="homework-assignment-id" value="">
                     <input type="hidden" name="uploaded_submission_url" id="homework-uploaded-submission-url" value="">
-                    <div class="grid gap-5 md:grid-cols-2">
-                        <div>
-                            <label class="mb-2 block text-sm font-bold text-slate-700"><?= e(t('my_classes.class')); ?></label>
-                            <input type="hidden" name="class_name" id="homework-class-name" value="">
-                            <input type="text" id="homework-class-display" value="" placeholder="<?= e(t('my_classes.selected_class')); ?>" disabled class="w-full rounded-2xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-500 outline-none transition cursor-not-allowed">
-                        </div>
-                        <div>
-                            <label class="mb-2 block text-sm font-bold text-slate-700">Deadline</label>
-                            <input type="hidden" name="assignment_deadline" id="homework-deadline" value="">
-                            <input type="text" id="homework-deadline-display" placeholder="<?= e(t('my_classes.deadline_placeholder')); ?>" disabled class="w-full rounded-2xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-500 outline-none transition cursor-not-allowed">
-                        </div>
-                    </div>
+                    <div class="min-h-0 flex-1 overflow-y-auto bg-white px-5 py-4 sm:px-6 sm:py-6">
+                        <div class="space-y-5">
+                            <div class="grid gap-5 md:grid-cols-2">
+                                <div>
+                                    <label class="mb-2 block text-sm font-bold text-slate-700"><?= e(t('my_classes.class')); ?></label>
+                                    <input type="hidden" name="class_name" id="homework-class-name" value="">
+                                    <input type="text" id="homework-class-display" value="" placeholder="<?= e(t('my_classes.selected_class')); ?>" disabled class="w-full rounded-2xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-500 outline-none transition cursor-not-allowed">
+                                </div>
+                                <div>
+                                    <label class="mb-2 block text-sm font-bold text-slate-700">Deadline</label>
+                                    <input type="hidden" name="assignment_deadline" id="homework-deadline" value="">
+                                    <input type="text" id="homework-deadline-display" placeholder="<?= e(t('my_classes.deadline_placeholder')); ?>" disabled class="w-full rounded-2xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-500 outline-none transition cursor-not-allowed">
+                                </div>
+                            </div>
 
-                    <div>
-                        <label class="mb-2 block text-sm font-bold text-slate-700"><?= e(t('my_classes.assignment_name')); ?></label>
-                        <input type="hidden" name="assignment_title" id="homework-assignment-title" value="">
-                        <input type="text" id="homework-assignment-title-display" placeholder="<?= e(t('my_classes.assignment_placeholder')); ?>" disabled class="w-full rounded-2xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-500 outline-none transition cursor-not-allowed">
-                    </div>
+                            <div>
+                                <label class="mb-2 block text-sm font-bold text-slate-700"><?= e(t('my_classes.assignment_name')); ?></label>
+                                <input type="hidden" name="assignment_title" id="homework-assignment-title" value="">
+                                <input type="text" id="homework-assignment-title-display" placeholder="<?= e(t('my_classes.assignment_placeholder')); ?>" disabled class="w-full rounded-2xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-500 outline-none transition cursor-not-allowed">
+                            </div>
 
-                    <div>
-                        <label class="mb-2 block text-sm font-bold text-slate-700"><?= e(t('my_classes.note')); ?></label>
-                        <input type="hidden" name="note" id="homework-note" value="">
-                        <textarea id="homework-note-display" rows="4" placeholder="<?= e(t('my_classes.note_placeholder')); ?>" disabled class="w-full rounded-2xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-500 outline-none transition cursor-not-allowed"></textarea>
-                    </div>
-
-                    <div>
-                        <label class="mb-2 block text-sm font-bold text-slate-700"><?= e(t('my_classes.homework_file')); ?></label>
-                        <div class="rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 px-4 py-5 transition hover:border-blue-300 hover:bg-blue-50/40">
-                            <input type="file" name="submission_file" id="homework-file" accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png,.mp4,.mov,.webm" class="block w-full text-sm text-slate-600 file:mr-4 file:rounded-xl file:border-0 file:bg-slate-800 file:px-4 file:py-2 file:text-sm file:font-bold file:text-white hover:file:bg-blue-600">
-                            <p id="homework-upload-status" class="mt-3 text-xs text-slate-500"><?= e(t('my_classes.accepted_files')); ?></p>
+                            <div>
+                                <label class="mb-2 block text-sm font-bold text-slate-700"><?= e(t('my_classes.homework_file')); ?></label>
+                                <div class="rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 px-4 py-5 transition hover:border-blue-300 hover:bg-blue-50/40">
+                                    <input type="file" name="submission_file" id="homework-file" accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png,.mp4,.mov,.webm" class="block w-full text-sm text-slate-600 file:mr-4 file:rounded-xl file:border-0 file:bg-slate-800 file:px-4 file:py-2 file:text-sm file:font-bold file:text-white hover:file:bg-blue-600">
+                                    <p id="homework-upload-status" class="mt-3 text-xs text-slate-500"><?= e(t('my_classes.accepted_files')); ?></p>
+                                </div>
+                            </div>
                         </div>
                     </div>
-
-                    <div class="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-between">
+                    <div class="shrink-0 border-t border-slate-100 bg-white px-5 py-4 sm:px-6">
+                        <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
                         <a href="<?= e(page_url('classes-my', ['class_id' => (int) $selectedClassId])); ?>" class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50">
                             <i class="fa-solid fa-arrow-right mr-2 text-[11px]"></i> <?= e(t('my_classes.view_this_class')); ?>
                         </a>
                         <button type="button" class="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-600 transition hover:bg-slate-50" data-homework-close="1"><?= e(t('my_classes.close')); ?></button>
                         <button type="submit" class="rounded-2xl bg-blue-600 px-6 py-3 text-sm font-black text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700"><?= e(t('my_classes.submit_homework')); ?></button>
+                        </div>
                     </div>
                 </form>
+            </div>
             </div>
         </div>
 
@@ -771,11 +871,25 @@ foreach ($examRows as $examRow) {
                 const myClassesI18n = {
                     noAssignment: <?= json_encode(t('my_classes.no_assignment'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
                     loadAssignmentsFailed: <?= json_encode(t('my_classes.load_assignments_failed'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
-                    newAssignmentListNotFound: <?= json_encode(t('my_classes.new_assignment_list_not_found'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>
+                    newAssignmentListNotFound: <?= json_encode(t('my_classes.new_assignment_list_not_found'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
+                    acceptedFiles: <?= json_encode(t('my_classes.accepted_files'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
+                    noAssignmentNote: <?= json_encode(t('my_classes.no_assignment_note'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
+                    noAssignmentFile: <?= json_encode(t('my_classes.no_assignment_file'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
+                    downloadAssignmentFile: <?= json_encode(t('my_classes.download_assignment_file'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
+                    submitHomework: <?= json_encode(t('my_classes.submit_homework'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>
                 };
                 const modal = document.getElementById('homework-modal');
+                const detailModal = document.getElementById('homework-detail-modal');
+                const pageRoot = document.getElementById('my-class-detail-page-root');
                 let assignmentPanel = document.getElementById('class-assignments');
-                if (!modal) return;
+                if (!modal || !detailModal) return;
+
+                if (modal.parentElement !== document.body) {
+                    document.body.appendChild(modal);
+                }
+                if (detailModal.parentElement !== document.body) {
+                    document.body.appendChild(detailModal);
+                }
 
                 const classInput = document.getElementById('homework-class-name');
                 const classDisplay = document.getElementById('homework-class-display');
@@ -784,8 +898,12 @@ foreach ($examRows as $examRow) {
                 const assignmentDisplay = document.getElementById('homework-assignment-title-display');
                 const deadlineInput = document.getElementById('homework-deadline');
                 const deadlineDisplay = document.getElementById('homework-deadline-display');
-                const noteInput = document.getElementById('homework-note');
-                const noteDisplay = document.getElementById('homework-note-display');
+                const detailClassDisplay = document.getElementById('homework-detail-class-display');
+                const detailAssignmentDisplay = document.getElementById('homework-detail-assignment-display');
+                const detailDeadlineDisplay = document.getElementById('homework-detail-deadline-display');
+                const detailNoteDisplay = document.getElementById('homework-detail-note-display');
+                const detailFileShell = document.getElementById('homework-detail-file-shell');
+                const detailSubmitButton = document.getElementById('homework-detail-submit-button');
                 const fileInput = document.getElementById('homework-file');
                 const uploadedSubmissionUrlInput = document.getElementById('homework-uploaded-submission-url');
                 const uploadStatus = document.getElementById('homework-upload-status');
@@ -863,7 +981,23 @@ foreach ($examRows as $examRow) {
                 let assignmentRequestId = 0;
                 let assignmentRequestController = null;
 
-                function openModal(button) {
+                function setModalState(targetModal, isOpen) {
+                    if (!(targetModal instanceof HTMLElement)) {
+                        return;
+                    }
+
+                    targetModal.classList.toggle('hidden', !isOpen);
+                    const hasOpenModal = !modal.classList.contains('hidden') || !detailModal.classList.contains('hidden') || isOpen;
+                    document.body.classList.toggle('overflow-hidden', hasOpenModal);
+                    document.documentElement.classList.toggle('overflow-hidden', hasOpenModal);
+
+                    if (pageRoot instanceof HTMLElement) {
+                        pageRoot.inert = hasOpenModal;
+                        pageRoot.setAttribute('aria-hidden', hasOpenModal ? 'true' : 'false');
+                    }
+                }
+
+                function fillHomeworkData(button) {
                     if (classInput && button.dataset.homeworkClass) {
                         classInput.value = button.dataset.homeworkClass;
                     }
@@ -885,28 +1019,73 @@ foreach ($examRows as $examRow) {
                     if (deadlineDisplay) {
                         deadlineDisplay.value = button.dataset.homeworkDeadline || '';
                     }
-                    if (noteInput) {
-                        noteInput.value = button.dataset.homeworkNote || '';
+                    if (detailClassDisplay) {
+                        detailClassDisplay.value = button.dataset.homeworkClass || '';
                     }
-                    if (noteDisplay) {
-                        noteDisplay.value = button.dataset.homeworkNote || '';
+                    if (detailAssignmentDisplay) {
+                        detailAssignmentDisplay.value = button.dataset.homeworkAssignment || '';
                     }
+                    if (detailDeadlineDisplay) {
+                        detailDeadlineDisplay.value = button.dataset.homeworkDeadline || '';
+                    }
+                    if (detailNoteDisplay) {
+                        detailNoteDisplay.textContent = button.dataset.homeworkNote || myClassesI18n.noAssignmentNote;
+                    }
+                    if (detailFileShell) {
+                        const fileUrl = String(button.dataset.homeworkFileUrl || '').trim();
+                        if (fileUrl !== '') {
+                            detailFileShell.innerHTML = '';
+                            const fileLink = document.createElement('a');
+                            fileLink.href = fileUrl;
+                            fileLink.target = '_blank';
+                            fileLink.rel = 'noopener';
+                            fileLink.className = 'inline-flex items-center gap-2 rounded-full border border-blue-200 bg-white px-3 py-2 text-xs font-black uppercase tracking-widest text-blue-700 transition hover:bg-blue-100';
+
+                            const icon = document.createElement('i');
+                            icon.className = 'fa-solid fa-paperclip';
+                            fileLink.appendChild(icon);
+                            fileLink.appendChild(document.createTextNode(' ' + myClassesI18n.downloadAssignmentFile));
+                            detailFileShell.appendChild(fileLink);
+                        } else {
+                            detailFileShell.textContent = myClassesI18n.noAssignmentFile;
+                        }
+                    }
+                    if (detailSubmitButton instanceof HTMLButtonElement) {
+                        const canSubmit = button.dataset.homeworkCanSubmit === '1';
+                        detailSubmitButton.textContent = button.dataset.homeworkSubmitLabel || myClassesI18n.submitHomework;
+                        detailSubmitButton.classList.toggle('hidden', !canSubmit);
+                        detailSubmitButton.dataset.homeworkAssignmentId = button.dataset.homeworkAssignmentId || '';
+                        detailSubmitButton.dataset.homeworkClass = button.dataset.homeworkClass || '';
+                        detailSubmitButton.dataset.homeworkAssignment = button.dataset.homeworkAssignment || '';
+                        detailSubmitButton.dataset.homeworkDeadline = button.dataset.homeworkDeadline || '';
+                        detailSubmitButton.dataset.homeworkNote = button.dataset.homeworkNote || '';
+                        detailSubmitButton.dataset.homeworkFileUrl = button.dataset.homeworkFileUrl || '';
+                        detailSubmitButton.dataset.homeworkCanSubmit = button.dataset.homeworkCanSubmit || '0';
+                        detailSubmitButton.dataset.homeworkSubmitLabel = button.dataset.homeworkSubmitLabel || myClassesI18n.submitHomework;
+                    }
+                }
+
+                function openModal(button) {
+                    fillHomeworkData(button);
                     if (fileInput) {
                         fileInput.value = '';
                     }
                     if (uploadedSubmissionUrlInput instanceof HTMLInputElement) {
                         uploadedSubmissionUrlInput.value = '';
                     }
-                    setUploadStatus(<?= json_encode(t('my_classes.accepted_files'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>);
-                    modal.classList.remove('hidden');
-                    modal.classList.add('flex');
-                    document.body.classList.add('overflow-hidden');
+                    setUploadStatus(myClassesI18n.acceptedFiles);
+                    setModalState(detailModal, false);
+                    setModalState(modal, true);
                 }
 
-                function closeModal() {
-                    modal.classList.add('hidden');
-                    modal.classList.remove('flex');
-                    document.body.classList.remove('overflow-hidden');
+                function openDetailModal(button) {
+                    fillHomeworkData(button);
+                    setModalState(modal, false);
+                    setModalState(detailModal, true);
+                }
+
+                function closeModal(targetModal) {
+                    setModalState(targetModal, false);
                 }
 
                 async function submitHomework(event) {
@@ -942,12 +1121,11 @@ foreach ($examRows as $examRow) {
                                 setUploadStatus('Đã tải bài làm xong. Đang gửi bài nộp...');
                             } catch (error) {
                                 uploadedSubmissionUrlInput.value = '';
-                                if (isVideoFile(file)) {
-                                    setUploadStatus('Video bài làm chưa được tải lên. Vui lòng thử lại.');
-                                    return;
-                                }
-
-                                setUploadStatus('Không thể tải file lên lúc này. Hệ thống sẽ tiếp tục gửi bài làm theo cách thông thường.');
+                                setUploadStatus(
+                                    isVideoFile(file)
+                                        ? 'Không thể tải video lên bằng chế độ trực tiếp. Hệ thống sẽ chuyển sang nộp file thông thường.'
+                                        : 'Không thể tải file lên lúc này. Hệ thống sẽ tiếp tục gửi bài làm theo cách thông thường.'
+                                );
                             } finally {
                                 isDirectUploading = false;
                             }
@@ -971,7 +1149,8 @@ foreach ($examRows as $examRow) {
                             throw new Error((payload && payload.message) || 'Nộp bài thất bại. Vui lòng thử lại.');
                         }
 
-                        closeModal();
+                        closeModal(modal);
+                        await loadAssignmentPanel(new URL(window.location.href), false);
                         notify('success', payload.message || 'Đã nộp bài thành công.');
                     } catch (error) {
                         notify('error', error instanceof Error ? error.message : 'Nộp bài thất bại. Vui lòng thử lại.');
@@ -1072,7 +1251,13 @@ foreach ($examRows as $examRow) {
                         return;
                     }
 
-                    const openButton = event.target.closest('[data-homework-open="1"]');
+                    const detailButton = event.target.closest('[data-homework-detail-open="1"]');
+                    if (detailButton instanceof HTMLElement) {
+                        openDetailModal(detailButton);
+                        return;
+                    }
+
+                    const openButton = event.target.closest('[data-homework-submit-open="1"], [data-homework-open="1"]');
                     if (openButton instanceof HTMLElement) {
                         if (openButton.dataset.homeworkEmpty === '1') {
                             if (typeof showNotify === 'function') {
@@ -1087,7 +1272,8 @@ foreach ($examRows as $examRow) {
 
                     const closeButton = event.target.closest('[data-homework-close="1"]');
                     if (closeButton instanceof HTMLElement) {
-                        closeModal();
+                        closeModal(modal);
+                        closeModal(detailModal);
                         return;
                     }
 
@@ -1131,8 +1317,22 @@ foreach ($examRows as $examRow) {
                 }
 
                 modal.addEventListener('click', function (event) {
-                    if (event.target === modal) {
-                        closeModal();
+                    const clickTarget = event.target;
+                    if (
+                        clickTarget instanceof HTMLElement
+                        && (clickTarget.matches('[data-homework-backdrop="1"]') || clickTarget.matches('[data-homework-shell="1"]'))
+                    ) {
+                        closeModal(modal);
+                    }
+                });
+
+                detailModal.addEventListener('click', function (event) {
+                    const clickTarget = event.target;
+                    if (
+                        clickTarget instanceof HTMLElement
+                        && (clickTarget.matches('[data-homework-backdrop="1"]') || clickTarget.matches('[data-homework-shell="1"]'))
+                    ) {
+                        closeModal(detailModal);
                     }
                 });
 
@@ -1150,10 +1350,21 @@ foreach ($examRows as $examRow) {
                 });
 
                 document.addEventListener('keydown', function (event) {
-                    if (event.key === 'Escape' && !modal.classList.contains('hidden')) {
-                        closeModal();
+                    if (event.key === 'Escape') {
+                        if (!modal.classList.contains('hidden')) {
+                            closeModal(modal);
+                        }
+                        if (!detailModal.classList.contains('hidden')) {
+                            closeModal(detailModal);
+                        }
                     }
                 });
+
+                if (detailSubmitButton instanceof HTMLButtonElement) {
+                    detailSubmitButton.addEventListener('click', function () {
+                        openModal(detailSubmitButton);
+                    });
+                }
             })();
         </script>
 

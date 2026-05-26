@@ -188,13 +188,17 @@ final class ClassStudentsTableModel
             LEFT JOIN teacher_profiles tp ON tp.user_id = u.id
             LEFT JOIN rooms r ON r.id = s.room_id AND r.deleted_at IS NULL
             LEFT JOIN (
-                SELECT schedule_id,
-                       MIN(actual_title) AS lesson_title,
-                       MIN(actual_content) AS lesson_content,
-                       MIN(attachment_file_path) AS lesson_attachment_file_path
-                FROM lessons
-                WHERE schedule_id IS NOT NULL
-                GROUP BY schedule_id
+                SELECT l1.schedule_id,
+                       l1.actual_title AS lesson_title,
+                       l1.actual_content AS lesson_content,
+                       l1.attachment_file_path AS lesson_attachment_file_path
+                FROM lessons l1
+                INNER JOIN (
+                    SELECT schedule_id, MAX(id) AS latest_lesson_id
+                    FROM lessons
+                    WHERE schedule_id IS NOT NULL
+                    GROUP BY schedule_id
+                ) latest_lesson ON latest_lesson.latest_lesson_id = l1.id
             ) l ON l.schedule_id = s.id
             WHERE cs.student_id = :student_id
             ORDER BY s.study_date ASC, s.start_time ASC, c.class_name ASC, s.id ASC";

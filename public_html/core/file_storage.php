@@ -542,7 +542,7 @@ function app_direct_upload_presets(): array
 		'teacher_intro_video' => [
 			'prefix' => 'teacher-video',
 			'subdir' => 'users/teacher-videos',
-			'max_bytes' => 64 * 1024 * 1024,
+			'max_bytes' => 0,
 			'extensions' => ['mp4', 'mov', 'webm'],
 			'mime_prefixes' => ['video/'],
 		],

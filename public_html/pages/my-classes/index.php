@@ -292,8 +292,10 @@ $pagedClasses = array_slice($myClasses, $classOffset, $classPerPage);
 		<?php $notifyShowTestButtons = false; require __DIR__ . '/../notification/notification.php'; ?>
 	</div>
 
-	<div id="homework-modal" class="fixed inset-0 z-[60] hidden items-center justify-center bg-slate-950/60 px-4 py-6 backdrop-blur-sm rounded-[3.5rem]">
-		<div class="w-full max-w-2xl overflow-hidden rounded-[3.5rem] bg-white shadow-2xl">
+	<div id="homework-modal" class="fixed inset-0 z-[10000] hidden" role="dialog" aria-modal="true">
+		<div class="absolute inset-0 bg-slate-950/60 backdrop-blur-sm" data-homework-backdrop="1"></div>
+		<div class="relative z-10 flex min-h-full items-center justify-center px-4 py-4 sm:px-6 sm:py-6" data-homework-shell="1">
+		<div class="relative isolate flex w-full max-w-2xl flex-col overflow-hidden rounded-[2rem] bg-white shadow-2xl max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-5rem)]">
 			<div class="flex items-start justify-between gap-4 border-b border-slate-100 px-6 py-5">
 				<div>
 					<p class="text-xs font-black uppercase tracking-[0.3em] text-blue-400"><?= e(t('my_classes.submit_homework')); ?></p>
@@ -304,49 +306,55 @@ $pagedClasses = array_slice($myClasses, $classOffset, $classPerPage);
 				</button>
 			</div>
 
-			<form class="space-y-5 px-6 py-6" method="post" action="<?= e('/api/index.php?resource=assignments&method=submit'); ?>" enctype="multipart/form-data">
+			<form class="min-h-0 flex flex-1 flex-col overflow-hidden" method="post" action="<?= e('/api/index.php?resource=assignments&method=submit'); ?>" enctype="multipart/form-data">
 				<?= csrf_input(); ?>
 				<input type="hidden" name="redirect_to" value="<?= e(page_url('classes-my')); ?>">
 				<input type="hidden" name="assignment_id" id="homework-assignment-id" value="">
 				<input type="hidden" name="uploaded_submission_url" id="homework-uploaded-submission-url" value="">
-				<div class="grid gap-5 md:grid-cols-2">
-					<div>
-						<label class="mb-2 block text-sm font-bold text-slate-700"><?= e(t('my_classes.class')); ?></label>
-						<input type="hidden" name="class_name" id="homework-class-name" value="">
-						<input type="text" id="homework-class-display" value="" placeholder="<?= e(t('my_classes.selected_class')); ?>" disabled class="w-full rounded-2xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-500 outline-none transition cursor-not-allowed">
+				<div class="min-h-0 flex-1 overflow-y-auto px-6 py-6">
+					<div class="space-y-5">
+						<div class="grid gap-5 md:grid-cols-2">
+							<div>
+								<label class="mb-2 block text-sm font-bold text-slate-700"><?= e(t('my_classes.class')); ?></label>
+								<input type="hidden" name="class_name" id="homework-class-name" value="">
+								<input type="text" id="homework-class-display" value="" placeholder="<?= e(t('my_classes.selected_class')); ?>" disabled class="w-full rounded-2xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-500 outline-none transition cursor-not-allowed">
+							</div>
+							<div>
+								<label class="mb-2 block text-sm font-bold text-slate-700">Deadline</label>
+								<input type="hidden" name="assignment_deadline" id="homework-deadline" value="">
+								<input type="text" id="homework-deadline-display" placeholder="<?= e(t('my_classes.deadline_placeholder')); ?>" disabled class="w-full rounded-2xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-500 outline-none transition cursor-not-allowed">
+							</div>
+						</div>
+
+						<div>
+							<label class="mb-2 block text-sm font-bold text-slate-700"><?= e(t('my_classes.assignment_name')); ?></label>
+							<input type="hidden" name="assignment_title" id="homework-assignment-title" value="">
+							<input type="text" id="homework-assignment-title-display" placeholder="<?= e(t('my_classes.assignment_placeholder')); ?>" disabled class="w-full rounded-2xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-500 outline-none transition cursor-not-allowed">
+						</div>
+
+						<div>
+							<label class="mb-2 block text-sm font-bold text-slate-700"><?= e(t('my_classes.note')); ?></label>
+							<input type="hidden" name="note" id="homework-note" value="">
+							<textarea id="homework-note-display" rows="4" placeholder="<?= e(t('my_classes.note_placeholder')); ?>" disabled class="w-full rounded-2xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-500 outline-none transition cursor-not-allowed"></textarea>
+						</div>
+
+						<div>
+							<label class="mb-2 block text-sm font-bold text-slate-700"><?= e(t('my_classes.homework_file')); ?></label>
+							<div class="rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 px-4 py-5 transition hover:border-blue-300 hover:bg-blue-50/40">
+								<input type="file" name="submission_file" id="homework-file" accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png,.mp4,.mov,.webm" class="block w-full text-sm text-slate-600 file:mr-4 file:rounded-xl file:border-0 file:bg-slate-800 file:px-4 file:py-2 file:text-sm file:font-bold file:text-white hover:file:bg-blue-600">
+								<p id="homework-upload-status" class="mt-3 text-xs text-slate-500"><?= e(t('my_classes.accepted_files')); ?></p>
+							</div>
+						</div>
 					</div>
-					<div>
-						<label class="mb-2 block text-sm font-bold text-slate-700">Deadline</label>
-						<input type="hidden" name="assignment_deadline" id="homework-deadline" value="">
-						<input type="text" id="homework-deadline-display" placeholder="<?= e(t('my_classes.deadline_placeholder')); ?>" disabled class="w-full rounded-2xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-500 outline-none transition cursor-not-allowed">
+				</div>
+				<div class="shrink-0 border-t border-slate-100 px-6 py-4">
+					<div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+						<button type="button" class="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-600 transition hover:bg-slate-50" data-homework-close="1"><?= e(t('my_classes.close')); ?></button>
+						<button type="submit" class="rounded-2xl bg-blue-600 px-6 py-3 text-sm font-black text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700"><?= e(t('my_classes.submit_homework')); ?></button>
 					</div>
-				</div>
-
-				<div>
-					<label class="mb-2 block text-sm font-bold text-slate-700"><?= e(t('my_classes.assignment_name')); ?></label>
-					<input type="hidden" name="assignment_title" id="homework-assignment-title" value="">
-					<input type="text" id="homework-assignment-title-display" placeholder="<?= e(t('my_classes.assignment_placeholder')); ?>" disabled class="w-full rounded-2xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-500 outline-none transition cursor-not-allowed">
-				</div>
-
-				<div>
-					<label class="mb-2 block text-sm font-bold text-slate-700"><?= e(t('my_classes.note')); ?></label>
-					<input type="hidden" name="note" id="homework-note" value="">
-					<textarea id="homework-note-display" rows="4" placeholder="<?= e(t('my_classes.note_placeholder')); ?>" disabled class="w-full rounded-2xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-500 outline-none transition cursor-not-allowed"></textarea>
-				</div>
-
-				<div>
-					<label class="mb-2 block text-sm font-bold text-slate-700"><?= e(t('my_classes.homework_file')); ?></label>
-					<div class="rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 px-4 py-5 transition hover:border-blue-300 hover:bg-blue-50/40">
-						<input type="file" name="submission_file" id="homework-file" accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png,.mp4,.mov,.webm" class="block w-full text-sm text-slate-600 file:mr-4 file:rounded-xl file:border-0 file:bg-slate-800 file:px-4 file:py-2 file:text-sm file:font-bold file:text-white hover:file:bg-blue-600">
-						<p id="homework-upload-status" class="mt-3 text-xs text-slate-500"><?= e(t('my_classes.accepted_files')); ?></p>
-					</div>
-				</div>
-
-				<div class="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">
-					<button type="button" class="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-600 transition hover:bg-slate-50" data-homework-close="1"><?= e(t('my_classes.close')); ?></button>
-					<button type="submit" class="rounded-2xl bg-blue-600 px-6 py-3 text-sm font-black text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700"><?= e(t('my_classes.submit_homework')); ?></button>
 				</div>
 			</form>
+		</div>
 		</div>
 	</div>
 
@@ -475,14 +483,14 @@ $pagedClasses = array_slice($myClasses, $classOffset, $classPerPage);
 				}
 				setUploadStatus(<?= json_encode(t('my_classes.accepted_files'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>);
 				modal.classList.remove('hidden');
-				modal.classList.add('flex');
 				document.body.classList.add('overflow-hidden');
+				document.documentElement.classList.add('overflow-hidden');
 			}
 
 			function closeModal() {
 				modal.classList.add('hidden');
-				modal.classList.remove('flex');
 				document.body.classList.remove('overflow-hidden');
+				document.documentElement.classList.remove('overflow-hidden');
 			}
 
 			async function submitHomework(event) {
@@ -518,12 +526,11 @@ $pagedClasses = array_slice($myClasses, $classOffset, $classPerPage);
 							setUploadStatus('Đã tải bài làm xong. Đang gửi bài nộp...');
 						} catch (error) {
 							uploadedSubmissionUrlInput.value = '';
-							if (isVideoFile(file)) {
-								setUploadStatus('Video bài làm chưa được tải lên. Vui lòng thử lại.');
-								return;
-							}
-
-							setUploadStatus('Không thể tải file lên lúc này. Hệ thống sẽ tiếp tục gửi bài làm theo cách thông thường.');
+							setUploadStatus(
+								isVideoFile(file)
+									? 'Không thể tải video lên bằng chế độ trực tiếp. Hệ thống sẽ chuyển sang nộp file thông thường.'
+									: 'Không thể tải file lên lúc này. Hệ thống sẽ tiếp tục gửi bài làm theo cách thông thường.'
+							);
 						} finally {
 							isDirectUploading = false;
 						}
@@ -579,7 +586,11 @@ $pagedClasses = array_slice($myClasses, $classOffset, $classPerPage);
 			}
 
 			modal.addEventListener('click', function (event) {
-				if (event.target === modal) {
+				const clickTarget = event.target;
+				if (
+					clickTarget instanceof HTMLElement
+					&& (clickTarget.matches('[data-homework-backdrop="1"]') || clickTarget.matches('[data-homework-shell="1"]'))
+				) {
 					closeModal();
 				}
 			});

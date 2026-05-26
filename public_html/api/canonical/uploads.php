@@ -17,10 +17,41 @@ function api_uploads_direct_sign_action(): void
 	$contentType = trim((string) ($_POST['content_type'] ?? ''));
 	$fileSize = max(0, (int) ($_POST['file_size'] ?? 0));
 
-	$spec = app_direct_upload_build_spec($preset, $filename, $contentType, $fileSize);
+	try {
+		$spec = app_direct_upload_build_spec($preset, $filename, $contentType, $fileSize);
+	} catch (Throwable $exception) {
+		app_log('error', 'Direct upload spec generation failed', [
+			'preset' => $preset,
+			'filename' => $filename,
+			'content_type' => $contentType,
+			'file_size' => $fileSize,
+			'error' => $exception->getMessage(),
+			'file' => $exception->getFile(),
+			'line' => $exception->getLine(),
+			'user_id' => (int) ((auth_user()['id'] ?? 0)),
+		]);
+
+		api_error('Không thể chuẩn bị tải file lên lúc này. Vui lòng thử lại.', [
+			'code' => 'DIRECT_UPLOAD_EXCEPTION',
+		], 500);
+	}
+
 	if ($spec === null) {
+		$storageError = app_file_storage_last_error_message();
+		$storageContext = app_file_storage_last_error_context();
+		app_log('error', 'Direct upload prepare failed', [
+			'preset' => $preset,
+			'filename' => $filename,
+			'content_type' => $contentType,
+			'file_size' => $fileSize,
+			'storage_error' => $storageError,
+			'storage_context' => $storageContext,
+			'user_id' => (int) ((auth_user()['id'] ?? 0)),
+		]);
+
 		api_error('Không thể tải file lên lúc này. Vui lòng thử lại.', [
 			'code' => 'DIRECT_UPLOAD_PREPARE_FAILED',
+			'storage_error' => $storageError,
 		], 422);
 	}
 

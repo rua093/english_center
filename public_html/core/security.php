@@ -51,6 +51,11 @@ function request_csrf_token(): string
 		return $token;
 	}
 
+	$legacyPostToken = (string) ($_POST['_token'] ?? '');
+	if ($legacyPostToken !== '') {
+		return $legacyPostToken;
+	}
+
 	$headerToken = (string) ($_SERVER['HTTP_X_CSRF_TOKEN'] ?? '');
 	if ($headerToken !== '') {
 		return $headerToken;
