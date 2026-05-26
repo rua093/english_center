@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../../core/api_helpers.php';
+require_once __DIR__ . '/../../core/file_storage.php';
 require_once __DIR__ . '/../../models/AdminModel.php';
 
 function api_applications_extract_email(string $value): string
@@ -205,7 +206,12 @@ function api_applications_delete_action(): void
     }
 
     try {
-        (new AdminModel())->deleteJobApplication($applicationId);
+        $adminModel = new AdminModel();
+        $application = $adminModel->findJobApplication($applicationId);
+        $adminModel->deleteJobApplication($applicationId);
+        if (is_array($application)) {
+            app_delete_uploaded_file_by_url((string) ($application['cv_file_url'] ?? ''));
+        }
         set_flash('success', 'Đã xóa hồ sơ ứng tuyển.');
     } catch (Throwable $exception) {
         set_flash('error', 'Không thể xóa hồ sơ ứng tuyển này.');

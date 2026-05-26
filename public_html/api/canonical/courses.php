@@ -28,6 +28,8 @@ function api_courses_save_action(): void
 
     $courseId = input_int($_POST, 'id');
     api_guard_permission($courseId > 0 ? 'academic.courses.update' : 'academic.courses.create');
+    $academicModel = new AcademicModel();
+    $existingCourse = $courseId > 0 ? $academicModel->findCourse($courseId) : null;
 
     $courseName = input_string($_POST, 'course_name');
     $basePrice = max(0, input_float($_POST, 'base_price'));
@@ -82,7 +84,7 @@ function api_courses_save_action(): void
         $thumbnailPath = $storedPath;
     }
 
-    (new AcademicModel())->saveCourse([
+    $academicModel->saveCourse([
         'id' => $courseId,
         'course_name' => $courseName,
         'description' => $description,
@@ -90,6 +92,10 @@ function api_courses_save_action(): void
         'total_sessions' => $totalSessions,
         'image_thumbnail' => $thumbnailPath,
     ]);
+
+    if (is_array($existingCourse)) {
+        app_cleanup_replaced_uploaded_file((string) ($existingCourse['image_thumbnail'] ?? ''), $thumbnailPath);
+    }
 
     set_flash('success', $courseId > 0 ? 'Đã cập nhật khóa học.' : 'Đã tạo khóa học mới.');
     redirect($redirectPath);
@@ -117,7 +123,12 @@ function api_courses_delete_action(): void
     }
 
     try {
-        (new AcademicModel())->deleteCourse($courseId);
+        $academicModel = new AcademicModel();
+        $course = $academicModel->findCourse($courseId);
+        $academicModel->deleteCourse($courseId);
+        if (is_array($course)) {
+            app_delete_uploaded_file_by_url((string) ($course['image_thumbnail'] ?? ''));
+        }
         set_flash('success', 'Đã chuyển khóa học vào trạng thái xóa mềm.');
     } catch (Throwable) {
         set_flash('error', 'Không thể xóa khóa học. Dữ liệu có thể đang được tham chiếu bởi lớp học hoặc lộ trình.');

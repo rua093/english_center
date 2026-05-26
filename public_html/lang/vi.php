@@ -718,6 +718,8 @@ return [
 	'my_classes.deadline_placeholder' => 'Ví dụ: 20/05/2026',
 	'my_classes.assignment_placeholder' => 'Nhập tên bài tập',
 	'my_classes.note' => 'Ghi chú',
+	'my_classes.teacher_comment' => 'Nhận xét giáo viên',
+	'my_classes.no_teacher_comment' => 'Chưa có nhận xét từ giáo viên.',
 	'my_classes.note_placeholder' => 'Ghi chú thêm cho giáo viên nếu cần',
 	'my_classes.homework_file' => 'File bài làm',
 	'my_classes.accepted_files' => 'Chấp nhận: PDF, DOC, DOCX, PPT, PPTX, JPG, PNG, MP4, MOV, WEBM.',

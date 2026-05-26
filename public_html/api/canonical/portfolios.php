@@ -57,6 +57,9 @@ function api_portfolios_save_action(): void
 
 	$_POST['media_url'] = $uploadPath;
 	$academicModel->savePortfolio($_POST);
+	if (is_array($existing)) {
+		app_cleanup_replaced_uploaded_file((string) ($existing['media_url'] ?? ''), $uploadPath);
+	}
 	set_flash('success', 'Đã lưu hồ sơ tiến bộ thành công.');
 
 	redirect(page_url('portfolios-academic'));
@@ -83,7 +86,12 @@ function api_portfolios_delete_action(): void
 	$portfolioId = (int) ($_GET['id'] ?? 0);
 
 	try {
-		(new AcademicModel())->deletePortfolio($portfolioId);
+		$academicModel = new AcademicModel();
+		$existing = $academicModel->findPortfolio($portfolioId);
+		$academicModel->deletePortfolio($portfolioId);
+		if (is_array($existing)) {
+			app_delete_uploaded_file_by_url((string) ($existing['media_url'] ?? ''));
+		}
 		set_flash('success', 'Đã xóa hồ sơ tiến bộ.');
 	} catch (Throwable) {
 		set_flash('error', 'Không thể xóa hồ sơ tiến bộ. Vui lòng thử lại.');

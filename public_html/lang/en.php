@@ -718,6 +718,8 @@ return [
 	'my_classes.deadline_placeholder' => 'Example: 20/05/2026',
 	'my_classes.assignment_placeholder' => 'Enter assignment name',
 	'my_classes.note' => 'Note',
+	'my_classes.teacher_comment' => 'Teacher comment',
+	'my_classes.no_teacher_comment' => 'No teacher comment yet.',
 	'my_classes.note_placeholder' => 'Add a note for the teacher if needed',
 	'my_classes.homework_file' => 'Homework file',
 	'my_classes.accepted_files' => 'Accepted: PDF, DOC, DOCX, PPT, PPTX, JPG, PNG, MP4, MOV, WEBM.',

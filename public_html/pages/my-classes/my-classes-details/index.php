@@ -481,6 +481,8 @@ foreach ($examRows as $examRow) {
                                             data-homework-deadline="<?= e((string) ($hw['deadline_raw'] ?? '')); ?>"
                                             data-homework-note="<?= e((string) ($hw['note'] ?? '')); ?>"
                                             data-homework-file-url="<?= e(normalize_public_file_url((string) ($hw['file_url'] ?? ''))); ?>"
+                                            data-homework-score="<?= e((string) ($hw['score'] ?? '--')); ?>"
+                                            data-homework-comment="<?= e((string) ($hw['teacher_comment'] ?? '')); ?>"
                                             data-homework-can-submit="<?= (!empty($hw['can_submit']) || !empty($hw['can_resubmit'])) ? '1' : '0'; ?>"
                                             data-homework-submit-label="<?= e(!empty($hw['can_resubmit']) ? t('my_classes.resubmit') : t('my_classes.submit_homework')); ?>"
                                             data-homework-empty="0"
@@ -504,6 +506,8 @@ foreach ($examRows as $examRow) {
                                                 data-homework-deadline="<?= e((string) ($hw['deadline_raw'] ?? '')); ?>"
                                                 data-homework-note="<?= e((string) ($hw['note'] ?? '')); ?>"
                                                 data-homework-file-url="<?= e(normalize_public_file_url((string) ($hw['file_url'] ?? ''))); ?>"
+                                                data-homework-score="<?= e((string) ($hw['score'] ?? '--')); ?>"
+                                                data-homework-comment="<?= e((string) ($hw['teacher_comment'] ?? '')); ?>"
                                                 data-homework-can-submit="1"
                                                 data-homework-submit-label="<?= e(!empty($hw['can_resubmit']) ? t('my_classes.resubmit') : t('my_classes.submit_homework')); ?>"
                                                 data-homework-empty="0"
@@ -511,18 +515,13 @@ foreach ($examRows as $examRow) {
                                                 <?= e(!empty($hw['can_resubmit']) ? t('my_classes.resubmit') : t('my_classes.submit_homework')); ?>
                                             </button>
                                         <?php else: ?>
-                                            <span class="inline-flex max-w-[120px] items-center justify-center rounded-xl border border-slate-200 bg-slate-100 px-3 py-2 text-[11px] font-black uppercase tracking-widest text-slate-400 text-center leading-tight">
+                                            <span class="inline-flex w-full items-center justify-center rounded-2xl border border-slate-200 bg-slate-100 px-4 py-3 text-[11px] font-black uppercase tracking-[0.18em] text-slate-400 text-center leading-tight">
                                                 <?= e(t('my_classes.expired')); ?>
                                             </span>
                                         <?php endif; ?>
                                     </div>
                                 </div>
 
-                                <?php if (!empty($hw['teacher_comment'])): ?>
-                                    <p class="mt-3 rounded-xl bg-slate-50 px-3 py-2 text-[11px] leading-relaxed text-slate-500">
-                                        <?= e($hw['teacher_comment']) ?>
-                                    </p>
-                                <?php endif; ?>
                             </article>
                         <?php endforeach; ?>
                     <?php endif; ?>
@@ -589,14 +588,7 @@ foreach ($examRows as $examRow) {
                             </td>
                             <td class="align-top">
                                 <?php if($hw['score'] !== '--'): ?>
-                                    <div class="space-y-1">
-                                        <span class="font-black text-lg <?= (float) $hw['score'] >= 5.0 ? 'text-emerald-600' : 'text-rose-600' ?>"><?= e($hw['score']) ?></span>
-                                        <?php if (!empty($hw['teacher_comment'])): ?>
-                                            <p class="whitespace-normal break-words text-[11px] leading-relaxed text-slate-500">
-                                                <?= e($hw['teacher_comment']) ?>
-                                            </p>
-                                        <?php endif; ?>
-                                    </div>
+                                    <span class="font-black text-lg <?= (float) $hw['score'] >= 5.0 ? 'text-emerald-600' : 'text-rose-600' ?>"><?= e($hw['score']) ?></span>
                                 <?php else: ?>
                                     <span class="text-slate-300 font-black">--</span>
                                 <?php endif; ?>
@@ -613,6 +605,8 @@ foreach ($examRows as $examRow) {
                                         data-homework-deadline="<?= e((string) ($hw['deadline_raw'] ?? '')); ?>"
                                         data-homework-note="<?= e((string) ($hw['note'] ?? '')); ?>"
                                         data-homework-file-url="<?= e(normalize_public_file_url((string) ($hw['file_url'] ?? ''))); ?>"
+                                        data-homework-score="<?= e((string) ($hw['score'] ?? '--')); ?>"
+                                        data-homework-comment="<?= e((string) ($hw['teacher_comment'] ?? '')); ?>"
                                         data-homework-can-submit="<?= (!empty($hw['can_submit']) || !empty($hw['can_resubmit'])) ? '1' : '0'; ?>"
                                         data-homework-submit-label="<?= e(!empty($hw['can_resubmit']) ? t('my_classes.resubmit') : t('my_classes.submit_homework')); ?>"
                                         data-homework-empty="0"
@@ -636,6 +630,8 @@ foreach ($examRows as $examRow) {
                                             data-homework-deadline="<?= e((string) ($hw['deadline_raw'] ?? '')); ?>"
                                             data-homework-note="<?= e((string) ($hw['note'] ?? '')); ?>"
                                             data-homework-file-url="<?= e(normalize_public_file_url((string) ($hw['file_url'] ?? ''))); ?>"
+                                            data-homework-score="<?= e((string) ($hw['score'] ?? '--')); ?>"
+                                            data-homework-comment="<?= e((string) ($hw['teacher_comment'] ?? '')); ?>"
                                             data-homework-can-submit="1"
                                             data-homework-submit-label="<?= e(!empty($hw['can_resubmit']) ? t('my_classes.resubmit') : t('my_classes.submit_homework')); ?>"
                                             data-homework-empty="0"
@@ -643,7 +639,7 @@ foreach ($examRows as $examRow) {
                                             <?= e(!empty($hw['can_resubmit']) ? t('my_classes.resubmit') : t('my_classes.submit_homework')); ?>
                                         </button>
                                     <?php else: ?>
-                                        <span class="group relative inline-flex max-w-[110px] items-center justify-center rounded-xl border border-slate-200 bg-slate-100 px-3 py-2 text-[11px] font-black uppercase tracking-widest text-slate-400 whitespace-normal text-center leading-tight cursor-not-allowed" <?= !empty($hw['disabled_reason']) ? 'title="' . e((string) $hw['disabled_reason']) . '"' : 'title="' . e(t('my_classes.expired_no_submit')) . '"'; ?>>
+                                        <span class="group relative inline-flex w-full items-center justify-center rounded-2xl border border-slate-200 bg-slate-100 px-3 py-3 text-[10px] font-black uppercase tracking-[0.12em] text-slate-400 whitespace-normal text-center leading-tight cursor-not-allowed" <?= !empty($hw['disabled_reason']) ? 'title="' . e((string) $hw['disabled_reason']) . '"' : 'title="' . e(t('my_classes.expired_no_submit')) . '"'; ?>>
                                             <?= e(t('my_classes.expired')); ?>
                                             <span class="pointer-events-none absolute left-1/2 top-full z-[9999] mt-2 w-max max-w-[240px] -translate-x-1/2 rounded-xl bg-slate-900 px-3 py-2 text-[11px] font-semibold leading-tight text-white opacity-0 shadow-2xl transition group-hover:opacity-100">
                                                 <?= e((string) ($hw['disabled_reason'] ?: t('my_classes.expired_no_submit'))); ?>
@@ -784,6 +780,17 @@ foreach ($examRows as $examRow) {
                             <div id="homework-detail-note-display" class="min-h-[140px] rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold leading-relaxed text-slate-600"></div>
                         </div>
 
+                        <div class="grid gap-5 md:grid-cols-[180px_minmax(0,1fr)]">
+                            <div>
+                                <label class="mb-2 block text-sm font-bold text-slate-700"><?= e(t('my_classes.score')); ?></label>
+                                <div id="homework-detail-score-display" class="flex min-h-[88px] items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-3xl font-black text-slate-300">--</div>
+                            </div>
+                            <div>
+                                <label class="mb-2 block text-sm font-bold text-slate-700"><?= e(t('my_classes.teacher_comment')); ?></label>
+                                <div id="homework-detail-comment-display" class="min-h-[88px] rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold leading-relaxed text-slate-600"></div>
+                            </div>
+                        </div>
+
                         <div id="homework-detail-file-shell" class="rounded-2xl border border-slate-200 bg-blue-50 px-4 py-4 text-sm font-semibold text-slate-600"></div>
                     </div>
                 </div>
@@ -874,6 +881,7 @@ foreach ($examRows as $examRow) {
                     newAssignmentListNotFound: <?= json_encode(t('my_classes.new_assignment_list_not_found'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
                     acceptedFiles: <?= json_encode(t('my_classes.accepted_files'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
                     noAssignmentNote: <?= json_encode(t('my_classes.no_assignment_note'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
+                    noTeacherComment: <?= json_encode(t('my_classes.no_teacher_comment'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
                     noAssignmentFile: <?= json_encode(t('my_classes.no_assignment_file'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
                     downloadAssignmentFile: <?= json_encode(t('my_classes.download_assignment_file'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
                     submitHomework: <?= json_encode(t('my_classes.submit_homework'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>
@@ -902,6 +910,8 @@ foreach ($examRows as $examRow) {
                 const detailAssignmentDisplay = document.getElementById('homework-detail-assignment-display');
                 const detailDeadlineDisplay = document.getElementById('homework-detail-deadline-display');
                 const detailNoteDisplay = document.getElementById('homework-detail-note-display');
+                const detailScoreDisplay = document.getElementById('homework-detail-score-display');
+                const detailCommentDisplay = document.getElementById('homework-detail-comment-display');
                 const detailFileShell = document.getElementById('homework-detail-file-shell');
                 const detailSubmitButton = document.getElementById('homework-detail-submit-button');
                 const fileInput = document.getElementById('homework-file');
@@ -921,6 +931,16 @@ foreach ($examRows as $examRow) {
                     if (uploadStatus instanceof HTMLElement) {
                         uploadStatus.textContent = message;
                     }
+                }
+
+                function updateSelectedFileLabel() {
+                    const file = fileInput && fileInput.files && fileInput.files[0] ? fileInput.files[0] : null;
+                    if (!file) {
+                        setUploadStatus(myClassesI18n.acceptedFiles);
+                        return;
+                    }
+
+                    setUploadStatus('Đã chọn file: ' + file.name);
                 }
 
                 function isVideoFile(file) {
@@ -1030,6 +1050,18 @@ foreach ($examRows as $examRow) {
                     }
                     if (detailNoteDisplay) {
                         detailNoteDisplay.textContent = button.dataset.homeworkNote || myClassesI18n.noAssignmentNote;
+                    }
+                    if (detailScoreDisplay) {
+                        const scoreValue = String(button.dataset.homeworkScore || '--').trim();
+                        detailScoreDisplay.textContent = scoreValue !== '' ? scoreValue : '--';
+                        detailScoreDisplay.className = 'flex min-h-[88px] items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-3xl font-black ' + (
+                            scoreValue !== '--'
+                                ? (Number.parseFloat(scoreValue) >= 5 ? 'text-emerald-600' : 'text-rose-600')
+                                : 'text-slate-300'
+                        );
+                    }
+                    if (detailCommentDisplay) {
+                        detailCommentDisplay.textContent = button.dataset.homeworkComment || myClassesI18n.noTeacherComment;
                     }
                     if (detailFileShell) {
                         const fileUrl = String(button.dataset.homeworkFileUrl || '').trim();
@@ -1314,6 +1346,10 @@ foreach ($examRows as $examRow) {
 
                 if (homeworkForm instanceof HTMLFormElement) {
                     homeworkForm.addEventListener('submit', submitHomework);
+                }
+
+                if (fileInput instanceof HTMLInputElement) {
+                    fileInput.addEventListener('change', updateSelectedFileLabel);
                 }
 
                 modal.addEventListener('click', function (event) {

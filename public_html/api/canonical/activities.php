@@ -14,6 +14,8 @@ function api_activities_save_action(): void
 
 	$activityId = input_int($_POST, 'id');
 	api_guard_permission($activityId > 0 ? 'activity.update' : 'activity.create');
+	$academicModel = new AcademicModel();
+	$existingActivity = $activityId > 0 ? $academicModel->findActivity($activityId) : null;
 
 	$payload = $_POST;
 	$payload['id'] = $activityId;
@@ -43,7 +45,10 @@ function api_activities_save_action(): void
 
 	$payload['image_thumbnail'] = $thumbnailPath;
 
-	(new AcademicModel())->saveActivity($payload);
+	$academicModel->saveActivity($payload);
+	if (is_array($existingActivity)) {
+		app_cleanup_replaced_uploaded_file((string) ($existingActivity['image_thumbnail'] ?? ''), $thumbnailPath);
+	}
 	set_flash('success', 'Đã lưu hoạt động ngoại khóa thành công.');
 
 	redirect(page_url('activities-manage'));
@@ -55,7 +60,12 @@ function api_activities_delete_action(): void
 	api_require_post(page_url('activities-manage'));
 
 	try {
-		(new AcademicModel())->deleteActivity((int) ($_GET['id'] ?? 0));
+		$academicModel = new AcademicModel();
+		$activity = $academicModel->findActivity((int) ($_GET['id'] ?? 0));
+		$academicModel->deleteActivity((int) ($_GET['id'] ?? 0));
+		if (is_array($activity)) {
+			app_delete_uploaded_file_by_url((string) ($activity['image_thumbnail'] ?? ''));
+		}
 		set_flash('success', 'Đã chuyển hoạt động ngoại khóa vào trạng thái xóa mềm.');
 	} catch (Throwable) {
 		set_flash('error', 'Không thể xóa hoạt động ngoại khóa. Vui lòng thử lại.');

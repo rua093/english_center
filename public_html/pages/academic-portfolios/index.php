@@ -95,14 +95,15 @@ $editingPortfolioMediaPath = normalize_public_file_url((string) ($editingPortfol
                 <?= e(t('admin.portfolios.upload_media')); ?>
                 <input id="portfolioFileInput" type="file" name="portfolio_file" accept=".jpg,.jpeg,.png,.mp4,.mov,.webm" data-direct-upload-preset="portfolio_media" <?= $editingPortfolio ? '' : 'required'; ?>>
             </label>
-            <p id="portfolioUploadStatus" class="text-xs text-slate-500">Ảnh hoặc video sẽ được tải lên khi bạn chọn file.</p>
+            <div id="portfolioUploadStatus" class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-semibold leading-relaxed text-slate-700">Ảnh hoặc video sẽ được tải lên khi bạn chọn file.</div>
 
             <?php if ($editingPortfolioMediaPath !== ''): ?>
-                <p class="text-xs text-slate-500">
+                <div class="rounded-xl border border-blue-200 bg-blue-50/70 px-3 py-2.5 text-sm font-medium leading-relaxed text-slate-700">
                     <?= e(t('admin.portfolios.current_file')); ?>:
+                    <span class="font-semibold text-slate-800"><?= e(basename(parse_url($editingPortfolioMediaPath, PHP_URL_PATH) ?: $editingPortfolioMediaPath)); ?></span>.
                     <a class="font-semibold text-blue-700 hover:underline" href="<?= e($editingPortfolioMediaPath); ?>" target="_blank" rel="noopener noreferrer"><?= e(t('admin.portfolios.open_file')); ?></a>.
                     <?= e(t('admin.assignment_edit.replace_hint')); ?>
-                </p>
+                </div>
             <?php endif; ?>
 
             <label>
@@ -390,7 +391,7 @@ $editingPortfolioMediaPath = normalize_public_file_url((string) ($editingPortfol
         const file = fileInput.files[0];
         uploadedUrlField.value = '';
         setUploadingState(true);
-        status.textContent = 'Đang tải file lên...';
+        status.textContent = 'Đã chọn file: ' + file.name + '. Đang tải file lên...';
 
         try {
             const spec = await requestDirectUpload(file, fileInput.dataset.directUploadPreset || 'portfolio_media');
@@ -407,12 +408,12 @@ $editingPortfolioMediaPath = normalize_public_file_url((string) ($editingPortfol
             uploadedUrlField.value = spec.public_url || '';
             fileInput.required = false;
             fileInput.value = '';
-            status.textContent = 'Đã tải file xong. Bạn có thể lưu hồ sơ tiến bộ.';
+            status.textContent = 'Đã tải file xong: ' + file.name + '.';
         } catch (error) {
             uploadedUrlField.value = '';
             status.textContent = isVideoFile(file)
                 ? 'Video chưa được tải lên. Vui lòng thử lại.'
-                : 'Không thể tải file lên lúc này. Bạn vẫn có thể lưu theo cách thông thường.';
+                : 'Đã chọn file: ' + file.name + '. Không thể tải file lên lúc này. Bạn vẫn có thể lưu theo cách thông thường.';
         } finally {
             setUploadingState(false);
         }

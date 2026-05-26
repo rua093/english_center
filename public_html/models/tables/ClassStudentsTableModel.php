@@ -178,28 +178,33 @@ final class ClassStudentsTableModel
                 COALESCE(r.room_name, 'Online') AS room_name,
                 u.full_name AS teacher_name,
                 tp.teacher_code,
-                COALESCE(l.lesson_title, '') AS lesson_title,
-                COALESCE(l.lesson_content, '') AS lesson_content,
-                COALESCE(l.lesson_attachment_file_path, '') AS lesson_attachment_file_path
+                COALESCE((
+                    SELECT l1.actual_title
+                    FROM lessons l1
+                    WHERE l1.schedule_id = s.id
+                    ORDER BY l1.id DESC
+                    LIMIT 1
+                ), '') AS lesson_title,
+                COALESCE((
+                    SELECT l1.actual_content
+                    FROM lessons l1
+                    WHERE l1.schedule_id = s.id
+                    ORDER BY l1.id DESC
+                    LIMIT 1
+                ), '') AS lesson_content,
+                COALESCE((
+                    SELECT l1.attachment_file_path
+                    FROM lessons l1
+                    WHERE l1.schedule_id = s.id
+                    ORDER BY l1.id DESC
+                    LIMIT 1
+                ), '') AS lesson_attachment_file_path
             FROM class_students cs
             INNER JOIN classes c ON c.id = cs.class_id
             INNER JOIN schedules s ON s.class_id = c.id
             INNER JOIN users u ON u.id = s.teacher_id
             LEFT JOIN teacher_profiles tp ON tp.user_id = u.id
             LEFT JOIN rooms r ON r.id = s.room_id AND r.deleted_at IS NULL
-            LEFT JOIN (
-                SELECT l1.schedule_id,
-                       l1.actual_title AS lesson_title,
-                       l1.actual_content AS lesson_content,
-                       l1.attachment_file_path AS lesson_attachment_file_path
-                FROM lessons l1
-                INNER JOIN (
-                    SELECT schedule_id, MAX(id) AS latest_lesson_id
-                    FROM lessons
-                    WHERE schedule_id IS NOT NULL
-                    GROUP BY schedule_id
-                ) latest_lesson ON latest_lesson.latest_lesson_id = l1.id
-            ) l ON l.schedule_id = s.id
             WHERE cs.student_id = :student_id
             ORDER BY s.study_date ASC, s.start_time ASC, c.class_name ASC, s.id ASC";
 

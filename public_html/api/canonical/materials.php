@@ -12,6 +12,8 @@ function api_materials_save_action(): void
 	$materialId = input_int($_POST, 'id');
 	api_guard_permission($materialId > 0 ? 'materials.update' : 'materials.create');
 	$editPath = $materialId > 0 ? page_url('materials-academic-edit', ['id' => $materialId]) : page_url('materials-academic-edit');
+	$academicModel = new AcademicModel();
+	$existingMaterial = $materialId > 0 ? $academicModel->findMaterial($materialId) : null;
 
 	$payload = $_POST;
 
@@ -55,7 +57,10 @@ function api_materials_save_action(): void
 	}
 
 	$payload['file_path'] = $uploadPath;
-	(new AcademicModel())->saveMaterial($payload);
+	$academicModel->saveMaterial($payload);
+	if (is_array($existingMaterial)) {
+		app_cleanup_replaced_uploaded_file((string) ($existingMaterial['file_path'] ?? ''), $uploadPath);
+	}
 	set_flash('success', 'Đã lưu tài liệu thành công.');
 
 	redirect(page_url('materials-academic'));
@@ -73,7 +78,12 @@ function api_materials_delete_action(): void
 	api_require_post(page_url('materials-academic'));
 
 	try {
-		(new AcademicModel())->deleteMaterial((int) ($_GET['id'] ?? 0));
+		$academicModel = new AcademicModel();
+		$material = $academicModel->findMaterial((int) ($_GET['id'] ?? 0));
+		$academicModel->deleteMaterial((int) ($_GET['id'] ?? 0));
+		if (is_array($material)) {
+			app_delete_uploaded_file_by_url((string) ($material['file_path'] ?? ''));
+		}
 		set_flash('success', 'Đã xóa tài liệu.');
 	} catch (Throwable) {
 		set_flash('error', 'Không thể xóa tài liệu. Tài liệu này có thể đang được sử dụng hoặc dữ liệu không hợp lệ.');

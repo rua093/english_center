@@ -397,6 +397,125 @@ function s3_put_object(string $localFilePath, string $objectKey): ?string
 	return s3_object_public_url($objectKey);
 }
 
+function s3_delete_object(string $objectKey): bool
+{
+	if (!s3_is_configured()) {
+		app_file_storage_set_last_error('S3 storage is not fully configured.');
+		return false;
+	}
+
+	if (!function_exists('curl_init')) {
+		app_file_storage_set_last_error('PHP curl extension is not available for S3 deletes.');
+		return false;
+	}
+
+	$endpoint = s3_endpoint();
+	$bucket = s3_bucket();
+	$region = s3_region();
+	$accessKey = s3_access_key();
+	$secretKey = s3_secret_key();
+	$objectKey = s3_normalize_object_key($objectKey);
+	$encodedObjectKey = s3_encode_object_key($objectKey);
+	$payloadHash = hash('sha256', '');
+	$amzDate = gmdate('Ymd\THis\Z');
+	$dateStamp = gmdate('Ymd');
+	$uriPath = s3_use_path_style()
+		? '/' . rawurlencode($bucket) . '/' . $encodedObjectKey
+		: '/' . $encodedObjectKey;
+
+	$parsedEndpoint = parse_url($endpoint);
+	if (!is_array($parsedEndpoint) || empty($parsedEndpoint['scheme']) || empty($parsedEndpoint['host'])) {
+		app_file_storage_set_last_error('S3 endpoint is invalid.', [
+			'endpoint' => $endpoint,
+		]);
+		return false;
+	}
+
+	$host = s3_use_path_style() ? $parsedEndpoint['host'] : $bucket . '.' . $parsedEndpoint['host'];
+	$port = isset($parsedEndpoint['port']) ? ':' . $parsedEndpoint['port'] : '';
+	$basePath = isset($parsedEndpoint['path']) ? rtrim($parsedEndpoint['path'], '/') : '';
+	$requestUrl = $parsedEndpoint['scheme'] . '://' . $host . $port . $basePath . $uriPath;
+	$canonicalUri = ($basePath !== '' ? $basePath : '') . $uriPath;
+	$headersToSign = [
+		'host' => $host . $port,
+		'x-amz-content-sha256' => $payloadHash,
+		'x-amz-date' => $amzDate,
+	];
+
+	$canonicalHeaderParts = s3_build_canonical_headers($headersToSign);
+	$canonicalHeaders = (string) ($canonicalHeaderParts['canonical_headers'] ?? '');
+	$signedHeaders = (string) ($canonicalHeaderParts['signed_headers'] ?? '');
+	$normalizedHeaders = is_array($canonicalHeaderParts['normalized_headers'] ?? null)
+		? $canonicalHeaderParts['normalized_headers']
+		: [];
+	$headers = [];
+	foreach ($normalizedHeaders as $name => $value) {
+		$headers[] = $name . ': ' . $value;
+	}
+
+	$canonicalRequest = implode("\n", [
+		'DELETE',
+		$canonicalUri,
+		'',
+		$canonicalHeaders,
+		$signedHeaders,
+		$payloadHash,
+	]);
+	$credentialScope = $dateStamp . '/' . $region . '/s3/aws4_request';
+	$stringToSign = implode("\n", [
+		'AWS4-HMAC-SHA256',
+		$amzDate,
+		$credentialScope,
+		hash('sha256', $canonicalRequest),
+	]);
+	$signature = hash_hmac(
+		'sha256',
+		$stringToSign,
+		s3_signing_key($secretKey, $dateStamp, $region, 's3')
+	);
+	$headers[] = 'Authorization: AWS4-HMAC-SHA256 Credential=' . $accessKey . '/' . $credentialScope
+		. ', SignedHeaders=' . $signedHeaders
+		. ', Signature=' . $signature;
+
+	$curl = curl_init($requestUrl);
+	if ($curl === false) {
+		app_file_storage_set_last_error('Unable to initialize curl for S3 delete request.');
+		return false;
+	}
+
+	curl_setopt_array($curl, [
+		CURLOPT_CUSTOMREQUEST => 'DELETE',
+		CURLOPT_HTTPHEADER => $headers,
+		CURLOPT_RETURNTRANSFER => true,
+		CURLOPT_HEADER => true,
+		CURLOPT_TIMEOUT => 60,
+		CURLOPT_CONNECTTIMEOUT => 15,
+	]);
+
+	$response = curl_exec($curl);
+	$httpCode = (int) curl_getinfo($curl, CURLINFO_HTTP_CODE);
+	$curlError = curl_error($curl);
+	curl_close($curl);
+
+	if ($response === false || ($httpCode !== 204 && $httpCode !== 200 && $httpCode !== 404)) {
+		$responsePreview = '';
+		if (is_string($response) && $response !== '') {
+			$responsePreview = substr($response, -2000);
+		}
+
+		app_file_storage_set_last_error('S3 delete request failed.', [
+			'http_code' => $httpCode,
+			'curl_error' => $curlError,
+			'request_url' => $requestUrl,
+			'object_key' => $objectKey,
+			'response_preview' => $responsePreview,
+		]);
+		return false;
+	}
+
+	return true;
+}
+
 function s3_generate_object_key(string $prefix, string $originalName, ?string $subdir = null): string
 {
 	$safeOriginalName = basename(trim($originalName));
@@ -791,4 +910,134 @@ function store_uploaded_file(array $file, string $prefix, ?string $subdir = null
 	}
 
 	return $localUrl;
+}
+
+function app_uploaded_file_relative_path_from_public_url(?string $path): ?string
+{
+	$normalized = normalize_public_file_url($path);
+	if ($normalized === '') {
+		return null;
+	}
+
+	$publicBase = rtrim(local_upload_public_base_path(), '/');
+	if ($publicBase === '' || !str_starts_with($normalized, $publicBase . '/')) {
+		return null;
+	}
+
+	$suffix = ltrim(substr($normalized, strlen($publicBase)), '/');
+	if ($suffix === '') {
+		return null;
+	}
+
+	$segments = [];
+	foreach (explode('/', $suffix) as $segment) {
+		$decoded = rawurldecode($segment);
+		if ($decoded === '' || $decoded === '.' || $decoded === '..') {
+			return null;
+		}
+
+		$segments[] = $decoded;
+	}
+
+	return implode('/', $segments);
+}
+
+function s3_object_key_from_public_url(?string $path): ?string
+{
+	$normalized = normalize_public_file_url($path);
+	if ($normalized === '') {
+		return null;
+	}
+
+	$publicBase = rtrim(upload_public_base_path(), '/');
+	if ($publicBase === '' || !str_starts_with($normalized, $publicBase . '/')) {
+		return null;
+	}
+
+	$suffix = ltrim(substr($normalized, strlen($publicBase)), '/');
+	if ($suffix === '') {
+		return null;
+	}
+
+	$segments = [];
+	foreach (explode('/', $suffix) as $segment) {
+		$decoded = rawurldecode($segment);
+		if ($decoded === '' || $decoded === '.' || $decoded === '..') {
+			return null;
+		}
+
+		$segments[] = $decoded;
+	}
+
+	return s3_normalize_object_key(implode('/', $segments));
+}
+
+function app_delete_uploaded_file_by_url(?string $path): bool
+{
+	app_file_storage_clear_last_error();
+
+	$normalized = normalize_public_file_url($path);
+	if ($normalized === '') {
+		return true;
+	}
+
+	if (!is_trusted_uploaded_file_url($normalized)) {
+		app_file_storage_set_last_error('Refusing to delete an untrusted uploaded file URL.', [
+			'path' => $path,
+			'normalized_path' => $normalized,
+		]);
+		return false;
+	}
+
+	$localRelativePath = app_uploaded_file_relative_path_from_public_url($normalized);
+	if ($localRelativePath !== null) {
+		$baseDir = str_replace('\\', '/', rtrim(upload_storage_dir(), '/\\'));
+		$targetPath = str_replace('\\', '/', upload_storage_dir($localRelativePath));
+		if (!str_starts_with($targetPath, $baseDir . '/')) {
+			app_file_storage_set_last_error('Resolved local upload path is outside the storage directory.', [
+				'path' => $normalized,
+				'target_path' => $targetPath,
+			]);
+			return false;
+		}
+
+		if (!is_file($targetPath)) {
+			return true;
+		}
+
+		if (@unlink($targetPath)) {
+			return true;
+		}
+
+		app_file_storage_set_last_error('Unable to delete local uploaded file.', [
+			'path' => $normalized,
+			'target_path' => $targetPath,
+		]);
+		return false;
+	}
+
+	$objectKey = s3_object_key_from_public_url($normalized);
+	if ($objectKey !== null) {
+		return s3_delete_object($objectKey);
+	}
+
+	app_file_storage_set_last_error('Uploaded file URL does not match any managed storage backend.', [
+		'path' => $normalized,
+	]);
+	return false;
+}
+
+function app_cleanup_replaced_uploaded_file(?string $oldPath, ?string $newPath): bool
+{
+	$oldNormalized = normalize_public_file_url($oldPath);
+	if ($oldNormalized === '') {
+		return true;
+	}
+
+	$newNormalized = normalize_public_file_url($newPath);
+	if ($newNormalized !== '' && $newNormalized === $oldNormalized) {
+		return true;
+	}
+
+	return app_delete_uploaded_file_by_url($oldNormalized);
 }

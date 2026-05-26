@@ -338,9 +338,9 @@ $calendarFocusDate = $calendarFocusDate ?: date('Y-m-d');
         </div>
         <div class="mt-3 rounded-2xl border border-amber-100 bg-amber-50/70 p-3">
             <p class="text-[10px] uppercase font-bold text-amber-500 tracking-wider"><?= e(t('student.dashboard.lesson')); ?></p>
-            <p id="tooltip-lesson-title" class="mt-1 text-xs font-black text-slate-800"></p>
-            <p id="tooltip-lesson-content" class="mt-1 text-[11px] leading-relaxed text-slate-600"></p>
-            <p id="tooltip-material" class="mt-2 text-[11px] font-semibold text-emerald-700"></p>
+            <p id="tooltip-lesson-title" class="mt-1 break-words text-xs font-black text-slate-800" style="overflow-wrap:anywhere;word-break:break-word;"></p>
+            <p id="tooltip-lesson-content" class="mt-1 break-words text-[11px] leading-relaxed text-slate-600" style="overflow-wrap:anywhere;word-break:break-word;"></p>
+            <p id="tooltip-material" class="mt-2 break-words text-[11px] font-semibold text-emerald-700" style="overflow-wrap:anywhere;word-break:break-word;"></p>
         </div>
         <button type="button" onclick="openCalendarDetailFromTooltip()" class="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 py-3 text-[11px] font-black uppercase tracking-[0.25em] text-white shadow-lg shadow-slate-900/10 transition hover:bg-slate-800 active:scale-[0.99]">
             <i class="fa-solid fa-square-poll-horizontal text-[12px]"></i>
@@ -403,6 +403,25 @@ document.addEventListener('DOMContentLoaded', function () {
         rose: 'bg-rose-600',
         amber: 'bg-amber-600',
     };
+
+    function truncateText(value, maxLength = 120) {
+        const normalized = String(value || '').replace(/\s+/g, ' ').trim();
+        if (normalized === '' || normalized.length <= maxLength) {
+            return normalized;
+        }
+
+        return `${normalized.slice(0, Math.max(0, maxLength - 3)).trimEnd()}...`;
+    }
+
+    function getAttachmentFileName(path) {
+        const normalized = String(path || '').trim();
+        if (normalized === '') {
+            return '';
+        }
+
+        const parts = normalized.split(/[\\/]/);
+        return parts.length > 0 ? String(parts[parts.length - 1] || '') : normalized;
+    }
 
     function renderCalendar() {
         const grid = document.getElementById('calendar-grid');
@@ -565,6 +584,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
                 tooltip.classList.remove('opacity-100');
                 tooltip.classList.add('hidden');
+                tooltip.dataset.date = '';
+                activeEventDate = null;
                 tooltipHideTimer = null;
             }, 220);
         };
@@ -600,11 +621,21 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (tooltipTeacher) tooltipTeacher.innerText = chip.dataset.teacher || '';
                 if (tooltipRoom) tooltipRoom.innerText = chip.dataset.room || '';
                 if (tooltipColor) tooltipColor.className = `w-1.5 h-10 rounded-full ${tooltipColorMap[chip.dataset.color || 'blue']}`;
-                if (tooltipLessonTitle) tooltipLessonTitle.innerText = decodeURIComponent(chip.dataset.lessonTitle || '') || dashboardI18n.noLessonTitle;
-                if (tooltipLessonContent) tooltipLessonContent.innerText = decodeURIComponent(chip.dataset.lessonContent || '') || dashboardI18n.noLessonContentLong;
+                if (tooltipLessonTitle) {
+                    tooltipLessonTitle.innerText = decodeURIComponent(chip.dataset.lessonTitle || '') || dashboardI18n.noLessonTitle;
+                }
+                if (tooltipLessonContent) {
+                    const lessonContent = decodeURIComponent(chip.dataset.lessonContent || '') || dashboardI18n.noLessonContentLong;
+                    tooltipLessonContent.innerText = truncateText(lessonContent, 90);
+                    tooltipLessonContent.title = lessonContent;
+                }
                 if (tooltipMaterial) {
                     const attachment = decodeURIComponent(chip.dataset.lessonAttachment || '');
-                    tooltipMaterial.innerText = attachment ? `${dashboardI18n.materialLabel}: ${attachment.split('/').pop()}` : `${dashboardI18n.materialLabel}: ${dashboardI18n.noAttachment}`;
+                    const attachmentName = getAttachmentFileName(attachment);
+                    tooltipMaterial.innerText = attachment
+                        ? `${dashboardI18n.materialLabel}: ${truncateText(attachmentName, 32)}`
+                        : `${dashboardI18n.materialLabel}: ${dashboardI18n.noAttachment}`;
+                    tooltipMaterial.title = attachmentName || dashboardI18n.noAttachment;
                 }
                 if (tooltipExtra) {
                     tooltipExtra.innerText = hiddenCount > 0
@@ -615,6 +646,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 tooltip.style.left = `${rect.left + rect.width / 2}px`;
                 tooltip.style.top = `${rect.top - 10}px`;
                 tooltip.style.transform = 'translate(-50%, -100%) scale(1)';
+                tooltip.dataset.date = chip.dataset.date || '';
                 tooltip.classList.remove('hidden');
                 setTimeout(() => tooltip.classList.add('opacity-100'), 10);
             };
@@ -622,7 +654,6 @@ document.addEventListener('DOMContentLoaded', function () {
             chip.onmouseleave = () => {
                 if (activeEventChip === chip) {
                     activeEventChip = null;
-                    activeEventDate = null;
                 }
                 scheduleTooltipHide();
             };
@@ -666,7 +697,10 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        list.innerHTML = dayEvents.map((event, index) => `
+        list.innerHTML = dayEvents.map((event, index) => {
+            const attachmentFileName = getAttachmentFileName(event.lesson_attachment_file_path || '');
+
+            return `
             <article class="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
                 <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div class="min-w-0 flex-1">
@@ -683,18 +717,19 @@ document.addEventListener('DOMContentLoaded', function () {
                     </div>
                 </div>
                 <div class="mt-4 grid gap-3 sm:grid-cols-2">
-                    <div class="rounded-2xl bg-slate-50 p-3">
+                    <div class="min-w-0 rounded-2xl bg-slate-50 p-3">
                         <p class="text-[10px] font-black uppercase tracking-[0.22em] text-slate-400">${dashboardI18n.lessonContent}</p>
-                        <p class="mt-2 text-sm leading-relaxed text-slate-700">${event.lesson_content || dashboardI18n.noLessonContent}</p>
+                        <p class="mt-2 break-words text-sm font-semibold text-slate-700" style="overflow-wrap:anywhere;word-break:break-word;">${event.lesson_title || dashboardI18n.noLessonTitle}</p>
+                        <p class="mt-2 break-words text-sm leading-relaxed text-slate-700" style="overflow-wrap:anywhere;word-break:break-word;">${event.lesson_content || dashboardI18n.noLessonContent}</p>
                     </div>
-                    <div class="rounded-2xl bg-amber-50/80 p-3">
+                    <div class="min-w-0 rounded-2xl bg-amber-50/80 p-3">
                         <p class="text-[10px] font-black uppercase tracking-[0.22em] text-amber-600">${dashboardI18n.attachedMaterial}</p>
-                        <p class="mt-2 text-sm font-semibold text-slate-700">${event.lesson_title || dashboardI18n.noLessonTitle}</p>
-                        ${event.lesson_attachment_file_path ? `<a href="${event.lesson_attachment_file_path}" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex items-center gap-2 rounded-xl bg-white px-3 py-2 text-xs font-black uppercase tracking-[0.18em] text-blue-700 ring-1 ring-blue-200 transition hover:bg-blue-50 hover:text-blue-800">${dashboardI18n.openDownloadFile} <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i></a><p class="mt-2 text-[11px] text-slate-500 break-all">${event.lesson_attachment_file_path.split('/').pop()}</p>` : `<p class="mt-1 text-xs text-slate-500">${dashboardI18n.noAttachment}</p>`}
+                        ${event.lesson_attachment_file_path ? `<p class="mt-2 break-words text-sm font-semibold text-slate-700" style="overflow-wrap:anywhere;word-break:break-word;">${attachmentFileName}</p><a href="${event.lesson_attachment_file_path}" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex items-center gap-2 rounded-xl bg-white px-3 py-2 text-xs font-black uppercase tracking-[0.18em] text-blue-700 ring-1 ring-blue-200 transition hover:bg-blue-50 hover:text-blue-800">${dashboardI18n.openDownloadFile} <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i></a>` : `<p class="mt-1 text-xs text-slate-500">${dashboardI18n.noAttachment}</p>`}
                     </div>
                 </div>
             </article>
-        `).join('');
+        `;
+        }).join('');
     }
 
     function openCalendarDetailFromDate(dateStr) {
@@ -766,7 +801,9 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     function openCalendarDetailFromTooltip() {
-        openCalendarDetailFromDate(activeEventDate || '<?= e($calendarFocusDate); ?>');
+        const tooltip = document.getElementById('event-tooltip');
+        const tooltipDate = tooltip ? String(tooltip.dataset.date || '').trim() : '';
+        openCalendarDetailFromDate(tooltipDate || activeEventDate || '<?= e($calendarFocusDate); ?>');
     }
 
     window.openCalendarDetailFromTooltip = openCalendarDetailFromTooltip;

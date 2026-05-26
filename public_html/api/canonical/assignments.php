@@ -97,6 +97,7 @@ function api_assignments_save_action(): void
 	}
 
 	$academicModel = new AcademicModel();
+	$existingAssignment = $assignmentId > 0 ? $academicModel->findAssignment($assignmentId) : null;
 
 	$uploadPath = input_string($payload, 'existing_file_url');
 	$directUploadPath = input_string($payload, 'uploaded_file_url');
@@ -162,6 +163,9 @@ function api_assignments_save_action(): void
 
 	$payload['file_url'] = $uploadPath;
 	$academicModel->saveAssignment($payload);
+	if (is_array($existingAssignment)) {
+		app_cleanup_replaced_uploaded_file((string) ($existingAssignment['file_url'] ?? ''), $uploadPath);
+	}
 
 	set_flash('success', 'Đã lưu bài tập thành công.');
 	redirect($listPath);
@@ -182,6 +186,9 @@ function api_assignments_delete_action(): void
 
 		try {
 			$academicModel->deleteAssignment($assignmentId);
+			if (is_array($assignment)) {
+				app_delete_uploaded_file_by_url((string) ($assignment['file_url'] ?? ''));
+			}
 			set_flash('success', 'Đã xóa bài tập.');
 		} catch (Throwable) {
 			set_flash('error', 'Không thể xóa bài tập. Bài tập này có thể đã có bài nộp của học viên.');

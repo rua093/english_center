@@ -65,6 +65,8 @@ function api_users_update_action(): void
 	$studentMotherPhone = normalize_phone_string((string) ($_POST['student_mother_phone'] ?? ''));
 	$studentMotherIdCard = trim((string) ($_POST['student_mother_id_card'] ?? ''));
 	$studentParentSocialLinks = trim((string) ($_POST['student_parent_social_links'] ?? ''));
+	$existingAvatarPath = trim((string) ($existingProfile['avatar'] ?? ''));
+	$existingTeacherIntroVideoUrl = trim((string) (($existingProfile['role_profile']['teacher_intro_video_url'] ?? '') ?: ($existingProfile['teacher_intro_video_url'] ?? '')));
 
 	$avatarPath = null;
 	if ($avatarDirectUrl !== '') {
@@ -116,6 +118,7 @@ function api_users_update_action(): void
 		if (isset($_SESSION['auth_user']) && is_array($_SESSION['auth_user'])) {
 			$_SESSION['auth_user']['avatar'] = $avatarPath;
 		}
+		app_cleanup_replaced_uploaded_file($existingAvatarPath, $avatarPath);
 
 		set_flash('success', 'Đã cập nhật ảnh đại diện.');
 		redirect(page_url('profile'));
@@ -136,6 +139,7 @@ function api_users_update_action(): void
 		$usersTable->updateTeacherProfile($userId, [
 			'teacher_intro_video_url' => $teacherIntroVideoUrl,
 		]);
+		app_cleanup_replaced_uploaded_file($existingTeacherIntroVideoUrl, $teacherIntroVideoUrl);
 	}
 
 	if ((string) ($existingProfile['role_name'] ?? '') === 'student') {

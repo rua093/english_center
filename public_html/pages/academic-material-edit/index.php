@@ -35,9 +35,9 @@ $adminTitle = $editingMaterial ? t('admin.material_edit.title_edit') : t('admin.
                 <?= e(t('admin.material_edit.upload_file')); ?>
                 <input id="materialEditFileInput" type="file" name="material_file" accept=".pdf,.ppt,.pptx,.doc,.docx,.jpg,.jpeg,.png,.mp4,.mov,.webm,.mp3,.avi" data-direct-upload-preset="material_file">
             </label>
-            <p id="materialEditUploadStatus" class="text-xs text-slate-500">Tài liệu sẽ được tải lên khi bạn chọn file.</p>
+            <div id="materialEditUploadStatus" class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-semibold leading-relaxed text-slate-700">Tài liệu sẽ được tải lên khi bạn chọn file.</div>
             <?php if ($existingMaterialFilePath !== ''): ?>
-                <p class="text-xs text-slate-500"><?= e(t('admin.material_edit.current_file')); ?>: <a class="font-semibold text-blue-700 hover:underline" href="<?= e($existingMaterialFilePath); ?>" target="_blank" rel="noopener noreferrer"><?= e(t('admin.material_edit.open_file')); ?></a>. <?= e(t('admin.material_edit.replace_hint')); ?></p>
+                <div class="rounded-xl border border-blue-200 bg-blue-50/70 px-3 py-2.5 text-sm font-medium leading-relaxed text-slate-700"><?= e(t('admin.material_edit.current_file')); ?>: <span class="font-semibold text-slate-800"><?= e(basename(parse_url($existingMaterialFilePath, PHP_URL_PATH) ?: $existingMaterialFilePath)); ?></span>. <a class="font-semibold text-blue-700 hover:underline" href="<?= e($existingMaterialFilePath); ?>" target="_blank" rel="noopener noreferrer"><?= e(t('admin.material_edit.open_file')); ?></a>. <?= e(t('admin.material_edit.replace_hint')); ?></div>
             <?php endif; ?>
             <button class="<?= ui_btn_primary_classes(); ?>" type="submit"><?= e(t('admin.material_edit.save')); ?></button>
             <a class="<?= ui_btn_secondary_classes(); ?>" href="<?= e(page_url('materials-academic')); ?>"><?= e(t('admin.common.back')); ?></a>
@@ -144,14 +144,14 @@ $adminTitle = $editingMaterial ? t('admin.material_edit.title_edit') : t('admin.
         }
 
         try {
-            setUploadingState(true, 'Đang tải tài liệu lên...');
+            setUploadingState(true, 'Đã chọn file: ' + file.name + '. Đang tải tài liệu lên...');
             await uploadDirect(file);
-            setUploadingState(false, 'Đã tải tài liệu xong. Bạn có thể lưu ngay.');
+            setUploadingState(false, 'Đã tải tài liệu xong: ' + file.name + '.');
         } catch (error) {
             hiddenInput.value = '';
             setUploadingState(false, isVideoFile(file)
                 ? 'Video tài liệu chưa được tải lên. Vui lòng thử lại.'
-                : 'Không thể tải tài liệu lên lúc này. Bạn vẫn có thể lưu theo cách thông thường.');
+                : 'Đã chọn file: ' + file.name + '. Không thể tải tài liệu lên lúc này. Bạn vẫn có thể lưu theo cách thông thường.');
         }
     });
 

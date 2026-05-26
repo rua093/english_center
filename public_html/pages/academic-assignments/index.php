@@ -152,9 +152,9 @@ $canUpdateMaterial = has_permission('materials.update');
                     <?= e(t('admin.assignment_edit.upload_file')); ?>
                     <input id="assignmentsFileInput" type="file" name="assignment_file" accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.png" data-direct-upload-preset="assignment_file">
                 </label>
-                <p id="assignmentsUploadStatus" class="text-xs text-slate-500">File bài tập sẽ được tải lên khi bạn chọn file.</p>
+                <div id="assignmentsUploadStatus" class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-semibold leading-relaxed text-slate-700">File bài tập sẽ được tải lên khi bạn chọn file.</div>
                 <?php if ($editingAssignmentFileUrl !== ''): ?>
-                    <p class="text-xs text-slate-500"><?= e(t('admin.assignment_edit.current_file')); ?>: <a class="font-semibold text-blue-700 hover:underline" href="<?= e($editingAssignmentFileUrl); ?>" target="_blank" rel="noopener noreferrer"><?= e(t('admin.assignment_edit.open_file')); ?></a>. <?= e(t('admin.assignment_edit.replace_hint')); ?></p>
+                    <div class="rounded-xl border border-blue-200 bg-blue-50/70 px-3 py-2.5 text-sm font-medium leading-relaxed text-slate-700"><?= e(t('admin.assignment_edit.current_file')); ?>: <span class="font-semibold text-slate-800"><?= e(basename(parse_url($editingAssignmentFileUrl, PHP_URL_PATH) ?: $editingAssignmentFileUrl)); ?></span>. <a class="font-semibold text-blue-700 hover:underline" href="<?= e($editingAssignmentFileUrl); ?>" target="_blank" rel="noopener noreferrer"><?= e(t('admin.assignment_edit.open_file')); ?></a>. <?= e(t('admin.assignment_edit.replace_hint')); ?></div>
                 <?php endif; ?>
                 <button class="<?= ui_btn_primary_classes(); ?>" type="submit"><?= e(t('admin.assignment_edit.save')); ?></button>
             </form>
@@ -457,12 +457,12 @@ $canUpdateMaterial = has_permission('materials.update');
         }
 
         try {
-            setUploadingState(true, 'Đang tải file bài tập lên...');
+            setUploadingState(true, 'Đã chọn file: ' + file.name + '. Đang tải file bài tập lên...');
             await uploadDirect(file);
-            setUploadingState(false, 'Đã tải file xong. Bạn có thể lưu bài tập.');
+            setUploadingState(false, 'Đã tải file xong: ' + file.name + '.');
         } catch (error) {
             hiddenInput.value = '';
-            setUploadingState(false, 'Không thể tải trực tiếp. Bạn vẫn có thể lưu để tải file lên theo cách thông thường.');
+            setUploadingState(false, 'Đã chọn file: ' + file.name + '. Không thể tải trực tiếp. Bạn vẫn có thể lưu để tải file lên theo cách thông thường.');
         }
     });
 

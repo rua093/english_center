@@ -17,6 +17,12 @@ if ($targetUserId > 0) {
     require_any_permission(['admin.user.create']);
 }
 
+$adminModel = new AdminModel();
+$existingUser = $targetUserId > 0 ? $adminModel->findUser($targetUserId) : null;
+$existingTeacherIntroVideoUrl = is_array($existingUser)
+    ? trim((string) (($existingUser['role_profile']['teacher_intro_video_url'] ?? '') ?: ($existingUser['teacher_intro_video_url'] ?? '')))
+    : '';
+
 // Bước 2: Xử lý Upload Video trước khi tạo payload
 // Lấy URL cũ từ trường hidden
 $videoUrl = trim((string) ($_POST['teacher_intro_video_url_hidden'] ?? ''));
@@ -73,7 +79,6 @@ if (!in_array($payload['status'], ['active', 'inactive'], true)) {
 
 $payload['teacher_experience_years'] = max(0, (int) $payload['teacher_experience_years']);
 
-$adminModel = new AdminModel();
 $role = $adminModel->findRoleById((int) $payload['role_id']);
 if (!$role) {
     set_flash('error', 'Vai trò người dùng không hợp lệ.');
@@ -89,6 +94,9 @@ if ($roleName === 'staff' && $payload['staff_position'] === '') {
 try {
     // Sử dụng phương thức chung `saveUser` để xử lý cả create và update
     $adminModel->saveUser($payload);
+    if ($targetUserId > 0) {
+        app_cleanup_replaced_uploaded_file($existingTeacherIntroVideoUrl, $videoUrl);
+    }
     if ($payload['id'] > 0) {
         set_flash('success', 'Đã cập nhật thông tin người dùng: ' . $payload['username']);
     } else {

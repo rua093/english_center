@@ -104,7 +104,11 @@ if ($uploadedSubmissionUrl !== '') {
 	$fileUpload = $storedPath;
 }
 
+$existingSubmission = $submissionsTable->findByAssignmentAndStudent($assignmentId, (int) $user['id']);
 $submissionsTable->upsertStudentSubmission((int) $user['id'], $assignmentId, $fileUpload);
+if (is_array($existingSubmission)) {
+	app_cleanup_replaced_uploaded_file((string) ($existingSubmission['file_url'] ?? ''), $fileUpload);
+}
 
 $successMessage = t('student.assignment.submit_success', ['assignment' => $assignmentTitle, 'class' => $className]);
 if ($deadline !== '') {

@@ -392,6 +392,16 @@ $pagedClasses = array_slice($myClasses, $classOffset, $classPerPage);
 				}
 			}
 
+			function updateSelectedFileLabel() {
+				const file = fileInput && fileInput.files && fileInput.files[0] ? fileInput.files[0] : null;
+				if (!file) {
+					setUploadStatus(<?= json_encode(t('my_classes.accepted_files'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>);
+					return;
+				}
+
+				setUploadStatus('Đã chọn file: ' + file.name);
+			}
+
 			function isVideoFile(file) {
 				if (!file) {
 					return false;
@@ -583,6 +593,10 @@ $pagedClasses = array_slice($myClasses, $classOffset, $classPerPage);
 
 			if (homeworkForm instanceof HTMLFormElement) {
 				homeworkForm.addEventListener('submit', submitHomework);
+			}
+
+			if (fileInput instanceof HTMLInputElement) {
+				fileInput.addEventListener('change', updateSelectedFileLabel);
 			}
 
 			modal.addEventListener('click', function (event) {

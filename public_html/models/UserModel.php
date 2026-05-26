@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 
+require_once __DIR__ . '/../core/file_storage.php';
 require_once __DIR__ . '/tables/AssignmentsTableModel.php';
 require_once __DIR__ . '/tables/AttendanceTableModel.php';
 require_once __DIR__ . '/tables/ClassStudentsTableModel.php';
@@ -49,7 +50,11 @@ final class UserModel
 
     public function submitAssignment(int $studentId, int $assignmentId, string $fileUrl): void
     {
+        $existingSubmission = $this->submissionsTable->findByAssignmentAndStudent($assignmentId, $studentId);
         $result = $this->submissionsTable->upsertStudentSubmission($studentId, $assignmentId, $fileUrl);
+        if (is_array($existingSubmission)) {
+            app_cleanup_replaced_uploaded_file((string) ($existingSubmission['file_url'] ?? ''), $fileUrl);
+        }
         if (!empty($result['created'])) {
             $detail = $this->submissionsTable->findDetailedByAssignmentAndStudent($assignmentId, $studentId);
             if (is_array($detail)) {

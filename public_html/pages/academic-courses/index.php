@@ -79,10 +79,11 @@ $selectedThumbnailUrl = normalize_public_file_url((string) ($editingCourse['imag
                     <?= e(t('admin.courses.thumbnail')); ?>
                     <input id="courseThumbnailInput" type="file" name="course_thumbnail" accept=".jpg,.jpeg,.png,.gif,.webp" data-direct-upload-preset="course_thumbnail">
                 </label>
-                <p id="courseUploadStatus" class="md:col-span-2 text-xs text-slate-500">Ảnh minh họa sẽ được tải lên khi bạn chọn file.</p>
+                <div id="courseUploadStatus" class="md:col-span-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-semibold leading-relaxed text-slate-700">Ảnh minh họa sẽ được tải lên khi bạn chọn file.</div>
                 <?php if ($selectedThumbnailUrl !== ''): ?>
-                    <div class="md:col-span-2 text-xs text-slate-500">
+                    <div class="md:col-span-2 rounded-xl border border-blue-200 bg-blue-50/70 px-3 py-2.5 text-sm font-medium leading-relaxed text-slate-700">
                         <?= e(t('admin.courses.current_image')); ?>:
+                        <span class="font-semibold text-slate-800"><?= e(basename(parse_url($selectedThumbnailUrl, PHP_URL_PATH) ?: $selectedThumbnailUrl)); ?></span>.
                         <a class="font-semibold text-blue-700 hover:underline" href="<?= e($selectedThumbnailUrl); ?>" target="_blank" rel="noopener noreferrer"><?= e(t('admin.courses.open_image')); ?></a>.
                         <?= e(t('admin.courses.replace_image_hint')); ?>
                     </div>
@@ -345,12 +346,12 @@ $selectedThumbnailUrl = normalize_public_file_url((string) ($editingCourse['imag
         }
 
         try {
-            setUploadingState(true, 'Đang tải ảnh minh họa lên...');
+            setUploadingState(true, 'Đã chọn file: ' + file.name + '. Đang tải ảnh minh họa lên...');
             await uploadDirect(file);
-            setUploadingState(false, 'Đã tải ảnh xong. Bạn có thể lưu khóa học.');
+            setUploadingState(false, 'Đã tải ảnh xong: ' + file.name + '.');
         } catch (error) {
             hiddenInput.value = '';
-            setUploadingState(false, 'Không thể tải trực tiếp. Bạn vẫn có thể lưu để tải ảnh lên theo cách thông thường.');
+            setUploadingState(false, 'Đã chọn file: ' + file.name + '. Không thể tải trực tiếp. Bạn vẫn có thể lưu để tải ảnh lên theo cách thông thường.');
         }
     });
 

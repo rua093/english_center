@@ -123,6 +123,7 @@ function api_lessons_save_action(): void
     }
 
     $academicModel = new AcademicModel();
+    $existingLesson = $lessonId > 0 ? $academicModel->findLesson($lessonId) : null;
     $currentRole = (string) (auth_user()['role'] ?? '');
     $teacherOwnsClass = $currentRole === 'teacher' && teacher_can_manage_class($academicModel, $classId);
 
@@ -181,6 +182,9 @@ function api_lessons_save_action(): void
 
     try {
         $academicModel->saveLesson($payload);
+        if (is_array($existingLesson)) {
+            app_cleanup_replaced_uploaded_file((string) ($existingLesson['attachment_file_path'] ?? ''), (string) ($payload['attachment_file_path'] ?? ''));
+        }
     } catch (InvalidArgumentException | DomainException $exception) {
         if (api_expects_json()) {
             api_error($exception->getMessage(), ['code' => 'LESSON_VALIDATION_FAILED'], 422);

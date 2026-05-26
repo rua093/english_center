@@ -133,11 +133,11 @@ $editingThumbnailUrl = normalize_public_file_url((string) ($editingActivity['ima
                     <?= e(t('admin.activities.thumbnail')); ?>
                     <input id="activityThumbnailInput" type="file" name="activity_thumbnail" accept=".jpg,.jpeg,.png,.gif,.webp" data-direct-upload-preset="activity_thumbnail">
                 </label>
-                <p id="activityUploadStatus" class="md:col-span-2 text-xs text-slate-500">Ảnh thumbnail sẽ được tải lên khi bạn chọn file.</p>
+                <div id="activityUploadStatus" class="md:col-span-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-semibold leading-relaxed text-slate-700">Ảnh thumbnail sẽ được tải lên khi bạn chọn file.</div>
                 <?php if ($editingThumbnailUrl !== ''): ?>
-                    <div class="md:col-span-2 flex flex-wrap items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-600">
+                    <div class="md:col-span-2 flex flex-wrap items-center gap-3 rounded-xl border border-blue-200 bg-blue-50/70 p-3 text-sm font-medium leading-relaxed text-slate-700">
                         <img class="h-16 w-24 rounded-lg border border-slate-200 object-cover" src="<?= e($editingThumbnailUrl); ?>" alt="<?= e(t('admin.activities.thumbnail_alt')); ?>">
-                        <p><?= e(t('admin.activities.current_image')); ?>: <a class="font-semibold text-blue-700 hover:underline" href="<?= e($editingThumbnailUrl); ?>" target="_blank" rel="noopener noreferrer"><?= e(t('admin.activities.open_image')); ?></a>. <?= e(t('admin.activities.replace_hint')); ?></p>
+                        <p><?= e(t('admin.activities.current_image')); ?>: <span class="font-semibold text-slate-800"><?= e(basename(parse_url($editingThumbnailUrl, PHP_URL_PATH) ?: $editingThumbnailUrl)); ?></span>. <a class="font-semibold text-blue-700 hover:underline" href="<?= e($editingThumbnailUrl); ?>" target="_blank" rel="noopener noreferrer"><?= e(t('admin.activities.open_image')); ?></a>. <?= e(t('admin.activities.replace_hint')); ?></p>
                     </div>
                 <?php endif; ?>
                 <div class="md:col-span-2">
@@ -614,12 +614,12 @@ $editingThumbnailUrl = normalize_public_file_url((string) ($editingActivity['ima
         }
 
         try {
-            setUploadingState(true, 'Đang tải ảnh thumbnail lên...');
+            setUploadingState(true, 'Đã chọn file: ' + file.name + '. Đang tải ảnh thumbnail lên...');
             await uploadDirect(file);
-            setUploadingState(false, 'Đã tải ảnh xong. Bạn có thể lưu hoạt động.');
+            setUploadingState(false, 'Đã tải ảnh xong: ' + file.name + '.');
         } catch (error) {
             hiddenInput.value = '';
-            setUploadingState(false, 'Không thể tải trực tiếp. Bạn vẫn có thể lưu để tải ảnh lên theo cách thông thường.');
+            setUploadingState(false, 'Đã chọn file: ' + file.name + '. Không thể tải trực tiếp. Bạn vẫn có thể lưu để tải ảnh lên theo cách thông thường.');
         }
     });
 

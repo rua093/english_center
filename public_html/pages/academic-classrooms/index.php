@@ -905,6 +905,8 @@ $adminTitle = t('admin.classrooms.title');
     <input type="hidden" name="roadmap_id" value="0">
     <input type="hidden" name="actual_title" value="">
     <input type="hidden" name="actual_content" value="">
+    <input type="hidden" name="existing_attachment_file_path" value="">
+    <input type="hidden" name="uploaded_attachment_url" value="">
     <input type="hidden" name="schedule_id" value="0">
 </form>
 
@@ -1007,7 +1009,7 @@ $adminTitle = t('admin.classrooms.title');
                     <?= e(t('admin.classrooms.lesson_attachment')); ?>
                     <input id="classroom-lesson-attachment-file" type="file" name="lesson_attachment_file" accept=".pdf,.ppt,.pptx,.doc,.docx" data-direct-upload-preset="lesson_attachment">
                 </label>
-                <p id="classroom-lesson-attachment-hint" class="text-xs text-slate-500"><?= e(t('admin.classrooms.lesson_attachment_hint')); ?></p>
+                <div id="classroom-lesson-attachment-hint" class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-semibold leading-relaxed text-slate-700"><?= e(t('admin.classrooms.lesson_attachment_hint')); ?></div>
 
                 <div class="sticky bottom-0 z-[1] -mx-1 mt-1 flex flex-wrap gap-2 border-t border-slate-100 bg-white px-1 pt-3">
                     <button id="classroom-lesson-submit" class="<?= ui_btn_primary_classes(); ?>" type="submit"><?= e(t('admin.classrooms.save_lesson_plan')); ?></button>
@@ -1977,6 +1979,8 @@ $adminTitle = t('admin.classrooms.title');
     const quickAssignRoadmapInput = quickAssignForm ? quickAssignForm.querySelector('input[name="roadmap_id"]') : null;
     const quickAssignTitleInput = quickAssignForm ? quickAssignForm.querySelector('input[name="actual_title"]') : null;
     const quickAssignContentInput = quickAssignForm ? quickAssignForm.querySelector('input[name="actual_content"]') : null;
+    const quickAssignExistingAttachmentInput = quickAssignForm ? quickAssignForm.querySelector('input[name="existing_attachment_file_path"]') : null;
+    const quickAssignUploadedAttachmentUrlInput = quickAssignForm ? quickAssignForm.querySelector('input[name="uploaded_attachment_url"]') : null;
     const quickAssignScheduleInput = quickAssignForm ? quickAssignForm.querySelector('input[name="schedule_id"]') : null;
     const quickAssignFocusScheduleInput = quickAssignForm ? quickAssignForm.querySelector('input[name="focus_schedule_id"]') : null;
 
@@ -4712,6 +4716,12 @@ $adminTitle = t('admin.classrooms.title');
         if (quickAssignContentInput instanceof HTMLInputElement) {
             quickAssignContentInput.value = String(lessonRecord.actual_content || '');
         }
+        if (quickAssignExistingAttachmentInput instanceof HTMLInputElement) {
+            quickAssignExistingAttachmentInput.value = String(lessonRecord.attachment_file_path || '');
+        }
+        if (quickAssignUploadedAttachmentUrlInput instanceof HTMLInputElement) {
+            quickAssignUploadedAttachmentUrlInput.value = '';
+        }
         if (quickAssignScheduleInput instanceof HTMLInputElement) {
             quickAssignScheduleInput.value = String(scheduleId);
         }
@@ -5531,7 +5541,7 @@ $adminTitle = t('admin.classrooms.title');
                     lessonSubmitButton.disabled = true;
                 }
                 if (lessonAttachmentHint instanceof HTMLElement) {
-                    lessonAttachmentHint.textContent = 'Đang tải tài liệu buổi học lên...';
+                    lessonAttachmentHint.textContent = 'Đã chọn: ' + file.name + '. Đang tải tài liệu buổi học lên...';
                 }
                 const publicUrl = await uploadFileDirectToStorage('lesson_attachment', file);
                 if (lessonUploadedAttachmentUrlInput instanceof HTMLInputElement) {
@@ -5539,13 +5549,13 @@ $adminTitle = t('admin.classrooms.title');
                 }
                 lessonAttachmentFileInput.value = '';
                 if (lessonAttachmentHint instanceof HTMLElement) {
-                    lessonAttachmentHint.innerHTML = escapeHtml(classroomI18n.currentMaterial) + ': <a class="font-semibold text-blue-700 hover:underline" href="'
+                    lessonAttachmentHint.innerHTML = escapeHtml(classroomI18n.currentMaterial) + ' (' + escapeHtml(file.name) + '): <a class="font-semibold text-blue-700 hover:underline" href="'
                         + escapeHtml(publicUrl)
                         + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(classroomI18n.openFile) + '</a>. ' + escapeHtml(classroomI18n.replaceFileHint);
                 }
             } catch (error) {
                 if (lessonAttachmentHint instanceof HTMLElement) {
-                    lessonAttachmentHint.textContent = 'Không thể tải trực tiếp. Bạn vẫn có thể lưu để tải tài liệu theo cách thông thường.';
+                    lessonAttachmentHint.textContent = 'Đã chọn: ' + file.name + '. Không thể tải trực tiếp. Bạn vẫn có thể lưu để tải tài liệu theo cách thông thường.';
                 }
             } finally {
                 if (lessonSubmitButton instanceof HTMLButtonElement) {
@@ -5571,7 +5581,7 @@ $adminTitle = t('admin.classrooms.title');
                     assignmentSubmitButton.disabled = true;
                 }
                 if (assignmentFileHint instanceof HTMLElement) {
-                    assignmentFileHint.textContent = 'Đang tải file bài tập lên...';
+                    assignmentFileHint.textContent = 'Đã chọn: ' + file.name + '. Đang tải file bài tập lên...';
                 }
                 const publicUrl = await uploadFileDirectToStorage('assignment_file', file);
                 if (assignmentUploadedFileUrlInput instanceof HTMLInputElement) {
@@ -5579,13 +5589,13 @@ $adminTitle = t('admin.classrooms.title');
                 }
                 assignmentFileInput.value = '';
                 if (assignmentFileHint instanceof HTMLElement) {
-                    assignmentFileHint.innerHTML = escapeHtml(classroomI18n.currentFile) + ': <a class="font-semibold text-blue-700 hover:underline" href="'
+                    assignmentFileHint.innerHTML = escapeHtml(classroomI18n.currentFile) + ' (' + escapeHtml(file.name) + '): <a class="font-semibold text-blue-700 hover:underline" href="'
                         + escapeHtml(publicUrl)
                         + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(classroomI18n.openFile) + '</a>. ' + escapeHtml(classroomI18n.replaceFileHint);
                 }
             } catch (error) {
                 if (assignmentFileHint instanceof HTMLElement) {
-                    assignmentFileHint.textContent = 'Không thể tải trực tiếp. Bạn vẫn có thể lưu để tải file theo cách thông thường.';
+                    assignmentFileHint.textContent = 'Đã chọn: ' + file.name + '. Không thể tải trực tiếp. Bạn vẫn có thể lưu để tải file theo cách thông thường.';
                 }
             } finally {
                 if (assignmentSubmitButton instanceof HTMLButtonElement) {
