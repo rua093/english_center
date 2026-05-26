@@ -133,6 +133,7 @@ final class AssignmentsTableModel extends BaseTableModel
         }
 
         $sql = "SELECT a.id, a.title, a.deadline, a.description, a.file_url,
+                sub.file_url AS submission_file_url,
                 sub.submitted_at, sub.score, sub.teacher_comment,
                 CASE WHEN sub.submitted_at IS NOT NULL THEN 'Đã nộp' ELSE 'Chưa nộp' END AS submission_status
             FROM assignments a

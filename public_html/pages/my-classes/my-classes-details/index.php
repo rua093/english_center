@@ -146,6 +146,7 @@ foreach ($assignmentRows as $assignmentRow) {
         'title' => (string) ($assignmentRow['title'] ?? ''),
         'note' => (string) ($assignmentRow['description'] ?? ''),
         'file_url' => (string) ($assignmentRow['file_url'] ?? ''),
+        'submission_file_url' => (string) ($assignmentRow['submission_file_url'] ?? ''),
         'deadline' => $deadlineRaw !== '' ? date('d/m/Y H:i', $deadlineTs !== false ? $deadlineTs : strtotime($deadlineRaw)) : '---',
         'deadline_raw' => $deadlineRaw,
         'status' => $status,
@@ -481,6 +482,7 @@ foreach ($examRows as $examRow) {
                                             data-homework-deadline="<?= e((string) ($hw['deadline_raw'] ?? '')); ?>"
                                             data-homework-note="<?= e((string) ($hw['note'] ?? '')); ?>"
                                             data-homework-file-url="<?= e(normalize_public_file_url((string) ($hw['file_url'] ?? ''))); ?>"
+                                            data-homework-submission-file-url="<?= e(normalize_public_file_url((string) ($hw['submission_file_url'] ?? ''))); ?>"
                                             data-homework-score="<?= e((string) ($hw['score'] ?? '--')); ?>"
                                             data-homework-comment="<?= e((string) ($hw['teacher_comment'] ?? '')); ?>"
                                             data-homework-can-submit="<?= (!empty($hw['can_submit']) || !empty($hw['can_resubmit'])) ? '1' : '0'; ?>"
@@ -506,6 +508,7 @@ foreach ($examRows as $examRow) {
                                                 data-homework-deadline="<?= e((string) ($hw['deadline_raw'] ?? '')); ?>"
                                                 data-homework-note="<?= e((string) ($hw['note'] ?? '')); ?>"
                                                 data-homework-file-url="<?= e(normalize_public_file_url((string) ($hw['file_url'] ?? ''))); ?>"
+                                                data-homework-submission-file-url="<?= e(normalize_public_file_url((string) ($hw['submission_file_url'] ?? ''))); ?>"
                                                 data-homework-score="<?= e((string) ($hw['score'] ?? '--')); ?>"
                                                 data-homework-comment="<?= e((string) ($hw['teacher_comment'] ?? '')); ?>"
                                                 data-homework-can-submit="1"
@@ -605,6 +608,7 @@ foreach ($examRows as $examRow) {
                                         data-homework-deadline="<?= e((string) ($hw['deadline_raw'] ?? '')); ?>"
                                         data-homework-note="<?= e((string) ($hw['note'] ?? '')); ?>"
                                         data-homework-file-url="<?= e(normalize_public_file_url((string) ($hw['file_url'] ?? ''))); ?>"
+                                        data-homework-submission-file-url="<?= e(normalize_public_file_url((string) ($hw['submission_file_url'] ?? ''))); ?>"
                                         data-homework-score="<?= e((string) ($hw['score'] ?? '--')); ?>"
                                         data-homework-comment="<?= e((string) ($hw['teacher_comment'] ?? '')); ?>"
                                         data-homework-can-submit="<?= (!empty($hw['can_submit']) || !empty($hw['can_resubmit'])) ? '1' : '0'; ?>"
@@ -630,6 +634,7 @@ foreach ($examRows as $examRow) {
                                             data-homework-deadline="<?= e((string) ($hw['deadline_raw'] ?? '')); ?>"
                                             data-homework-note="<?= e((string) ($hw['note'] ?? '')); ?>"
                                             data-homework-file-url="<?= e(normalize_public_file_url((string) ($hw['file_url'] ?? ''))); ?>"
+                                            data-homework-submission-file-url="<?= e(normalize_public_file_url((string) ($hw['submission_file_url'] ?? ''))); ?>"
                                             data-homework-score="<?= e((string) ($hw['score'] ?? '--')); ?>"
                                             data-homework-comment="<?= e((string) ($hw['teacher_comment'] ?? '')); ?>"
                                             data-homework-can-submit="1"
@@ -792,6 +797,7 @@ foreach ($examRows as $examRow) {
                         </div>
 
                         <div id="homework-detail-file-shell" class="rounded-2xl border border-slate-200 bg-blue-50 px-4 py-4 text-sm font-semibold text-slate-600"></div>
+                        <div id="homework-detail-submission-shell" class="rounded-2xl border border-slate-200 bg-emerald-50 px-4 py-4 text-sm font-semibold text-slate-600"></div>
                     </div>
                 </div>
 
@@ -884,6 +890,8 @@ foreach ($examRows as $examRow) {
                     noTeacherComment: <?= json_encode(t('my_classes.no_teacher_comment'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
                     noAssignmentFile: <?= json_encode(t('my_classes.no_assignment_file'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
                     downloadAssignmentFile: <?= json_encode(t('my_classes.download_assignment_file'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
+                    noSubmissionFile: <?= json_encode(t('my_classes.no_submission_file'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
+                    downloadSubmissionFile: <?= json_encode(t('my_classes.download_submission_file'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
                     submitHomework: <?= json_encode(t('my_classes.submit_homework'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>
                 };
                 const modal = document.getElementById('homework-modal');
@@ -913,6 +921,7 @@ foreach ($examRows as $examRow) {
                 const detailScoreDisplay = document.getElementById('homework-detail-score-display');
                 const detailCommentDisplay = document.getElementById('homework-detail-comment-display');
                 const detailFileShell = document.getElementById('homework-detail-file-shell');
+                const detailSubmissionShell = document.getElementById('homework-detail-submission-shell');
                 const detailSubmitButton = document.getElementById('homework-detail-submit-button');
                 const fileInput = document.getElementById('homework-file');
                 const uploadedSubmissionUrlInput = document.getElementById('homework-uploaded-submission-url');
@@ -1082,6 +1091,25 @@ foreach ($examRows as $examRow) {
                             detailFileShell.textContent = myClassesI18n.noAssignmentFile;
                         }
                     }
+                    if (detailSubmissionShell) {
+                        const submissionFileUrl = String(button.dataset.homeworkSubmissionFileUrl || '').trim();
+                        if (submissionFileUrl !== '') {
+                            detailSubmissionShell.innerHTML = '';
+                            const submissionLink = document.createElement('a');
+                            submissionLink.href = submissionFileUrl;
+                            submissionLink.target = '_blank';
+                            submissionLink.rel = 'noopener';
+                            submissionLink.className = 'inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-white px-3 py-2 text-xs font-black uppercase tracking-widest text-emerald-700 transition hover:bg-emerald-100';
+
+                            const icon = document.createElement('i');
+                            icon.className = 'fa-solid fa-file-arrow-up';
+                            submissionLink.appendChild(icon);
+                            submissionLink.appendChild(document.createTextNode(' ' + myClassesI18n.downloadSubmissionFile));
+                            detailSubmissionShell.appendChild(submissionLink);
+                        } else {
+                            detailSubmissionShell.textContent = myClassesI18n.noSubmissionFile;
+                        }
+                    }
                     if (detailSubmitButton instanceof HTMLButtonElement) {
                         const canSubmit = button.dataset.homeworkCanSubmit === '1';
                         detailSubmitButton.textContent = button.dataset.homeworkSubmitLabel || myClassesI18n.submitHomework;
@@ -1092,6 +1120,7 @@ foreach ($examRows as $examRow) {
                         detailSubmitButton.dataset.homeworkDeadline = button.dataset.homeworkDeadline || '';
                         detailSubmitButton.dataset.homeworkNote = button.dataset.homeworkNote || '';
                         detailSubmitButton.dataset.homeworkFileUrl = button.dataset.homeworkFileUrl || '';
+                        detailSubmitButton.dataset.homeworkSubmissionFileUrl = button.dataset.homeworkSubmissionFileUrl || '';
                         detailSubmitButton.dataset.homeworkCanSubmit = button.dataset.homeworkCanSubmit || '0';
                         detailSubmitButton.dataset.homeworkSubmitLabel = button.dataset.homeworkSubmitLabel || myClassesI18n.submitHomework;
                     }

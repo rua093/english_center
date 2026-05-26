@@ -750,11 +750,11 @@ $adminTitle = t('admin.classrooms.title');
                                                         <?= e($lessonTitle !== '' ? $lessonTitle : t('admin.schedules.lesson')); ?>
                                                     </div>
 
-                                                    <div class="mt-1 flex items-center justify-center gap-1 text-[10px] whitespace-nowrap">
+                                                    <div class="mt-1 flex flex-col items-center gap-1 text-[10px]">
                                                         <span class="inline-flex items-center rounded-full border border-slate-200 bg-white/85 px-1.5 py-0.5 font-semibold">
                                                             <?= e(t('admin.classrooms.assignment_count_label', ['count' => (int) $assignmentCount])); ?>
                                                         </span>
-                                                        <span class="inline-flex max-w-[96px] items-center justify-center truncate rounded-full border border-slate-200 bg-white/85 px-1.5 py-0.5 font-semibold">
+                                                        <span class="inline-flex max-w-[96px] items-center justify-center whitespace-normal break-words text-center rounded-full border border-slate-200 bg-white/85 px-2 py-0.5 font-semibold leading-tight">
                                                             <?= e($roomName !== '' ? $roomName : t('admin.schedules.online')); ?>
                                                         </span>
                                                     </div>
@@ -857,7 +857,7 @@ $adminTitle = t('admin.classrooms.title');
 
             <div id="classroom-exams-table-wrap" class="classroom-exams-wrap mt-3 min-w-0 max-w-full overflow-x-auto rounded-xl border border-slate-200 bg-white/80">
                 <div id="classroom-exams-state" class="p-4 text-sm text-slate-600"><?= e(t('admin.classrooms.loading_gradebook')); ?></div>
-                <table id="classroom-exams-table" class="classroom-exams-table hidden text-sm">
+                <table id="classroom-exams-table" class="classroom-exams-table hidden text-sm" data-disable-global-filter="1" data-disable-row-detail="1">
                     <thead id="classroom-exams-thead"></thead>
                     <tbody id="classroom-exams-tbody"></tbody>
                 </table>
@@ -876,6 +876,7 @@ $adminTitle = t('admin.classrooms.title');
     <button id="classroom-menu-lesson-info" data-menu-item="1" data-action="lesson-info" role="menuitem" type="button" class="block w-full border-b border-slate-100 px-3 py-2 text-left text-sm font-semibold text-slate-700 hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:outline-none"><?= e(t('admin.classrooms.view_lesson_detail')); ?></button>
     <button id="classroom-menu-attendance" data-menu-item="1" data-action="attendance" role="menuitem" type="button" class="block w-full border-b border-slate-100 px-3 py-2 text-left text-sm font-semibold text-slate-700 hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:outline-none"><?= e(t('admin.attendance.title_short')); ?></button>
     <button id="classroom-menu-detail" data-menu-item="1" data-action="lesson" role="menuitem" type="button" class="block w-full border-b border-slate-100 px-3 py-2 text-left text-sm font-semibold text-slate-700 hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:outline-none"><?= e(t('admin.classrooms.prepare_lesson')); ?></button>
+    <button id="classroom-menu-existing-assignments" data-menu-item="1" data-action="existing-assignments" role="menuitem" type="button" class="block w-full border-b border-slate-100 px-3 py-2 text-left text-sm font-semibold text-slate-700 hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:outline-none"><?= e(t('admin.classrooms.lesson_existing_assignments')); ?></button>
     <button id="classroom-menu-assignment" data-menu-item="1" data-action="assignment" role="menuitem" type="button" class="block w-full border-b border-slate-100 px-3 py-2 text-left text-sm font-semibold text-slate-700 hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:outline-none"><?= e(t('admin.classrooms.assign_homework')); ?></button>
     <button id="classroom-menu-grading" data-menu-item="1" data-action="grading" role="menuitem" type="button" class="block w-full px-3 py-2 text-left text-sm font-semibold text-slate-700 hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:outline-none"><?= e(t('admin.classrooms.grade')); ?></button>
 </div>
@@ -1359,16 +1360,17 @@ $adminTitle = t('admin.classrooms.title');
         <div class="mb-4 flex items-start justify-between gap-2">
             <div>
                 <h3 id="classroom-assignments-modal-title"><?= e(t('admin.classrooms.class_assignments')); ?></h3>
-                <p class="text-sm text-slate-600"><?= e(t('admin.classrooms.class_assignments_hint')); ?></p>
+                <p id="classroom-assignments-modal-hint" class="text-sm text-slate-600"><?= e(t('admin.classrooms.class_assignments_hint')); ?></p>
             </div>
             <button id="classroom-assignments-close" type="button" class="inline-flex h-8 items-center rounded-md border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700"><?= e(t('admin.classrooms.close')); ?></button>
         </div>
 
         <div class="min-h-0 overflow-auto rounded-xl border border-slate-200 bg-white">
+            <div id="classroom-assignments-empty-state" class="hidden p-5 text-sm text-slate-600"><?= e(t('admin.classrooms.no_assignments_for_lesson')); ?></div>
             <?php if (empty($classroomAssignmentRows)): ?>
                 <div class="p-5 text-sm text-slate-600"><?= e(t('admin.classrooms.no_class_assignments')); ?></div>
             <?php else: ?>
-                <table class="min-w-full border-collapse text-sm">
+                <table id="classroom-assignments-table" class="min-w-full border-collapse text-sm">
                     <thead class="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">
                         <tr>
                             <th class="px-4 py-3"><?= e(t('admin.assignments.table_assignment')); ?></th>
@@ -1379,7 +1381,7 @@ $adminTitle = t('admin.classrooms.title');
                     </thead>
                     <tbody>
                         <?php foreach ($classroomAssignmentRows as $assignmentRow): ?>
-                            <tr class="border-t border-slate-100">
+                            <tr class="border-t border-slate-100" data-assignment-row="1" data-schedule-id="<?= (int) ($assignmentRow['schedule_id'] ?? 0); ?>">
                                 <td class="px-4 py-3 align-top">
                                     <div class="font-semibold text-slate-800"><?= e((string) $assignmentRow['title']); ?></div>
                                 </td>
@@ -1899,6 +1901,7 @@ $adminTitle = t('admin.classrooms.title');
     const itemLessonInfo = document.getElementById('classroom-menu-lesson-info');
     const itemAttendance = document.getElementById('classroom-menu-attendance');
     const itemDetail = document.getElementById('classroom-menu-detail');
+    const itemExistingAssignments = document.getElementById('classroom-menu-existing-assignments');
     const itemAssignment = document.getElementById('classroom-menu-assignment');
     const itemGrading = document.getElementById('classroom-menu-grading');
     const menuItems = contextMenu ? Array.from(contextMenu.querySelectorAll('[data-menu-item="1"]')) : [];
@@ -2066,6 +2069,10 @@ $adminTitle = t('admin.classrooms.title');
     const gradingSubmitButton = document.getElementById('classroom-grading-submit');
     const assignmentsOpenButton = document.getElementById('classroom-open-assignments');
     const assignmentsModal = document.getElementById('classroom-assignments-modal');
+    const assignmentsModalTitle = document.getElementById('classroom-assignments-modal-title');
+    const assignmentsModalHint = document.getElementById('classroom-assignments-modal-hint');
+    const assignmentsTable = document.getElementById('classroom-assignments-table');
+    const assignmentsEmptyState = document.getElementById('classroom-assignments-empty-state');
     const assignmentsCloseButton = document.getElementById('classroom-assignments-close');
     const materialsOpenButton = document.getElementById('classroom-open-materials');
     const materialsModal = document.getElementById('classroom-materials-modal');
@@ -2201,6 +2208,7 @@ $adminTitle = t('admin.classrooms.title');
         'assignLessonError' => t('admin.classrooms.assign_lesson_error'),
         'updateLessonTitle' => t('admin.classrooms.update_lesson_title'),
         'createLessonTitle' => t('admin.classrooms.create_lesson_title'),
+        'lessonExistingAssignments' => t('admin.classrooms.lesson_existing_assignments'),
         'updateLessonButton' => t('admin.classrooms.update_lesson_button'),
         'saveLessonButton' => t('admin.classrooms.save_lesson_button'),
         'lessonAttachmentHint' => t('admin.classrooms.lesson_attachment_hint'),
@@ -2224,6 +2232,10 @@ $adminTitle = t('admin.classrooms.title');
         'weekUpdateMissing' => t('admin.classrooms.week_update_missing'),
         'assignByLessonTitle' => t('admin.classrooms.assign_by_lesson'),
         'saveAssignmentButton' => t('admin.classrooms.save_assignment_button'),
+        'lessonAssignmentsTitle' => t('admin.classrooms.lesson_assignments_title'),
+        'lessonAssignmentsHint' => t('admin.classrooms.lesson_assignments_hint'),
+        'classAssignmentsTitle' => t('admin.classrooms.class_assignments'),
+        'classAssignmentsHint' => t('admin.classrooms.class_assignments_hint'),
         'assignmentBelongsSelectedLesson' => t('admin.classrooms.assignment_belongs_selected_lesson'),
         'updateAssignmentTitle' => t('admin.classrooms.update_assignment_title'),
         'updateAssignmentButton' => t('admin.classrooms.update_assignment_button'),
@@ -4221,13 +4233,19 @@ $adminTitle = t('admin.classrooms.title');
                 : classroomI18n.noLessonCreatePermission);
 
         const canOpenAssignment = canCreateAssignment && activeSlotContext.scheduleId > 0;
+        const canOpenExistingAssignments = activeSlotContext.scheduleId > 0;
         const canOpenGrading = canGradeSubmission && activeSlotContext.scheduleId > 0;
 
         setMenuItemDisabled(itemLessonInfo, !canOpenLessonInfo, classroomI18n.noScheduleForLesson);
         setMenuItemDisabled(itemAttendance, !canOpenAttendance, canViewAttendance ? classroomI18n.noScheduleForLesson : classroomI18n.noAttendancePermission);
         setMenuItemDisabled(itemDetail, !canOpenLesson, lessonReason);
+        setMenuItemDisabled(itemExistingAssignments, !canOpenExistingAssignments, classroomI18n.noScheduleForLesson);
         setMenuItemDisabled(itemAssignment, !canOpenAssignment, canCreateAssignment ? classroomI18n.cannotAssignHomework : classroomI18n.noAssignmentPermission);
         setMenuItemDisabled(itemGrading, !canOpenGrading, canGradeSubmission ? classroomI18n.cannotGradeLesson : classroomI18n.noGradingPermission);
+
+        if (itemDetail instanceof HTMLElement) {
+            itemDetail.textContent = activeSlotContext.hasLesson ? classroomI18n.updateLessonTitle : classroomI18n.createLessonTitle;
+        }
 
         slotElement.setAttribute('aria-expanded', 'true');
         contextMenu.classList.remove('hidden');
@@ -5435,6 +5453,52 @@ $adminTitle = t('admin.classrooms.title');
         }
     }
 
+    function openExistingAssignmentsModal(context, returnFocusElement) {
+        if (!(assignmentsModal instanceof HTMLElement)) {
+            return;
+        }
+
+        const scheduleId = context && context.scheduleId > 0 ? context.scheduleId : 0;
+        let visibleCount = 0;
+
+        if (assignmentsModalTitle instanceof HTMLElement) {
+            assignmentsModalTitle.textContent = scheduleId > 0 ? classroomI18n.lessonAssignmentsTitle : classroomI18n.classAssignmentsTitle;
+        }
+        if (assignmentsModalHint instanceof HTMLElement) {
+            assignmentsModalHint.textContent = scheduleId > 0
+                ? String(classroomI18n.lessonAssignmentsHint || '').replace(':lesson', normalizeText(context && context.slotLabel) || classroomI18n.selectedLesson)
+                : classroomI18n.classAssignmentsHint;
+        }
+
+        if (assignmentsTable instanceof HTMLElement) {
+            const rows = Array.from(assignmentsTable.querySelectorAll('[data-assignment-row="1"]'));
+            rows.forEach(function (rowElement) {
+                if (!(rowElement instanceof HTMLElement)) {
+                    return;
+                }
+
+                const rowScheduleId = toInt(rowElement.getAttribute('data-schedule-id'));
+                const shouldShow = scheduleId <= 0 || rowScheduleId === scheduleId;
+                rowElement.classList.toggle('hidden', !shouldShow);
+                if (shouldShow) {
+                    visibleCount++;
+                }
+            });
+
+            assignmentsTable.classList.toggle('hidden', visibleCount === 0 && scheduleId > 0);
+        }
+
+        if (assignmentsEmptyState instanceof HTMLElement) {
+            assignmentsEmptyState.classList.toggle('hidden', !(scheduleId > 0 && visibleCount === 0));
+        }
+
+        openModal(
+            assignmentsModal,
+            assignmentsCloseButton instanceof HTMLElement ? assignmentsCloseButton : assignmentsModal,
+            returnFocusElement instanceof HTMLElement ? returnFocusElement : assignmentsOpenButton
+        );
+    }
+
     function formatAssignmentDeadlineForInput(rawValue) {
         const normalized = normalizeText(rawValue);
         if (normalized === '') {
@@ -5897,6 +5961,13 @@ $adminTitle = t('admin.classrooms.title');
             return;
         }
 
+        if (action === 'existing-assignments' && activeSlotContext) {
+            event.preventDefault();
+            closeMenu(false);
+            openExistingAssignmentsModal(activeSlotContext, activeSlotElement);
+            return;
+        }
+
         if (action === 'assignment' && activeSlotContext) {
             event.preventDefault();
             openAssignmentModal(activeSlotContext);
@@ -6054,7 +6125,7 @@ $adminTitle = t('admin.classrooms.title');
                 return;
             }
 
-            openModal(assignmentsModal, assignmentsCloseButton instanceof HTMLElement ? assignmentsCloseButton : assignmentsModal, assignmentsOpenButton);
+            openExistingAssignmentsModal(null, assignmentsOpenButton);
         });
     }
     if (assignmentsCloseButton instanceof HTMLButtonElement && assignmentsModal instanceof HTMLElement) {
