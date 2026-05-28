@@ -499,6 +499,37 @@ CREATE TABLE `password_reset_tokens` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `uploaded_objects`
+--
+
+DROP TABLE IF EXISTS `uploaded_objects`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `uploaded_objects` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `storage_driver` varchar(32) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 's3',
+  `object_key` varchar(500) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `public_url` varchar(1000) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `preset_key` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `status` enum('draft','attached','deleted') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'draft',
+  `created_by_user_id` bigint unsigned DEFAULT NULL,
+  `attached_by_user_id` bigint unsigned DEFAULT NULL,
+  `deleted_by_user_id` bigint unsigned DEFAULT NULL,
+  `context_json` longtext COLLATE utf8mb4_unicode_ci,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `last_seen_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `attached_at` datetime DEFAULT NULL,
+  `deleted_at` datetime DEFAULT NULL,
+  `expires_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_uploaded_objects_object_key` (`object_key`),
+  KEY `idx_uploaded_objects_status_expires` (`status`,`expires_at`,`id`),
+  KEY `idx_uploaded_objects_status_created` (`status`,`created_at`,`id`),
+  KEY `idx_uploaded_objects_public_url` (`public_url`(191))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `payment_transactions`
 --
 

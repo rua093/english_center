@@ -51,6 +51,8 @@ define('S3_SECRET_KEY', '');
 define('S3_PUBLIC_BASE_URL', '');
 define('S3_USE_PATH_STYLE', true);
 define('S3_OBJECT_ACL', '');
+define('S3_BACKUP_RETENTION_DAYS', 30);
+define('S3_BACKUP_KEEP_MIN', 7);
 
 /*
 | Optional internal-only API access list for sync-backup.php
@@ -76,3 +78,4 @@ define('MAIL_USERNAME', '');
 define('MAIL_PASSWORD', '');
 define('MAIL_FROM_ADDRESS', '');
 define('MAIL_FROM_NAME', APP_NAME);
+define('APP_LOG_RETENTION_DAYS', 30);

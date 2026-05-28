@@ -212,6 +212,404 @@ function s3_object_public_url(string $objectKey): string
 	return rtrim($baseUrl, '/') . '/' . s3_encode_object_key($objectKey);
 }
 
+function app_uploaded_object_manifest_enabled(): bool
+{
+	return app_file_storage_uses_s3() && s3_is_configured();
+}
+
+function app_uploaded_object_manifest_table_name(): string
+{
+	return 'uploaded_objects';
+}
+
+function app_uploaded_object_manifest_connection(): ?PDO
+{
+	if (!app_uploaded_object_manifest_enabled()) {
+		return null;
+	}
+
+	if (!class_exists('Database', false)) {
+		require_once __DIR__ . '/database.php';
+	}
+
+	return Database::connection();
+}
+
+function app_uploaded_object_manifest_ensure_schema(?PDO $pdo = null): bool
+{
+	$pdo = $pdo ?? app_uploaded_object_manifest_connection();
+	if (!$pdo instanceof PDO) {
+		return false;
+	}
+
+	$tableName = app_uploaded_object_manifest_table_name();
+	$pdo->exec(
+		"CREATE TABLE IF NOT EXISTS `{$tableName}` (
+			`id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+			`storage_driver` VARCHAR(32) NOT NULL DEFAULT 's3',
+			`object_key` VARCHAR(500) NOT NULL,
+			`public_url` VARCHAR(1000) NOT NULL,
+			`preset_key` VARCHAR(100) DEFAULT NULL,
+			`status` ENUM('draft','attached','deleted') NOT NULL DEFAULT 'draft',
+			`created_by_user_id` BIGINT UNSIGNED DEFAULT NULL,
+			`attached_by_user_id` BIGINT UNSIGNED DEFAULT NULL,
+			`deleted_by_user_id` BIGINT UNSIGNED DEFAULT NULL,
+			`context_json` LONGTEXT DEFAULT NULL,
+			`created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			`last_seen_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			`attached_at` DATETIME DEFAULT NULL,
+			`deleted_at` DATETIME DEFAULT NULL,
+			`expires_at` DATETIME DEFAULT NULL,
+			PRIMARY KEY (`id`),
+			UNIQUE KEY `uq_uploaded_objects_object_key` (`object_key`),
+			KEY `idx_uploaded_objects_status_expires` (`status`, `expires_at`, `id`),
+			KEY `idx_uploaded_objects_status_created` (`status`, `created_at`, `id`),
+			KEY `idx_uploaded_objects_public_url` (`public_url`(191))
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
+	);
+
+	return true;
+}
+
+function app_uploaded_object_manifest_current_user_id(): ?int
+{
+	if (!function_exists('auth_user')) {
+		return null;
+	}
+
+	$user = auth_user();
+	$userId = (int) ($user['id'] ?? 0);
+	return $userId > 0 ? $userId : null;
+}
+
+function app_uploaded_object_manifest_encode_context(array $context): ?string
+{
+	if ($context === []) {
+		return null;
+	}
+
+	$json = json_encode($context, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+	return is_string($json) ? $json : null;
+}
+
+function app_uploaded_object_manifest_log_warning(string $message, array $context = []): void
+{
+	if (function_exists('app_log')) {
+		app_log('warning', $message, $context);
+	}
+}
+
+function app_uploaded_object_manifest_record_draft(
+	string $presetKey,
+	string $objectKey,
+	string $publicUrl,
+	array $context = [],
+	int $ttlHours = 24
+): bool {
+	$pdo = app_uploaded_object_manifest_connection();
+	if (!$pdo instanceof PDO) {
+		return false;
+	}
+
+	try {
+		app_uploaded_object_manifest_ensure_schema($pdo);
+
+		$ttlHours = max(1, $ttlHours);
+		$contextJson = app_uploaded_object_manifest_encode_context($context);
+		$userId = app_uploaded_object_manifest_current_user_id();
+
+		$stmt = $pdo->prepare(
+			'INSERT INTO `' . app_uploaded_object_manifest_table_name() . '` (
+				storage_driver,
+				object_key,
+				public_url,
+				preset_key,
+				status,
+				created_by_user_id,
+				context_json,
+				created_at,
+				last_seen_at,
+				expires_at,
+				attached_at,
+				deleted_at,
+				attached_by_user_id,
+				deleted_by_user_id
+			) VALUES (
+				:s3_driver,
+				:object_key,
+				:public_url,
+				:preset_key,
+				:draft_status,
+				:created_by_user_id,
+				:context_json,
+				NOW(),
+				NOW(),
+				DATE_ADD(NOW(), INTERVAL ' . $ttlHours . ' HOUR),
+				NULL,
+				NULL,
+				NULL,
+				NULL
+			)
+			ON DUPLICATE KEY UPDATE
+				public_url = VALUES(public_url),
+				preset_key = VALUES(preset_key),
+				status = VALUES(status),
+				context_json = VALUES(context_json),
+				last_seen_at = NOW(),
+				expires_at = VALUES(expires_at),
+				deleted_at = NULL,
+				deleted_by_user_id = NULL'
+		);
+		$stmt->execute([
+			's3_driver' => 's3',
+			'object_key' => s3_normalize_object_key($objectKey),
+			'public_url' => $publicUrl,
+			'preset_key' => trim($presetKey) !== '' ? trim($presetKey) : null,
+			'draft_status' => 'draft',
+			'created_by_user_id' => $userId,
+			'context_json' => $contextJson,
+		]);
+
+		return true;
+	} catch (Throwable $exception) {
+		app_uploaded_object_manifest_log_warning('Unable to record uploaded object draft.', [
+			'object_key' => $objectKey,
+			'public_url' => $publicUrl,
+			'error' => $exception->getMessage(),
+		]);
+		return false;
+	}
+}
+
+function app_uploaded_object_manifest_mark_attached(?string $path, array $context = []): bool
+{
+	$normalized = normalize_public_file_url($path);
+	$objectKey = s3_object_key_from_public_url($normalized);
+	if ($normalized === '' || $objectKey === null) {
+		return false;
+	}
+
+	$pdo = app_uploaded_object_manifest_connection();
+	if (!$pdo instanceof PDO) {
+		return false;
+	}
+
+	try {
+		app_uploaded_object_manifest_ensure_schema($pdo);
+
+		$userId = app_uploaded_object_manifest_current_user_id();
+		$contextJson = app_uploaded_object_manifest_encode_context($context);
+
+		$stmt = $pdo->prepare(
+			'INSERT INTO `' . app_uploaded_object_manifest_table_name() . '` (
+				storage_driver,
+				object_key,
+				public_url,
+				status,
+				attached_by_user_id,
+				context_json,
+				created_at,
+				last_seen_at,
+				attached_at,
+				expires_at,
+				deleted_at,
+				deleted_by_user_id
+			) VALUES (
+				:s3_driver,
+				:object_key,
+				:public_url,
+				:attached_status,
+				:attached_by_user_id,
+				:context_json,
+				NOW(),
+				NOW(),
+				NOW(),
+				NULL,
+				NULL,
+				NULL
+			)
+			ON DUPLICATE KEY UPDATE
+				public_url = VALUES(public_url),
+				status = VALUES(status),
+				attached_by_user_id = VALUES(attached_by_user_id),
+				context_json = COALESCE(VALUES(context_json), context_json),
+				last_seen_at = NOW(),
+				attached_at = NOW(),
+				expires_at = NULL,
+				deleted_at = NULL,
+				deleted_by_user_id = NULL'
+		);
+		$stmt->execute([
+			's3_driver' => 's3',
+			'object_key' => $objectKey,
+			'public_url' => $normalized,
+			'attached_status' => 'attached',
+			'attached_by_user_id' => $userId,
+			'context_json' => $contextJson,
+		]);
+
+		return true;
+	} catch (Throwable $exception) {
+		app_uploaded_object_manifest_log_warning('Unable to mark uploaded object as attached.', [
+			'path' => $normalized,
+			'object_key' => $objectKey,
+			'error' => $exception->getMessage(),
+		]);
+		return false;
+	}
+}
+
+function app_uploaded_object_manifest_mark_deleted(?string $path, array $context = []): bool
+{
+	$normalized = normalize_public_file_url($path);
+	$objectKey = s3_object_key_from_public_url($normalized);
+	if ($normalized === '' || $objectKey === null) {
+		return false;
+	}
+
+	$pdo = app_uploaded_object_manifest_connection();
+	if (!$pdo instanceof PDO) {
+		return false;
+	}
+
+	try {
+		app_uploaded_object_manifest_ensure_schema($pdo);
+
+		$userId = app_uploaded_object_manifest_current_user_id();
+		$contextJson = app_uploaded_object_manifest_encode_context($context);
+
+		$stmt = $pdo->prepare(
+			'INSERT INTO `' . app_uploaded_object_manifest_table_name() . '` (
+				storage_driver,
+				object_key,
+				public_url,
+				status,
+				deleted_by_user_id,
+				context_json,
+				created_at,
+				last_seen_at,
+				deleted_at,
+				expires_at
+			) VALUES (
+				:s3_driver,
+				:object_key,
+				:public_url,
+				:deleted_status,
+				:deleted_by_user_id,
+				:context_json,
+				NOW(),
+				NOW(),
+				NOW(),
+				NULL
+			)
+			ON DUPLICATE KEY UPDATE
+				public_url = VALUES(public_url),
+				status = VALUES(status),
+				deleted_by_user_id = VALUES(deleted_by_user_id),
+				context_json = COALESCE(VALUES(context_json), context_json),
+				last_seen_at = NOW(),
+				deleted_at = NOW(),
+				expires_at = NULL'
+		);
+		$stmt->execute([
+			's3_driver' => 's3',
+			'object_key' => $objectKey,
+			'public_url' => $normalized,
+			'deleted_status' => 'deleted',
+			'deleted_by_user_id' => $userId,
+			'context_json' => $contextJson,
+		]);
+
+		return true;
+	} catch (Throwable $exception) {
+		app_uploaded_object_manifest_log_warning('Unable to mark uploaded object as deleted.', [
+			'path' => $normalized,
+			'object_key' => $objectKey,
+			'error' => $exception->getMessage(),
+		]);
+		return false;
+	}
+}
+
+function app_uploaded_object_manifest_purge_stale_drafts(int $olderThanHours = 24, int $limit = 100): array
+{
+	$pdo = app_uploaded_object_manifest_connection();
+	if (!$pdo instanceof PDO) {
+		return [
+			'deleted_objects' => 0,
+			'marked_deleted' => 0,
+			'failed' => 0,
+		];
+	}
+
+	app_uploaded_object_manifest_ensure_schema($pdo);
+
+	$olderThanHours = max(1, $olderThanHours);
+	$limit = max(1, min($limit, 1000));
+	$stmt = $pdo->prepare(
+		'SELECT object_key, public_url
+		 FROM `' . app_uploaded_object_manifest_table_name() . '`
+		 WHERE status = :draft_status
+		   AND COALESCE(expires_at, DATE_ADD(created_at, INTERVAL ' . $olderThanHours . ' HOUR)) < NOW()
+		 ORDER BY id ASC
+		 LIMIT :limit_rows'
+	);
+	$stmt->bindValue(':draft_status', 'draft', PDO::PARAM_STR);
+	$stmt->bindValue(':limit_rows', $limit, PDO::PARAM_INT);
+	$stmt->execute();
+	$rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+	$result = [
+		'deleted_objects' => 0,
+		'marked_deleted' => 0,
+		'failed' => 0,
+	];
+
+	foreach ($rows as $row) {
+		$objectKey = trim((string) ($row['object_key'] ?? ''));
+		$publicUrl = trim((string) ($row['public_url'] ?? ''));
+		if ($objectKey === '' || $publicUrl === '') {
+			$result['failed']++;
+			continue;
+		}
+
+		if (!s3_delete_object($objectKey)) {
+			$result['failed']++;
+			continue;
+		}
+
+		$result['deleted_objects']++;
+		if (app_uploaded_object_manifest_mark_deleted($publicUrl, ['reason' => 'draft_purge'])) {
+			$result['marked_deleted']++;
+		}
+	}
+
+	return $result;
+}
+
+function app_uploaded_object_manifest_purge_deleted_records(int $retentionDays = 30): int
+{
+	$pdo = app_uploaded_object_manifest_connection();
+	if (!$pdo instanceof PDO) {
+		return 0;
+	}
+
+	app_uploaded_object_manifest_ensure_schema($pdo);
+	$retentionDays = max(1, $retentionDays);
+
+	$stmt = $pdo->prepare(
+		'DELETE FROM `' . app_uploaded_object_manifest_table_name() . '`
+		 WHERE status = :deleted_status
+		   AND deleted_at IS NOT NULL
+		   AND deleted_at < DATE_SUB(NOW(), INTERVAL ' . $retentionDays . ' DAY)'
+	);
+	$stmt->execute([
+		'deleted_status' => 'deleted',
+	]);
+
+	return (int) $stmt->rowCount();
+}
+
 function s3_detect_content_type(string $filePath): string
 {
 	if (function_exists('mime_content_type')) {
@@ -795,6 +1193,12 @@ function app_direct_upload_build_spec(string $presetKey, string $originalName, s
 		return null;
 	}
 
+	app_uploaded_object_manifest_record_draft($presetKey, $objectKey, (string) ($spec['public_url'] ?? ''), [
+		'source' => 'direct_upload',
+		'content_type' => $contentType,
+		'file_size' => $fileSize,
+	]);
+
 	$spec['max_bytes'] = $maxBytes;
 	$spec['preset'] = $presetKey;
 	return $spec;
@@ -884,6 +1288,11 @@ function store_uploaded_file(array $file, string $prefix, ?string $subdir = null
 		$objectKey = $normalizedSubdir !== '' ? $normalizedSubdir . '/' . $storedName : $storedName;
 		$s3Url = s3_put_object($tmpPath, $objectKey);
 		if ($s3Url !== null) {
+			app_uploaded_object_manifest_record_draft($prefix, $objectKey, $s3Url, [
+				'source' => 'server_upload',
+				'subdir' => $normalizedSubdir,
+				'filename' => $storedName,
+			]);
 			return $s3Url;
 		}
 
@@ -1006,6 +1415,7 @@ function app_delete_uploaded_file_by_url(?string $path): bool
 		}
 
 		if (@unlink($targetPath)) {
+			app_uploaded_object_manifest_mark_deleted($normalized, ['reason' => 'file_delete']);
 			return true;
 		}
 
@@ -1018,7 +1428,12 @@ function app_delete_uploaded_file_by_url(?string $path): bool
 
 	$objectKey = s3_object_key_from_public_url($normalized);
 	if ($objectKey !== null) {
-		return s3_delete_object($objectKey);
+		$deleted = s3_delete_object($objectKey);
+		if ($deleted) {
+			app_uploaded_object_manifest_mark_deleted($normalized, ['reason' => 'file_delete']);
+		}
+
+		return $deleted;
 	}
 
 	app_file_storage_set_last_error('Uploaded file URL does not match any managed storage backend.', [

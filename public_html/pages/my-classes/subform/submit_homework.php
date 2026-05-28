@@ -106,6 +106,7 @@ if ($uploadedSubmissionUrl !== '') {
 
 $existingSubmission = $submissionsTable->findByAssignmentAndStudent($assignmentId, (int) $user['id']);
 $submissionsTable->upsertStudentSubmission((int) $user['id'], $assignmentId, $fileUpload);
+app_uploaded_object_manifest_mark_attached($fileUpload, ['entity' => 'assignment_submission']);
 if (is_array($existingSubmission)) {
 	app_cleanup_replaced_uploaded_file((string) ($existingSubmission['file_url'] ?? ''), $fileUpload);
 }

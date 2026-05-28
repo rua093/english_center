@@ -560,6 +560,16 @@ final class NotificationsTableModel
         });
     }
 
+    public function purgeOlderThan(int $retentionDays = 90): int
+    {
+        $retentionDays = max(1, $retentionDays);
+
+        return $this->executeStatement(
+            'DELETE FROM notifications
+             WHERE created_at < DATE_SUB(NOW(), INTERVAL ' . $retentionDays . ' DAY)'
+        );
+    }
+
     private function hydrateHybridNotificationRows(array $rows): array
     {
         if ($rows === []) {

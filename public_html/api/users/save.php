@@ -94,6 +94,7 @@ if ($roleName === 'staff' && $payload['staff_position'] === '') {
 try {
     // Sử dụng phương thức chung `saveUser` để xử lý cả create và update
     $adminModel->saveUser($payload);
+    app_uploaded_object_manifest_mark_attached($videoUrl, ['entity' => 'teacher_intro_video']);
     if ($targetUserId > 0) {
         app_cleanup_replaced_uploaded_file($existingTeacherIntroVideoUrl, $videoUrl);
     }

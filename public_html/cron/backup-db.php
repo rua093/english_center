@@ -68,12 +68,19 @@ try {
 
     if (s3ObjectExists($objectKey)) {
         fwrite(STDOUT, "[SKIP] File đã tồn tại\n");
-        $exitCode = 0;
     } else {
         uploadBackupToS3($objectKey, $encryptedPayload);
         fwrite(STDOUT, "[OK] Backup thành công\n");
-        $exitCode = 0;
     }
+
+    $retentionDays = defined('S3_BACKUP_RETENTION_DAYS') ? (int) S3_BACKUP_RETENTION_DAYS : 30;
+    $keepMin = defined('S3_BACKUP_KEEP_MIN') ? (int) S3_BACKUP_KEEP_MIN : 7;
+    $purgeResult = sync_backup_purge_old_objects($retentionDays, $keepMin, 'backups/');
+    fwrite(
+        STDOUT,
+        "[OK] Backup retention: deleted {$purgeResult['deleted']} old object(s), failed {$purgeResult['failed']}, scanned {$purgeResult['scanned']}.\n"
+    );
+    $exitCode = 0;
 } catch (Throwable $e) {
     fwrite(STDERR, '[ERROR] ' . $e->getMessage() . "\n");
     $exitCode = 1;

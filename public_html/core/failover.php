@@ -374,35 +374,17 @@ function sync_schema_reset_database(PDO $pdo): void
 
 function sync_backup_find_latest_backup_object(): ?array
 {
-    $response = sync_backup_send_s3_request('GET', '', hash('sha256', ''), [
-        'content-type' => 'application/xml',
-    ], null, [
-        'list-type' => '2',
-        'prefix' => 'backups/',
-        'max-keys' => '1000',
-    ]);
-
-    if ($response['http_code'] < 200 || $response['http_code'] >= 300) {
-        throw new RuntimeException(
-            'S3 list request failed with HTTP ' . $response['http_code'] . ': ' . sync_backup_truncate_response($response['body'])
-        );
-    }
-
-    $xml = @simplexml_load_string($response['body']);
-    if (!$xml instanceof SimpleXMLElement) {
-        throw new RuntimeException('Unable to parse S3 list response XML.');
-    }
-
+    $objects = sync_backup_list_objects('backups/');
     $latestObject = null;
-    foreach ($xml->Contents as $content) {
-        $key = trim((string) ($content->Key ?? ''));
-        $lastModified = trim((string) ($content->LastModified ?? ''));
+    foreach ($objects as $object) {
+        $key = trim((string) ($object['key'] ?? ''));
+        $lastModified = trim((string) ($object['last_modified'] ?? ''));
+        $timestamp = (int) ($object['timestamp'] ?? 0);
         if ($key === '' || $lastModified === '' || !str_ends_with(strtolower($key), '.sql')) {
             continue;
         }
 
-        $timestamp = strtotime($lastModified);
-        if ($timestamp === false) {
+        if ($timestamp <= 0) {
             continue;
         }
 
@@ -416,6 +398,102 @@ function sync_backup_find_latest_backup_object(): ?array
     }
 
     return $latestObject;
+}
+
+function sync_backup_list_objects(string $prefix = 'backups/'): array
+{
+    $normalizedPrefix = ltrim(str_replace('\\', '/', trim($prefix)), '/');
+    $continuationToken = '';
+    $objects = [];
+
+    do {
+        $queryParameters = [
+            'list-type' => '2',
+            'prefix' => $normalizedPrefix,
+            'max-keys' => '1000',
+        ];
+        if ($continuationToken !== '') {
+            $queryParameters['continuation-token'] = $continuationToken;
+        }
+
+        $response = sync_backup_send_s3_request('GET', '', hash('sha256', ''), [
+            'content-type' => 'application/xml',
+        ], null, $queryParameters);
+
+        if ($response['http_code'] < 200 || $response['http_code'] >= 300) {
+            throw new RuntimeException(
+                'S3 list request failed with HTTP ' . $response['http_code'] . ': ' . sync_backup_truncate_response($response['body'])
+            );
+        }
+
+        $xml = @simplexml_load_string($response['body']);
+        if (!$xml instanceof SimpleXMLElement) {
+            throw new RuntimeException('Unable to parse S3 list response XML.');
+        }
+
+        foreach ($xml->Contents as $content) {
+            $key = trim((string) ($content->Key ?? ''));
+            $lastModified = trim((string) ($content->LastModified ?? ''));
+            $timestamp = strtotime($lastModified);
+            $objects[] = [
+                'key' => $key,
+                'last_modified' => $lastModified,
+                'timestamp' => $timestamp !== false ? $timestamp : 0,
+            ];
+        }
+
+        $isTruncated = strtolower(trim((string) ($xml->IsTruncated ?? 'false'))) === 'true';
+        $continuationToken = $isTruncated ? trim((string) ($xml->NextContinuationToken ?? '')) : '';
+    } while ($continuationToken !== '');
+
+    return $objects;
+}
+
+function sync_backup_purge_old_objects(int $retentionDays = 30, int $keepMin = 7, string $prefix = 'backups/'): array
+{
+    $retentionDays = max(1, $retentionDays);
+    $keepMin = max(0, $keepMin);
+    $objects = array_values(array_filter(
+        sync_backup_list_objects($prefix),
+        static fn (array $object): bool => trim((string) ($object['key'] ?? '')) !== '' && ((int) ($object['timestamp'] ?? 0)) > 0
+    ));
+
+    usort($objects, static function (array $left, array $right): int {
+        return (int) ($right['timestamp'] ?? 0) <=> (int) ($left['timestamp'] ?? 0);
+    });
+
+    $cutoff = time() - ($retentionDays * 86400);
+    $deleted = 0;
+    $failed = 0;
+
+    foreach ($objects as $index => $object) {
+        if ($index < $keepMin) {
+            continue;
+        }
+
+        $timestamp = (int) ($object['timestamp'] ?? 0);
+        if ($timestamp <= 0 || $timestamp >= $cutoff) {
+            continue;
+        }
+
+        $key = trim((string) ($object['key'] ?? ''));
+        if ($key === '') {
+            continue;
+        }
+
+        if (s3_delete_object($key)) {
+            $deleted++;
+            continue;
+        }
+
+        $failed++;
+    }
+
+    return [
+        'deleted' => $deleted,
+        'failed' => $failed,
+        'scanned' => count($objects),
+    ];
 }
 
 function sync_backup_download_object(string $objectKey, string $targetPath): void
@@ -953,6 +1031,40 @@ function sync_change_log_status(PDO $pdo, int $recentLimit = 12): array
         'tracked_candidates' => sync_change_log_base_tables($pdo),
         'mode' => sync_change_log_mode(),
     ];
+}
+
+function sync_change_log_release_stale_batches(PDO $pdo, int $staleMinutes = 180): int
+{
+    sync_change_log_ensure_schema($pdo);
+    $staleMinutes = max(1, $staleMinutes);
+
+    $stmt = $pdo->prepare(
+        'UPDATE ' . sync_change_log_quote_identifier(sync_change_log_table_name()) . '
+         SET export_batch_token = NULL,
+             export_batch_created_at = NULL
+         WHERE exported_at IS NULL
+           AND export_batch_token IS NOT NULL
+           AND export_batch_created_at IS NOT NULL
+           AND export_batch_created_at < DATE_SUB(NOW(), INTERVAL ' . $staleMinutes . ' MINUTE)'
+    );
+    $stmt->execute();
+
+    return (int) $stmt->rowCount();
+}
+
+function sync_change_log_purge_exported(PDO $pdo, int $retentionDays = 14): int
+{
+    sync_change_log_ensure_schema($pdo);
+    $retentionDays = max(1, $retentionDays);
+
+    $stmt = $pdo->prepare(
+        'DELETE FROM ' . sync_change_log_quote_identifier(sync_change_log_table_name()) . '
+         WHERE exported_at IS NOT NULL
+           AND exported_at < DATE_SUB(NOW(), INTERVAL ' . $retentionDays . ' DAY)'
+    );
+    $stmt->execute();
+
+    return (int) $stmt->rowCount();
 }
 
 function sync_change_log_prepare_statement_context(PDO $pdo, string $sql, array $params = []): ?array

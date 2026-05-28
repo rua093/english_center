@@ -39,15 +39,23 @@ define('MAIL_INTERNAL_NOTIFICATION_RECIPIENTS', 'admissions@your-domain.com,staf
 
 ```bash
 php public_html/cron/process-email-outbox.php
+php public_html/cron/purge-email-outbox.php
 php public_html/cron/purge-expired-password-resets.php
 php public_html/cron/sync-overdue-tuition-notifications.php
+php public_html/cron/purge-old-notifications.php
+php public_html/cron/purge-uploaded-object-drafts.php
+php public_html/cron/purge-old-logs.php
 ```
 
 Khuyến nghị:
 
 - `process-email-outbox.php`: mỗi 1 phút
+- `purge-email-outbox.php`: mỗi ngày 1 lần
 - `purge-expired-password-resets.php`: mỗi ngày 1 lần
 - `sync-overdue-tuition-notifications.php`: mỗi ngày 1 lần hoặc mỗi 6 giờ
+- `purge-old-notifications.php`: mỗi ngày 1 lần
+- `purge-uploaded-object-drafts.php`: mỗi 1 giờ hoặc mỗi ngày 1 lần nếu ít upload
+- `purge-old-logs.php`: mỗi ngày 1 lần
 
 ## Luồng đã tích hợp
 
@@ -65,3 +73,5 @@ Khuyến nghị:
 - Nếu `MAIL_ENABLED = true` mà SMTP chưa đủ cấu hình, worker sẽ báo lỗi rõ ràng.
 - Nên dùng tài khoản SMTP chuyên dụng, không dùng mật khẩu tài khoản cá nhân chính.
 - Với Gmail/Workspace nên dùng app password hoặc SMTP relay.
+- Nên bật thêm cron cleanup để `email_outbox` và `notifications` không tăng vô hạn theo thời gian.
+- Với direct upload S3, hệ thống sẽ ghi manifest `draft -> attached -> deleted`; cron `purge-uploaded-object-drafts.php` dùng để dọn object đã upload nhưng không được gắn vào bản ghi nào.

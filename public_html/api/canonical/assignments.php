@@ -163,6 +163,7 @@ function api_assignments_save_action(): void
 
 	$payload['file_url'] = $uploadPath;
 	$academicModel->saveAssignment($payload);
+	app_uploaded_object_manifest_mark_attached($uploadPath, ['entity' => 'assignment']);
 	if (is_array($existingAssignment)) {
 		app_cleanup_replaced_uploaded_file((string) ($existingAssignment['file_url'] ?? ''), $uploadPath);
 	}
@@ -258,6 +259,7 @@ function api_assignments_submit_action(): void
 
 		if ($uploadPath !== '') {
 			(new UserModel())->submitAssignment((int) $user['id'], $assignmentId, $uploadPath);
+			app_uploaded_object_manifest_mark_attached($uploadPath, ['entity' => 'assignment_submission']);
 			$successMessage = 'Đã nộp bài thành công.';
 			if ($expectsJson) {
 				api_success($successMessage, [

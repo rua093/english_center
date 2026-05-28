@@ -57,6 +57,7 @@ function api_portfolios_save_action(): void
 
 	$_POST['media_url'] = $uploadPath;
 	$academicModel->savePortfolio($_POST);
+	app_uploaded_object_manifest_mark_attached($uploadPath, ['entity' => 'portfolio_media']);
 	if (is_array($existing)) {
 		app_cleanup_replaced_uploaded_file((string) ($existing['media_url'] ?? ''), $uploadPath);
 	}

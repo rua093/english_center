@@ -8,3 +8,7 @@ if (!defined('APP_LOG_DIR')) {
 if (!defined('APP_LOG_MAX_BYTES')) {
     define('APP_LOG_MAX_BYTES', 2097152);
 }
+
+if (!defined('APP_LOG_RETENTION_DAYS')) {
+    define('APP_LOG_RETENTION_DAYS', 30);
+}

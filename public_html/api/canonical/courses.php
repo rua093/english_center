@@ -92,6 +92,7 @@ function api_courses_save_action(): void
         'total_sessions' => $totalSessions,
         'image_thumbnail' => $thumbnailPath,
     ]);
+    app_uploaded_object_manifest_mark_attached($thumbnailPath, ['entity' => 'course_thumbnail']);
 
     if (is_array($existingCourse)) {
         app_cleanup_replaced_uploaded_file((string) ($existingCourse['image_thumbnail'] ?? ''), $thumbnailPath);

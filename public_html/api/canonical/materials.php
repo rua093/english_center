@@ -58,6 +58,7 @@ function api_materials_save_action(): void
 
 	$payload['file_path'] = $uploadPath;
 	$academicModel->saveMaterial($payload);
+	app_uploaded_object_manifest_mark_attached($uploadPath, ['entity' => 'material']);
 	if (is_array($existingMaterial)) {
 		app_cleanup_replaced_uploaded_file((string) ($existingMaterial['file_path'] ?? ''), $uploadPath);
 	}

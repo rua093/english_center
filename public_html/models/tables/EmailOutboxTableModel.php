@@ -170,6 +170,29 @@ final class EmailOutboxTableModel extends BaseTableModel
         );
     }
 
+    public function purgeSentOlderThan(int $retentionDays = 30): int
+    {
+        $retentionDays = max(1, $retentionDays);
+
+        return $this->executeStatement(
+            'DELETE FROM email_outbox
+             WHERE status = "sent"
+               AND sent_at IS NOT NULL
+               AND sent_at < DATE_SUB(NOW(), INTERVAL ' . $retentionDays . ' DAY)'
+        );
+    }
+
+    public function purgeFailedOlderThan(int $retentionDays = 14): int
+    {
+        $retentionDays = max(1, $retentionDays);
+
+        return $this->executeStatement(
+            'DELETE FROM email_outbox
+             WHERE status = "failed"
+               AND updated_at < DATE_SUB(NOW(), INTERVAL ' . $retentionDays . ' DAY)'
+        );
+    }
+
     private function encodeJson(mixed $value): ?string
     {
         if ($value === null) {

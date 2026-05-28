@@ -182,6 +182,7 @@ function api_lessons_save_action(): void
 
     try {
         $academicModel->saveLesson($payload);
+        app_uploaded_object_manifest_mark_attached((string) ($payload['attachment_file_path'] ?? ''), ['entity' => 'lesson_attachment']);
         if (is_array($existingLesson)) {
             app_cleanup_replaced_uploaded_file((string) ($existingLesson['attachment_file_path'] ?? ''), (string) ($payload['attachment_file_path'] ?? ''));
         }

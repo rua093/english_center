@@ -118,6 +118,7 @@ function api_users_update_action(): void
 		if (isset($_SESSION['auth_user']) && is_array($_SESSION['auth_user'])) {
 			$_SESSION['auth_user']['avatar'] = $avatarPath;
 		}
+		app_uploaded_object_manifest_mark_attached($avatarPath, ['entity' => 'avatar']);
 		app_cleanup_replaced_uploaded_file($existingAvatarPath, $avatarPath);
 
 		set_flash('success', 'Đã cập nhật ảnh đại diện.');
@@ -134,11 +135,13 @@ function api_users_update_action(): void
 		'phone' => $phone,
 		'avatar' => $avatarPath,
 	]);
+	app_uploaded_object_manifest_mark_attached($avatarPath, ['entity' => 'avatar']);
 
 	if ((string) ($existingProfile['role_name'] ?? '') === 'teacher') {
 		$usersTable->updateTeacherProfile($userId, [
 			'teacher_intro_video_url' => $teacherIntroVideoUrl,
 		]);
+		app_uploaded_object_manifest_mark_attached($teacherIntroVideoUrl, ['entity' => 'teacher_intro_video']);
 		app_cleanup_replaced_uploaded_file($existingTeacherIntroVideoUrl, $teacherIntroVideoUrl);
 	}
 

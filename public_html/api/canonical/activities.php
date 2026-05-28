@@ -46,6 +46,7 @@ function api_activities_save_action(): void
 	$payload['image_thumbnail'] = $thumbnailPath;
 
 	$academicModel->saveActivity($payload);
+	app_uploaded_object_manifest_mark_attached($thumbnailPath, ['entity' => 'activity_thumbnail']);
 	if (is_array($existingActivity)) {
 		app_cleanup_replaced_uploaded_file((string) ($existingActivity['image_thumbnail'] ?? ''), $thumbnailPath);
 	}

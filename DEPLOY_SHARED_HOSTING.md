@@ -69,6 +69,19 @@ Có thể chạy kiểm tra runtime sau khi upload:
 php /var/www/html/public_html/cron/prepare-runtime.php
 ```
 
+Cron vận hành nên có thêm:
+
+```bash
+php /var/www/html/public_html/cron/process-email-outbox.php
+php /var/www/html/public_html/cron/purge-email-outbox.php
+php /var/www/html/public_html/cron/purge-expired-password-resets.php
+php /var/www/html/public_html/cron/sync-overdue-tuition-notifications.php
+php /var/www/html/public_html/cron/purge-old-notifications.php
+php /var/www/html/public_html/cron/purge-sync-change-log.php
+php /var/www/html/public_html/cron/purge-uploaded-object-drafts.php
+php /var/www/html/public_html/cron/purge-old-logs.php
+```
+
 ## 4. Cơ sở dữ liệu
 
 - Import `database/schema.sql`
@@ -81,6 +94,7 @@ php /var/www/html/public_html/cron/prepare-runtime.php
 - Tắt tài khoản demo hoặc dữ liệu seed demo
 - Kiểm tra lại cấu hình mail sender
 - Đảm bảo `storage/logs/` có thể ghi nhưng không public trực tiếp ra ngoài
+- Backup S3 hiện đã có retention ở tầng ứng dụng qua `S3_BACKUP_RETENTION_DAYS` và `S3_BACKUP_KEEP_MIN`, nhưng vẫn nên cấu hình thêm lifecycle policy ở bucket như một lớp bảo vệ thứ hai
 
 ## 6. Smoke test nhanh sau khi upload
 
