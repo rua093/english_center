@@ -2,9 +2,9 @@
 declare(strict_types=1);
 
 return [
-	'app.title' => 'Nền tảng Trung tâm Anh ngữ',
+	'app.title' => 'Trung tâm Ngoại ngữ Nhuệ Minh',
 	'app.description' => 'Nền tảng quản lý Trung tâm Ngoại ngữ: marketing, portal học viên và quản trị vận hành toàn diện.',
-	'app.admin_suffix' => 'Trung tâm Anh ngữ',
+	'app.admin_suffix' => 'Trung tâm Ngoại ngữ',
 	'app.admin_default_title' => 'Khu vực quản trị',
 	'app.admin_description' => 'Khu vực điều hành nội bộ dành cho quản trị viên và nhân sự trung tâm.',
 
