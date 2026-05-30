@@ -481,7 +481,7 @@ $isEditingStudent = $editingRoleName === 'student';
         </style>
         <div class="flex flex-col gap-3 rbac-panel">
         <?php
-        $badgeMap=['admin'=>'bg-red-100 text-red-700','staff'=>'bg-violet-100 text-violet-700','teacher'=>'bg-blue-100 text-blue-700','student'=>'bg-emerald-100 text-emerald-700'];
+        $badgeMap=['admin'=>'bg-red-100 text-red-700','manager'=>'bg-amber-100 text-amber-700','staff'=>'bg-violet-100 text-violet-700','teacher'=>'bg-blue-100 text-blue-700','student'=>'bg-emerald-100 text-emerald-700'];
         $cols=['view','create','update','delete','submit','request','grade'];
         $colLabels=[
             t('admin.rbac.action.view'),

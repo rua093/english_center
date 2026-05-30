@@ -504,6 +504,7 @@ final class AdminModel
     {
         return match (strtolower(trim($roleName))) {
             'admin' => 'quản trị viên',
+            'manager' => 'quản lý',
             'staff' => 'nhân viên',
             'teacher' => 'giáo viên',
             'student' => 'học viên',
