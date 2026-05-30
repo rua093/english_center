@@ -265,6 +265,7 @@ return [
 	'home.promotions_until' => 'Until :date',
 	'home.promotions_limited_time' => 'Limited time',
 	'home.promotions_unlimited_duration' => 'Unlimited',
+	'home.promotions_scope_all_courses' => 'All courses',
 	'home.course_image' => 'Course image',
 	'home.course_sessions' => 'Sessions',
 	'home.roadmaps_count' => ':count roadmaps',

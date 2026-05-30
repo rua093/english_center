@@ -265,6 +265,7 @@ return [
 	'home.promotions_until' => 'Đến :date',
 	'home.promotions_limited_time' => 'Có giới hạn',
 	'home.promotions_unlimited_duration' => 'Không giới hạn',
+	'home.promotions_scope_all_courses' => 'Toàn bộ khóa học',
 	'home.course_image' => 'Ảnh khóa học',
 	'home.course_sessions' => 'Buổi học',
 	'home.roadmaps_count' => ':count lộ trình',

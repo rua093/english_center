@@ -525,7 +525,7 @@ $homeFormatPromotionDate = static function (?string $value): string {
                                 $courseName = trim((string) ($promotion['course_name'] ?? ''));
                                 $scopeLabel = ((int) ($promotion['course_id'] ?? 0)) > 0 && $courseName !== ''
                                     ? $courseName
-                                    : t('admin.promotions.scope_all');
+                                    : t('home.promotions_scope_all_courses');
                                 $endDateText = $homeFormatPromotionDate((string) ($promotion['end_date'] ?? ''));
                                 $quantityLimit = $promotion['quantity_limit'] ?? null;
                                 $quantityRemaining = $promotion['quantity_remaining'] ?? null;
