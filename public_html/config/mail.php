@@ -65,6 +65,16 @@ if (!defined('MAIL_BATCH_SIZE')) {
     define('MAIL_BATCH_SIZE', 20);
 }
 
+if (!defined('MAIL_IMMEDIATE_TEMPLATES')) {
+    define('MAIL_IMMEDIATE_TEMPLATES', [
+        'password_reset_otp',
+        'password_reset_success',
+        'user_welcome_account',
+        'user_password_changed',
+        'lead_confirmation',
+    ]);
+}
+
 if (!defined('MAIL_INTERNAL_NOTIFICATION_RECIPIENTS')) {
     define('MAIL_INTERNAL_NOTIFICATION_RECIPIENTS', '');
 }

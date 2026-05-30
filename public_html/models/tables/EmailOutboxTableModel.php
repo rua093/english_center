@@ -102,14 +102,61 @@ final class EmailOutboxTableModel extends BaseTableModel
                 continue;
             }
 
-            $row['payload'] = $this->decodeJson((string) ($row['payload_json'] ?? ''));
-            $row['headers'] = $this->decodeJson((string) ($row['headers_json'] ?? ''));
-            $row['meta'] = $this->decodeJson((string) ($row['meta_json'] ?? ''));
-            $row['attempts'] = (int) ($row['attempts'] ?? 0) + 1;
-            $claimed[] = $row;
+            $claimed[] = $this->hydrateClaimedRow($row);
         }
 
         return $claimed;
+    }
+
+    public function claimPendingById(int $id, int $maxAttempts): ?array
+    {
+        if ($id <= 0) {
+            return null;
+        }
+
+        $maxAttempts = max(1, $maxAttempts);
+        $row = $this->fetchOne(
+            'SELECT id, template_key, to_email, to_name, subject, html_body, text_body,
+                    payload_json, headers_json, meta_json, attempts
+             FROM email_outbox
+             WHERE id = :id
+               AND status IN ("pending", "retrying")
+               AND attempts < :max_attempts
+               AND available_at <= NOW()
+               AND (locked_at IS NULL OR locked_at < DATE_SUB(NOW(), INTERVAL 20 MINUTE))
+             LIMIT 1',
+            [
+                'id' => $id,
+                'max_attempts' => $maxAttempts,
+            ]
+        );
+
+        if (!$row) {
+            return null;
+        }
+
+        $updated = $this->executeStatement(
+            'UPDATE email_outbox
+             SET status = "sending",
+                 attempts = attempts + 1,
+                 locked_at = NOW(),
+                 updated_at = NOW()
+             WHERE id = :id
+               AND status IN ("pending", "retrying")
+               AND attempts < :max_attempts
+               AND available_at <= NOW()
+               AND (locked_at IS NULL OR locked_at < DATE_SUB(NOW(), INTERVAL 20 MINUTE))',
+            [
+                'id' => $id,
+                'max_attempts' => $maxAttempts,
+            ]
+        );
+
+        if ($updated !== 1) {
+            return null;
+        }
+
+        return $this->hydrateClaimedRow($row);
     }
 
     public function markSent(int $id, string $providerMessageId = '', string $providerResponse = ''): void
@@ -217,5 +264,15 @@ final class EmailOutboxTableModel extends BaseTableModel
     {
         $normalized = trim((string) $value);
         return $normalized !== '' ? $normalized : null;
+    }
+
+    private function hydrateClaimedRow(array $row): array
+    {
+        $row['payload'] = $this->decodeJson((string) ($row['payload_json'] ?? ''));
+        $row['headers'] = $this->decodeJson((string) ($row['headers_json'] ?? ''));
+        $row['meta'] = $this->decodeJson((string) ($row['meta_json'] ?? ''));
+        $row['attempts'] = (int) ($row['attempts'] ?? 0) + 1;
+
+        return $row;
     }
 }

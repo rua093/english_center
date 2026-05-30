@@ -33,7 +33,7 @@ final class MailModel
 
         $rendered = mail_template_render($templateKey, $data);
 
-        return $this->outboxTable->queue([
+        $queuedId = $this->outboxTable->queue([
             'template_key' => $templateKey,
             'to_email' => $normalizedEmail,
             'to_name' => trim($toName),
@@ -47,6 +47,12 @@ final class MailModel
             ],
             'status' => 'pending',
         ]);
+
+        if ($this->shouldSendImmediately($templateKey)) {
+            $this->sendQueuedNow($queuedId);
+        }
+
+        return $queuedId;
     }
 
     public function processEmailOutbox(int $limit = MAIL_BATCH_SIZE): array
@@ -71,29 +77,11 @@ final class MailModel
 
         foreach ($messages as $message) {
             $result['processed']++;
-            $messageId = (int) ($message['id'] ?? 0);
-
             try {
-                $sendResult = $mailer->send($message);
-                $this->outboxTable->markSent(
-                    $messageId,
-                    (string) ($sendResult['provider_message_id'] ?? ''),
-                    (string) ($sendResult['response'] ?? '')
-                );
+                $this->sendClaimedMessage($mailer, $message);
                 $result['sent']++;
             } catch (Throwable $exception) {
-                $this->outboxTable->markFailed(
-                    $messageId,
-                    $exception->getMessage(),
-                    (int) ($message['attempts'] ?? 1),
-                    (int) MAIL_MAX_ATTEMPTS
-                );
-                app_log('error', 'Email outbox send failed', [
-                    'outbox_id' => $messageId,
-                    'to_email' => (string) ($message['to_email'] ?? ''),
-                    'template_key' => (string) ($message['template_key'] ?? ''),
-                    'error' => $exception->getMessage(),
-                ]);
+                $this->handleSendFailure($message, $exception);
                 $result['failed']++;
             }
         }
@@ -303,6 +291,73 @@ final class MailModel
         }
 
         return $queuedCount;
+    }
+
+    private function shouldSendImmediately(string $templateKey): bool
+    {
+        if (!mail_is_enabled() || !mail_is_configured()) {
+            return false;
+        }
+
+        $configured = MAIL_IMMEDIATE_TEMPLATES;
+        if (is_string($configured)) {
+            $configured = array_filter(array_map('trim', explode(',', $configured)));
+        }
+
+        if (!is_array($configured)) {
+            return false;
+        }
+
+        return in_array($templateKey, $configured, true);
+    }
+
+    private function sendQueuedNow(int $outboxId): void
+    {
+        if ($outboxId <= 0) {
+            return;
+        }
+
+        $message = $this->outboxTable->claimPendingById($outboxId, (int) MAIL_MAX_ATTEMPTS);
+        if (!$message) {
+            return;
+        }
+
+        $mailer = new SmtpMailer();
+
+        try {
+            $this->sendClaimedMessage($mailer, $message);
+        } catch (Throwable $exception) {
+            $this->handleSendFailure($message, $exception);
+            throw $exception;
+        }
+    }
+
+    private function sendClaimedMessage(SmtpMailer $mailer, array $message): void
+    {
+        $messageId = (int) ($message['id'] ?? 0);
+        $sendResult = $mailer->send($message);
+        $this->outboxTable->markSent(
+            $messageId,
+            (string) ($sendResult['provider_message_id'] ?? ''),
+            (string) ($sendResult['response'] ?? '')
+        );
+    }
+
+    private function handleSendFailure(array $message, Throwable $exception): void
+    {
+        $messageId = (int) ($message['id'] ?? 0);
+        $this->outboxTable->markFailed(
+            $messageId,
+            $exception->getMessage(),
+            (int) ($message['attempts'] ?? 1),
+            (int) MAIL_MAX_ATTEMPTS
+        );
+        app_log('error', 'Email outbox send failed', [
+            'outbox_id' => $messageId,
+            'to_email' => (string) ($message['to_email'] ?? ''),
+            'template_key' => (string) ($message['template_key'] ?? ''),
+            'error' => $exception->getMessage(),
+        ]);
     }
 
     private function resolveNotificationRecipients(string $targetType, ?int $targetId): array
