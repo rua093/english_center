@@ -535,6 +535,10 @@ $homeFormatPromotionDate = static function (?string $value): string {
                                         'remaining' => (int) max(0, (int) $quantityRemaining),
                                         'limit' => (int) $quantityLimit,
                                     ]);
+                                $durationLabel = $endDateText !== ''
+                                    ? 'Thời hạn: ' . t('home.promotions_until', ['date' => $endDateText])
+                                    : 'Thời hạn: ' . t('home.promotions_unlimited_duration');
+                                $stockLabel = 'Số lượng: ' . $quantityLabel;
                                 $accentClasses = [
                                     'border-rose-200 bg-rose-50 text-rose-700',
                                     'border-amber-200 bg-amber-50 text-amber-700',
@@ -542,15 +546,14 @@ $homeFormatPromotionDate = static function (?string $value): string {
                                 ][$index % 3];
                                 ?>
                                 <div class="swiper-slide h-auto pb-2">
-                                    <article class="group flex h-full min-h-[190px] flex-col rounded-[1.35rem] border-2 border-slate-300 bg-white p-5 shadow-[0_14px_34px_rgba(15,23,42,0.08)] ring-0 ring-rose-200/0 transition-all duration-300 hover:border-rose-400 hover:shadow-[0_24px_52px_rgba(225,29,72,0.20)] hover:ring-4 hover:ring-rose-200/80">
+                                    <article class="group flex h-[238px] min-h-[238px] flex-col rounded-[1.35rem] border-2 border-slate-300 bg-white p-5 shadow-[0_14px_34px_rgba(15,23,42,0.08)] ring-0 ring-rose-200/0 transition-all duration-300 hover:border-rose-400 hover:shadow-[0_24px_52px_rgba(225,29,72,0.20)] hover:ring-4 hover:ring-rose-200/80">
                                         <div class="flex items-start justify-between gap-4">
-                                            <div class="min-w-0">
+                                            <div class="min-w-0 flex-1">
                                                 <span class="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.14em] <?= e($accentClasses); ?>">
                                                     <i class="fa-solid fa-tags text-[10px]"></i>
                                                     <?= e($scopeLabel); ?>
                                                 </span>
-                                                <h3 class="mt-3 line-clamp-2 min-h-[3rem] text-lg font-black leading-tight tracking-tight text-slate-950"><?= e($promotionName); ?></h3>
-                                                <p class="mt-1 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400"><?= e(t('home.promotions_limited_time')); ?></p>
+                                                <h3 class="mt-3 h-[2.42rem] overflow-hidden pr-2 text-[1.05rem] font-black leading-[1.15] tracking-tight text-slate-950" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;word-break:break-word;overflow-wrap:anywhere;max-height:2.42rem;"><?= e($promotionName); ?></h3>
                                             </div>
                                             <div class="shrink-0 rounded-2xl bg-rose-600 px-4 py-3 text-right text-white shadow-md shadow-rose-500/20">
                                                 <p class="text-[9px] font-black uppercase tracking-[0.18em] text-white/70"><?= e(t('home.promotions_discount_prefix')); ?></p>
@@ -561,14 +564,14 @@ $homeFormatPromotionDate = static function (?string $value): string {
                                             </div>
                                         </div>
 
-                                        <div class="mt-auto flex flex-wrap gap-2 pt-5 text-[11px] font-bold">
-                                            <span class="inline-flex items-center gap-1.5 rounded-full border border-amber-100 bg-amber-50 px-3 py-1.5 text-amber-700">
+                                        <div class="mt-auto flex flex-col items-start gap-2 pt-3 text-[11px] font-bold">
+                                            <span class="inline-flex min-h-[36px] items-center gap-1.5 rounded-full border border-amber-100 bg-amber-50 px-3 py-1.5 text-amber-700">
                                                 <i class="fa-regular fa-clock"></i>
-                                                <?= e($endDateText !== '' ? t('home.promotions_until', ['date' => $endDateText]) : t('home.promotions_limited_time')); ?>
+                                                <?= e($durationLabel); ?>
                                             </span>
-                                            <span class="inline-flex items-center gap-1.5 rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1.5 text-emerald-700">
+                                            <span class="inline-flex min-h-[36px] items-center gap-1.5 rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1.5 text-emerald-700">
                                                 <i class="fa-solid fa-ticket"></i>
-                                                <?= e($quantityLabel); ?>
+                                                <?= e($stockLabel); ?>
                                             </span>
                                         </div>
                                     </article>

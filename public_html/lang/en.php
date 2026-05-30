@@ -264,6 +264,7 @@ return [
 	'home.promotions_discount_prefix' => 'Save',
 	'home.promotions_until' => 'Until :date',
 	'home.promotions_limited_time' => 'Limited time',
+	'home.promotions_unlimited_duration' => 'Unlimited',
 	'home.course_image' => 'Course image',
 	'home.course_sessions' => 'Sessions',
 	'home.roadmaps_count' => ':count roadmaps',
