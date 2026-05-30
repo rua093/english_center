@@ -107,11 +107,12 @@ final class PasswordResetTokensTableModel extends BaseTableModel
              WHERE created_at >= DATE_SUB(NOW(), INTERVAL ' . $seconds . ' SECOND)
                AND (
                     email = :email
-                    OR (:requested_ip <> "" AND requested_ip = :requested_ip)
+                    OR (:requested_ip_value <> "" AND requested_ip = :requested_ip_match)
                )',
             [
                 'email' => strtolower(trim($email)),
-                'requested_ip' => trim($requestedIp),
+                'requested_ip_value' => trim($requestedIp),
+                'requested_ip_match' => trim($requestedIp),
             ],
             'total',
             0

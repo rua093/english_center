@@ -1,0 +1,408 @@
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+    theme: {
+        extend: {
+            fontFamily: {
+                sans: ['Be Vietnam Pro', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+                jakarta: ['Be Vietnam Pro', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+                display: ['Sora', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+            },
+            boxShadow: {
+                soft: '0 12px 30px rgba(30, 58, 138, 0.12)',
+                panel: '0 22px 50px rgba(15, 31, 61, 0.16)',
+            },
+        },
+    },
+};
+</script>
+<div class="bg-slate-50 min-h-screen">
+    
+<style>
+    .focus-rose:focus { border-color: #e11d48; box-shadow: 0 0 0 4px rgba(225, 29, 72, 0.1); }
+    .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(225, 29, 72, 0.1); }
+    .step-active { color: #e11d48; border-bottom: 3px solid #e11d48; }
+    .step-inactive { color: #cbd5e1; border-bottom: 3px solid #f1f5f9; }
+    .forgot-background {
+        min-height: 100vh;
+        width: 100%;
+        background:
+            linear-gradient(135deg, rgba(15, 23, 42, 0.48) 0%, rgba(15, 23, 42, 0.36) 50%, rgba(15, 23, 42, 0.50) 100%),
+            url('/assets/images/login.jpg');
+        background-color: #0f172a;
+        background-position: center center;
+        background-size: cover;
+        background-repeat: no-repeat;
+    }
+</style>
+
+<main class="forgot-background py-16 md:py-24 font-jakarta relative overflow-hidden">
+    <div class="absolute top-0 left-0 w-full h-full pointer-events-none -z-10">
+        <div class="absolute top-[-10%] right-[-10%] w-96 h-96 bg-rose-100/50 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-[-10%] left-[-10%] w-96 h-96 bg-lime-100/50 rounded-full blur-3xl"></div>
+    </div>
+
+    <div class="container mx-auto px-4 max-w-lg">
+        <div class="glass-card rounded-[2rem] shadow-2xl shadow-rose-900/5 p-5 md:p-7" data-aos="zoom-in">
+            <div class="text-center mb-7">
+                <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 mb-3">
+                    <i class="fa-solid fa-key text-2xl"></i>
+                </div>
+                <h1 class="text-2xl md:text-3xl font-black text-slate-800 uppercase tracking-tight">Khôi phục mật khẩu</h1>
+                <p class="text-slate-500 text-sm font-medium mt-2">Đừng lo lắng, chúng tôi sẽ giúp bạn lấy lại quyền truy cập.</p>
+            </div>
+
+            
+            
+            <div id="forgot-password-feedback" class="mb-5 hidden rounded-2xl px-4 py-3 text-sm font-semibold"></div>
+
+            <div class="flex justify-between mb-7 px-2 md:px-4">
+                <div id="step-1-indicator" class="step-active pb-2 flex-1 text-center font-black text-xs uppercase tracking-widest">1. Email</div>
+                <div id="step-2-indicator" class="step-inactive pb-2 flex-1 text-center font-black text-xs uppercase tracking-widest">2. Xác thực</div>
+                <div id="step-3-indicator" class="step-inactive pb-2 flex-1 text-center font-black text-xs uppercase tracking-widest">3. Mật khẩu</div>
+            </div>
+
+            <form id="form-step-1" class="space-y-5">
+                <div class="space-y-2">
+                    <label class="text-xs font-black text-slate-400 uppercase ml-2">Địa chỉ Email của bạn *</label>
+                    <div class="relative">
+                        <i class="fa-regular fa-envelope absolute left-5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        <input type="email" id="email_input" required placeholder="nhueminh@edu.vn"
+                            class="w-full pl-12 pr-5 py-3.5 rounded-2xl bg-slate-50 border-2 border-transparent outline-none focus-rose font-bold transition-all">
+                    </div>
+                </div>
+                <button type="button" onclick="sendCodeToEmail()" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-black py-3.5 rounded-2xl shadow-xl shadow-rose-600/20 transition-all hover:-translate-y-1 uppercase tracking-widest flex items-center justify-center gap-3">
+                    Gửi mã xác nhận
+                    <div class="w-2 h-2 rounded-full bg-lime-400"></div>
+                </button>
+            </form>
+
+            <form id="form-step-2" class="space-y-5 hidden animate-fade-in">
+                <div class="text-center bg-lime-50 p-3.5 rounded-2xl mb-5">
+                    <p class="text-xs font-bold text-emerald-700">Nếu email tồn tại trong hệ thống, mã xác thực đã được gửi. Vui lòng kiểm tra hộp thư đến hoặc spam.</p>
+                </div>
+                <div class="space-y-2 text-center">
+                    <label class="text-xs font-black text-slate-400 uppercase">Nhập mã 6 chữ số *</label>
+                    <div class="flex justify-center gap-3 mt-3">
+                        <input type="text" maxlength="6" id="verify_code" placeholder="000000"
+                            class="w-full text-center tracking-[1em] text-2xl px-5 py-3.5 rounded-2xl bg-slate-50 border-2 border-transparent outline-none focus-rose font-black transition-all">
+                    </div>
+                </div>
+
+                <div class="text-center">
+                    <button type="button" id="btn-resend" disabled class="text-xs font-bold text-slate-400 cursor-not-allowed">
+                        Gửi lại mã sau <span id="timer">60</span>s
+                    </button>
+                </div>
+
+                <button type="button" onclick="validateCode()" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-black py-3.5 rounded-2xl shadow-xl shadow-rose-600/20 transition-all hover:-translate-y-1 uppercase tracking-widest flex items-center justify-center gap-3">
+                    Xác thực mã
+                    <div class="w-2 h-2 rounded-full bg-lime-400"></div>
+                </button>
+            </form>
+
+            <form id="form-step-3" class="space-y-5 hidden animate-fade-in">
+                <div class="space-y-3">
+                    <div class="space-y-1.5">
+                        <label class="text-xs font-black text-slate-400 uppercase ml-2">Mật khẩu mới *</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-lock absolute left-5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                            <input type="password" id="new_password" name="new_password" required placeholder="••••••••"
+                                class="w-full pl-12 pr-12 py-3.5 rounded-2xl bg-slate-50 border-2 border-transparent outline-none focus-rose font-bold transition-all">
+                            <button type="button" onclick="togglePass('new_password', this)" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-rose-600">
+                                <i class="fa-regular fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-xs font-black text-slate-400 uppercase ml-2">Xác nhận mật khẩu *</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-shield-check absolute left-5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                            <input type="password" id="confirm_password" name="confirm_password" required placeholder="••••••••"
+                                class="w-full pl-12 pr-12 py-3.5 rounded-2xl bg-slate-50 border-2 border-transparent outline-none focus-rose font-bold transition-all">
+                            <button type="button" onclick="togglePass('confirm_password', this)" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-rose-600">
+                                <i class="fa-regular fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-black py-3.5 rounded-2xl shadow-xl shadow-rose-600/20 transition-all hover:-translate-y-1 uppercase tracking-widest flex items-center justify-center gap-3">
+                    Cập nhật mật khẩu
+                    <div class="w-2 h-2 rounded-full bg-lime-400"></div>
+                </button>
+            </form>
+
+            <div class="mt-6 text-center">
+                <a href="/login" class="text-sm font-black text-slate-400 hover:text-rose-600 transition-colors uppercase tracking-widest">
+                    <i class="fa-solid fa-arrow-left-long mr-2"></i> Quay lại đăng nhập
+                </a>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+    let countdown = 60;
+    let timerId = null;
+    let resetFlowToken = '';
+    const forgotPasswordCsrf = "16c4e37f1238a45e098ac224090eb5d31734996b98b61ba529a2c7d9b18063d4";
+
+    function showFeedback(type, message) {
+        const feedback = document.getElementById('forgot-password-feedback');
+        feedback.className = 'mb-5 rounded-2xl px-4 py-3 text-sm font-semibold ' + (type === 'error'
+            ? 'border border-rose-200 bg-rose-50 text-rose-700'
+            : 'border border-emerald-200 bg-emerald-50 text-emerald-700');
+        feedback.textContent = message;
+        feedback.classList.remove('hidden');
+    }
+
+    async function postForgotPassword(endpoint, payload) {
+        const formData = new FormData();
+        Object.entries(payload).forEach(([key, value]) => formData.append(key, value));
+        formData.append('_csrf', forgotPasswordCsrf);
+        formData.append('format', 'json');
+
+        const response = await fetch(endpoint, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+
+        const result = await response.json();
+        if (!response.ok || result.status !== 'success') {
+            throw new Error(result.message || 'Yêu cầu không thành công.');
+        }
+
+        return result;
+    }
+
+    async function sendCodeToEmail() {
+        const email = document.getElementById('email_input').value.trim();
+        if (!email) {
+            showFeedback('error', 'Vui lòng nhập email.');
+            return;
+        }
+
+        try {
+            const result = await postForgotPassword('/api/index.php?resource=passwords&method=request-reset', { email });
+            resetFlowToken = String((result.data || {}).flow_token || '');
+            document.getElementById('form-step-1').classList.add('hidden');
+            document.getElementById('form-step-2').classList.remove('hidden');
+            document.getElementById('step-2-indicator').className = 'step-active pb-2 flex-1 text-center font-black text-xs uppercase tracking-widest';
+            showFeedback('success', result.message || 'Nếu email tồn tại, hệ thống đã gửi mã xác nhận.');
+            startTimer();
+        } catch (error) {
+            showFeedback('error', error.message || 'Không thể gửi mã xác nhận lúc này.');
+        }
+    }
+
+    async function validateCode() {
+        const code = document.getElementById('verify_code').value.trim();
+        if (!resetFlowToken) {
+            showFeedback('error', 'Phiên khôi phục không hợp lệ. Vui lòng gửi lại mã.');
+            return;
+        }
+
+        if (!code) {
+            showFeedback('error', 'Vui lòng nhập mã xác nhận.');
+            return;
+        }
+
+        try {
+            const result = await postForgotPassword('/api/index.php?resource=passwords&method=verify-otp', {
+                flow_token: resetFlowToken,
+                otp_code: code
+            });
+            document.getElementById('form-step-2').classList.add('hidden');
+            document.getElementById('form-step-3').classList.remove('hidden');
+            document.getElementById('step-3-indicator').className = 'step-active pb-2 flex-1 text-center font-black text-xs uppercase tracking-widest';
+            showFeedback('success', result.message || 'Xác thực thành công. Hãy đặt mật khẩu mới.');
+        } catch (error) {
+            showFeedback('error', error.message || 'Mã xác nhận không hợp lệ hoặc đã hết hạn.');
+        }
+    }
+
+    function startTimer() {
+        countdown = 60;
+        const btnResend = document.getElementById('btn-resend');
+
+        btnResend.disabled = true;
+        btnResend.onclick = null;
+        btnResend.className = 'text-xs font-bold text-slate-400 cursor-not-allowed';
+        btnResend.innerHTML = 'Gửi lại mã sau <span id="timer">60</span>s';
+        const timerText = document.getElementById('timer');
+
+        timerId = setInterval(() => {
+            countdown--;
+            timerText.innerText = countdown;
+            if (countdown <= 0) {
+                clearInterval(timerId);
+                btnResend.disabled = false;
+                btnResend.className = 'text-xs font-black text-rose-600 hover:underline cursor-pointer';
+                btnResend.innerHTML = 'Gửi lại mã ngay';
+                btnResend.onclick = sendCodeToEmail;
+            }
+        }, 1000);
+    }
+
+    function togglePass(id, btn) {
+        const input = document.getElementById(id);
+        const icon = btn.querySelector('i');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.className = 'fa-regular fa-eye-slash';
+        } else {
+            input.type = 'password';
+            icon.className = 'fa-regular fa-eye';
+        }
+    }
+
+    document.getElementById('form-step-3').addEventListener('submit', async function(event) {
+        event.preventDefault();
+
+        if (!resetFlowToken) {
+            showFeedback('error', 'Phiên khôi phục không hợp lệ. Vui lòng thực hiện lại từ đầu.');
+            return;
+        }
+
+        const newPassword = document.getElementById('new_password').value;
+        const confirmPassword = document.getElementById('confirm_password').value;
+
+        try {
+            const result = await postForgotPassword('/api/index.php?resource=passwords&method=confirm-reset', {
+                flow_token: resetFlowToken,
+                new_password: newPassword,
+                confirm_password: confirmPassword
+            });
+
+            showFeedback('success', result.message || 'Mật khẩu đã được cập nhật thành công.');
+            const redirectUrl = String((result.data || {}).redirect_url || '/?page=login');
+            setTimeout(() => {
+                window.location.href = redirectUrl;
+            }, 1200);
+        } catch (error) {
+            showFeedback('error', error.message || 'Không thể cập nhật mật khẩu mới.');
+        }
+    });
+</script>
+</div>
+</main> 
+<footer class="bg-blue-950 text-blue-200/70 pt-16 pb-7 relative overflow-hidden font-jakarta">
+    
+    <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-blue-400 to-transparent opacity-60"></div>
+    
+    <div class="absolute -top-24 left-1/2 -translate-x-1/2 w-full h-64 bg-blue-600/10 blur-[120px] pointer-events-none"></div>
+
+    <div class="mx-auto w-full max-w-7xl px-4 sm:px-6 relative z-10">
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-12 mb-12">
+            
+            <div class="lg:col-span-4 flex flex-col pr-0 lg:pr-10">
+                <a href="#top" class="inline-flex items-center gap-3 mb-5 group">
+                    <div class="h-12 w-12 rounded-xl bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform">
+                        NM
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-xl font-black text-white tracking-tight uppercase leading-none">Nhuệ Minh</span>
+                        <span class="text-blue-400 font-bold text-[10px] tracking-widest uppercase mt-1">Foreign Language Center</span>
+                    </div>
+                </a>
+                <p class="text-sm leading-relaxed mb-6 font-medium">
+                    Hệ thống đào tạo Anh ngữ chuẩn quốc tế, giúp học viên bứt phá giới hạn và tự tin kết nối toàn cầu.                </p>
+                <div class="flex gap-3">
+                    <a href="https://www.facebook.com/share/1GNiDnkkcd/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer" class="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/30 hover:scale-105 transition-all duration-300" aria-label="Facebook">
+                        <i class="fa-brands fa-facebook-f text-base"></i>
+                    </a>
+                    <a href="https://zalo.me/0867592259" target="_blank" rel="noopener noreferrer" class="w-10 h-10 rounded-lg bg-[#0068FF] flex items-center justify-center text-white shadow-lg shadow-blue-500/30 hover:scale-105 transition-all duration-300" aria-label="Zalo">
+                        <span class="text-sm font-black leading-none tracking-tight">Z</span>
+                    </a>
+                   <a href="https://www.youtube.com/@hoctienganhcungnhueminh8329?si=6HWvleY3hQj8ZJQ_" target="_blank" rel="noopener noreferrer" class="w-10 h-10 rounded-lg bg-red-600 flex items-center justify-center text-white shadow-lg shadow-red-500/30 hover:scale-105 transition-all duration-300" aria-label="YouTube">
+                        <i class="fa-brands fa-youtube text-base"></i>
+                    </a>
+                </div>
+            </div>
+
+            <div class="lg:col-span-2">
+                <h4 class="text-white font-black mb-6 text-xs uppercase tracking-widest relative">
+                    Khám phá                    <span class="absolute -bottom-2 left-0 w-6 h-0.5 bg-blue-400"></span>
+                </h4>
+                <ul class="space-y-3 text-xs font-bold mt-6">
+                    <li><a href="/?page=home#gioi-thieu" class="hover:text-blue-400 transition-all flex items-center gap-2 group"><i class="fa-solid fa-chevron-right text-[8px] opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all"></i>Về Nhuệ Minh</a></li>
+                    <li><a href="/?page=home#khoa-hoc" class="hover:text-blue-400 transition-all flex items-center gap-2 group"><i class="fa-solid fa-chevron-right text-[8px] opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all"></i>Các khóa học</a></li>
+                    <li><a href="/?page=home#feed-back-student" class="hover:text-blue-400 transition-all flex items-center gap-2 group"><i class="fa-solid fa-chevron-right text-[8px] opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all"></i>Thành tích</a></li>
+                </ul>
+            </div>
+
+            <div class="lg:col-span-3">
+                <h4 class="text-white font-black mb-6 text-xs uppercase tracking-widest relative">
+                    Truy cập nhanh                    <span class="absolute -bottom-2 left-0 w-6 h-0.5 bg-blue-400"></span>
+                </h4>
+                <ul class="space-y-3 mt-6">
+                    <li>
+                        <a href="/?page=job-apply" class="hover:text-blue-400 transition-all flex items-center gap-2 group">
+                            <i class="fa-solid fa-briefcase text-[10px] opacity-60"></i>
+                            <span class="text-xs font-bold">Tuyển dụng</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/?page=documents" class="hover:text-blue-400 transition-all flex items-center gap-2 group">
+                            <i class="fa-solid fa-file-lines text-[10px] opacity-60"></i>
+                            <span class="text-xs font-bold">Tài liệu học tập</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/?page=home#ngoai-khoa" class="hover:text-blue-400 transition-all flex items-center gap-2 group">
+                            <i class="fa-solid fa-person-hiking text-[10px] opacity-60"></i>
+                            <span class="text-xs font-bold">Hoạt động ngoại khoá</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="lg:col-span-3">
+                <h4 class="text-white font-black mb-6 text-xs uppercase tracking-tight relative">
+                    Liên hệ ngay                    <span class="absolute -bottom-2 left-0 w-6 h-0.5 bg-blue-400"></span>
+                </h4>
+                <div class="space-y-4 mt-6">
+                    <div class="flex gap-3 items-start group">
+                        <div class="w-9 h-9 rounded-lg bg-emerald-500 flex items-center justify-center text-white flex-shrink-0 shadow-md shadow-emerald-500/30 group-hover:scale-105 group-hover:-translate-y-0.5 transition-all">
+                            <i class="fa-solid fa-location-dot text-sm"></i>
+                        </div>
+                        <span class="text-[13px] font-bold leading-relaxed pt-1">Thôn Phú Thạnh - Phường Quảng Phú, TP. Đà Nẵng</span>
+                    </div>
+                    <div class="flex gap-3 items-center group">
+                        <div class="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center text-white flex-shrink-0 shadow-md shadow-blue-500/30 group-hover:scale-105 group-hover:-translate-y-0.5 transition-all">
+                            <i class="fa-solid fa-phone-volume text-sm"></i>
+                        </div>
+                        <a href="tel:0899925259" class="text-lg font-black text-white hover:text-blue-400 transition-all">
+                            0899925259                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="pt-6 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-4">
+            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">
+                &copy; 2026 <span class="text-blue-400">Nhuệ Minh Edu.</span>
+            </p>
+
+            <div class="flex gap-6 text-[10px] font-black uppercase tracking-widest text-slate-500">
+                <a href="#" class="hover:text-white transition-colors">Bảo mật</a>
+                <a href="#" class="hover:text-white transition-colors">Điều khoản</a>
+            </div>
+            
+            <!-- <a href="#top" class="group flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-[10px] font-black text-blue-400 hover:bg-blue-400 hover:text-blue-950 transition-all duration-500">
+                <span>LÊN ĐẦU TRANG</span>
+                <i class="fa-solid fa-arrow-up transition-transform group-hover:-translate-y-1"></i>
+            </a> -->
+        </div>
+    </div>
+</footer>
+
+    <script src="/assets/js/main.js?v=1.0.1"></script>
+</body>
+</html>
