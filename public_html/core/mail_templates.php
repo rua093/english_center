@@ -48,7 +48,7 @@ function mail_template_shell(string $headline, string $introHtml, string $bodyHt
                     </tr>
                     <tr>
                         <td style="padding:18px 32px;background:#f8fafc;border-top:1px solid #e2e8f0;font-size:12px;line-height:1.8;color:#64748b;">
-                            ' . ($footerHtml !== '' ? $footerHtml : 'Email được gửi tự động từ hệ thống. Nếu bạn cần hỗ trợ, vui lòng phản hồi email này hoặc liên hệ trung tâm.') . '
+                            ' . ($footerHtml !== '' ? $footerHtml : mail_template_default_footer_html()) . '
                         </td>
                     </tr>
                 </table>
@@ -59,24 +59,62 @@ function mail_template_shell(string $headline, string $introHtml, string $bodyHt
 </html>';
 }
 
+function mail_template_brand_name(): string
+{
+    $brand = trim(mail_from_name());
+    if ($brand !== '') {
+        return $brand;
+    }
+
+    return trim((string) APP_NAME);
+}
+
+function mail_template_brand_label(): string
+{
+    return mail_html_escape(mail_template_brand_name());
+}
+
+function mail_template_base_url(): string
+{
+    return mail_abs_url('/');
+}
+
+function mail_template_support_email(): string
+{
+    return mail_html_escape(mail_reply_to_address());
+}
+
+function mail_template_default_footer_html(): string
+{
+    $brand = mail_template_brand_label();
+    $supportEmail = mail_template_support_email();
+    $websiteUrl = mail_html_escape(mail_template_base_url());
+
+    return '<strong>' . $brand . '</strong><br>'
+        . 'Email giao dịch được gửi tự động từ hệ thống quản lý trung tâm.<br>'
+        . 'Hỗ trợ: <a href="mailto:' . $supportEmail . '" style="color:#2563eb;text-decoration:none;">' . $supportEmail . '</a> | '
+        . 'Website: <a href="' . $websiteUrl . '" style="color:#2563eb;text-decoration:none;">' . $websiteUrl . '</a>';
+}
+
 function mail_template_password_reset_otp(array $data): array
 {
     $userName = mail_html_escape(trim((string) ($data['user_name'] ?? 'bạn')));
     $otpCode = mail_html_escape(trim((string) ($data['otp_code'] ?? '')));
     $expiresInMinutes = max(1, (int) ($data['expires_in_minutes'] ?? 10));
     $resetUrl = mail_html_escape((string) ($data['reset_url'] ?? mail_forgot_password_url()));
+    $brand = mail_template_brand_name();
 
-    $subject = 'Ma xac nhan khoi phuc mat khau';
+    $subject = '[' . $brand . '] Mã xác nhận đặt lại mật khẩu';
     $html = mail_template_shell(
         'Khôi phục mật khẩu',
-        'Xin chào <strong>' . $userName . '</strong>, chúng tôi vừa nhận được yêu cầu đặt lại mật khẩu cho tài khoản của bạn.',
+        'Xin chào <strong>' . $userName . '</strong>, hệ thống ' . mail_template_brand_label() . ' vừa nhận được yêu cầu đặt lại mật khẩu cho tài khoản của bạn.',
         '<p style="margin:0 0 16px;font-size:15px;line-height:1.8;color:#334155;">Sử dụng mã xác nhận bên dưới để tiếp tục. Mã có hiệu lực trong <strong>' . $expiresInMinutes . ' phút</strong>.</p>
         <div style="margin:22px 0;padding:18px 22px;border-radius:18px;background:#eff6ff;border:1px solid #bfdbfe;text-align:center;">
             <div style="font-size:12px;letter-spacing:0.18em;text-transform:uppercase;color:#2563eb;font-weight:800;">Mã xác nhận</div>
             <div style="margin-top:12px;font-size:34px;letter-spacing:0.32em;font-weight:900;color:#0f172a;">' . $otpCode . '</div>
         </div>
         <p style="margin:0 0 16px;font-size:15px;line-height:1.8;color:#334155;">Bạn cũng có thể quay lại màn hình khôi phục mật khẩu tại liên kết sau:</p>
-        <p style="margin:0;"><a href="' . $resetUrl . '" style="display:inline-block;padding:12px 18px;border-radius:999px;background:#dc2626;color:#ffffff;text-decoration:none;font-weight:700;">Mở trang khôi phục mật khẩu</a></p>
+        <p style="margin:0;"><a href="' . $resetUrl . '" style="display:inline-block;padding:12px 18px;border-radius:999px;background:#1d4ed8;color:#ffffff;text-decoration:none;font-weight:700;">Mở trang khôi phục mật khẩu</a></p>
         <p style="margin:18px 0 0;font-size:14px;line-height:1.7;color:#64748b;">Nếu bạn không thực hiện yêu cầu này, hãy bỏ qua email. Mật khẩu hiện tại của bạn vẫn an toàn.</p>'
     );
 
@@ -96,11 +134,12 @@ function mail_template_password_reset_success(array $data): array
 {
     $userName = mail_html_escape(trim((string) ($data['user_name'] ?? 'bạn')));
     $loginUrl = mail_html_escape((string) ($data['login_url'] ?? mail_login_url()));
+    $brand = mail_template_brand_name();
 
-    $subject = 'Mat khau da duoc cap nhat';
+    $subject = '[' . $brand . '] Mật khẩu tài khoản đã được cập nhật';
     $html = mail_template_shell(
         'Mật khẩu đã được cập nhật',
-        'Xin chào <strong>' . $userName . '</strong>, mật khẩu tài khoản của bạn vừa được thay đổi thành công.',
+        'Xin chào <strong>' . $userName . '</strong>, mật khẩu tài khoản tại ' . mail_template_brand_label() . ' vừa được thay đổi thành công.',
         '<p style="margin:0 0 16px;font-size:15px;line-height:1.8;color:#334155;">Bạn có thể đăng nhập lại ngay bây giờ bằng mật khẩu mới.</p>
         <p style="margin:0 0 16px;"><a href="' . $loginUrl . '" style="display:inline-block;padding:12px 18px;border-radius:999px;background:#1d4ed8;color:#ffffff;text-decoration:none;font-weight:700;">Đăng nhập</a></p>
         <p style="margin:0;font-size:14px;line-height:1.7;color:#64748b;">Nếu bạn không thực hiện thay đổi này, hãy liên hệ trung tâm ngay để được hỗ trợ bảo mật tài khoản.</p>'
@@ -121,7 +160,7 @@ function mail_template_lead_confirmation(array $data): array
     $parentName = mail_html_escape(trim((string) ($data['parent_name'] ?? 'Quý phụ huynh')));
     $phone = mail_html_escape(trim((string) ($data['parent_phone'] ?? '')));
     $studyTime = mail_html_escape(trim((string) ($data['study_time'] ?? '')));
-    $subject = 'Trung tam da nhan yeu cau tu van cua ban';
+    $subject = '[' . mail_template_brand_name() . '] Trung tâm đã nhận yêu cầu tư vấn';
 
     $detailItems = '';
     if ($phone !== '') {
@@ -160,7 +199,7 @@ function mail_template_lead_internal_notification(array $data): array
     $studyTime = mail_html_escape(trim((string) ($data['study_time'] ?? '')));
     $source = mail_html_escape(trim((string) ($data['referral_source'] ?? 'website')));
 
-    $subject = 'Lead tu van moi tu website';
+    $subject = '[' . mail_template_brand_name() . '] Lead tư vấn mới từ website';
     $html = mail_template_shell(
         'Lead tư vấn mới',
         'Hệ thống vừa ghi nhận một lead mới từ website.',
@@ -191,29 +230,31 @@ function mail_template_user_welcome_account(array $data): array
 {
     $fullName = mail_html_escape(trim((string) ($data['full_name'] ?? 'bạn')));
     $username = mail_html_escape(trim((string) ($data['username'] ?? '')));
-    $plainPassword = mail_html_escape(trim((string) ($data['plain_password'] ?? '')));
     $roleLabel = mail_html_escape(trim((string) ($data['role_label'] ?? 'người dùng')));
     $loginUrl = mail_html_escape((string) ($data['login_url'] ?? mail_login_url()));
+    $forgotPasswordUrl = mail_html_escape(mail_forgot_password_url());
+    $brand = mail_template_brand_name();
 
-    $subject = 'Tai khoan cua ban da san sang';
+    $subject = '[' . $brand . '] Tài khoản ' . trim((string) ($data['role_label'] ?? 'người dùng')) . ' của bạn đã được tạo';
     $html = mail_template_shell(
         'Tài khoản đã được tạo',
-        'Xin chào <strong>' . $fullName . '</strong>, hệ thống vừa tạo tài khoản ' . $roleLabel . ' cho bạn.',
-        '<p style="margin:0 0 16px;font-size:15px;line-height:1.8;color:#334155;">Bạn có thể đăng nhập bằng thông tin sau:</p>
+        'Xin chào <strong>' . $fullName . '</strong>, ' . mail_template_brand_label() . ' vừa tạo tài khoản ' . $roleLabel . ' cho bạn.',
+        '<p style="margin:0 0 16px;font-size:15px;line-height:1.8;color:#334155;">Để bắt đầu sử dụng tài khoản, vui lòng tạo mật khẩu của riêng bạn theo liên kết bên dưới.</p>
         <div style="margin:0 0 20px;padding:18px 20px;border-radius:18px;background:#f8fafc;border:1px solid #e2e8f0;">
             <div style="margin-bottom:8px;"><strong>Tên đăng nhập:</strong> ' . $username . '</div>
-            <div><strong>Mật khẩu tạm:</strong> ' . $plainPassword . '</div>
+            <div><strong>Bước tiếp theo:</strong> Chọn "Quên mật khẩu" để tạo mật khẩu mới cho lần đăng nhập đầu tiên.</div>
         </div>
-        <p style="margin:0 0 16px;"><a href="' . $loginUrl . '" style="display:inline-block;padding:12px 18px;border-radius:999px;background:#1d4ed8;color:#ffffff;text-decoration:none;font-weight:700;">Đăng nhập ngay</a></p>
-        <p style="margin:0;font-size:14px;line-height:1.7;color:#64748b;">Vì lý do bảo mật, bạn nên đổi mật khẩu ngay sau lần đăng nhập đầu tiên.</p>'
+        <p style="margin:0 0 16px;"><a href="' . $forgotPasswordUrl . '" style="display:inline-block;padding:12px 18px;border-radius:999px;background:#1d4ed8;color:#ffffff;text-decoration:none;font-weight:700;">Tạo mật khẩu để đăng nhập</a></p>
+        <p style="margin:0 0 10px;font-size:14px;line-height:1.7;color:#64748b;">Sau khi tạo mật khẩu xong, bạn có thể đăng nhập tại: <a href="' . $loginUrl . '" style="color:#2563eb;text-decoration:none;">' . $loginUrl . '</a></p>
+        <p style="margin:0;font-size:14px;line-height:1.7;color:#64748b;">Vì lý do bảo mật, hệ thống không gửi mật khẩu qua email.</p>'
     );
 
     $text = mail_text_lines([
-        'Tai khoan cua ban da duoc tao.',
+        'Tai khoan cua ban da duoc tao tai ' . $brand . '.',
         'Ten dang nhap: ' . trim((string) ($data['username'] ?? '')),
-        'Mat khau tam: ' . trim((string) ($data['plain_password'] ?? '')),
+        'Tao mat khau moi tai: ' . mail_forgot_password_url(),
         'Dang nhap tai: ' . (string) ($data['login_url'] ?? mail_login_url()),
-        'Ban nen doi mat khau sau khi dang nhap lan dau.',
+        'Vi ly do bao mat, he thong khong gui mat khau qua email.',
     ]);
 
     return compact('subject', 'html', 'text');
@@ -223,11 +264,12 @@ function mail_template_user_password_changed(array $data): array
 {
     $fullName = mail_html_escape(trim((string) ($data['full_name'] ?? 'bạn')));
     $loginUrl = mail_html_escape((string) ($data['login_url'] ?? mail_login_url()));
+    $brand = mail_template_brand_name();
 
-    $subject = 'Thong bao thay doi mat khau tai khoan';
+    $subject = '[' . $brand . '] Mật khẩu tài khoản đã được thay đổi';
     $html = mail_template_shell(
         'Mật khẩu tài khoản đã thay đổi',
-        'Xin chào <strong>' . $fullName . '</strong>, quản trị viên vừa cập nhật mật khẩu cho tài khoản của bạn.',
+        'Xin chào <strong>' . $fullName . '</strong>, quản trị viên tại ' . mail_template_brand_label() . ' vừa cập nhật mật khẩu cho tài khoản của bạn.',
         '<p style="margin:0 0 16px;font-size:15px;line-height:1.8;color:#334155;">Nếu thay đổi này là do bạn yêu cầu, vui lòng đăng nhập lại để tiếp tục sử dụng hệ thống.</p>
         <p style="margin:0 0 16px;"><a href="' . $loginUrl . '" style="display:inline-block;padding:12px 18px;border-radius:999px;background:#1d4ed8;color:#ffffff;text-decoration:none;font-weight:700;">Đăng nhập</a></p>
         <p style="margin:0;font-size:14px;line-height:1.7;color:#64748b;">Nếu bạn không yêu cầu thay đổi mật khẩu, hãy liên hệ quản trị viên hoặc trung tâm ngay.</p>'
@@ -250,7 +292,7 @@ function mail_template_tuition_overdue(array $data): array
     $dueDate = mail_html_escape(trim((string) ($data['due_date_label'] ?? '')));
     $remainingAmount = mail_html_escape(trim((string) ($data['remaining_amount_label'] ?? '0 VNĐ')));
 
-    $subject = 'Nhac hoc phi qua han';
+    $subject = '[' . mail_template_brand_name() . '] Nhắc học phí cần thanh toán';
     $html = mail_template_shell(
         'Nhắc học phí quá hạn',
         'Xin chào <strong>' . $studentName . '</strong>, hệ thống ghi nhận khoản học phí theo tháng của bạn đang quá hạn thanh toán.',
@@ -283,7 +325,7 @@ function mail_template_system_notification(array $data): array
         $messageHtml = nl2br(mail_html_escape(trim((string) ($data['message'] ?? ''))));
     }
 
-    $subject = 'Thong bao moi: ' . trim((string) ($data['title'] ?? 'Thong bao'));
+    $subject = '[' . mail_template_brand_name() . '] Thông báo mới: ' . trim((string) ($data['title'] ?? 'Thông báo'));
     $html = mail_template_shell(
         'Thông báo mới',
         'Bạn vừa nhận được một thông báo mới từ hệ thống.',
