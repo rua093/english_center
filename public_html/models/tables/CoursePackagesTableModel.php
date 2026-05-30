@@ -18,6 +18,9 @@ final class CoursePackagesTableModel extends BaseTableModel
 
         $table = $this->tableName();
         $projection = $this->projectionSql('cp');
+        $courseNameSelect = $this->hasColumn('course_id')
+            ? "COALESCE(c.course_name, '') AS course_name"
+            : "'' AS course_name";
         $joinCourses = $this->hasColumn('course_id')
             ? 'LEFT JOIN courses c ON c.id = cp.course_id AND c.deleted_at IS NULL'
             : '';
@@ -28,7 +31,7 @@ final class CoursePackagesTableModel extends BaseTableModel
 
         if ($this->usesPromotionSchema()) {
             return $this->fetchAll(
-                "SELECT {$projection}
+                "SELECT {$projection}, {$courseNameSelect}
                  FROM {$table} cp
                  {$joinCourses}
                  WHERE {$this->activeWhereSql('cp')}
@@ -45,7 +48,7 @@ final class CoursePackagesTableModel extends BaseTableModel
         }
 
         return $this->fetchAll(
-            "SELECT {$projection}
+            "SELECT {$projection}, {$courseNameSelect}
              FROM {$table} cp
              {$joinCourses}
              WHERE {$this->activeWhereSql('cp')}

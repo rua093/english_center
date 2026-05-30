@@ -682,6 +682,12 @@ final class AcademicModel
         return $this->coursePackagesTable->listDetailedPage($page, $perPage, $searchQuery, $filters);
     }
 
+    public function listActivePromotionsForPublic(int $limit = 30): array
+    {
+        $limit = max(1, min(100, $limit));
+        return array_slice($this->coursePackagesTable->listActiveForRegistration(), 0, $limit);
+    }
+
     public function findPromotion(int $id): ?array
     {
         return $this->coursePackagesTable->findDetailedById($id);

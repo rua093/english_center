@@ -3,6 +3,7 @@ $homeUser = auth_user();
 $studentProgress = $homeWidgets['student_progress'] ?? null;
 $teacherSchedules = $homeWidgets['teacher_schedules'] ?? [];
 $homeCourses = $homeCourses ?? [];
+$homePromotions = $homePromotions ?? [];
 $homeLeadSuccess = get_flash('home_success');
 $homeLeadError = get_flash('home_error');
 
@@ -35,6 +36,20 @@ $renderBbcode = static function (string $text): string {
     }
 
     return nl2br(e($text), false);
+};
+
+$homeFormatPromotionDate = static function (?string $value): string {
+    $value = trim((string) $value);
+    if ($value === '') {
+        return '';
+    }
+
+    $timestamp = strtotime($value);
+    if ($timestamp === false) {
+        return $value;
+    }
+
+    return date('d/m/Y', $timestamp);
 };
 ?>
 
@@ -464,6 +479,108 @@ $renderBbcode = static function (string $text): string {
             </div>
         </div>
     </section>
+
+    <?php if (!empty($homePromotions)): ?>
+        <section id="uu-dai" class="relative overflow-hidden bg-transparent py-12 md:py-16">
+            <div class="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-transparent via-white/28 to-transparent pointer-events-none"></div>
+            <div class="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-transparent via-white/22 to-transparent pointer-events-none"></div>
+            <div class="relative z-10 mx-auto w-full max-w-7xl px-4 sm:px-6">
+                <div class="rounded-[2rem] border border-amber-100/80 bg-gradient-to-br from-white via-amber-50/88 to-rose-50/82 p-4 shadow-[0_22px_60px_rgba(245,158,11,0.14)] backdrop-blur-sm sm:p-6 md:p-8" data-aos="fade-up">
+                    <div class="mb-7 flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+                        <div class="max-w-3xl">
+                            <span class="inline-flex items-center gap-2 rounded-full border border-rose-200 bg-white px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.18em] text-rose-600 shadow-sm">
+                                <span class="h-2 w-2 rounded-full bg-rose-500"></span>
+                                <?= e(t('home.promotions_badge')); ?>
+                            </span>
+                            <h2 class="mt-4 pt-2 text-[2.2rem] font-black uppercase leading-[1.14] text-slate-950 sm:text-[2.6rem] md:text-[2.9rem] lg:text-[3.2rem]">
+                                <span class="block"><?= e(t('home.promotions_title')); ?></span>
+                                <span class="mt-1 block text-transparent bg-clip-text bg-gradient-to-r from-rose-600 to-amber-500 md:whitespace-nowrap"><?= e(t('home.promotions_highlight')); ?></span>
+                            </h2>
+                            <p class="mt-4 max-w-3xl text-base font-bold leading-relaxed text-slate-600 md:text-lg">
+                                <?= e(t('home.promotions_copy')); ?>
+                            </p>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <a href="#dang-ky-tu-van" class="inline-flex items-center justify-center gap-2 rounded-full bg-slate-950 px-5 py-3 text-xs font-black uppercase tracking-widest text-white shadow-md transition-all hover:-translate-y-0.5 hover:bg-rose-600">
+                                <?= e(t('home.promotions_cta')); ?>
+                                <i class="fa-solid fa-arrow-right text-[11px]"></i>
+                            </a>
+                            <div class="inline-flex items-center justify-center gap-2">
+                                <button type="button" class="promotion-swiper-prev flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600" aria-label="Previous promotion">
+                                    <i class="fa-solid fa-chevron-left text-xs"></i>
+                                </button>
+                                <button type="button" class="promotion-swiper-next flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600" aria-label="Next promotion">
+                                    <i class="fa-solid fa-chevron-right text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="promotionSwiper swiper !overflow-y-visible overflow-x-hidden rounded-[1.35rem] px-1 pt-5 pb-9">
+                        <div class="swiper-wrapper !overflow-visible">
+                            <?php foreach ($homePromotions as $index => $promotion): ?>
+                                <?php
+                                $discountText = (string) ($promotion['discount_text'] ?? '0');
+                                $promotionName = (string) ($promotion['name'] ?? '');
+                                $courseName = trim((string) ($promotion['course_name'] ?? ''));
+                                $scopeLabel = ((int) ($promotion['course_id'] ?? 0)) > 0 && $courseName !== ''
+                                    ? $courseName
+                                    : t('admin.promotions.scope_all');
+                                $endDateText = $homeFormatPromotionDate((string) ($promotion['end_date'] ?? ''));
+                                $quantityLimit = $promotion['quantity_limit'] ?? null;
+                                $quantityRemaining = $promotion['quantity_remaining'] ?? null;
+                                $quantityLabel = $quantityLimit === null
+                                    ? t('admin.promotions.quantity_unlimited')
+                                    : t('admin.promotions.quantity_remaining', [
+                                        'remaining' => (int) max(0, (int) $quantityRemaining),
+                                        'limit' => (int) $quantityLimit,
+                                    ]);
+                                $accentClasses = [
+                                    'border-rose-200 bg-rose-50 text-rose-700',
+                                    'border-amber-200 bg-amber-50 text-amber-700',
+                                    'border-emerald-200 bg-emerald-50 text-emerald-700',
+                                ][$index % 3];
+                                ?>
+                                <div class="swiper-slide h-auto pb-2">
+                                    <article class="group flex h-full min-h-[190px] flex-col rounded-[1.35rem] border-2 border-slate-300 bg-white p-5 shadow-[0_14px_34px_rgba(15,23,42,0.08)] ring-0 ring-rose-200/0 transition-all duration-300 hover:border-rose-400 hover:shadow-[0_24px_52px_rgba(225,29,72,0.20)] hover:ring-4 hover:ring-rose-200/80">
+                                        <div class="flex items-start justify-between gap-4">
+                                            <div class="min-w-0">
+                                                <span class="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.14em] <?= e($accentClasses); ?>">
+                                                    <i class="fa-solid fa-tags text-[10px]"></i>
+                                                    <?= e($scopeLabel); ?>
+                                                </span>
+                                                <h3 class="mt-3 line-clamp-2 min-h-[3rem] text-lg font-black leading-tight tracking-tight text-slate-950"><?= e($promotionName); ?></h3>
+                                                <p class="mt-1 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400"><?= e(t('home.promotions_limited_time')); ?></p>
+                                            </div>
+                                            <div class="shrink-0 rounded-2xl bg-rose-600 px-4 py-3 text-right text-white shadow-md shadow-rose-500/20">
+                                                <p class="text-[9px] font-black uppercase tracking-[0.18em] text-white/70"><?= e(t('home.promotions_discount_prefix')); ?></p>
+                                                <div class="mt-1 flex items-baseline justify-end gap-1">
+                                                    <span class="text-3xl font-black leading-none"><?= e($discountText); ?></span>
+                                                    <span class="text-sm font-black">%</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="mt-auto flex flex-wrap gap-2 pt-5 text-[11px] font-bold">
+                                            <span class="inline-flex items-center gap-1.5 rounded-full border border-amber-100 bg-amber-50 px-3 py-1.5 text-amber-700">
+                                                <i class="fa-regular fa-clock"></i>
+                                                <?= e($endDateText !== '' ? t('home.promotions_until', ['date' => $endDateText]) : t('home.promotions_limited_time')); ?>
+                                            </span>
+                                            <span class="inline-flex items-center gap-1.5 rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1.5 text-emerald-700">
+                                                <i class="fa-solid fa-ticket"></i>
+                                                <?= e($quantityLabel); ?>
+                                            </span>
+                                        </div>
+                                    </article>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                        <div class="swiper-pagination-promotion mt-6 flex justify-center"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    <?php endif; ?>
 
     <section id="dang-ky-tu-van" class="relative py-20 md:py-32 overflow-hidden">
         <!-- Background image hero banner -->

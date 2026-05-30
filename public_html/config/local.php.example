@@ -78,4 +78,4 @@ define('MAIL_USERNAME', '');
 define('MAIL_PASSWORD', '');
 define('MAIL_FROM_ADDRESS', '');
 define('MAIL_FROM_NAME', APP_NAME);
-define('APP_LOG_RETENTION_DAYS', 30);
+define('APP_LOG_RETENTION_DAYS', 7);

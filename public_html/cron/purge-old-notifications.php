@@ -12,7 +12,7 @@ require_once dirname(__DIR__) . '/models/tables/NotificationsTableModel.php';
 
 try {
     $table = new NotificationsTableModel();
-    $deleted = $table->purgeOlderThan(90);
+    $deleted = $table->purgeOlderThan(60);
     fwrite(STDOUT, "[" . date('Y-m-d H:i:s') . "] Deleted {$deleted} old notification(s).\n");
     exit(0);
 } catch (Throwable $e) {

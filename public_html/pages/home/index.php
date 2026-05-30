@@ -53,6 +53,34 @@ foreach ($courseRows as $row) {
 	];
 }
 
+$homePromotionRows = $academicModel->listActivePromotionsForPublic(100);
+$homePromotions = [];
+foreach ($homePromotionRows as $row) {
+	$promotionName = trim((string) ($row['name'] ?? ''));
+	if ($promotionName === '') {
+		continue;
+	}
+
+	$courseId = max(0, (int) ($row['course_id'] ?? 0));
+	$courseName = trim((string) ($row['course_name'] ?? ''));
+	$discountValue = max(0, min(100, (float) ($row['discount_value'] ?? 0)));
+	$discountText = rtrim(rtrim(number_format($discountValue, 2, ',', '.'), '0'), ',');
+	$quantityLimit = $row['quantity_limit'] ?? null;
+	$quantityRemaining = $row['quantity_remaining'] ?? null;
+
+	$homePromotions[] = [
+		'name' => $promotionName,
+		'course_id' => $courseId,
+		'course_name' => $courseName,
+		'promo_type' => strtoupper(trim((string) ($row['promo_type'] ?? ''))),
+		'discount_text' => $discountText,
+		'start_date' => trim((string) ($row['start_date'] ?? '')),
+		'end_date' => trim((string) ($row['end_date'] ?? '')),
+		'quantity_limit' => $quantityLimit,
+		'quantity_remaining' => $quantityRemaining,
+	];
+}
+
 $homeActivities = $academicModel->listActivitiesPage(1, 4);
 $homeTeacherRows = $academicModel->listActiveTeachersPage(1, 8);
 $homeTeachers = [];
@@ -239,6 +267,32 @@ if (is_logged_in()) {
 			        1024: { slidesPerView: 2.2, spaceBetween: 28 }
 			    }
 			});
+
+			const promotionSlideCount = document.querySelectorAll('.promotionSwiper .swiper-slide').length;
+			if (promotionSlideCount > 0) {
+				new Swiper('.promotionSwiper', {
+				    slidesPerView: 1,
+				    spaceBetween: 18,
+				    loop: promotionSlideCount > 3,
+				    speed: 550,
+				    autoplay: { delay: 3600, disableOnInteraction: false },
+				    navigation: {
+				        nextEl: '.promotion-swiper-next',
+				        prevEl: '.promotion-swiper-prev',
+				    },
+				    pagination: {
+				        el: '.swiper-pagination-promotion',
+				        clickable: true,
+				        renderBullet: function (index, className) {
+				            return '<span class="' + className + ' w-3 h-3 border-2 border-rose-500 rounded-full transition-all"></span>';
+				        },
+				    },
+				    breakpoints: {
+				        640: { slidesPerView: 2, spaceBetween: 20 },
+				        1024: { slidesPerView: 3, spaceBetween: 24 }
+				    }
+				});
+			}
 		}
 	});
 
