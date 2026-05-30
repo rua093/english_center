@@ -57,7 +57,7 @@ return [
 	'login.intro' => 'Đăng nhập để tiếp tục lộ trình học tập, theo dõi tiến độ và kết nối với giảng viên của bạn.',
 	'login.title' => 'Đăng Nhập',
 	'login.subtitle' => 'Vui lòng điền thông tin tài khoản của bạn.',
-	'login.username_label' => 'Tên đăng nhập / Email',
+	'login.username_label' => 'Tên đăng nhập',
 	'login.password_label' => 'Mật khẩu',
 	'login.remember' => 'Ghi nhớ đăng nhập',
 	'login.forgot_password' => 'Quên mật khẩu?',

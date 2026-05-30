@@ -57,7 +57,7 @@ return [
 	'login.intro' => 'Log in to continue your learning journey, track progress, and stay connected with your teachers.',
 	'login.title' => 'Log In',
 	'login.subtitle' => 'Please enter your account information.',
-	'login.username_label' => 'Username / Email',
+	'login.username_label' => 'Username',
 	'login.password_label' => 'Password',
 	'login.remember' => 'Remember me',
 	'login.forgot_password' => 'Forgot password?',

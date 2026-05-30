@@ -27,22 +27,24 @@ function mail_template_shell(string $headline, string $introHtml, string $bodyHt
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light only">
+    <meta name="supported-color-schemes" content="light only">
     <title>' . $headline . '</title>
 </head>
-<body style="margin:0;background:#f8fafc;font-family:Arial,Helvetica,sans-serif;color:#0f172a;">
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f8fafc;padding:24px 12px;">
+<body style="margin:0;background:#eef4ff;font-family:Arial,Helvetica,sans-serif;color:#0f172a;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#eef4ff;padding:24px 12px;">
         <tr>
             <td align="center">
-                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:680px;background:#ffffff;border-radius:20px;overflow:hidden;border:1px solid #e2e8f0;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:680px;background:#ffffff;border-radius:20px;overflow:hidden;border:1px solid #dbe7ff;box-shadow:0 10px 30px rgba(15,23,42,0.08);">
                     <tr>
-                        <td style="background:linear-gradient(135deg,#0f172a 0%,#1d4ed8 100%);padding:28px 32px;">
-                            <div style="font-size:12px;letter-spacing:0.16em;text-transform:uppercase;color:#bfdbfe;font-weight:700;">' . $appName . '</div>
-                            <div style="margin-top:10px;font-size:28px;line-height:1.2;font-weight:800;color:#ffffff;">' . $headline . '</div>
-                            <div style="margin-top:12px;font-size:15px;line-height:1.7;color:#dbeafe;">' . $introHtml . '</div>
+                        <td style="background:#f4f8ff;padding:28px 32px;border-bottom:1px solid #dbe7ff;">
+                            <div style="display:inline-block;padding:7px 12px;border-radius:999px;background:#dbeafe;color:#1d4ed8;font-size:12px;letter-spacing:0.14em;text-transform:uppercase;font-weight:800;">' . $appName . '</div>
+                            <div style="margin-top:14px;font-size:30px;line-height:1.22;font-weight:800;color:#0f172a;">' . $headline . '</div>
+                            <div style="margin-top:12px;font-size:15px;line-height:1.8;color:#334155;">' . $introHtml . '</div>
                         </td>
                     </tr>
                     <tr>
-                        <td style="padding:28px 32px;">
+                        <td style="padding:28px 32px;background:#ffffff;color:#0f172a;">
                             ' . $bodyHtml . '
                         </td>
                     </tr>
@@ -92,8 +94,20 @@ function mail_template_default_footer_html(): string
 
     return '<strong>' . $brand . '</strong><br>'
         . 'Email giao dịch được gửi tự động từ hệ thống quản lý trung tâm.<br>'
-        . 'Hỗ trợ: <a href="mailto:' . $supportEmail . '" style="color:#2563eb;text-decoration:none;">' . $supportEmail . '</a> | '
-        . 'Website: <a href="' . $websiteUrl . '" style="color:#2563eb;text-decoration:none;">' . $websiteUrl . '</a>';
+        . 'Hỗ trợ: <a href="mailto:' . $supportEmail . '" style="color:#2563eb;text-decoration:none;word-break:break-word;">' . $supportEmail . '</a><br>'
+        . 'Website: <a href="' . $websiteUrl . '" style="color:#2563eb;text-decoration:none;word-break:break-word;">' . $websiteUrl . '</a>';
+}
+
+function mail_template_fact_item_html(string $label, string $value, bool $emphasis = false): string
+{
+    $valueStyle = $emphasis
+        ? 'font-size:24px;line-height:1.3;font-weight:800;color:#0f172a;'
+        : 'font-size:18px;line-height:1.5;font-weight:700;color:#0f172a;';
+
+    return '<div style="margin:0 0 12px;padding:16px 18px;border-radius:16px;background:#f8fafc;border:1px solid #e2e8f0;">'
+        . '<div style="margin:0 0 6px;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;font-weight:800;color:#64748b;">' . $label . '</div>'
+        . '<div style="' . $valueStyle . '">' . $value . '</div>'
+        . '</div>';
 }
 
 function mail_template_password_reset_otp(array $data): array
@@ -296,12 +310,12 @@ function mail_template_tuition_overdue(array $data): array
     $html = mail_template_shell(
         'Nhắc học phí quá hạn',
         'Xin chào <strong>' . $studentName . '</strong>, hệ thống ghi nhận khoản học phí theo tháng của bạn đang quá hạn thanh toán.',
-        '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">
-            <tr><td style="padding:8px 0;border-bottom:1px solid #e2e8f0;"><strong>Lớp</strong></td><td style="padding:8px 0;border-bottom:1px solid #e2e8f0;">' . $className . '</td></tr>
-            <tr><td style="padding:8px 0;border-bottom:1px solid #e2e8f0;"><strong>Khóa học</strong></td><td style="padding:8px 0;border-bottom:1px solid #e2e8f0;">' . ($courseName !== '' ? $courseName : '—') . '</td></tr>
-            <tr><td style="padding:8px 0;border-bottom:1px solid #e2e8f0;"><strong>Hạn đóng</strong></td><td style="padding:8px 0;border-bottom:1px solid #e2e8f0;">' . $dueDate . '</td></tr>
-            <tr><td style="padding:8px 0;"><strong>Số tiền còn thiếu</strong></td><td style="padding:8px 0;">' . $remainingAmount . '</td></tr>
-        </table>
+        '<div style="margin:0 0 18px;">'
+            . mail_template_fact_item_html('Lớp', $className)
+            . mail_template_fact_item_html('Khóa học', $courseName !== '' ? $courseName : '—')
+            . mail_template_fact_item_html('Hạn đóng', $dueDate)
+            . mail_template_fact_item_html('Số tiền còn thiếu', $remainingAmount, true)
+        . '</div>
         <p style="margin:18px 0 0;font-size:14px;line-height:1.7;color:#64748b;">Vui lòng liên hệ bộ phận tài chính nếu bạn cần hỗ trợ kiểm tra công nợ hoặc xác nhận giao dịch.</p>'
     );
 
