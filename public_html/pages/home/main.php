@@ -72,7 +72,7 @@ $homeFormatPromotionDate = static function (?string $value): string {
     <section id="hero-video" class="relative w-full h-[72vh] sm:h-[80vh] min-h-[420px] sm:min-h-[500px] md:min-h-[600px] flex items-center justify-center mb-16 sm:mb-20 md:mb-24">
         <div class="absolute inset-0 z-0 overflow-hidden bg-black">
             <video autoplay loop muted playsinline class="absolute top-1/2 left-1/2 min-w-full min-h-full w-auto h-auto -translate-x-1/2 -translate-y-1/2 object-cover">
-                <source src="assets/videodemo/iilavideo.mp4" type="video/mp4">
+                <source src="assets/videodemo/intro.mp4" type="video/mp4">
             </video>
             <div class="absolute inset-0 bg-gradient-to-r from-blue-950/80 md:from-blue-950/70 via-blue-950/40 md:via-blue-950/20 to-transparent w-full"></div>
         </div>

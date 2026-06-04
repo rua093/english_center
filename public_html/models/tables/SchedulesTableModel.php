@@ -100,6 +100,33 @@ final class SchedulesTableModel
         return $this->fetchAll($sql, $params);
     }
 
+    public function listDetailedByDateRange(string $startDate, string $endDate, int $teacherId = 0): array
+    {
+        $params = [
+            'start_date' => $startDate,
+            'end_date' => $endDate,
+        ];
+        $teacherSql = '';
+        if ($teacherId > 0) {
+            $teacherSql = ' AND s.teacher_id = :teacher_id';
+            $params['teacher_id'] = $teacherId;
+        }
+
+        $sql = "SELECT s.id, s.class_id, s.room_id, s.teacher_id, s.study_date, s.start_time, s.end_time,
+                c.class_name, r.room_name, u.full_name AS teacher_name, tp.teacher_code
+            FROM schedules s
+            INNER JOIN classes c ON c.id = s.class_id
+            LEFT JOIN rooms r ON r.id = s.room_id AND r.deleted_at IS NULL
+            INNER JOIN users u ON u.id = s.teacher_id
+            LEFT JOIN teacher_profiles tp ON tp.user_id = u.id
+            WHERE s.study_date >= :start_date
+              AND s.study_date <= :end_date
+              {$teacherSql}
+            ORDER BY s.study_date ASC, s.start_time ASC, s.id ASC";
+
+        return $this->fetchAll($sql, $params);
+    }
+
     private function buildSearchWhereClause(int $teacherId, string $searchQuery, array &$params): string
     {
         $conditions = [];
@@ -195,8 +222,10 @@ final class SchedulesTableModel
             array_merge($baseParams, ['class_id' => $payload['class_id']])
         );
 
+        $dateLabel = $this->formatDateLabel((string) ($payload['study_date'] ?? ''));
+
         if (is_array($classConflict)) {
-            throw new DomainException('Lop hoc da co lich trung gio.');
+            throw new DomainException('Lop hoc da co lich trung gio vao ngay ' . $dateLabel . '.');
         }
 
         $teacherConflict = $this->fetchOne(
@@ -214,7 +243,7 @@ final class SchedulesTableModel
         );
 
         if (is_array($teacherConflict)) {
-            throw new DomainException('Giao vien da co lich trung gio.');
+            throw new DomainException('Giao vien da co lich trung gio vao ngay ' . $dateLabel . '.');
         }
 
         if (($payload['room_id'] ?? null) === null) {
@@ -237,13 +266,83 @@ final class SchedulesTableModel
         );
 
         if (is_array($roomConflict)) {
-            throw new DomainException('Phong hoc da co lich trung gio.');
+            throw new DomainException('Phong hoc da co lich trung gio vao ngay ' . $dateLabel . '.');
         }
     }
 
-    public function save(array $data): void
+    private function formatDateLabel(string $date): string
     {
-        $id = (int) ($data['id'] ?? 0);
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $date) !== 1) {
+            return $date;
+        }
+
+        $parsedDate = DateTimeImmutable::createFromFormat('Y-m-d', $date);
+        return $parsedDate instanceof DateTimeImmutable ? $parsedDate->format('d/m/Y') : $date;
+    }
+
+    private function normalizeRepeatWeekdays(mixed $rawWeekdays, string $studyDate): array
+    {
+        $weekdayMap = [];
+        $values = is_array($rawWeekdays) ? $rawWeekdays : [$rawWeekdays];
+
+        foreach ($values as $value) {
+            $weekday = (int) $value;
+            if ($weekday >= 1 && $weekday <= 7) {
+                $weekdayMap[$weekday] = true;
+            }
+        }
+
+        $studyDateWeekday = (int) (new DateTimeImmutable($studyDate))->format('N');
+        if ($studyDateWeekday >= 1 && $studyDateWeekday <= 7) {
+            $weekdayMap[$studyDateWeekday] = true;
+        }
+
+        $weekdays = array_keys($weekdayMap);
+        sort($weekdays);
+
+        return $weekdays;
+    }
+
+    private function buildRecurringDates(string $studyDate, string $repeatUntil, array $repeatWeekdays): array
+    {
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $repeatUntil) !== 1) {
+            throw new DomainException('Ngay ket thuc lap khong hop le.');
+        }
+
+        $startDate = new DateTimeImmutable($studyDate);
+        $endDate = new DateTimeImmutable($repeatUntil);
+        if ($endDate < $startDate) {
+            throw new DomainException('Ngay ket thuc lap phai lon hon hoac bang ngay hoc dau tien.');
+        }
+
+        if ($repeatWeekdays === []) {
+            throw new DomainException('Vui long chon it nhat mot thu lap hang tuan.');
+        }
+
+        $dates = [];
+        $cursor = $startDate;
+        while ($cursor <= $endDate) {
+            $weekday = (int) $cursor->format('N');
+            if (in_array($weekday, $repeatWeekdays, true)) {
+                $dates[] = $cursor->format('Y-m-d');
+            }
+
+            if (count($dates) > 366) {
+                throw new DomainException('So luong lich lap vuot qua gioi han cho phep.');
+            }
+
+            $cursor = $cursor->modify('+1 day');
+        }
+
+        if ($dates === []) {
+            throw new DomainException('Khong tao duoc buoi hoc nao trong khoang lap da chon.');
+        }
+
+        return $dates;
+    }
+
+    private function buildBasePayload(array $data): array
+    {
         $roomId = (int) ($data['room_id'] ?? 0);
         $studyDate = trim((string) ($data['study_date'] ?? ''));
         $startTime = $this->normalizeTimeValue((string) ($data['start_time'] ?? ''));
@@ -274,6 +373,83 @@ final class SchedulesTableModel
             throw new DomainException('Vui long chon lop hoc va giao vien hop le.');
         }
 
+        return $payload;
+    }
+
+    private function insertSchedule(array $payload): void
+    {
+        $sql = 'INSERT INTO schedules (class_id, room_id, teacher_id, study_date, start_time, end_time)
+            VALUES (:class_id, :room_id, :teacher_id, :study_date, :start_time, :end_time)';
+        $this->executeStatement($sql, $payload);
+    }
+
+    public function duplicateWeek(string $weekStart, int $weekCount, int $teacherId = 0): array
+    {
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $weekStart) !== 1) {
+            throw new DomainException('Tuan bat dau khong hop le.');
+        }
+
+        $normalizedWeekCount = max(1, min(52, $weekCount));
+        $startDate = (new DateTimeImmutable($weekStart))->modify('monday this week');
+        $endDate = $startDate->modify('+6 days');
+        $sourceSchedules = $this->listDetailedByDateRange(
+            $startDate->format('Y-m-d'),
+            $endDate->format('Y-m-d'),
+            $teacherId
+        );
+
+        if ($sourceSchedules === []) {
+            throw new DomainException('Khong co lich nao trong tuan nay de nhan ban.');
+        }
+
+        $createdDates = [];
+        $createdCount = 0;
+        $this->executeInTransaction(function () use ($sourceSchedules, $normalizedWeekCount, &$createdDates, &$createdCount): void {
+            for ($weekOffset = 1; $weekOffset <= $normalizedWeekCount; $weekOffset++) {
+                foreach ($sourceSchedules as $schedule) {
+                    $sourceDate = trim((string) ($schedule['study_date'] ?? ''));
+                    if ($sourceDate === '') {
+                        continue;
+                    }
+
+                    $targetDate = (new DateTimeImmutable($sourceDate))
+                        ->modify('+' . (7 * $weekOffset) . ' days')
+                        ->format('Y-m-d');
+
+                    $payload = [
+                        'class_id' => (int) ($schedule['class_id'] ?? 0),
+                        'room_id' => isset($schedule['room_id']) && (int) $schedule['room_id'] > 0 ? (int) $schedule['room_id'] : null,
+                        'teacher_id' => (int) ($schedule['teacher_id'] ?? 0),
+                        'study_date' => $targetDate,
+                        'start_time' => $this->normalizeTimeValue((string) ($schedule['start_time'] ?? '')) ?? '',
+                        'end_time' => $this->normalizeTimeValue((string) ($schedule['end_time'] ?? '')) ?? '',
+                    ];
+
+                    if ($payload['class_id'] <= 0 || $payload['teacher_id'] <= 0 || $payload['start_time'] === '' || $payload['end_time'] === '') {
+                        continue;
+                    }
+
+                    $this->assertNoTimeOverlap($payload, 0);
+                    $this->insertSchedule($payload);
+                    $createdCount++;
+                    $createdDates[$targetDate] = true;
+                }
+            }
+        });
+
+        return [
+            'week_start' => $startDate->format('Y-m-d'),
+            'week_end' => $endDate->format('Y-m-d'),
+            'copied_weeks' => $normalizedWeekCount,
+            'affected_count' => $createdCount,
+            'dates' => array_keys($createdDates),
+        ];
+    }
+
+    public function save(array $data): array
+    {
+        $id = (int) ($data['id'] ?? 0);
+        $payload = $this->buildBasePayload($data);
         $this->assertNoTimeOverlap($payload, $id);
 
         if ($id > 0) {
@@ -281,12 +457,44 @@ final class SchedulesTableModel
                 study_date=:study_date, start_time=:start_time, end_time=:end_time WHERE id=:id';
             $payload['id'] = $id;
             $this->executeStatement($sql, $payload);
-            return;
+            return [
+                'mode' => 'update',
+                'affected_count' => 1,
+                'dates' => [$payload['study_date']],
+            ];
         }
 
-        $sql = 'INSERT INTO schedules (class_id, room_id, teacher_id, study_date, start_time, end_time)
-            VALUES (:class_id, :room_id, :teacher_id, :study_date, :start_time, :end_time)';
-        $this->executeStatement($sql, $payload);
+        $repeatMode = trim((string) ($data['repeat_mode'] ?? 'none'));
+        if ($repeatMode !== 'weekly') {
+            $this->insertSchedule($payload);
+            return [
+                'mode' => 'create',
+                'affected_count' => 1,
+                'dates' => [$payload['study_date']],
+            ];
+        }
+
+        $repeatWeekdays = $this->normalizeRepeatWeekdays($data['repeat_weekdays'] ?? [], $payload['study_date']);
+        $dates = $this->buildRecurringDates(
+            $payload['study_date'],
+            trim((string) ($data['repeat_until'] ?? '')),
+            $repeatWeekdays
+        );
+
+        $this->executeInTransaction(function () use ($payload, $dates): void {
+            foreach ($dates as $date) {
+                $currentPayload = $payload;
+                $currentPayload['study_date'] = $date;
+                $this->assertNoTimeOverlap($currentPayload, 0);
+                $this->insertSchedule($currentPayload);
+            }
+        });
+
+        return [
+            'mode' => 'create_recurring',
+            'affected_count' => count($dates),
+            'dates' => $dates,
+        ];
     }
 
     public function deleteById(int $id): void

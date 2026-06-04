@@ -75,7 +75,6 @@ $canUpdateAssignment = has_permission('academic.assignments.update');
 
 $canCreateMaterial = has_permission('materials.create');
 $canUpdateMaterial = has_permission('materials.update');
-
 $weekRefInput = trim((string) ($_GET['week_ref'] ?? ''));
 $weekStartInput = trim((string) ($_GET['week_start'] ?? ''));
 $weekStartDate = null;
@@ -117,6 +116,15 @@ $weekDayLabels = [
     t('admin.schedules.friday'),
     t('admin.schedules.saturday'),
     t('admin.schedules.sunday'),
+];
+$weekdayOptions = [
+    1 => $weekDayLabels[0],
+    2 => $weekDayLabels[1],
+    3 => $weekDayLabels[2],
+    4 => $weekDayLabels[3],
+    5 => $weekDayLabels[4],
+    6 => $weekDayLabels[5],
+    7 => $weekDayLabels[6],
 ];
 $weekDays = [];
 for ($dayOffset = 0; $dayOffset < 7; $dayOffset++) {
@@ -206,7 +214,8 @@ $scheduleConflictDataset = array_map(static function (array $schedule): array {
                 </label>
                 <label>
                     <?= e(t('admin.schedule_edit.room')); ?>
-                    <select name="room_id" required>
+                    <select name="room_id">
+                        <option value=""><?= e(t('admin.schedule_edit.online_or_no_room')); ?></option>
                         <?php foreach ($lookups['rooms'] as $room): ?>
                             <option value="<?= (int) $room['id']; ?>" <?= (int) ($editingSchedule['room_id'] ?? 0) === (int) $room['id'] ? 'selected' : ''; ?>><?= e((string) $room['room_name']); ?></option>
                         <?php endforeach; ?>
@@ -232,6 +241,35 @@ $scheduleConflictDataset = array_map(static function (array $schedule): array {
                     <?= e(t('admin.schedule_edit.end_time')); ?>
                     <input type="time" name="end_time" required value="<?= e((string) ($editingSchedule['end_time'] ?? '')); ?>">
                 </label>
+                <?php if (!$editingSchedule): ?>
+                    <label>
+                        <?= e(t('admin.schedule_edit.repeat_mode')); ?>
+                        <select name="repeat_mode" data-repeat-mode="1">
+                            <option value="none"><?= e(t('admin.schedule_edit.repeat_none')); ?></option>
+                            <option value="weekly"><?= e(t('admin.schedule_edit.repeat_weekly')); ?></option>
+                        </select>
+                    </label>
+                    <div class="hidden rounded-xl border border-slate-200 bg-slate-50 p-4" data-repeat-panel="1">
+                        <div class="grid gap-3">
+                            <label>
+                                <?= e(t('admin.schedule_edit.repeat_until')); ?>
+                                <input type="date" name="repeat_until" value="" data-repeat-until="1">
+                            </label>
+                            <fieldset class="grid gap-2">
+                                <legend class="text-sm font-medium text-slate-700"><?= e(t('admin.schedule_edit.repeat_weekdays')); ?></legend>
+                                <div class="flex flex-wrap gap-2">
+                                    <?php foreach ($weekdayOptions as $weekdayValue => $weekdayLabel): ?>
+                                        <label class="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-700">
+                                            <input type="checkbox" name="repeat_weekdays[]" value="<?= (int) $weekdayValue; ?>" data-repeat-weekday="1">
+                                            <span><?= e($weekdayLabel); ?></span>
+                                        </label>
+                                    <?php endforeach; ?>
+                                </div>
+                            </fieldset>
+                            <p class="text-xs text-slate-500"><?= e(t('admin.schedule_edit.repeat_help')); ?></p>
+                        </div>
+                    </div>
+                <?php endif; ?>
                 <button class="<?= ui_btn_primary_classes(); ?>" type="submit"><?= e(t('admin.schedule_edit.save')); ?></button>
             </form>
         </article>
@@ -255,6 +293,34 @@ $scheduleConflictDataset = array_map(static function (array $schedule): array {
                         <input id="schedule-week-picker" type="week" name="week_ref" value="<?= e($weekRefValue); ?>" class="h-8 rounded-lg border border-slate-300 bg-white px-2 text-xs font-semibold text-slate-700">
                         <button type="submit" class="inline-flex h-8 items-center rounded-lg border border-slate-300 bg-slate-50 px-2.5 text-xs font-semibold text-slate-700 transition hover:border-sky-400 hover:bg-sky-50 hover:text-sky-700"><?= e(t('admin.schedules.view')); ?></button>
                     </form>
+                    <?php if ($canCreateSchedule): ?>
+                        <details class="relative" data-copy-week-details="1">
+                            <summary class="inline-flex h-9 cursor-pointer list-none items-center rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-sky-400 hover:bg-sky-50 hover:text-sky-700">
+                                <?= e(t('admin.schedules.copy_week')); ?>
+                            </summary>
+                            <div class="absolute right-0 top-[calc(100%+8px)] z-20 w-52 rounded-xl border border-slate-200 bg-white p-2.5 shadow-xl">
+                                <form class="grid gap-2" method="post" action="/api/schedules/copy-week" data-copy-week-form="1">
+                                    <?= csrf_input(); ?>
+                                    <input type="hidden" name="week_start" value="<?= e($weekStartValue); ?>">
+                                    <label class="grid gap-1">
+                                        <span class="text-[11px] font-semibold text-slate-600"><?= e(t('admin.schedules.copy_next_weeks')); ?></span>
+                                        <input
+                                            id="schedule-copy-weeks"
+                                            name="copy_weeks"
+                                            type="number"
+                                            min="1"
+                                            max="52"
+                                            step="1"
+                                            value="1"
+                                            class="h-9 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700"
+                                            data-copy-week-count="1"
+                                        >
+                                    </label>
+                                    <button type="submit" class="inline-flex h-9 items-center justify-center rounded-lg border border-sky-500 bg-sky-50 px-3 text-sm font-semibold text-sky-700 transition hover:bg-sky-100"><?= e(t('admin.schedules.copy_submit')); ?></button>
+                                </form>
+                            </div>
+                        </details>
+                    <?php endif; ?>
                 </div>
             </div>
 
@@ -470,6 +536,10 @@ $scheduleConflictDataset = array_map(static function (array $schedule): array {
         'withClass' => t('admin.schedule_edit.with_class'),
         'roomConflict' => t('admin.schedule_edit.room_conflict'),
         'atRoom' => t('admin.schedule_edit.at_room'),
+        'repeatUntilRequired' => t('admin.schedule_edit.repeat_until_required'),
+        'repeatUntilAfterStart' => t('admin.schedule_edit.repeat_until_after_start'),
+        'repeatWeekdaysRequired' => t('admin.schedule_edit.repeat_weekdays_required'),
+        'copyConfirm' => t('admin.schedules.copy_confirm'),
     ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
 
     function parseIntSafe(value) {
@@ -514,6 +584,108 @@ $scheduleConflictDataset = array_map(static function (array $schedule): array {
         return parseIntSafe(item.id) === scheduleId;
     }
 
+    function parseDateValue(value) {
+        const normalized = String(value ?? '').trim();
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(normalized)) {
+            return null;
+        }
+
+        const parsed = new Date(normalized + 'T00:00:00');
+        return Number.isNaN(parsed.getTime()) ? null : parsed;
+    }
+
+    function formatDateValue(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return year + '-' + month + '-' + day;
+    }
+
+    function isoWeekdayFromDate(date) {
+        const weekday = date.getDay();
+        return weekday === 0 ? 7 : weekday;
+    }
+
+    function toggleRepeatPanel(form) {
+        const repeatMode = form.querySelector('[data-repeat-mode="1"]');
+        const repeatPanel = form.querySelector('[data-repeat-panel="1"]');
+        if (!repeatMode || !repeatPanel) {
+            return;
+        }
+
+        repeatPanel.classList.toggle('hidden', repeatMode.value !== 'weekly');
+    }
+
+    function syncStudyDateWeekday(form) {
+        const repeatMode = form.querySelector('[data-repeat-mode="1"]');
+        if (!(repeatMode instanceof HTMLSelectElement) || repeatMode.value !== 'weekly') {
+            return;
+        }
+
+        const studyDateInput = form.querySelector('[name="study_date"]');
+        if (!(studyDateInput instanceof HTMLInputElement)) {
+            return;
+        }
+
+        const studyDate = parseDateValue(studyDateInput.value);
+        if (!studyDate) {
+            return;
+        }
+
+        const weekday = String(isoWeekdayFromDate(studyDate));
+        const matchingInput = form.querySelector('[data-repeat-weekday="1"][value="' + weekday + '"]');
+        if (matchingInput instanceof HTMLInputElement) {
+            matchingInput.checked = true;
+        }
+    }
+
+    function buildOccurrenceDates(form, studyDate, scheduleId) {
+        const repeatMode = form.querySelector('[data-repeat-mode="1"]');
+        if (!(repeatMode instanceof HTMLSelectElement) || repeatMode.value !== 'weekly' || scheduleId > 0) {
+            return [studyDate];
+        }
+
+        const repeatUntilInput = form.querySelector('[data-repeat-until="1"]');
+        const repeatUntil = String((repeatUntilInput || {}).value ?? '').trim();
+        if (repeatUntil === '') {
+            throw new Error(scheduleI18n.repeatUntilRequired);
+        }
+
+        const startDate = parseDateValue(studyDate);
+        const endDate = parseDateValue(repeatUntil);
+        if (!startDate || !endDate) {
+            throw new Error(scheduleI18n.repeatUntilRequired);
+        }
+
+        if (endDate.getTime() < startDate.getTime()) {
+            throw new Error(scheduleI18n.repeatUntilAfterStart);
+        }
+
+        const selectedWeekdays = new Set();
+        form.querySelectorAll('[data-repeat-weekday="1"]:checked').forEach(function (input) {
+            const weekday = parseIntSafe(input.value);
+            if (weekday >= 1 && weekday <= 7) {
+                selectedWeekdays.add(weekday);
+            }
+        });
+        selectedWeekdays.add(isoWeekdayFromDate(startDate));
+
+        if (selectedWeekdays.size === 0) {
+            throw new Error(scheduleI18n.repeatWeekdaysRequired);
+        }
+
+        const dates = [];
+        const cursor = new Date(startDate.getTime());
+        while (cursor.getTime() <= endDate.getTime()) {
+            if (selectedWeekdays.has(isoWeekdayFromDate(cursor))) {
+                dates.push(formatDateValue(cursor));
+            }
+            cursor.setDate(cursor.getDate() + 1);
+        }
+
+        return dates;
+    }
+
     function syncTeacherByClass(form, forceUpdate) {
         if (!(form instanceof HTMLFormElement)) {
             return;
@@ -556,11 +728,28 @@ $scheduleConflictDataset = array_map(static function (array $schedule): array {
     const forms = Array.from(document.querySelectorAll('form[data-schedule-form="1"]'));
     forms.forEach(function (form) {
         syncTeacherByClass(form, false);
+        toggleRepeatPanel(form);
+        syncStudyDateWeekday(form);
 
         const classSelect = form.querySelector('[data-class-select="1"]');
         if (classSelect instanceof HTMLSelectElement) {
             classSelect.addEventListener('change', function () {
                 syncTeacherByClass(form, true);
+            });
+        }
+
+        const repeatMode = form.querySelector('[data-repeat-mode="1"]');
+        if (repeatMode instanceof HTMLSelectElement) {
+            repeatMode.addEventListener('change', function () {
+                toggleRepeatPanel(form);
+                syncStudyDateWeekday(form);
+            });
+        }
+
+        const studyDateInput = form.querySelector('[name="study_date"]');
+        if (studyDateInput instanceof HTMLInputElement) {
+            studyDateInput.addEventListener('change', function () {
+                syncStudyDateWeekday(form);
             });
         }
 
@@ -589,67 +778,22 @@ $scheduleConflictDataset = array_map(static function (array $schedule): array {
                 return;
             }
 
-            const classConflict = conflictSource.find(function (item) {
-                if (sameSchedule(item, scheduleId)) {
-                    return false;
-                }
-
-                if (String(item.study_date ?? '').trim() !== studyDate || parseIntSafe(item.class_id) !== classId) {
-                    return false;
-                }
-
-                const existingStart = toMinutes(item.start_time ?? '');
-                const existingEnd = toMinutes(item.end_time ?? '');
-                if (existingStart === null || existingEnd === null) {
-                    return false;
-                }
-
-                return hasOverlap(startMinutes, endMinutes, existingStart, existingEnd);
-            });
-
-            if (classConflict) {
+            let occurrenceDates = [studyDate];
+            try {
+                occurrenceDates = buildOccurrenceDates(form, studyDate, scheduleId);
+            } catch (error) {
                 event.preventDefault();
-                const conflictTime = formatTime(classConflict.start_time) + ' - ' + formatTime(classConflict.end_time);
-                window.alert(String(scheduleI18n.classConflict || '').replace(':time', conflictTime));
+                window.alert(error instanceof Error ? error.message : String(error));
                 return;
             }
 
-            const teacherConflict = conflictSource.find(function (item) {
-                if (sameSchedule(item, scheduleId)) {
-                    return false;
-                }
-
-                if (String(item.study_date ?? '').trim() !== studyDate || parseIntSafe(item.teacher_id) !== teacherId) {
-                    return false;
-                }
-
-                const existingStart = toMinutes(item.start_time ?? '');
-                const existingEnd = toMinutes(item.end_time ?? '');
-                if (existingStart === null || existingEnd === null) {
-                    return false;
-                }
-
-                return hasOverlap(startMinutes, endMinutes, existingStart, existingEnd);
-            });
-
-            if (teacherConflict) {
-                event.preventDefault();
-                const conflictClass = String(teacherConflict.class_name ?? '').trim();
-                window.alert(
-                    scheduleI18n.teacherConflict
-                    + (conflictClass !== '' ? ' ' + String(scheduleI18n.withClass || '').replace(':class', conflictClass) : '')
-                    + '.'
-                );
-                return;
-            }
-
-            if (roomId > 0) {
-                const roomConflict = conflictSource.find(function (item) {
+            for (const occurrenceDate of occurrenceDates) {
+                const classConflict = conflictSource.find(function (item) {
                     if (sameSchedule(item, scheduleId)) {
                         return false;
                     }
 
-                    if (String(item.study_date ?? '').trim() !== studyDate || parseIntSafe(item.room_id) !== roomId) {
+                    if (String(item.study_date ?? '').trim() !== occurrenceDate || parseIntSafe(item.class_id) !== classId) {
                         return false;
                     }
 
@@ -662,18 +806,98 @@ $scheduleConflictDataset = array_map(static function (array $schedule): array {
                     return hasOverlap(startMinutes, endMinutes, existingStart, existingEnd);
                 });
 
-                if (roomConflict) {
+                if (classConflict) {
                     event.preventDefault();
-                    const roomName = String(roomConflict.room_name ?? '').trim();
+                    const conflictTime = formatTime(classConflict.start_time) + ' - ' + formatTime(classConflict.end_time);
+                    window.alert(String(scheduleI18n.classConflict || '').replace(':time', conflictTime));
+                    return;
+                }
+
+                const teacherConflict = conflictSource.find(function (item) {
+                    if (sameSchedule(item, scheduleId)) {
+                        return false;
+                    }
+
+                    if (String(item.study_date ?? '').trim() !== occurrenceDate || parseIntSafe(item.teacher_id) !== teacherId) {
+                        return false;
+                    }
+
+                    const existingStart = toMinutes(item.start_time ?? '');
+                    const existingEnd = toMinutes(item.end_time ?? '');
+                    if (existingStart === null || existingEnd === null) {
+                        return false;
+                    }
+
+                    return hasOverlap(startMinutes, endMinutes, existingStart, existingEnd);
+                });
+
+                if (teacherConflict) {
+                    event.preventDefault();
+                    const conflictClass = String(teacherConflict.class_name ?? '').trim();
                     window.alert(
-                        scheduleI18n.roomConflict
-                        + (roomName !== '' ? ' ' + String(scheduleI18n.atRoom || '').replace(':room', roomName) : '')
+                        scheduleI18n.teacherConflict
+                        + (conflictClass !== '' ? ' ' + String(scheduleI18n.withClass || '').replace(':class', conflictClass) : '')
                         + '.'
                     );
+                    return;
+                }
+
+                if (roomId > 0) {
+                    const roomConflict = conflictSource.find(function (item) {
+                        if (sameSchedule(item, scheduleId)) {
+                            return false;
+                        }
+
+                        if (String(item.study_date ?? '').trim() !== occurrenceDate || parseIntSafe(item.room_id) !== roomId) {
+                            return false;
+                        }
+
+                        const existingStart = toMinutes(item.start_time ?? '');
+                        const existingEnd = toMinutes(item.end_time ?? '');
+                        if (existingStart === null || existingEnd === null) {
+                            return false;
+                        }
+
+                        return hasOverlap(startMinutes, endMinutes, existingStart, existingEnd);
+                    });
+
+                    if (roomConflict) {
+                        event.preventDefault();
+                        const roomName = String(roomConflict.room_name ?? '').trim();
+                        window.alert(
+                            scheduleI18n.roomConflict
+                            + (roomName !== '' ? ' ' + String(scheduleI18n.atRoom || '').replace(':room', roomName) : '')
+                            + '.'
+                        );
+                        return;
+                    }
                 }
             }
         });
     });
+
+    function bindCopyWeekForms(root) {
+        const scope = root || document;
+        const copyWeekForms = Array.from(scope.querySelectorAll('form[data-copy-week-form="1"]'));
+        copyWeekForms.forEach(function (form) {
+            if (form.dataset.copyBound === '1') {
+                return;
+            }
+
+            form.dataset.copyBound = '1';
+            form.addEventListener('submit', function (event) {
+                const countInput = form.querySelector('[data-copy-week-count="1"]');
+                const count = parseIntSafe((countInput || {}).value ?? '1') || 1;
+                const message = String(scheduleI18n.copyConfirm || '').replace(':count', String(count));
+                if (!window.confirm(message)) {
+                    event.preventDefault();
+                }
+            });
+        });
+    }
+
+    window.__bindCopyWeekForms = bindCopyWeekForms;
+    bindCopyWeekForms(document);
 })();
 
 (function () {
@@ -827,6 +1051,10 @@ $scheduleConflictDataset = array_map(static function (array $schedule): array {
 
             if (window.__bindWeeklyChips) {
                 window.__bindWeeklyChips(incomingCard);
+            }
+
+            if (window.__bindCopyWeekForms) {
+                window.__bindCopyWeekForms(incomingCard);
             }
 
             bindWeekNavigation(incomingCard);

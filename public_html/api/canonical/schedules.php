@@ -72,7 +72,7 @@ function api_schedules_save_action(): void
 	}
 
 	try {
-		$academicModel->saveSchedule($payload);
+		$result = $academicModel->saveSchedule($payload);
 	} catch (DomainException $exception) {
 		if (api_expects_json()) {
 			api_error($exception->getMessage(), ['code' => 'SCHEDULE_VALIDATION_FAILED'], 422);
@@ -82,7 +82,15 @@ function api_schedules_save_action(): void
 		redirect($editPath);
 	}
 
-	set_flash('success', 'Đã lưu lịch dạy thành công.');
+	$affectedCount = (int) ($result['affected_count'] ?? 0);
+	$mode = (string) ($result['mode'] ?? '');
+	if ($mode === 'create_recurring') {
+		set_flash('success', 'Đã tạo ' . $affectedCount . ' lịch dạy lặp hàng tuần.');
+	} elseif ($mode === 'update') {
+		set_flash('success', 'Đã cập nhật lịch dạy thành công.');
+	} else {
+		set_flash('success', 'Đã lưu lịch dạy thành công.');
+	}
 
 	redirect(page_url('schedules-academic'));
 }
@@ -117,4 +125,44 @@ function api_schedules_delete_action(): void
 		set_flash('error', 'Không thể xóa lịch dạy. Lịch này có thể đã được gắn với điểm danh hoặc bài tập.');
 	}
 	redirect(page_url('schedules-academic'));
+}
+
+function api_schedules_copy_week_action(): void
+{
+	api_guard_permission('academic.schedules.create');
+	api_require_post(page_url('schedules-academic'));
+
+	$weekStart = trim((string) ($_POST['week_start'] ?? ''));
+	$weekCount = max(1, (int) ($_POST['copy_weeks'] ?? 1));
+	$redirectPath = page_url('schedules-academic', [
+		'week_start' => $weekStart !== '' ? $weekStart : null,
+	]);
+
+	$academicModel = new AcademicModel();
+	$currentUser = auth_user() ?? [];
+	$currentUserRole = (string) ($currentUser['role'] ?? '');
+	$currentUserId = (int) ($currentUser['id'] ?? 0);
+	$teacherId = $currentUserRole === 'teacher' ? $currentUserId : 0;
+
+	try {
+		$result = $academicModel->duplicateScheduleWeek($weekStart, $weekCount, $teacherId);
+	} catch (DomainException $exception) {
+		if (api_expects_json()) {
+			api_error($exception->getMessage(), ['code' => 'SCHEDULE_COPY_FAILED'], 422);
+		}
+
+		set_flash('error', $exception->getMessage());
+		redirect($redirectPath);
+	}
+
+	$affectedCount = (int) ($result['affected_count'] ?? 0);
+	$copiedWeeks = (int) ($result['copied_weeks'] ?? $weekCount);
+	$message = 'Đã nhân bản ' . $affectedCount . ' lịch dạy sang ' . $copiedWeeks . ' tuần tiếp theo.';
+
+	if (api_expects_json()) {
+		api_success($message, $result);
+	}
+
+	set_flash('success', $message);
+	redirect($redirectPath);
 }

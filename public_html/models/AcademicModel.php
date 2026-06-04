@@ -849,9 +849,14 @@ final class AcademicModel
         $this->classesTable->deleteById($id);
     }
 
-    public function saveSchedule(array $data): void
+    public function saveSchedule(array $data): array
     {
-        $this->schedulesTable->save($data);
+        return $this->schedulesTable->save($data);
+    }
+
+    public function duplicateScheduleWeek(string $weekStart, int $weekCount, int $teacherId = 0): array
+    {
+        return $this->schedulesTable->duplicateWeek($weekStart, $weekCount, $teacherId);
     }
 
     public function deleteSchedule(int $id): void
