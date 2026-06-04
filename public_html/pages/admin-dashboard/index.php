@@ -771,8 +771,8 @@ $heroCards = [
                 </div>
                 <div class="flex items-center gap-2">
                     <a class="inline-flex items-center rounded-full bg-rose-50 px-3 py-1.5 text-xs font-bold text-rose-700 transition hover:bg-rose-100" href="<?= e(page_url('home')); ?>" target="_blank" rel="noreferrer"><?= e(t('admin.dashboard.preview_home')); ?></a>
-                    <button id="adminHomeIntroVideoModalClose" type="button" class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700">
-                        <i class="fa-solid fa-xmark"></i>
+                    <button id="adminHomeIntroVideoModalClose" type="button" class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 text-lg font-black leading-none text-slate-500 transition hover:bg-slate-100 hover:text-slate-700" aria-label="Close modal">
+                        <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
             </div>
