@@ -45,6 +45,7 @@ $tuition = is_array($overview['tuition'] ?? null) ? $overview['tuition'] : [];
 $population = is_array($overview['population'] ?? null) ? $overview['population'] : [];
 $classSize = is_array($overview['class_size_distribution'] ?? null) ? $overview['class_size_distribution'] : [];
 $coursePopularity = is_array($overview['course_popularity'] ?? null) ? $overview['course_popularity'] : [];
+$homeIntroVideoUrl = trim((string) app_setting_get('home_intro_video_url', ''));
 
 $reportGeneratedAt = date('d/m/Y H:i');
 $revenueLabels = is_array($revenueHistory['labels'] ?? null) ? $revenueHistory['labels'] : [];
@@ -196,6 +197,14 @@ $heroCards = [
             </div>
             <div class="flex flex-wrap items-center gap-2">
                 <span class="inline-flex items-center rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-bold text-white/95"><?= e(t('admin.dashboard.updated_at', ['time' => $reportGeneratedAt])); ?></span>
+                <button
+                    type="button"
+                    id="adminHomeIntroVideoModalOpen"
+                    class="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-bold text-white transition hover:bg-white/20"
+                >
+                    <i class="fa-solid fa-circle-play text-xs"></i>
+                    <span><?= e(t('admin.dashboard.home_intro_video')); ?></span>
+                </button>
                 <?php if (can_access_page('classes-academic')): ?>
                     <a class="inline-flex items-center rounded-full border border-white/15 bg-white px-4 py-2 text-sm font-black text-slate-900 transition hover:bg-cyan-200" href="<?= e(page_url('classes-academic')); ?>"><?= e(t('admin.dashboard.go_academic')); ?></a>
                 <?php endif; ?>
@@ -750,6 +759,217 @@ $heroCards = [
     })();
 </script>
 </div>
+<div id="adminHomeIntroVideoModal" class="fixed inset-0 z-50 hidden">
+    <div id="adminHomeIntroVideoModalBackdrop" class="absolute inset-0 bg-slate-950/45 backdrop-blur-sm"></div>
+    <div class="relative flex min-h-full items-center justify-center p-4">
+        <div class="w-full max-w-2xl rounded-[2rem] border border-slate-200 bg-white p-5 shadow-[0_30px_90px_rgba(15,23,42,0.22)]">
+            <div class="flex flex-wrap items-start justify-between gap-3">
+                <div class="min-w-0 flex-1">
+                    <p class="text-[11px] font-black uppercase tracking-[0.22em] text-rose-600">Home Media</p>
+                    <h3 class="mt-1 text-xl font-black text-slate-900"><?= e(t('admin.dashboard.home_intro_video')); ?></h3>
+                    <p class="mt-1 text-sm text-slate-500"><?= e(t('admin.dashboard.home_intro_video_copy')); ?></p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <a class="inline-flex items-center rounded-full bg-rose-50 px-3 py-1.5 text-xs font-bold text-rose-700 transition hover:bg-rose-100" href="<?= e(page_url('home')); ?>" target="_blank" rel="noreferrer"><?= e(t('admin.dashboard.preview_home')); ?></a>
+                    <button id="adminHomeIntroVideoModalClose" type="button" class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+
+            <form id="adminHomeIntroVideoForm" class="mt-4 grid gap-4" method="post" action="/api/index.php?resource=settings&method=save-home-intro-video" enctype="multipart/form-data">
+                <?= csrf_input(); ?>
+                <input type="hidden" id="adminHomeIntroVideoUrlHidden" name="home_intro_video_url_hidden" value="<?= e($homeIntroVideoUrl); ?>">
+
+                <div id="adminHomeIntroVideoPreviewWrap" class="<?= $homeIntroVideoUrl !== '' ? '' : 'hidden'; ?> overflow-hidden rounded-[1.4rem] border border-slate-200 bg-slate-950 shadow-sm">
+                    <video id="adminHomeIntroVideoPreview" class="w-full max-h-80 bg-black" controls playsinline preload="metadata">
+                        <source id="adminHomeIntroVideoPreviewSource" src="<?= e($homeIntroVideoUrl); ?>">
+                    </video>
+                </div>
+
+                <div id="adminHomeIntroVideoEmptyState" class="<?= $homeIntroVideoUrl !== '' ? 'hidden' : ''; ?> rounded-[1.4rem] border border-dashed border-slate-300 bg-slate-50 px-4 py-8 text-center text-sm font-medium text-slate-500">
+                    <?= e(t('admin.dashboard.no_home_intro_video')); ?>
+                </div>
+
+                <label class="group relative flex cursor-pointer flex-col items-center justify-center rounded-[1.5rem] border-2 border-dashed border-slate-300 bg-slate-50 p-6 text-center transition-all hover:border-rose-400 hover:bg-rose-50">
+                    <input
+                        id="adminHomeIntroVideoInput"
+                        type="file"
+                        name="home_intro_video_file"
+                        accept="video/*"
+                        class="absolute inset-0 z-10 cursor-pointer opacity-0"
+                        data-direct-upload-preset="home_intro_video"
+                    >
+                    <div class="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-rose-500 shadow-sm transition-transform group-hover:scale-110">
+                        <i class="fa-solid fa-cloud-arrow-up text-xl"></i>
+                    </div>
+                    <p id="adminHomeIntroVideoUploadTitle" class="text-sm font-black text-slate-700"><?= e(t('admin.dashboard.upload_home_intro_video')); ?></p>
+                    <p id="adminHomeIntroVideoUploadMeta" class="mt-1 text-xs font-medium text-slate-400"><?= e(t('admin.dashboard.home_intro_video_meta')); ?></p>
+                </label>
+
+                <div class="flex flex-wrap items-center gap-3">
+                    <button id="adminHomeIntroVideoSaveButton" class="inline-flex h-11 items-center justify-center rounded-2xl bg-rose-600 px-5 text-sm font-black text-white shadow-lg shadow-rose-600/20 transition hover:-translate-y-0.5 hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-60" type="submit">
+                        <?= e(t('admin.dashboard.save_home_intro_video')); ?>
+                    </button>
+                    <?php if ($homeIntroVideoUrl !== ''): ?>
+                        <span class="text-xs font-medium text-slate-500"><?= e(t('admin.dashboard.home_intro_video_live')); ?></span>
+                    <?php endif; ?>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script>
+    (function () {
+        const modal = document.getElementById('adminHomeIntroVideoModal');
+        const openButton = document.getElementById('adminHomeIntroVideoModalOpen');
+        const closeButton = document.getElementById('adminHomeIntroVideoModalClose');
+        const backdrop = document.getElementById('adminHomeIntroVideoModalBackdrop');
+        const form = document.getElementById('adminHomeIntroVideoForm');
+        const input = document.getElementById('adminHomeIntroVideoInput');
+        const hiddenField = document.getElementById('adminHomeIntroVideoUrlHidden');
+        const previewWrap = document.getElementById('adminHomeIntroVideoPreviewWrap');
+        const preview = document.getElementById('adminHomeIntroVideoPreview');
+        const previewSource = document.getElementById('adminHomeIntroVideoPreviewSource');
+        const emptyState = document.getElementById('adminHomeIntroVideoEmptyState');
+        const uploadTitle = document.getElementById('adminHomeIntroVideoUploadTitle');
+        const uploadMeta = document.getElementById('adminHomeIntroVideoUploadMeta');
+        const saveButton = document.getElementById('adminHomeIntroVideoSaveButton');
+
+        if (!modal || !openButton || !closeButton || !backdrop || !form || !input || !hiddenField || !uploadTitle || !uploadMeta || !saveButton) {
+            return;
+        }
+
+        const dashboardUploadI18n = {
+            uploadTitle: <?= json_encode(t('admin.dashboard.upload_home_intro_video'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
+            uploadMeta: <?= json_encode(t('admin.dashboard.home_intro_video_meta'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
+            directUploading: <?= json_encode(t('admin.dashboard.direct_uploading'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
+            directUploadComplete: <?= json_encode(t('admin.dashboard.direct_upload_complete'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
+            directUploadFailed: <?= json_encode(t('admin.dashboard.direct_upload_failed'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>
+        };
+
+        let isUploading = false;
+
+        function openModal() {
+            modal.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+        }
+
+        function closeModal() {
+            modal.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        }
+
+        function setUploadingState(uploading) {
+            isUploading = uploading;
+            saveButton.disabled = uploading;
+        }
+
+        function csrfToken() {
+            const field = document.querySelector('input[name="_csrf"]');
+            return field ? field.value : '';
+        }
+
+        async function requestDirectUpload(file, preset) {
+            const payload = new URLSearchParams();
+            payload.set('_csrf', csrfToken());
+            payload.set('preset', preset);
+            payload.set('filename', file.name);
+            payload.set('content_type', file.type || 'application/octet-stream');
+            payload.set('file_size', String(file.size || 0));
+            payload.set('format', 'json');
+
+            const response = await fetch('/api/index.php?resource=uploads&method=direct-sign&format=json', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: payload.toString()
+            });
+
+            const result = await response.json().catch(() => null);
+            if (!response.ok || !result || result.status !== 'success' || !result.data) {
+                throw new Error((result && result.message) ? result.message : dashboardUploadI18n.directUploadFailed);
+            }
+
+            return result.data;
+        }
+
+        async function uploadFileDirect(file, preset) {
+            const spec = await requestDirectUpload(file, preset);
+            const uploadHeaders = spec.headers && typeof spec.headers === 'object' ? spec.headers : {};
+            const uploadResponse = await fetch(spec.upload_url, {
+                method: spec.method || 'PUT',
+                headers: uploadHeaders,
+                body: file
+            });
+
+            if (!uploadResponse.ok) {
+                throw new Error(dashboardUploadI18n.directUploadFailed);
+            }
+
+            return spec;
+        }
+
+        openButton.addEventListener('click', openModal);
+        closeButton.addEventListener('click', closeModal);
+        backdrop.addEventListener('click', closeModal);
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape' && !modal.classList.contains('hidden')) {
+                closeModal();
+            }
+        });
+
+        input.addEventListener('change', async function () {
+            if (!input.files || !input.files[0]) {
+                return;
+            }
+
+            const file = input.files[0];
+            const objectUrl = URL.createObjectURL(file);
+            hiddenField.value = '';
+
+            if (previewSource && preview) {
+                previewSource.src = objectUrl;
+                preview.load();
+            }
+            if (previewWrap) {
+                previewWrap.classList.remove('hidden');
+            }
+            if (emptyState) {
+                emptyState.classList.add('hidden');
+            }
+
+            uploadTitle.textContent = file.name;
+            uploadMeta.textContent = dashboardUploadI18n.directUploading;
+
+            if (!input.dataset.directUploadPreset) {
+                uploadMeta.textContent = dashboardUploadI18n.uploadMeta;
+                return;
+            }
+
+            setUploadingState(true);
+            try {
+                const spec = await uploadFileDirect(file, input.dataset.directUploadPreset);
+                hiddenField.value = spec.public_url || '';
+                input.value = '';
+                uploadMeta.textContent = dashboardUploadI18n.directUploadComplete;
+            } catch (error) {
+                uploadMeta.textContent = dashboardUploadI18n.directUploadFailed;
+            } finally {
+                setUploadingState(false);
+            }
+        });
+
+        form.addEventListener('submit', function (event) {
+            if (isUploading) {
+                event.preventDefault();
+            }
+        });
+    })();
+</script>
 <script>
     (function () {
         if (window.__adminDashboardAjaxBound) {

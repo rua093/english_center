@@ -18,6 +18,7 @@ require_once __DIR__ . '/api_helpers.php';
 require_once __DIR__ . '/file_storage.php';
 require_once __DIR__ . '/get_version.php';
 require_once __DIR__ . '/database.php';
+require_once __DIR__ . '/app_settings.php';
 require_once __DIR__ . '/page_routes.php';
 require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/page_actions.php';

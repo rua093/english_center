@@ -1063,6 +1063,13 @@ function app_direct_upload_presets(): array
 			'extensions' => ['mp4', 'mov', 'webm'],
 			'mime_prefixes' => ['video/'],
 		],
+		'home_intro_video' => [
+			'prefix' => 'home-intro-video',
+			'subdir' => 'home/intro-videos',
+			'max_bytes' => 0,
+			'extensions' => ['mp4', 'mov', 'webm'],
+			'mime_prefixes' => ['video/'],
+		],
 		'portfolio_media' => [
 			'prefix' => 'portfolio',
 			'subdir' => 'portfolios/media',
