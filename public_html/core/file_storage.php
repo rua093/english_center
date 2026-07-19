@@ -1070,6 +1070,13 @@ function app_direct_upload_presets(): array
 			'extensions' => ['mp4', 'mov', 'webm'],
 			'mime_prefixes' => ['video/'],
 		],
+		'ui_banner_media' => [
+			'prefix' => 'ui-banner',
+			'subdir' => 'ui/banners',
+			'max_bytes' => 0,
+			'extensions' => ['jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'mp4', 'mov', 'webm'],
+			'mime_prefixes' => ['image/', 'video/'],
+		],
 		'portfolio_media' => [
 			'prefix' => 'portfolio',
 			'subdir' => 'portfolios/media',

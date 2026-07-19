@@ -6,10 +6,7 @@ $homeCourses = $homeCourses ?? [];
 $homePromotions = $homePromotions ?? [];
 $homeLeadSuccess = get_flash('home_success');
 $homeLeadError = get_flash('home_error');
-$homeIntroVideoUrl = trim((string) app_setting_get('home_intro_video_url', ''));
-if ($homeIntroVideoUrl === '') {
-    $homeIntroVideoUrl = 'assets/videodemo/intro.mp4';
-}
+$homeIntroVideoUrl = custom_ui_media_resolve_url('home_intro_video');
 $homeIntroVideoType = 'video/mp4';
 $homeIntroVideoPath = (string) (parse_url($homeIntroVideoUrl, PHP_URL_PATH) ?: $homeIntroVideoUrl);
 $homeIntroVideoExtension = strtolower((string) pathinfo($homeIntroVideoPath, PATHINFO_EXTENSION));
@@ -87,16 +84,21 @@ $homeFormatPromotionDate = static function (?string $value): string {
                 <source src="<?= e($homeIntroVideoUrl); ?>" type="<?= e($homeIntroVideoType); ?>">
             </video>
             <div class="absolute inset-0 bg-gradient-to-r from-blue-950/80 md:from-blue-950/70 via-blue-950/40 md:via-blue-950/20 to-transparent w-full"></div>
+            <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,214,10,0.14),transparent_28%),radial-gradient(circle_at_30%_22%,rgba(244,114,182,0.12),transparent_24%),radial-gradient(circle_at_78%_18%,rgba(34,211,238,0.12),transparent_22%)]"></div>
         </div>
 
         <div class="relative z-10 w-full max-w-[1450px] mx-auto px-4 sm:px-6 md:px-10 flex flex-col -mt-16 md:-mt-20">
             <div class="max-w-2xl" data-aos="fade-right">
-                <h1 class="text-3xl sm:text-4xl md:text-5xl font-black text-white leading-tight uppercase drop-shadow-lg">
-                    GREATER YOU EVERYDAY <br>
-                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-sky-300 to-white"><?= e(t('home.hero_growth')); ?></span> <?= e(t('home.hero_everyday')); ?>
+                <div class="pointer-events-none absolute -left-2 top-10 hidden h-14 w-14 rounded-full bg-gradient-to-br from-yellow-300/35 to-orange-400/20 blur-xl md:block"></div>
+                <div class="pointer-events-none absolute left-[26rem] top-24 hidden h-10 w-10 rounded-full bg-gradient-to-br from-cyan-300/35 to-sky-400/20 blur-lg lg:block"></div>
+
+                <h1 class="relative text-3xl sm:text-4xl md:text-5xl lg:text-[3.8rem] font-black leading-[0.96] tracking-[-0.03em] drop-shadow-lg">
+                    <span class="block text-white [text-shadow:0_4px_0_rgba(14,116,144,0.22),0_16px_36px_rgba(15,23,42,0.28)]">Inspire Learning,</span>
+                    <span class="mt-1 block text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-rose-300 to-cyan-300 [text-shadow:0_10px_28px_rgba(15,23,42,0.16)]">Empower Success</span>
                 </h1>
-                <p class="mt-3 sm:mt-4 text-sm sm:text-base md:text-lg text-sky-100 font-medium max-w-lg drop-shadow-md">
-                    <?= e(t('home.hero_copy')); ?>
+
+                <p class="mt-4 max-w-[34rem] rounded-[1.6rem] border border-white/12 bg-white/10 px-5 py-4 text-sm sm:text-base md:text-lg text-sky-50 font-semibold leading-relaxed shadow-[0_18px_40px_rgba(15,23,42,0.16)] backdrop-blur-md">
+                    <span class="bg-gradient-to-r from-pink-200 via-yellow-100 to-cyan-100 bg-clip-text text-transparent">Khơi nguồn học tập, kiến tạo thành công</span>
                 </p>
             </div>
         </div>
@@ -193,7 +195,7 @@ $homeFormatPromotionDate = static function (?string $value): string {
                                 p-8 sm:p-10 md:p-12
                                 bg-gradient-to-br from-sky-400 via-blue-500 to-blue-700
                                 shadow-[0_20px_60px_rgba(37,99,235,0.25)]
-                                overflow-visible h-auto sm:min-h-[320px] flex items-start pr-56 sm:pr-72 md:pr-80">
+                                overflow-visible h-auto sm:min-h-[320px] flex items-start pr-48 sm:pr-64 md:pr-[24rem]">
 
                         <!-- Glow -->
                         <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.25),transparent_40%)]"></div>
@@ -206,31 +208,35 @@ $homeFormatPromotionDate = static function (?string $value): string {
                                 group-hover:scale-110 transition-transform duration-700"></i>
 
                         <!-- Text -->
-                        <div class="relative z-10 max-w-xl flex-1">
+                        <div class="relative z-10 max-w-[28rem] md:max-w-[30rem] flex-1">
 
                             <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full
                                         bg-white/15 border border-white/20 backdrop-blur-md mb-5">
 
                                 <span class="w-2 h-2 rounded-full bg-cyan-200 animate-pulse"></span>
 
-                                <span class="text-[10px] sm:text-xs uppercase tracking-[0.2em] font-bold text-blue-50">
-                                    Nhuệ Minh Edu
+                                <span class="text-[10px] sm:text-xs tracking-[0.18em] font-bold text-blue-50">
+                                    Phương pháp học tập
                                 </span>
                             </div>
 
-                            <h1 class="text-3xl sm:text-4xl md:text-5xl
-                                    font-black leading-[1.08]
+                            <h2 class="text-[2rem] sm:text-[2.5rem] md:text-[3.2rem]
+                                    font-black leading-[1.02] tracking-[-0.03em]
                                     text-white drop-shadow-lg">
 
-                                <?= e(t('home.aspiration_line_1')); ?> <br>
-                                <?= e(t('home.aspiration_line_2')); ?>
-                            </h1>
+                                Học tự nhiên, <br>
+                                dùng tiếng Anh tự tin
+                            </h2>
+
+                            <p class="mt-4 max-w-[25rem] text-sm sm:text-[15px] md:text-base leading-relaxed text-blue-50/95 font-medium">
+                                Lộ trình học chú trọng phản xạ, thực hành và cá nhân hóa để học viên tiếp thu dễ hơn và dùng tiếng Anh tự tin hơn mỗi ngày.
+                            </p>
                         </div>
                         <!-- FLOATING SMALL CARD - Inside Banner -->
                         <div class="absolute
                                     top-1/2 -translate-y-1/2
                                     right-2 sm:right-4 md:right-6
-                                    w-[252px] sm:w-[324px] md:w-[378px]
+                                    w-[240px] sm:w-[300px] md:w-[350px]
                                     h-[90%]
                                     z-20">
 
@@ -263,18 +269,21 @@ $homeFormatPromotionDate = static function (?string $value): string {
                                     <!-- Text -->
                                     <div class="flex-1">
 
-                                        <div class="text-xs uppercase tracking-[0.18em]
+                                        <div class="text-[11px] tracking-[0.14em]
                                                     text-slate-500 font-black mb-2">
-                                            <?= e(t('home.achievement')); ?>
+                                            Nổi bật
                                         </div>
 
-                                        <h2 class="text-xl sm:text-2xl md:text-3xl font-black leading-tight text-blue-950">
-                                            <?= e(t('home.success_line_1')); ?> <br>
-                                            <?= e(t('home.success_line_2')); ?>
-                                        </h2>
+                                        <h3 class="text-base sm:text-lg md:text-[1.75rem] font-black leading-[1.12] tracking-[-0.02em] text-blue-950">
+                                            Nghe - Nói phản xạ tự nhiên
+                                        </h3>
 
-                                        <p class="mt-2 text-xs sm:text-sm text-slate-600 leading-relaxed font-medium">
-                                            <?= e(t('home.success_copy')); ?>
+                                        <p class="mt-2 text-[11px] sm:text-xs md:text-sm text-sky-600 font-bold leading-snug">
+                                            Natural Listening &amp; Speaking Practice
+                                        </p>
+
+                                        <p class="mt-3 text-xs sm:text-sm text-slate-600 leading-relaxed font-medium max-w-[15rem] sm:max-w-[16rem]">
+                                            Rèn phản xạ giao tiếp từ sớm để học viên nghe nhanh hơn và nói tự nhiên hơn qua từng buổi học.
                                         </p>
 
                                     </div>
@@ -287,52 +296,60 @@ $homeFormatPromotionDate = static function (?string $value): string {
                 <div class="grid sm:grid-cols-2 gap-4 sm:gap-5 md:gap-6 pt-4 sm:pt-5 md:pt-6 pb-4 sm:pb-5 md:pb-6">
 
                     <!-- Card 1 -->
-                    <div class="group relative rounded-[2rem] p-8
+                    <div class="group relative rounded-[2rem] p-7 sm:p-8
                                 bg-gradient-to-br from-rose-600 to-red-500
                                 shadow-[0_15px_30px_rgba(225,29,72,0.2)]
-                                overflow-hidden h-48 flex flex-col justify-end">
+                                overflow-hidden min-h-[220px] flex flex-col justify-start">
 
                         <div class="absolute top-5 left-5 bg-white text-red-600
                                     text-xs font-black px-4 py-1.5
-                                    rounded-full uppercase shadow-md">
+                                    rounded-full shadow-md">
 
-                            <?= e(t('home.assessment')); ?>
+                            Thực hành
                         </div>
 
                         <i class="fa-solid fa-chalkboard-user
                                 absolute -right-6 -top-6
                                 text-[9rem] opacity-15"></i>
 
-                        <div class="relative z-10">
+                        <div class="relative z-10 mt-12 max-w-[21rem]">
 
-                            <h3 class="text-2xl font-black text-white mb-2">
-                                <?= e(t('home.placement_test')); ?>
+                            <h3 class="text-xl sm:text-[1.7rem] font-black leading-tight text-white mb-2">
+                                Học qua tình huống thực tế
                             </h3>
 
-                            <p class="text-sm text-rose-100 leading-relaxed">
-                                <?= e(t('home.placement_copy')); ?>
+                            <p class="text-xs sm:text-sm text-rose-100 font-bold mb-2 leading-snug">
+                                Learn Through Real-Life Situations
+                            </p>
+
+                            <p class="text-sm text-rose-100 leading-relaxed max-w-[18rem]">
+                                Áp dụng tiếng Anh trong đời sống hằng ngày để học viên hiểu nhanh, nhớ lâu và dùng đúng ngữ cảnh.
                             </p>
                         </div>
                     </div>
 
                     <!-- Card 2 -->
-                    <div class="group relative rounded-[2rem] p-8
+                    <div class="group relative rounded-[2rem] p-7 sm:p-8
                                 bg-gradient-to-br from-blue-600 to-sky-500
                                 shadow-[0_15px_30px_rgba(37,99,235,0.2)]
-                                overflow-hidden h-48 flex flex-col justify-end">
+                                overflow-hidden min-h-[220px] flex flex-col justify-start">
 
                         <i class="fa-solid fa-book-open
                                 absolute -right-6 -bottom-6
                                 text-[9rem] opacity-15"></i>
 
-                        <div class="relative z-10">
+                        <div class="relative z-10 mt-10 max-w-[20rem]">
 
-                            <h3 class="text-2xl font-black text-white mb-2">
-                                <?= e(t('home.materials')); ?>
+                            <h3 class="text-xl sm:text-[1.7rem] font-black leading-tight text-white mb-2">
+                                Học theo cụm từ
                             </h3>
 
-                            <p class="text-sm text-blue-100 leading-relaxed">
-                                <?= e(t('home.materials_copy')); ?>
+                            <p class="text-xs sm:text-sm text-blue-100 font-bold mb-2 leading-snug">
+                                Phrase-Based Learning
+                            </p>
+
+                            <p class="text-sm text-blue-100 leading-relaxed max-w-[18rem]">
+                                Tập trung theo cụm từ để học viên nói trôi chảy, tự nhiên và chính xác hơn thay vì ghép từng từ rời rạc.
                             </p>
                         </div>
                     </div>
@@ -342,62 +359,78 @@ $homeFormatPromotionDate = static function (?string $value): string {
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 md:gap-5 pt-4 sm:pt-5 md:pt-6">
 
                     <!-- Block -->
-                    <div class="group rounded-2xl p-5 bg-white/90 backdrop-blur-xl border border-blue-100 shadow-sm text-center">
+                    <div class="group rounded-2xl p-4 sm:p-5 bg-white/90 backdrop-blur-xl border border-blue-100 shadow-sm text-center">
                         <div class="w-12 h-12 mx-auto mb-3 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
-                            <i class="fa-solid fa-comments"></i>
+                            <i class="fa-solid fa-headphones"></i>
                         </div>
 
-                        <h4 class="font-extrabold text-blue-950 text-sm">
-                            <?= e(t('home.value_confidence')); ?>
+                        <h4 class="font-extrabold text-blue-950 text-sm leading-snug">
+                            Luyện nói phản xạ nhanh
                         </h4>
 
-                        <span class="text-[10px] text-slate-500 font-semibold">
-                            <?= e(t('home.value_confidence_copy')); ?>
+                        <span class="mt-1 block text-[10px] text-blue-600 font-bold leading-snug">
+                            Shadowing Practice
+                        </span>
+
+                        <span class="mt-2 block text-[10px] text-slate-500 font-semibold leading-relaxed max-w-[10rem] mx-auto">
+                            Nghe và lặp lại ngay để cải thiện phát âm, ngữ điệu và tốc độ phản xạ.
                         </span>
                     </div>
 
                     <!-- Block -->
-                    <div class="group rounded-2xl p-5 bg-white/90 backdrop-blur-xl border border-emerald-100 shadow-sm text-center">
+                    <div class="group rounded-2xl p-4 sm:p-5 bg-white/90 backdrop-blur-xl border border-emerald-100 shadow-sm text-center">
                         <div class="w-12 h-12 mx-auto mb-3 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                            <i class="fa-solid fa-earth-asia"></i>
+                            <i class="fa-solid fa-photo-film"></i>
                         </div>
 
-                        <h4 class="font-extrabold text-blue-950 text-sm">
-                            <?= e(t('home.value_global')); ?>
+                        <h4 class="font-extrabold text-blue-950 text-sm leading-snug">
+                            Học qua hình ảnh, video, trò chơi
                         </h4>
 
-                        <span class="text-[10px] text-slate-500 font-semibold">
-                            <?= e(t('home.value_global_copy')); ?>
+                        <span class="mt-1 block text-[10px] text-emerald-600 font-bold leading-snug">
+                            Visuals, Videos &amp; Games
+                        </span>
+
+                        <span class="mt-2 block text-[10px] text-slate-500 font-semibold leading-relaxed max-w-[10rem] mx-auto">
+                            Sinh động, vừa học vừa trải nghiệm, rất hợp với học viên nhỏ tuổi.
                         </span>
                     </div>
 
                     <!-- Block -->
-                    <div class="group rounded-2xl p-5 bg-white/90 backdrop-blur-xl border border-amber-100 shadow-sm text-center">
+                    <div class="group rounded-2xl p-4 sm:p-5 bg-white/90 backdrop-blur-xl border border-amber-100 shadow-sm text-center">
                         <div class="w-12 h-12 mx-auto mb-3 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
-                            <i class="fa-solid fa-lightbulb"></i>
+                            <i class="fa-solid fa-people-group"></i>
                         </div>
 
-                        <h4 class="font-extrabold text-blue-950 text-sm">
-                            <?= e(t('home.value_modern')); ?>
+                        <h4 class="font-extrabold text-blue-950 text-sm leading-snug">
+                            Hoạt động tương tác trên lớp
                         </h4>
 
-                        <span class="text-[10px] text-slate-500 font-semibold">
-                            <?= e(t('home.value_modern_copy')); ?>
+                        <span class="mt-1 block text-[10px] text-amber-600 font-bold leading-snug">
+                            Interactive Classroom Activities
+                        </span>
+
+                        <span class="mt-2 block text-[10px] text-slate-500 font-semibold leading-relaxed max-w-[10rem] mx-auto">
+                            Thảo luận, trình bày và làm việc nhóm để tăng sự tự tin giao tiếp.
                         </span>
                     </div>
 
                     <!-- Block -->
-                    <div class="group rounded-2xl p-5 bg-white/90 backdrop-blur-xl border border-rose-100 shadow-sm text-center">
+                    <div class="group rounded-2xl p-4 sm:p-5 bg-white/90 backdrop-blur-xl border border-rose-100 shadow-sm text-center">
                         <div class="w-12 h-12 mx-auto mb-3 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
-                            <i class="fa-solid fa-rocket"></i>
+                            <i class="fa-solid fa-sliders"></i>
                         </div>
 
-                        <h4 class="font-extrabold text-blue-950 text-sm">
-                            <?= e(t('home.value_future')); ?>
+                        <h4 class="font-extrabold text-blue-950 text-sm leading-snug">
+                            Kết hợp linh hoạt phương pháp khác
                         </h4>
 
-                        <span class="text-[10px] text-slate-500 font-semibold">
-                            <?= e(t('home.value_future_copy')); ?>
+                        <span class="mt-1 block text-[10px] text-rose-600 font-bold leading-snug">
+                            Other Methods as Needed
+                        </span>
+
+                        <span class="mt-2 block text-[10px] text-slate-500 font-semibold leading-relaxed max-w-[10rem] mx-auto">
+                            Điều chỉnh theo nhu cầu và trình độ để lộ trình học thật sự phù hợp.
                         </span>
                     </div>
 
@@ -1030,131 +1063,8 @@ $homeFormatPromotionDate = static function (?string $value): string {
             </div>
         </div>
     </section>
-	
-    <section id="giao-vien" class="py-12 sm:py-14 md:py-20 relative overflow-hidden bg-transparent z-10">
-    <div class="mx-auto w-full max-w-7xl px-4 sm:px-6 relative z-10">
-        
-        <div class="mb-10 sm:mb-16 flex flex-col lg:flex-row gap-6 sm:gap-8 items-start lg:items-center justify-between" data-aos="fade-up">
-            
-            <div class="lg:w-1/2 max-w-2xl">
-                <h2 class="text-2xl sm:text-3xl md:text-5xl font-black text-blue-800 leading-[1.18] md:leading-[1.12] tracking-tight max-w-xl">
-                    <?= e(t('home.teachers_title')); ?> <br>
-                    <span class="text-blue-600"><?= e(t('home.teachers_highlight')); ?></span>
-                </h2>
-            </div>
-            
-            <div class="lg:w-1/2 flex items-start sm:items-center gap-4 sm:gap-6">
-                <p class="text-slate-600 font-medium text-xs sm:text-sm leading-relaxed border-l-2 border-slate-300 pl-3 sm:pl-4 md:pl-6 text-left">
-                    <?= e(t('home.teachers_copy')); ?>
-                </p>
-                <div class="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 shrink-0 bg-[#2e3192] rounded-full flex items-center justify-center text-white font-bold text-lg sm:text-xl md:text-2xl shadow-md">
-                    ih
-                </div>
-            </div>
-        </div>
 
-        <div class="w-full" data-aos="fade-up" data-aos-delay="100">
-            <div class="swiper teacherSwiper pb-12 sm:pb-16">
-                <div class="swiper-wrapper">
-                    <?php
-                    $teachers = array_slice($homeTeachers ?? [], 0, 5);
-                    if (empty($teachers)):
-                    ?>
-                    <div class="swiper-slide h-auto">
-                        <div class="rounded-2xl sm:rounded-3xl border border-dashed border-slate-200 bg-white/80 p-6 sm:p-8 text-center text-slate-500 font-medium text-sm sm:text-base">
-                            <?= e(t('home.teachers_empty')); ?>
-                        </div>
-                    </div>
-                    <?php else: ?>
-                    <?php foreach ($teachers as $teacher): ?>
-                    <?php
-                    $teacherId = (int) ($teacher['id'] ?? 0);
-                    $teacherName = (string) ($teacher['full_name'] ?? '');
-                    $teacherRole = t('home.teacher_role');
-                    $teacherDegree = trim((string) ($teacher['degree'] ?? ''));
-                    $teacherExperience = max(0, (int) ($teacher['experience'] ?? 0));
-                    $teacherBio = trim((string) ($teacher['bio'] ?? ''));
-                    $teacherAvatar = trim((string) ($teacher['avatar'] ?? ''));
-                    if ($teacherAvatar !== '' && function_exists('normalize_public_file_url')) {
-                        $teacherAvatar = normalize_public_file_url($teacherAvatar);
-                    }
-                    if ($teacherAvatar === '') {
-                        $teacherAvatar = 'https://ui-avatars.com/api/?name=' . urlencode($teacherName !== '' ? $teacherName : 'Teacher') . '&background=2e3192&color=fff&size=600&bold=true';
-                    }
-                    $teacherDetailUrl = $teacherId > 0 ? page_url('teacher-detail', ['id' => $teacherId]) : page_url('teacher-introduce');
-                    $teacherHighlights = [];
-                    if ($teacherDegree !== '') {
-                        $teacherHighlights[] = $teacherDegree;
-                    }
-                    if ($teacherExperience > 0) {
-                        $teacherHighlights[] = $teacherExperience . ' năm kinh nghiệm';
-                    }
-                    if ($teacherBio !== '') {
-                        $teacherHighlights[] = mb_strimwidth($teacherBio, 0, 52, '...');
-                    }
-                    $teacherHighlights = array_slice($teacherHighlights, 0, 2);
-                    ?>
-                    <div class="swiper-slide h-auto">
-                        <a href="<?= e($teacherDetailUrl); ?>" class="group block h-full">
-                            <article class="flex h-full flex-col overflow-hidden rounded-[2rem] border border-slate-200 bg-white p-4 shadow-[0_18px_44px_rgba(15,23,42,0.10)] transition-all duration-500 hover:-translate-y-2 hover:border-blue-200 hover:shadow-[0_28px_60px_rgba(46,49,146,0.16)]">
-                                <div class="relative overflow-hidden rounded-[1.75rem] bg-slate-100">
-                                    <div class="aspect-[4/4.4] w-full">
-                                        <img src="<?= e($teacherAvatar) ?>" alt="<?= e($teacherName) ?>" class="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105">
-                                        <div class="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-950/10 to-transparent opacity-90"></div>
-                                        <div class="absolute left-4 top-4 inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-blue-700 shadow-sm">
-                                            <span class="h-2 w-2 rounded-full bg-emerald-400"></span>
-                                            <?= e($teacherRole); ?>
-                                        </div>
-                                        <?php if ($teacherExperience > 0): ?>
-                                            <div class="absolute bottom-4 right-4 rounded-2xl bg-white/92 px-3 py-2 text-right shadow-sm">
-                                                <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">Kinh nghiệm</p>
-                                                <p class="text-sm font-black text-slate-900"><?= e((string) $teacherExperience); ?> năm</p>
-                                            </div>
-                                        <?php endif; ?>
-                                    </div>
-                                </div>
-
-                                <div class="flex flex-1 flex-col px-2 pb-2 pt-5 text-left">
-                                    <h4 class="text-lg sm:text-xl font-extrabold text-slate-800 transition-colors group-hover:text-blue-600"><?= e($teacherName) ?></h4>
-                                    <p class="mt-1 text-sm font-semibold text-slate-500"><?= e($teacherDegree !== '' ? $teacherDegree : $teacherRole) ?></p>
-
-                                    <?php if ($teacherHighlights !== []): ?>
-                                        <div class="mt-4 flex flex-wrap gap-2">
-                                            <?php foreach ($teacherHighlights as $highlight): ?>
-                                                <span class="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[10px] font-black uppercase tracking-[0.08em] text-slate-600">
-                                                    <?= e($highlight); ?>
-                                                </span>
-                                            <?php endforeach; ?>
-                                        </div>
-                                    <?php endif; ?>
-
-                                    <div class="mt-auto pt-5">
-                                        <div class="inline-flex items-center gap-2 text-sm font-black text-blue-700 transition-transform duration-300 group-hover:translate-x-1">
-                                            Xem hồ sơ
-                                            <i class="fa-solid fa-arrow-right text-xs"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                            </article>
-                        </a>
-                    </div>
-                    <?php endforeach; ?>
-                    <?php endif; ?>
-                </div>
-                
-                <div class="swiper-pagination-teacher mt-6 sm:mt-8 flex justify-center"></div>
-            </div>
-        </div>
-
-        <div class="mt-6 sm:mt-8 flex justify-center">
-            <a href="<?= e(page_url('teacher-introduce')); ?>" class="inline-flex items-center justify-center gap-2 rounded-full bg-[#2e3192] px-5 sm:px-6 py-3 sm:py-3.5 text-xs sm:text-sm font-bold text-white shadow-md transition-transform hover:-translate-y-0.5 hover:bg-blue-600">
-                <?= e(t('home.view_more')); ?> <i class="fa-solid fa-arrow-right text-[10px] sm:text-xs"></i>
-            </a>
-        </div>
-
-    </div>
-</section>
- <section id="danh-gia" class="relative py-12 sm:py-14 md:py-20 overflow-hidden bg-transparent">
+    <section id="danh-gia" class="relative pt-6 pb-12 sm:pt-8 sm:pb-14 md:pt-10 md:pb-20 overflow-hidden bg-transparent">
         <div class="absolute inset-0 pointer-events-none hidden sm:block">
             <div class="absolute -top-24 -right-24 h-80 w-80 rounded-full bg-cyan-200/30 blur-3xl"></div>
             <div class="absolute -bottom-24 -left-24 h-80 w-80 rounded-full bg-rose-200/30 blur-3xl"></div>

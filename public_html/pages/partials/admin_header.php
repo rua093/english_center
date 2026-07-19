@@ -1815,6 +1815,7 @@ $pageSlug = resolve_page_slug((string) ($_GET['page'] ?? 'dashboard-admin'));
 if ($activeModule === '') {
     $moduleByPage = [
         'dashboard-admin' => 'dashboard',
+        'custom-ui-admin' => 'custom-ui',
         'sync-control-admin' => 'sync-control',
         'users-admin' => 'users',
         'tuition-finance' => 'tuition',
@@ -1846,6 +1847,7 @@ if ($activeModule === '') {
 
 $adminPageTitleMap = [
     'dashboard' => t('admin.page_title.dashboard'),
+    'custom-ui' => t('admin.page_title.custom_ui'),
     'sync-control' => 'Điều phối đồng bộ',
     'tuition' => t('admin.page_title.tuition'),
     'registration' => t('admin.page_title.registration'),
@@ -1872,6 +1874,7 @@ $adminPageTitleMap = [
 
 $adminPageDescriptionMap = [
     'dashboard' => t('admin.page_desc.dashboard'),
+    'custom-ui' => t('admin.page_desc.custom_ui'),
     'sync-control' => 'Quản lý maintenance mode, đồng bộ backup và xuất SQL thay đổi giữa server chính và sandbox.',
     'tuition' => t('admin.page_desc.tuition'),
     'registration' => t('admin.page_desc.registration'),
@@ -1934,6 +1937,15 @@ if ($displayAdminDescription === '') {
                         <svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8"></rect><rect x="13" y="3" width="8" height="5"></rect><rect x="13" y="10" width="8" height="11"></rect><rect x="3" y="13" width="8" height="8"></rect></svg>
                     </span>
                     <span class="admin-sidebar-link-label"><?= e(t('admin.nav.dashboard')); ?></span>
+                </a>
+            <?php endif; ?>
+
+            <?php if (can_access_page('custom-ui-admin')): ?>
+                <a class="admin-sidebar-link<?= $activeModule === 'custom-ui' ? ' is-active' : ''; ?>" href="<?= e(page_url('custom-ui-admin')); ?>" title="<?= e(t('admin.nav.custom_ui')); ?>">
+                    <span class="admin-sidebar-link-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24"><path d="M12 3v3"></path><path d="M18.36 5.64l-2.12 2.12"></path><path d="M21 12h-3"></path><path d="m18.36 18.36-2.12-2.12"></path><path d="M12 21v-3"></path><path d="m5.64 18.36 2.12-2.12"></path><path d="M3 12h3"></path><path d="m5.64 5.64 2.12 2.12"></path><circle cx="12" cy="12" r="3.5"></circle></svg>
+                    </span>
+                    <span class="admin-sidebar-link-label"><?= e(t('admin.nav.custom_ui')); ?></span>
                 </a>
             <?php endif; ?>
 

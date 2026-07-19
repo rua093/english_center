@@ -100,6 +100,13 @@ function ui_render_bbcode(?string $value): string
 		return '';
 	}
 
+	if (function_exists('bbcode_to_html')) {
+		$html = bbcode_to_html($text);
+		if ($html !== '' && $html !== $text) {
+			return $html;
+		}
+	}
+
 	$text = htmlspecialchars($text, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 	$replacements = [
 		'#\[br\s*/?\]#i' => '<br>',
@@ -114,6 +121,43 @@ function ui_render_bbcode(?string $value): string
 	foreach ($replacements as $pattern => $replacement) {
 		$text = preg_replace($pattern, $replacement, $text) ?? $text;
 	}
+
+	$text = preg_replace_callback(
+		'#\[size=([1-7])\](.*?)\[/size\]#is',
+		static function (array $matches): string {
+			$sizeMap = [
+				'1' => '0.75rem',
+				'2' => '0.875rem',
+				'3' => '1rem',
+				'4' => '1.125rem',
+				'5' => '1.25rem',
+				'6' => '1.5rem',
+				'7' => '1.875rem',
+			];
+			$size = (string) ($matches[1] ?? '3');
+			$content = (string) ($matches[2] ?? '');
+			$fontSize = $sizeMap[$size] ?? $sizeMap['3'];
+
+			return '<span style="font-size:' . $fontSize . ';">' . $content . '</span>';
+		},
+		$text
+	) ?? $text;
+
+	$text = preg_replace_callback(
+		'#\[color=([#a-z0-9(),.\s%-]+)\](.*?)\[/color\]#is',
+		static function (array $matches): string {
+			$rawColor = trim(html_entity_decode((string) ($matches[1] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'));
+			$content = (string) ($matches[2] ?? '');
+
+			if ($rawColor === '' || preg_match('/^([a-z]+|#[0-9a-f]{3,8}|rgb(a)?\([\d\s,.%]+\))$/i', $rawColor) !== 1) {
+				return $content;
+			}
+
+			$safeColor = htmlspecialchars($rawColor, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+			return '<span style="color:' . $safeColor . ';">' . $content . '</span>';
+		},
+		$text
+	) ?? $text;
 
 	$text = preg_replace_callback(
 		'#\[url=([^\]]+)\](.*?)\[/url\]#is',

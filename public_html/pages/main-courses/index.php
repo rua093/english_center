@@ -55,6 +55,9 @@ $renderBbcode = static function (string $text): string {
     return nl2br(e($text), false);
 };
 
+$coursesHeroMediaUrl = custom_ui_media_resolve_url('courses_hero_media');
+$coursesHeroIsVideo = custom_ui_media_is_video($coursesHeroMediaUrl);
+
 $courses = [];
 foreach ($courseRows as $row) {
     $courseName = trim((string) ($row['course_name'] ?? ''));
@@ -161,7 +164,13 @@ $stats = [
     <div class="absolute inset-0 z-0 pointer-events-none opacity-[0.08]" style="background-image: radial-gradient(#475569 1.5px, transparent 1.5px); background-size: 24px 24px;"></div>
     <section id="gioi-thieu" class="relative py-20 lg:py-32 overflow-hidden">
         <div class="absolute inset-0 z-0">
-            <img src="/assets/images/course3.jpg" alt="<?= e(t('courses.image_alt')); ?>" class="h-full w-full object-cover">
+            <?php if ($coursesHeroIsVideo): ?>
+                <video autoplay loop muted playsinline preload="metadata" class="h-full w-full object-cover">
+                    <source src="<?= e($coursesHeroMediaUrl); ?>">
+                </video>
+            <?php else: ?>
+                <img src="<?= e($coursesHeroMediaUrl); ?>" alt="<?= e(t('courses.image_alt')); ?>" class="h-full w-full object-cover">
+            <?php endif; ?>
             <div class="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-900/80 to-transparent"></div>
         </div>
 

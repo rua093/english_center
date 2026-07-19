@@ -4,7 +4,7 @@ declare(strict_types=1);
 use s9e\TextFormatter\Configurator;
 
 const BBCODE_BUNDLE_CLASS = 'App\\BbcodeBundle';
-const BBCODE_BUNDLE_VERSION = 's9e-text-formatter-v3';
+const BBCODE_BUNDLE_VERSION = 's9e-text-formatter-v5';
 
 function bbcode_cache_dir(): string
 {
@@ -85,6 +85,24 @@ function bbcode_prepare_input(?string $text): string
 {
     $normalized = str_replace(["\r\n", "\r"], "\n", (string) $text);
 
+    $normalized = preg_replace_callback('~\[size=(\d+)\](.*?)\[/size\]~is', static function (array $matches): string {
+        $rawSize = (int) ($matches[1] ?? 0);
+        $content = (string) ($matches[2] ?? '');
+        $sizeMap = [
+            1 => 12,
+            2 => 14,
+            3 => 16,
+            4 => 18,
+            5 => 20,
+            6 => 24,
+            7 => 30,
+        ];
+
+        $resolvedSize = $sizeMap[$rawSize] ?? max(8, min(36, $rawSize));
+
+        return '[size=' . $resolvedSize . ']' . $content . '[/size]';
+    }, $normalized) ?? $normalized;
+
     $normalized = preg_replace_callback('~\[img\](.*?)\[/img\]~is', static function (array $matches): string {
         $url = trim((string) ($matches[1] ?? ''));
         if (bbcode_is_safe_image_url($url)) {
@@ -111,7 +129,7 @@ function bbcode_generate_bundle(): void
     $configurator->rendering->engine->filepath = bbcode_renderer_filepath();
     $configurator->rootRules->enableAutoLineBreaks();
 
-    foreach (['B', 'I', 'U', 'S', 'CODE', 'QUOTE', 'URL', 'IMG'] as $tagName) {
+    foreach (['B', 'I', 'U', 'S', 'CODE', 'QUOTE', 'URL', 'IMG', 'COLOR', 'SIZE', 'UL', 'OL', 'LIST', '*'] as $tagName) {
         $configurator->BBCodes->addFromRepository($tagName);
     }
 

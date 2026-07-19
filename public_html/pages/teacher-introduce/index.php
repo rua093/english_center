@@ -11,6 +11,8 @@ $teacherRows = $teacherTotal > 0
 $buildTeacherPageUrl = static function (int $page) : string {
     return page_url('teacher-introduce', ['teachers_page' => $page]) . '#danh-sach-giang-vien';
 };
+$teachersHeroMediaUrl = custom_ui_media_resolve_url('teachers_hero_media');
+$teachersHeroIsVideo = custom_ui_media_is_video($teachersHeroMediaUrl);
 $teachers = [];
 
 foreach ($teacherRows as $teacherRow) {
@@ -94,36 +96,43 @@ foreach ($teacherRows as $teacherRow) {
     }
 </style>
 
-<section class="course-detail-bg relative min-h-screen overflow-hidden font-jakarta pb-24">
+<section class="course-detail-bg relative overflow-hidden font-jakarta pb-24">
     <div class="absolute inset-0 z-0 pointer-events-none opacity-[0.08]" style="background-image: radial-gradient(#475569 1.5px, transparent 1.5px); background-size: 24px 24px;"></div>
-    <div class="relative z-10 pt-24 pb-32 overflow-hidden">
+    <div class="relative z-10 flex min-h-screen items-center overflow-hidden pt-28 pb-20 md:pt-32 md:pb-24">
         <div class="absolute inset-0">
-            <img src="<?= e('/assets/images/teacher_page_banner.jpg'); ?>" alt="<?= e(t('teachers.banner_alt')); ?>" class="w-full h-full object-cover object-center opacity-100">
+            <?php if ($teachersHeroIsVideo): ?>
+                <video autoplay loop muted playsinline preload="metadata" class="w-full h-full object-cover object-center opacity-100">
+                    <source src="<?= e($teachersHeroMediaUrl); ?>">
+                </video>
+            <?php else: ?>
+                <img src="<?= e($teachersHeroMediaUrl); ?>" alt="<?= e(t('teachers.banner_alt')); ?>" class="w-full h-full object-cover object-center opacity-100">
+            <?php endif; ?>
             <div class="absolute inset-0 bg-gradient-to-r from-slate-950/90 via-slate-950/68 via-[34%] to-slate-950/18"></div>
             <div class="absolute inset-0 bg-gradient-to-t from-slate-950/36 via-slate-950/8 to-transparent"></div>
             <div class="absolute inset-0 bg-[radial-gradient(circle_at_left_center,_rgba(15,23,42,0.34),_transparent_42%)]"></div>
         </div>
 
-        <div class="container mx-auto px-4 max-w-6xl relative z-10 text-left" data-aos="fade-up" data-aos-duration="700">
+        <div class="mx-auto w-full max-w-[1400px] px-4 sm:px-5 lg:px-6 relative z-10 text-left" data-aos="fade-up" data-aos-duration="700">
             <div class="max-w-3xl">
-                <span class="inline-flex items-center gap-2 rounded-full border border-rose-300/35 bg-rose-500/20 px-4 py-2 text-[10px] font-black uppercase tracking-[0.22em] text-rose-100 shadow-sm backdrop-blur-md mb-6" data-aos="zoom-in" data-aos-delay="220">
+                <span class="inline-flex items-center gap-2 rounded-full border border-rose-300/35 bg-rose-500/20 px-4 py-2 text-[10px] font-black tracking-[0.14em] text-rose-100 shadow-sm backdrop-blur-md mb-6" data-aos="zoom-in" data-aos-delay="220">
                     <span class="h-2 w-2 rounded-full bg-rose-400"></span>
                     <?= e(t('teachers.kicker')); ?>
                 </span>
 
-                <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tight leading-[1.04] mb-6" data-aos="fade-right" data-aos-delay="420">
-                    <span class="inline-block drop-shadow-[0_10px_28px_rgba(0,0,0,0.48)]"><?= e(t('teachers.hero_line_1')); ?></span>
-                    <span class="block mt-2 drop-shadow-[0_10px_28px_rgba(0,0,0,0.48)]"><?= e(t('teachers.hero_line_2')); ?></span>
+                <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white tracking-tight leading-tight mb-6" data-aos="fade-right" data-aos-delay="420">
+                    <span class="block drop-shadow-[0_10px_28px_rgba(0,0,0,0.48)]">Đội ngũ</span>
+                    <span class="block mt-2 drop-shadow-[0_10px_28px_rgba(0,0,0,0.48)]">giảng viên</span>
+                    <span class="block mt-2 drop-shadow-[0_10px_28px_rgba(0,0,0,0.48)]">tinh hoa</span>
                 </h1>
 
-                <p class="max-w-2xl text-white/90 text-lg md:text-xl font-medium leading-relaxed drop-shadow-[0_6px_18px_rgba(0,0,0,0.42)]" data-aos="fade-up" data-aos-delay="560">
+                <p class="max-w-[22rem] md:max-w-[26rem] text-base md:text-lg text-white/90 font-medium leading-relaxed drop-shadow-[0_6px_18px_rgba(0,0,0,0.42)]" data-aos="fade-up" data-aos-delay="560">
                     <?= e(t('teachers.hero_copy')); ?>
                 </p>
             </div>
         </div>
     </div>
 
-    <div class="container mx-auto px-4 max-w-6xl relative z-20 -mt-16">
+    <div class="container mx-auto px-4 max-w-6xl relative z-20 pt-10 md:pt-14">
         <div id="danh-sach-giang-vien" class="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3" data-aos="fade-up" data-aos-delay="360">
             <?php $teacherDelay = 300; ?>
             <?php foreach($teachers as $teacher): ?>

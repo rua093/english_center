@@ -20,6 +20,11 @@
     }
 </style>
 
+<?php
+$jobApplyHeroMediaUrl = custom_ui_media_resolve_url('job_apply_hero_media');
+$jobApplyHeroIsVideo = custom_ui_media_is_video($jobApplyHeroMediaUrl);
+?>
+
 <main class="course-detail-bg relative overflow-hidden py-12 md:py-16 font-jakarta">
     <div class="absolute inset-0 z-0 pointer-events-none opacity-[0.08]" style="background-image: radial-gradient(#475569 1.5px, transparent 1.5px); background-size: 24px 24px;"></div>
     <div class="relative z-10 container mx-auto px-4 max-w-7xl">
@@ -28,7 +33,13 @@
             <div class="relative overflow-hidden rounded-[2.5rem] shadow-2xl shadow-slate-200/50">
                 
                 <div class="absolute inset-0 z-0">
-                    <img src="/assets/images/recruit.jpg" alt="<?= e(t('job.apply.image_alt')); ?>" class="w-full h-full object-cover brightness-110 contrast-105 saturate-110">
+                    <?php if ($jobApplyHeroIsVideo): ?>
+                        <video autoplay loop muted playsinline preload="metadata" class="w-full h-full object-cover brightness-110 contrast-105 saturate-110">
+                            <source src="<?= e($jobApplyHeroMediaUrl); ?>">
+                        </video>
+                    <?php else: ?>
+                        <img src="<?= e($jobApplyHeroMediaUrl); ?>" alt="<?= e(t('job.apply.image_alt')); ?>" class="w-full h-full object-cover brightness-110 contrast-105 saturate-110">
+                    <?php endif; ?>
                     <div class="absolute inset-0 bg-gradient-to-br from-slate-900/70 via-slate-800/45 to-rose-900/25 mix-blend-multiply"></div>
                     <div class="absolute inset-0 bg-gradient-to-t from-white/15 via-transparent to-white/5"></div>
                 </div>

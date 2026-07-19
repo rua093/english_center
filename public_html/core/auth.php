@@ -322,6 +322,8 @@ function can_access_page(string $page): bool
 			return has_any_permission(['academic.portfolios.view']);
 		case 'dashboard-admin':
 			return in_array($role, ['admin'], true) && has_permission('admin.dashboard.view');
+		case 'custom-ui-admin':
+			return in_array($role, ['admin'], true) && has_permission('admin.dashboard.view');
 		case 'sync-control-admin':
 			return in_array($role, ['admin'], true) && has_permission('admin.dashboard.view');
 		case 'users-admin':

@@ -205,6 +205,7 @@ $heroCards = [
                     <i class="fa-solid fa-circle-play text-xs"></i>
                     <span><?= e(t('admin.dashboard.home_intro_video')); ?></span>
                 </button>
+                <a class="inline-flex items-center rounded-full border border-cyan-300/30 bg-cyan-300/15 px-4 py-2 text-sm font-black text-cyan-50 transition hover:bg-cyan-300/25" href="<?= e(page_url('custom-ui-admin')); ?>"><?= e(t('admin.nav.custom_ui')); ?></a>
                 <?php if (can_access_page('classes-academic')): ?>
                     <a class="inline-flex items-center rounded-full border border-white/15 bg-white px-4 py-2 text-sm font-black text-slate-900 transition hover:bg-cyan-200" href="<?= e(page_url('classes-academic')); ?>"><?= e(t('admin.dashboard.go_academic')); ?></a>
                 <?php endif; ?>
