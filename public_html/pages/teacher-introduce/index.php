@@ -121,7 +121,7 @@ foreach ($teacherRows as $teacherRow) {
 
                 <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white tracking-tight leading-tight mb-6" data-aos="fade-right" data-aos-delay="420">
                     <span class="block drop-shadow-[0_10px_28px_rgba(0,0,0,0.48)]">Đội ngũ</span>
-                    <span class="block mt-2 drop-shadow-[0_10px_28px_rgba(0,0,0,0.48)]">giảng viên</span>
+                    <span class="block mt-2 drop-shadow-[0_10px_28px_rgba(0,0,0,0.48)]">giáo viên</span>
                     <span class="block mt-2 drop-shadow-[0_10px_28px_rgba(0,0,0,0.48)]">tinh hoa</span>
                 </h1>
 

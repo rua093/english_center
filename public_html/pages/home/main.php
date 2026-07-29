@@ -829,7 +829,7 @@ $homeFormatPromotionDate = static function (?string $value): string {
                     <img src="/assets/images/center2.jpg" alt="<?= e(t('home.center_location_alt')); ?>" class="w-full h-[300px] sm:h-[400px] lg:h-[500px] object-cover transform group-hover:scale-105 transition duration-700 ease-in-out">
                     <div class="absolute inset-0 bg-gradient-to-t from-blue-950/60 via-blue-950/20 to-transparent opacity-80"></div>
                 </div>
-                <div class="absolute -bottom-6 right-2 sm:-bottom-8 sm:right-4 md:-right-4 bg-white/95 backdrop-blur-md px-4 sm:px-6 py-3 sm:py-4 rounded-2xl shadow-[0_15px_40px_rgba(30,58,138,0.15)] border border-blue-50 hover:-translate-y-1 transition-transform cursor-default z-20">
+                <a href="https://maps.app.goo.gl/3pegDz6W2AeZ7RMm6?g_st=ic" target="_blank" rel="noopener noreferrer" class="absolute -bottom-6 right-2 sm:-bottom-8 sm:right-4 md:-right-4 bg-white/95 backdrop-blur-md px-4 sm:px-6 py-3 sm:py-4 rounded-2xl shadow-[0_15px_40px_rgba(30,58,138,0.15)] border border-blue-50 hover:-translate-y-1 transition-transform z-20">
                     <div class="flex items-center gap-3 sm:gap-4">
                         <div class="relative flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center">
                             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-30"></span>
@@ -842,7 +842,7 @@ $homeFormatPromotionDate = static function (?string $value): string {
                             <h4 class="text-xs sm:text-sm font-black text-blue-950"><?= e(t('home.location_name')); ?></h4>
                         </div>
                     </div>
-                </div>
+                </a>
             </div>
 
             <div class="space-y-5 sm:space-y-7 mt-8 lg:mt-0" data-aos="fade-left">
@@ -866,7 +866,7 @@ $homeFormatPromotionDate = static function (?string $value): string {
                     </div>
                 </div>
                 <div class="pt-2 sm:pt-4">
-                    <a href="#lien-he" class="inline-flex items-center justify-center gap-2 sm:gap-3 px-6 sm:px-8 py-3 sm:py-4 rounded-full bg-gradient-to-r from-blue-600 to-sky-500 text-white font-bold text-sm sm:text-base shadow-[0_10px_20px_rgba(37,99,235,0.3)] transition-all hover:-translate-y-1 hover:shadow-[0_15px_25px_rgba(37,99,235,0.4)]">
+                    <a href="<?= e(page_url('courses')); ?>" class="inline-flex items-center justify-center gap-2 sm:gap-3 px-6 sm:px-8 py-3 sm:py-4 rounded-full bg-gradient-to-r from-blue-600 to-sky-500 text-white font-bold text-sm sm:text-base shadow-[0_10px_20px_rgba(37,99,235,0.3)] transition-all hover:-translate-y-1 hover:shadow-[0_15px_25px_rgba(37,99,235,0.4)]">
                         <?= e(t('home.discover_now')); ?> <i class="fa-solid fa-arrow-right"></i>
                     </a>
                 </div>
