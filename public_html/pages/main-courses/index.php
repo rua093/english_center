@@ -295,7 +295,7 @@ $stats = [
                                     <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400"><?= e(t('courses.price_from')); ?></p>
                                     <p class="text-xl font-black text-slate-950"><?= e($course['price']); ?></p>
                                 </div>
-                                <a href="<?= e(page_url('course-detail', ['course' => $course['slug']])); ?>" class="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-4 py-2 text-sm font-black text-emerald-600 transition-all hover:bg-emerald-600 hover:text-white">
+                                <a href="<?= e(page_url('course-detail', ['course' => $course['slug']])); ?>" class="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#0b5d1e] via-[#159f2e] to-[#8dff1a] px-4 py-2 text-sm font-black text-white shadow-md shadow-emerald-500/30 transition-all hover:-translate-y-0.5 hover:from-[#084916] hover:via-[#118427] hover:to-[#74e414] hover:shadow-lg hover:shadow-emerald-500/40">
                                     <?= e(t('public.common.view_detail')); ?>
                                     <i class="fa-solid fa-arrow-right"></i>
                                 </a>

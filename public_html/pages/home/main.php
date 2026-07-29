@@ -482,7 +482,7 @@ $homeFormatPromotionDate = static function (?string $value): string {
                                         </div>
                                         <div class="absolute inset-0 bg-gradient-to-t from-red-500/12 via-rose-400/8 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                                     <?php endif; ?>
-                                    <div class="absolute top-3 sm:top-4 right-3 sm:right-4 bg-gradient-to-r from-red-500 to-emerald-500 text-white rounded-xl sm:rounded-2xl px-2 sm:px-3 py-1.5 sm:py-2 text-center shadow-md backdrop-blur-sm ring-1 ring-white/70">
+                                    <div class="absolute top-3 sm:top-4 right-3 sm:right-4 bg-gradient-to-r from-[#0b5d1e] via-[#159f2e] to-[#8dff1a] text-white rounded-xl sm:rounded-2xl px-2 sm:px-3 py-1.5 sm:py-2 text-center shadow-md shadow-emerald-500/30 backdrop-blur-sm ring-1 ring-white/70">
                                         <span class="block text-[8px] sm:text-[10px] uppercase font-bold opacity-90"><?= e(t('home.course_sessions')); ?></span>
                                         <span class="block text-xl sm:text-2xl font-black leading-none"><?= (int) ($course['total_sessions'] ?? 0); ?></span>
                                     </div>
@@ -512,7 +512,7 @@ $homeFormatPromotionDate = static function (?string $value): string {
                                                 <div><?= e(t('home.classes_count', ['count' => (int) ($course['class_count'] ?? 0)])); ?></div>
                                             </div>
                                         </div>
-                                        <a href="<?= e($courseLink); ?>" class="inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-red-500 via-rose-500 to-emerald-500 px-4 py-2.5 text-xs sm:text-sm font-bold text-white shadow-md transition-all hover:-translate-y-0.5 hover:from-red-600 hover:to-emerald-600 hover:shadow-lg">
+                                        <a href="<?= e($courseLink); ?>" class="inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#0b5d1e] via-[#159f2e] to-[#8dff1a] px-4 py-2.5 text-xs sm:text-sm font-bold text-white shadow-md shadow-emerald-500/30 transition-all hover:-translate-y-0.5 hover:from-[#084916] hover:via-[#118427] hover:to-[#74e414] hover:shadow-lg hover:shadow-emerald-500/40">
                                             <?= e(t('public.common.view_detail')); ?> <i class="fa-solid fa-arrow-right text-[10px] sm:text-xs"></i>
                                         </a>
                                     </div>
