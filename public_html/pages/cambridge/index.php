@@ -5,11 +5,14 @@ declare(strict_types=1);
 ?>
 
 <!-- Hero Banner -->
-<div class="relative overflow-hidden bg-slate-950 py-16 sm:py-24 text-white">
+<div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 py-16 sm:py-24 text-white">
+    <!-- Grid Overlay -->
+    <div class="absolute inset-0 bg-[linear-gradient(to_right,#ffffff08_1px,transparent_1px),linear-gradient(to_bottom,#ffffff08_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none"></div>
+
     <!-- Ambient glowing backgrounds -->
-    <div class="absolute -top-32 -left-32 h-96 w-96 rounded-full bg-blue-600/30 blur-3xl pointer-events-none"></div>
-    <div class="absolute -bottom-32 -right-32 h-96 w-96 rounded-full bg-amber-500/20 blur-3xl pointer-events-none"></div>
-    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[500px] w-[500px] rounded-full bg-indigo-600/15 blur-3xl pointer-events-none"></div>
+    <div class="absolute -top-32 -left-32 h-96 w-96 rounded-full bg-blue-600/20 blur-[120px] pointer-events-none"></div>
+    <div class="absolute -bottom-32 -right-32 h-96 w-96 rounded-full bg-amber-500/15 blur-[120px] pointer-events-none"></div>
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[500px] w-[500px] rounded-full bg-indigo-600/10 blur-[140px] pointer-events-none"></div>
 
     <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center max-w-3xl mx-auto">

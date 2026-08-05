@@ -19,29 +19,36 @@ declare(strict_types=1);
     </div>
 </div>
 
-<!-- Hero Banner -->
-<div class="relative overflow-hidden bg-gradient-to-br from-purple-700 via-purple-800 to-slate-950 py-16 sm:py-24 text-white">
-    <div class="absolute -top-40 -left-40 h-96 w-96 rounded-full bg-purple-400/20 blur-3xl pointer-events-none"></div>
-    <div class="absolute -bottom-40 -right-40 h-96 w-96 rounded-full bg-purple-500/10 blur-3xl pointer-events-none"></div>
+<!-- Hero Banner (Modern Luxury Midnight Theme) -->
+<div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-purple-950 py-16 sm:py-24 text-white">
+    <!-- Grid Overlay -->
+    <div class="absolute inset-0 bg-[linear-gradient(to_right,#ffffff08_1px,transparent_1px),linear-gradient(to_bottom,#ffffff08_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none"></div>
+
+    <!-- Soft Ambient Glowing Orbs -->
+    <div class="absolute -top-24 -left-24 h-96 w-96 rounded-full bg-purple-500/20 blur-[120px] pointer-events-none"></div>
+    <div class="absolute bottom-0 right-1/4 h-80 w-80 rounded-full bg-rose-500/15 blur-[100px] pointer-events-none"></div>
 
     <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex flex-col lg:flex-row items-center justify-between gap-10">
-            <div class="max-w-2xl text-left">
-                <div class="flex items-center gap-3 mb-4 flex-wrap">
-                    <span class="rounded-full bg-purple-400/20 px-3.5 py-1 text-xs font-black text-purple-300 border border-purple-300/30 backdrop-blur-md">
+            <div class="max-w-2xl text-left space-y-5">
+                <div class="flex items-center gap-3 flex-wrap">
+                    <span class="inline-flex items-center gap-2 rounded-full bg-purple-500/10 px-4 py-1.5 text-xs font-black text-purple-300 border border-purple-500/30 backdrop-blur-md">
+                        <span class="flex h-2 w-2 rounded-full bg-purple-400 animate-pulse"></span>
                         📕 B1 Preliminary for Schools (PET)
                     </span>
-                    <span class="text-xs font-semibold text-purple-100 bg-white/10 px-3 py-1 rounded-full border border-white/10">Dành cho học sinh 14 - 16+ tuổi (THCS-THPT)</span>
+                    <span class="text-xs font-semibold text-slate-300 bg-white/5 px-3.5 py-1.5 rounded-full border border-white/10 backdrop-blur-md">Dành cho học sinh 14 - 16+ tuổi (THCS-THPT)</span>
                 </div>
-                <h1 class="text-3xl font-black sm:text-5xl lg:text-6xl tracking-tight leading-tight">
+
+                <h1 class="text-3xl font-black sm:text-5xl lg:text-6xl tracking-tight leading-tight bg-gradient-to-r from-white via-purple-100 to-pink-300 bg-clip-text text-transparent drop-shadow-sm">
                     Chứng Chỉ Cambridge PET
                 </h1>
-                <p class="mt-4 text-base sm:text-lg text-purple-100/90 leading-relaxed">
+
+                <p class="text-base sm:text-lg text-slate-300 leading-relaxed font-medium">
                     Trình độ trung cấp (Intermediate B1). Chứng chỉ khẳng định khả năng sử dụng tiếng Anh thành thạo trong học tập, giao tiếp công việc và bước đệm bứt phá sang IELTS 6.0 - 7.5+.
                 </p>
 
-                <div class="mt-8 flex flex-wrap gap-4">
-                    <a href="<?= e(page_url('home') . '#dang-ky-tu-van'); ?>" class="rounded-2xl bg-purple-400 px-7 py-3.5 text-xs sm:text-sm font-extrabold text-slate-950 shadow-xl shadow-purple-500/20 hover:bg-purple-300 transition-all transform hover:-translate-y-0.5">
+                <div class="pt-2 flex flex-wrap gap-4">
+                    <a href="<?= e(page_url('home') . '#dang-ky-tu-van'); ?>" class="rounded-2xl bg-gradient-to-r from-purple-500 to-pink-500 px-7 py-3.5 text-xs sm:text-sm font-extrabold text-white shadow-xl shadow-purple-500/20 hover:from-purple-400 hover:to-pink-400 transition-all transform hover:-translate-y-0.5">
                         Đăng ký thi thử PET miễn phí 🚀
                     </a>
                     <a href="<?= e(page_url('cambridge')); ?>" class="rounded-2xl bg-white/10 px-6 py-3.5 text-xs sm:text-sm font-bold text-white border border-white/20 hover:bg-white/20 backdrop-blur-md transition">
@@ -51,24 +58,26 @@ declare(strict_types=1);
             </div>
 
             <!-- Stats Badge Glass Card -->
-            <div class="w-full lg:w-96 rounded-3xl bg-white/10 p-8 backdrop-blur-xl border border-white/20 text-center shadow-2xl space-y-6">
-                <div class="inline-flex h-20 w-20 items-center justify-center rounded-3xl bg-purple-400 text-slate-950 font-black text-2xl shadow-lg">
+            <div class="w-full lg:w-96 rounded-3xl bg-slate-900/80 p-8 backdrop-blur-2xl border border-purple-500/30 text-center shadow-2xl space-y-6 relative overflow-hidden group">
+                <div class="absolute -right-16 -top-16 h-36 w-36 rounded-full bg-purple-500/10 blur-2xl pointer-events-none"></div>
+
+                <div class="inline-flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-purple-500 to-pink-500 text-white font-black text-2xl shadow-lg ring-4 ring-purple-400/20">
                     120-170
                 </div>
                 <div>
-                    <div class="text-xl font-black text-white">Thang Điểm Cambridge English Scale</div>
-                    <p class="mt-2 text-xs text-purple-100/80 leading-relaxed">
+                    <div class="text-xl font-black text-white">Thang Điểm Cambridge Scale</div>
+                    <p class="mt-2 text-xs text-slate-300 leading-relaxed font-medium">
                         Đánh giá trình độ B1 trung cấp chuyên sâu với kết quả vô thời hạn toàn cầu.
                     </p>
                 </div>
-                <div class="pt-4 border-t border-white/15 grid grid-cols-2 gap-3 text-xs">
-                    <div class="bg-white/10 p-2.5 rounded-xl">
-                        <div class="text-purple-300 font-bold">Khung CEFR</div>
-                        <div class="text-white font-extrabold">Trình độ B1</div>
+                <div class="pt-4 border-t border-white/10 grid grid-cols-2 gap-3 text-xs">
+                    <div class="bg-white/5 p-3 rounded-2xl border border-white/10">
+                        <div class="text-purple-300 font-bold text-[11px]">Khung CEFR</div>
+                        <div class="text-white font-extrabold mt-0.5">Trình độ B1</div>
                     </div>
-                    <div class="bg-white/10 p-2.5 rounded-xl">
-                        <div class="text-purple-300 font-bold">Thời gian học</div>
-                        <div class="text-white font-extrabold">~400 Giờ</div>
+                    <div class="bg-white/5 p-3 rounded-2xl border border-white/10">
+                        <div class="text-purple-300 font-bold text-[11px]">Thời gian học</div>
+                        <div class="text-white font-extrabold mt-0.5">~400 Giờ</div>
                     </div>
                 </div>
             </div>

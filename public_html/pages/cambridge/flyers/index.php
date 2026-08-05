@@ -19,29 +19,36 @@ declare(strict_types=1);
     </div>
 </div>
 
-<!-- Hero Banner -->
-<div class="relative overflow-hidden bg-gradient-to-br from-sky-600 via-sky-700 to-slate-950 py-16 sm:py-24 text-white">
-    <div class="absolute -top-40 -left-40 h-96 w-96 rounded-full bg-sky-400/20 blur-3xl pointer-events-none"></div>
-    <div class="absolute -bottom-40 -right-40 h-96 w-96 rounded-full bg-sky-500/10 blur-3xl pointer-events-none"></div>
+<!-- Hero Banner (Modern Luxury Midnight Theme) -->
+<div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-sky-950 py-16 sm:py-24 text-white">
+    <!-- Grid Overlay -->
+    <div class="absolute inset-0 bg-[linear-gradient(to_right,#ffffff08_1px,transparent_1px),linear-gradient(to_bottom,#ffffff08_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none"></div>
+
+    <!-- Soft Ambient Glowing Orbs -->
+    <div class="absolute -top-24 -left-24 h-96 w-96 rounded-full bg-sky-500/20 blur-[120px] pointer-events-none"></div>
+    <div class="absolute bottom-0 right-1/4 h-80 w-80 rounded-full bg-cyan-500/15 blur-[100px] pointer-events-none"></div>
 
     <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex flex-col lg:flex-row items-center justify-between gap-10">
-            <div class="max-w-2xl text-left">
-                <div class="flex items-center gap-3 mb-4 flex-wrap">
-                    <span class="rounded-full bg-sky-400/20 px-3.5 py-1 text-xs font-black text-sky-300 border border-sky-300/30 backdrop-blur-md">
+            <div class="max-w-2xl text-left space-y-5">
+                <div class="flex items-center gap-3 flex-wrap">
+                    <span class="inline-flex items-center gap-2 rounded-full bg-sky-500/10 px-4 py-1.5 text-xs font-black text-sky-300 border border-sky-500/30 backdrop-blur-md">
+                        <span class="flex h-2 w-2 rounded-full bg-sky-400 animate-pulse"></span>
                         🚀 A2 Flyers (Young Learners)
                     </span>
-                    <span class="text-xs font-semibold text-sky-100 bg-white/10 px-3 py-1 rounded-full border border-white/10">Dành cho trẻ 10 - 12 tuổi (Lớp 5 - 6)</span>
+                    <span class="text-xs font-semibold text-slate-300 bg-white/5 px-3.5 py-1.5 rounded-full border border-white/10 backdrop-blur-md">Dành cho trẻ 10 - 12 tuổi (Lớp 5 - 6)</span>
                 </div>
-                <h1 class="text-3xl font-black sm:text-5xl lg:text-6xl tracking-tight leading-tight">
+
+                <h1 class="text-3xl font-black sm:text-5xl lg:text-6xl tracking-tight leading-tight bg-gradient-to-r from-white via-sky-100 to-cyan-300 bg-clip-text text-transparent drop-shadow-sm">
                     Chứng Chỉ Cambridge Flyers
                 </h1>
-                <p class="mt-4 text-base sm:text-lg text-sky-100/90 leading-relaxed">
+
+                <p class="text-base sm:text-lg text-slate-300 leading-relaxed font-medium">
                     Cấp độ đỉnh cao thuộc hệ thống Young Learners (YLE). Giúp học sinh thành thạo tiếng Anh tương đương trình độ KET (A2), chuẩn bị hành trang vững chắc tuyển sinh trường chuyên, lớp chọn THCS.
                 </p>
 
-                <div class="mt-8 flex flex-wrap gap-4">
-                    <a href="<?= e(page_url('home') . '#dang-ky-tu-van'); ?>" class="rounded-2xl bg-sky-400 px-7 py-3.5 text-xs sm:text-sm font-extrabold text-slate-950 shadow-xl shadow-sky-500/20 hover:bg-sky-300 transition-all transform hover:-translate-y-0.5">
+                <div class="pt-2 flex flex-wrap gap-4">
+                    <a href="<?= e(page_url('home') . '#dang-ky-tu-van'); ?>" class="rounded-2xl bg-gradient-to-r from-sky-400 to-cyan-500 px-7 py-3.5 text-xs sm:text-sm font-extrabold text-slate-950 shadow-xl shadow-sky-500/20 hover:from-sky-300 hover:to-cyan-400 transition-all transform hover:-translate-y-0.5">
                         Đăng ký thi thử Flyers miễn phí 🚀
                     </a>
                     <a href="<?= e(page_url('cambridge')); ?>" class="rounded-2xl bg-white/10 px-6 py-3.5 text-xs sm:text-sm font-bold text-white border border-white/20 hover:bg-white/20 backdrop-blur-md transition">
@@ -51,24 +58,26 @@ declare(strict_types=1);
             </div>
 
             <!-- Stats Badge Glass Card -->
-            <div class="w-full lg:w-96 rounded-3xl bg-white/10 p-8 backdrop-blur-xl border border-white/20 text-center shadow-2xl space-y-6">
-                <div class="inline-flex h-20 w-20 items-center justify-center rounded-3xl bg-sky-400 text-slate-950 font-black text-3xl shadow-lg">
+            <div class="w-full lg:w-96 rounded-3xl bg-slate-900/80 p-8 backdrop-blur-2xl border border-sky-500/30 text-center shadow-2xl space-y-6 relative overflow-hidden group">
+                <div class="absolute -right-16 -top-16 h-36 w-36 rounded-full bg-sky-500/10 blur-2xl pointer-events-none"></div>
+
+                <div class="inline-flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-sky-400 to-cyan-500 text-slate-950 font-black text-3xl shadow-lg ring-4 ring-sky-400/20">
                     🛡️ 15
                 </div>
                 <div>
                     <div class="text-xl font-black text-white">Tối Đa 15 Khiên Cambridge</div>
-                    <p class="mt-2 text-xs text-sky-100/80 leading-relaxed">
+                    <p class="mt-2 text-xs text-slate-300 leading-relaxed font-medium">
                         Cấp độ Flyers tương đương với trình độ A2 trên Khung chiếu Châu Âu (CEFR).
                     </p>
                 </div>
-                <div class="pt-4 border-t border-white/15 grid grid-cols-2 gap-3 text-xs">
-                    <div class="bg-white/10 p-2.5 rounded-xl">
-                        <div class="text-sky-300 font-bold">Khung CEFR</div>
-                        <div class="text-white font-extrabold">Trình độ A2</div>
+                <div class="pt-4 border-t border-white/10 grid grid-cols-2 gap-3 text-xs">
+                    <div class="bg-white/5 p-3 rounded-2xl border border-white/10">
+                        <div class="text-sky-300 font-bold text-[11px]">Khung CEFR</div>
+                        <div class="text-white font-extrabold mt-0.5">Trình độ A2</div>
                     </div>
-                    <div class="bg-white/10 p-2.5 rounded-xl">
-                        <div class="text-sky-300 font-bold">Thời gian học</div>
-                        <div class="text-white font-extrabold">~250 Giờ</div>
+                    <div class="bg-white/5 p-3 rounded-2xl border border-white/10">
+                        <div class="text-sky-300 font-bold text-[11px]">Thời gian học</div>
+                        <div class="text-white font-extrabold mt-0.5">~250 Giờ</div>
                     </div>
                 </div>
             </div>
