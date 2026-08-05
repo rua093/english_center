@@ -94,37 +94,97 @@
                 </a>
             </div>
 
-            <nav class="hidden min-w-0 flex-1 items-center justify-center gap-8 lg:flex xl:gap-10" aria-label="Menu chính">
+            <nav class="hidden min-w-0 flex-1 items-center justify-center gap-6 xl:gap-8 lg:flex" aria-label="Menu chính">
                 
-                <a class="relative py-2 text-[15px] font-semibold transition-colors duration-300 <?= $isActivePage(['home']) ? 'text-blue-600' : 'text-slate-700 hover:text-blue-600' ?> group" href="/">
+                <a class="relative py-2 text-[14px] xl:text-[15px] font-semibold whitespace-nowrap transition-colors duration-300 <?= $isActivePage(['home']) ? 'text-blue-600' : 'text-slate-700 hover:text-blue-600' ?> group" href="/">
                     <?= e(t('nav.home')); ?>
+                    <span class="absolute bottom-0 left-1/2 h-[2px] w-0 -translate-x-1/2 bg-blue-600 transition-all duration-300 group-hover:w-full <?= $isActivePage(['home']) ? 'w-full' : '' ?>"></span>
                 </a>
                 
-                <div class="relative flex items-center py-5 group">
-                    <a class="relative inline-flex items-center gap-1.5 text-[15px] font-semibold transition-colors duration-300 cursor-pointer <?= $isActivePage(['courses', 'course-detail']) ? 'text-blue-600' : 'text-slate-700 hover:text-blue-600' ?>" href="<?= e(page_url('courses')); ?>">
-                        <?= e(t('nav.courses')); ?>
-                        <span class="absolute -bottom-2 left-1/2 h-[2px] w-0 -translate-x-1/2 bg-blue-600 transition-all duration-300 group-hover:w-full <?= $isActivePage(['courses', 'course-detail']) ? 'w-full' : '' ?>"></span>
+                <a class="relative py-2 text-[14px] xl:text-[15px] font-semibold whitespace-nowrap transition-colors duration-300 <?= $isActivePage(['courses', 'course-detail']) ? 'text-blue-600' : 'text-slate-700 hover:text-blue-600' ?> group" href="<?= e(page_url('courses')); ?>">
+                    <?= e(t('nav.courses')); ?>
+                    <span class="absolute bottom-0 left-1/2 h-[2px] w-0 -translate-x-1/2 bg-blue-600 transition-all duration-300 group-hover:w-full <?= $isActivePage(['courses', 'course-detail']) ? 'w-full' : '' ?>"></span>
+                </a>
+
+                <!-- Cambridge Qualifications Dropdown -->
+                <div class="relative group py-2">
+                    <a class="relative py-2 text-[14px] xl:text-[15px] font-semibold whitespace-nowrap transition-colors duration-300 inline-flex items-center gap-1 <?= $isActivePage(['cambridge', 'cambridge-starters', 'cambridge-movers', 'cambridge-flyers', 'cambridge-ket', 'cambridge-pet']) ? 'text-blue-600' : 'text-slate-700 hover:text-blue-600' ?>" href="<?= e(page_url('cambridge')); ?>">
+                        <span><?= e(t('nav.cambridge')); ?></span>
+                        <svg class="w-3.5 h-3.5 transition-transform duration-200 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
+                        <span class="absolute bottom-0 left-1/2 h-[2px] w-0 -translate-x-1/2 bg-blue-600 transition-all duration-300 group-hover:w-full <?= $isActivePage(['cambridge', 'cambridge-starters', 'cambridge-movers', 'cambridge-flyers', 'cambridge-ket', 'cambridge-pet']) ? 'w-full' : '' ?>"></span>
                     </a>
+
+                    <!-- Dropdown Panel -->
+                    <div class="absolute left-1/2 -translate-x-1/2 top-full pt-2 w-72 invisible opacity-0 translate-y-2 group-hover:visible group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-200 z-50 pointer-events-none group-hover:pointer-events-auto">
+                        <div class="rounded-2xl bg-white p-2 shadow-2xl border border-slate-100 ring-1 ring-slate-900/5">
+                            <a href="<?= e(page_url('cambridge')); ?>" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-blue-600 bg-blue-50/70 hover:bg-blue-100 transition">
+                                <span class="text-base">🎓</span>
+                                <span><?= e(t('nav.cambridge.overview')); ?></span>
+                            </a>
+                            <div class="my-1 border-t border-slate-100"></div>
+                            <a href="<?= e(page_url('cambridge-starters')); ?>" class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 hover:bg-amber-50 hover:text-amber-700 transition">
+                                <span class="flex h-6 w-6 items-center justify-center rounded-lg bg-amber-100 text-amber-600 font-bold text-[10px]">PreA1</span>
+                                <span><?= e(t('nav.cambridge.starters')); ?></span>
+                            </a>
+                            <a href="<?= e(page_url('cambridge-movers')); ?>" class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 transition">
+                                <span class="flex h-6 w-6 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600 font-bold text-[10px]">A1</span>
+                                <span><?= e(t('nav.cambridge.movers')); ?></span>
+                            </a>
+                            <a href="<?= e(page_url('cambridge-flyers')); ?>" class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 hover:bg-sky-50 hover:text-sky-700 transition">
+                                <span class="flex h-6 w-6 items-center justify-center rounded-lg bg-sky-100 text-sky-600 font-bold text-[10px]">A2</span>
+                                <span><?= e(t('nav.cambridge.flyers')); ?></span>
+                            </a>
+                            <a href="<?= e(page_url('cambridge-ket')); ?>" class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 transition">
+                                <span class="flex h-6 w-6 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600 font-bold text-[10px]">A2</span>
+                                <span><?= e(t('nav.cambridge.ket')); ?></span>
+                            </a>
+                            <a href="<?= e(page_url('cambridge-pet')); ?>" class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 hover:bg-purple-50 hover:text-purple-700 transition">
+                                <span class="flex h-6 w-6 items-center justify-center rounded-lg bg-purple-100 text-purple-600 font-bold text-[10px]">B1</span>
+                                <span><?= e(t('nav.cambridge.pet')); ?></span>
+                            </a>
+                        </div>
+                    </div>
                 </div>
 
-                <a class="relative py-2 text-[15px] font-semibold transition-colors duration-300 <?= $isActivePage(['teacher-introduce', 'teacher-detail']) ? 'text-blue-600' : 'text-slate-700 hover:text-blue-600' ?> group" href="<?= e(page_url('teacher-introduce')); ?>">
-                    <?= e(t('nav.teachers')); ?>
-                    <span class="absolute bottom-0 left-1/2 h-[2px] w-0 -translate-x-1/2 bg-blue-600 transition-all duration-300 group-hover:w-full <?= $isActivePage(['teacher-introduce', 'teacher-detail']) ? 'w-full' : '' ?>"></span>
-                </a>
+                <!-- Discover / Khám phá Dropdown -->
+                <div class="relative group py-2">
+                    <button type="button" class="relative py-2 text-[14px] xl:text-[15px] font-semibold whitespace-nowrap transition-colors duration-300 inline-flex items-center gap-1 <?= $isActivePage(['teacher-introduce', 'teacher-detail', 'activities-home', 'activities-home-detail', 'gallery', 'documents']) ? 'text-blue-600' : 'text-slate-700 hover:text-blue-600' ?>">
+                        <span><?= e(t('nav.discover')); ?></span>
+                        <svg class="w-3.5 h-3.5 transition-transform duration-200 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
+                        <span class="absolute bottom-0 left-1/2 h-[2px] w-0 -translate-x-1/2 bg-blue-600 transition-all duration-300 group-hover:w-full <?= $isActivePage(['teacher-introduce', 'teacher-detail', 'activities-home', 'activities-home-detail', 'gallery', 'documents']) ? 'w-full' : '' ?>"></span>
+                    </button>
 
-                <a class="relative py-2 text-[15px] font-semibold transition-colors duration-300 <?= $isActivePage(['activities-home', 'activities-home-detail']) ? 'text-blue-600' : 'text-slate-700 hover:text-blue-600' ?> group" href="<?= e(page_url('activities-home')); ?>">
-                    <?= e(t('nav.activities')); ?>
-                    <span class="absolute bottom-0 left-1/2 h-[2px] w-0 -translate-x-1/2 bg-blue-600 transition-all duration-300 group-hover:w-full <?= $isActivePage(['activities-home', 'activities-home-detail']) ? 'w-full' : '' ?>"></span>
-                </a>
+                    <!-- Dropdown Panel -->
+                    <div class="absolute right-0 xl:left-1/2 xl:-translate-x-1/2 top-full pt-2 w-64 invisible opacity-0 translate-y-2 group-hover:visible group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-200 z-50 pointer-events-none group-hover:pointer-events-auto">
+                        <div class="rounded-2xl bg-white p-2 shadow-2xl border border-slate-100 ring-1 ring-slate-900/5">
+                            <a href="<?= e(page_url('teacher-introduce')); ?>" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition">
+                                <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-100 text-blue-600 text-sm">👨‍🏫</span>
+                                <span><?= e(t('nav.teachers')); ?></span>
+                            </a>
+                            <a href="<?= e(page_url('activities-home')); ?>" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-700 hover:bg-rose-50 hover:text-rose-600 transition">
+                                <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-rose-100 text-rose-600 text-sm">🎈</span>
+                                <span><?= e(t('nav.activities')); ?></span>
+                            </a>
+                            <a href="<?= e(page_url('gallery')); ?>" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-700 hover:bg-emerald-50 hover:text-emerald-600 transition">
+                                <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600 text-sm">📸</span>
+                                <span><?= e(t('nav.gallery')); ?></span>
+                            </a>
+                            <a href="<?= e(page_url('documents')); ?>" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-700 hover:bg-amber-50 hover:text-amber-600 transition">
+                                <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-100 text-amber-600 text-sm">📄</span>
+                                <span><?= e(t('nav.documents')); ?></span>
+                            </a>
+                            <a href="<?= e(page_url('faq')); ?>" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-700 hover:bg-purple-50 hover:text-purple-600 transition">
+                                <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-purple-100 text-purple-600 text-sm">❓</span>
+                                <span>Hỏi Đáp (FAQ)</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
 
-                <a class="relative py-2 text-[15px] font-semibold transition-colors duration-300 <?= $isActivePage(['job-apply']) ? 'text-blue-600' : 'text-slate-700 hover:text-blue-600' ?> group" href="<?= e(page_url('job-apply')); ?>">
+                <!-- Tuyển dụng Standalone -->
+                <a class="relative py-2 text-[14px] xl:text-[15px] font-semibold whitespace-nowrap transition-colors duration-300 <?= $isActivePage(['job-apply']) ? 'text-blue-600' : 'text-slate-700 hover:text-blue-600' ?> group" href="<?= e(page_url('job-apply')); ?>">
                     <?= e(t('nav.jobs')); ?>
                     <span class="absolute bottom-0 left-1/2 h-[2px] w-0 -translate-x-1/2 bg-blue-600 transition-all duration-300 group-hover:w-full <?= $isActivePage(['job-apply']) ? 'w-full' : '' ?>"></span>
-                </a>
-               
-                <a class="relative py-2 text-[15px] font-semibold transition-colors duration-300 <?= $isActivePage(['documents']) ? 'text-blue-600' : 'text-slate-700 hover:text-blue-600' ?> group" href="<?= e(page_url('documents')); ?>">
-                    <?= e(t('nav.documents')); ?>
-                    <span class="absolute bottom-0 left-1/2 h-[2px] w-0 -translate-x-1/2 bg-blue-600 transition-all duration-300 group-hover:w-full <?= $isActivePage(['documents']) ? 'w-full' : '' ?>"></span>
                 </a>
             </nav>
 
@@ -260,10 +320,31 @@
                 </div>
                 <a class="block border-b border-slate-50 px-6 py-4 text-[15px] font-semibold hover:bg-slate-50 <?= $isActivePage(['home']) ? 'text-blue-600 bg-blue-50/50' : 'text-slate-700' ?>" href="/"><?= e(t('nav.home')); ?></a>
                 <a class="block border-b border-slate-50 px-6 py-4 text-[15px] font-semibold hover:bg-slate-50 <?= $isActivePage(['courses', 'course-detail']) ? 'text-blue-600 bg-blue-50/50' : 'text-slate-700' ?>" href="<?= e(page_url('courses')); ?>"><?= e(t('nav.courses')); ?></a>
-                <a class="block border-b border-slate-50 px-6 py-4 text-[15px] font-semibold hover:bg-slate-50 <?= $isActivePage(['teacher-introduce', 'teacher-detail']) ? 'text-blue-600 bg-blue-50/50' : 'text-slate-700' ?>" href="<?= e(page_url('teacher-introduce')); ?>"><?= e(t('nav.teachers')); ?></a>
-                <a class="block border-b border-slate-50 px-6 py-4 text-[15px] font-semibold hover:bg-slate-50 <?= $isActivePage(['activities-home', 'activities-home-detail']) ? 'text-blue-600 bg-blue-50/50' : 'text-slate-700' ?>" href="<?= e(page_url('activities-home')); ?>"><?= e(t('nav.activities')); ?></a>
+                
+                <!-- Mobile Cambridge Submenu -->
+                <div class="border-b border-slate-50 bg-slate-50/60 px-6 py-3">
+                    <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2"><?= e(t('nav.cambridge')); ?></p>
+                    <div class="grid gap-2 pl-2">
+                        <a href="<?= e(page_url('cambridge')); ?>" class="text-[13px] font-semibold text-blue-600 hover:underline">🎓 <?= e(t('nav.cambridge.overview')); ?></a>
+                        <a href="<?= e(page_url('cambridge-starters')); ?>" class="text-[13px] font-medium text-slate-700 hover:text-blue-600">🟡 <?= e(t('nav.cambridge.starters')); ?></a>
+                        <a href="<?= e(page_url('cambridge-movers')); ?>" class="text-[13px] font-medium text-slate-700 hover:text-blue-600">🟢 <?= e(t('nav.cambridge.movers')); ?></a>
+                        <a href="<?= e(page_url('cambridge-flyers')); ?>" class="text-[13px] font-medium text-slate-700 hover:text-blue-600">🔵 <?= e(t('nav.cambridge.flyers')); ?></a>
+                        <a href="<?= e(page_url('cambridge-ket')); ?>" class="text-[13px] font-medium text-slate-700 hover:text-blue-600">🟣 <?= e(t('nav.cambridge.ket')); ?></a>
+                        <a href="<?= e(page_url('cambridge-pet')); ?>" class="text-[13px] font-medium text-slate-700 hover:text-blue-600">🔴 <?= e(t('nav.cambridge.pet')); ?></a>
+                    </div>
+                </div>
+
+                <!-- Mobile Discover Submenu -->
+                <div class="border-b border-slate-50 bg-slate-50/40 px-6 py-3">
+                    <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2"><?= e(t('nav.discover')); ?></p>
+                    <div class="grid gap-2.5 pl-2">
+                        <a href="<?= e(page_url('teacher-introduce')); ?>" class="text-[13px] font-medium text-slate-700 hover:text-blue-600">👨‍🏫 <?= e(t('nav.teachers')); ?></a>
+                        <a href="<?= e(page_url('activities-home')); ?>" class="text-[13px] font-medium text-slate-700 hover:text-blue-600">🎈 <?= e(t('nav.activities')); ?></a>
+                        <a href="<?= e(page_url('gallery')); ?>" class="text-[13px] font-medium text-slate-700 hover:text-blue-600">📸 <?= e(t('nav.gallery')); ?></a>
+                        <a href="<?= e(page_url('documents')); ?>" class="text-[13px] font-medium text-slate-700 hover:text-blue-600">📄 <?= e(t('nav.documents')); ?></a>
+                    </div>
+                </div>
                 <a class="block border-b border-slate-50 px-6 py-4 text-[15px] font-semibold hover:bg-slate-50 <?= $isActivePage(['job-apply']) ? 'text-blue-600 bg-blue-50/50' : 'text-slate-700' ?>" href="<?= e(page_url('job-apply')); ?>"><?= e(t('nav.jobs')); ?></a>
-                <a class="block border-b border-slate-50 px-6 py-4 text-[15px] font-semibold hover:bg-slate-50 <?= $isActivePage(['documents']) ? 'text-blue-600 bg-blue-50/50' : 'text-slate-700' ?>" href="<?= e(page_url('documents')); ?>"><?= e(t('nav.documents')); ?></a>
                 <a class="block border-b border-slate-50 px-6 py-4 text-[15px] font-semibold hover:bg-slate-50 <?= $isActivePage(['home']) ? 'text-blue-600 bg-blue-50/50' : 'text-slate-700' ?>" href="<?= e(page_url('home') . '#dang-ky-tu-van'); ?>"><?= e(t('nav.consultation')); ?></a>
                 
                 <?php if (is_logged_in()): ?>

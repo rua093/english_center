@@ -368,6 +368,12 @@ function can_access_page(string $page): bool
 			return has_permission('materials.view');
 		case 'exports-academic':
 			return has_permission('academic.exports.view');
+		case 'gallery':
+		case 'faq':
+			return true;
+		case 'manage-media':
+		case 'manage-faqs':
+			return in_array($role, ['admin', 'staff', 'academic'], true);
 		default:
 			return false;
 	}

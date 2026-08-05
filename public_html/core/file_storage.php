@@ -1112,6 +1112,13 @@ function app_direct_upload_presets(): array
 			'extensions' => ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'jpg', 'jpeg', 'png', 'mp4', 'mov', 'webm'],
 			'mime_prefixes' => ['application/', 'image/', 'video/'],
 		],
+		'media_gallery_item' => [
+			'prefix' => 'gallery',
+			'subdir' => 'gallery/items',
+			'max_bytes' => 0,
+			'extensions' => ['jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'mp4', 'mov', 'webm'],
+			'mime_prefixes' => ['image/', 'video/'],
+		],
 	];
 }
 

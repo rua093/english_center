@@ -58,7 +58,17 @@ function page_route_definitions(): array
 		'submissions-academic' => ['directory' => 'academic-submissions', 'aliases' => ['academic-submissions']],
 		'activities-student' => ['directory' => 'student-activities', 'aliases' => ['activities']],
 		'activities-details' => ['directory' => 'student-activities/activites-details', 'aliases' => ['activities-details']],
+		'gallery' => ['directory' => 'gallery', 'aliases' => ['thu-vien-anh-video', 'media-gallery']],
+		'manage-media' => ['directory' => 'manage-media', 'aliases' => ['manage-gallery', 'quan-ly-media']],
+		'cambridge' => ['directory' => 'cambridge', 'aliases' => ['chung-chi-cambridge', 'cambridge-qualifications']],
+		'cambridge-starters' => ['directory' => 'cambridge/starters', 'aliases' => ['starters', 'pre-a1-starters']],
+		'cambridge-movers' => ['directory' => 'cambridge/movers', 'aliases' => ['movers', 'a1-movers']],
+		'cambridge-flyers' => ['directory' => 'cambridge/flyers', 'aliases' => ['flyers', 'a2-flyers']],
+		'cambridge-ket' => ['directory' => 'cambridge/ket', 'aliases' => ['ket', 'a2-ket', 'key-for-schools']],
+		'cambridge-pet' => ['directory' => 'cambridge/pet', 'aliases' => ['pet', 'b1-pet', 'preliminary-for-schools']],
 		'forgot-password' => ['directory' => 'login/forgot_password', 'aliases' => ['forgot_password']],
+		'faq' => ['directory' => 'faq', 'aliases' => ['faqs', 'cau-hoi-thuong-gap', 'hoi-dap']],
+		'manage-faqs' => ['directory' => 'manage-faqs', 'aliases' => ['faqs-manage', 'quan-ly-faq']],
 	];
 }
 

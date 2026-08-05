@@ -144,7 +144,7 @@ function ui_render_bbcode(?string $value): string
 	) ?? $text;
 
 	$text = preg_replace_callback(
-		'#\[color=([#a-z0-9(),.\s%-]+)\](.*?)\[/color\]#is',
+		'~\[color=([#a-z0-9(),.\s%-]+)\](.*?)\[/color\]~is',
 		static function (array $matches): string {
 			$rawColor = trim(html_entity_decode((string) ($matches[1] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'));
 			$content = (string) ($matches[2] ?? '');

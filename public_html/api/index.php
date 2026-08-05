@@ -46,6 +46,10 @@ $legacyActionMap = [
     'do-save-user' => ['users', 'save'],
     'do-submit-assignment' => ['assignments', 'submit'],
     'do-update-tuition' => ['tuitions', 'update'],
+    'do-save-media-category' => ['media-gallery', 'save-category'],
+    'do-delete-media-category' => ['media-gallery', 'delete-category'],
+    'do-save-media-item' => ['media-gallery', 'save-item'],
+    'do-delete-media-item' => ['media-gallery', 'delete-item'],
 ];
 
 if (($resource === '' || $method === '') && $legacyAction !== '' && isset($legacyActionMap[$legacyAction])) {

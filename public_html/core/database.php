@@ -20,6 +20,7 @@ final class Database
 			PDO::ATTR_EMULATE_PREPARES => false,
 		]);
 		self::$instance->exec("SET time_zone = '+07:00'");
+		self::$instance->exec("SET NAMES utf8mb4");
 
 		return self::$instance;
 	}

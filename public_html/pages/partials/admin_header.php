@@ -1827,6 +1827,7 @@ if ($activeModule === '') {
         'student-leads-manage' => 'student-leads',
         'job-applications-manage' => 'job-applications',
         'activities-manage' => 'activities',
+        'manage-media' => 'media',
         'rooms-manage' => 'rooms',
         'notifications-manage' => 'notifications',
         'courses-academic' => 'courses',
@@ -2077,6 +2078,24 @@ if ($displayAdminDescription === '') {
                             <?= e((string) ((((int) ($adminUnreadNotificationModules['activities'] ?? 0)) > 99) ? '99+' : ((int) ($adminUnreadNotificationModules['activities'] ?? 0)))); ?>
                         </span>
                     <?php endif; ?>
+                </a>
+            <?php endif; ?>
+
+            <?php if (can_access_page('manage-media')): ?>
+                <a class="admin-sidebar-link<?= $activeModule === 'media' ? ' is-active' : ''; ?>" href="<?= e(page_url('manage-media')); ?>" title="<?= e(t('admin.nav.gallery')); ?>">
+                    <span class="admin-sidebar-link-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                    </span>
+                    <span class="admin-sidebar-link-label"><?= e(t('admin.nav.gallery')); ?></span>
+                </a>
+            <?php endif; ?>
+
+            <?php if (can_access_page('manage-faqs')): ?>
+                <a class="admin-sidebar-link<?= $activeModule === 'faqs' ? ' is-active' : ''; ?>" href="<?= e(page_url('manage-faqs')); ?>" title="Quản lý FAQ">
+                    <span class="admin-sidebar-link-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                    </span>
+                    <span class="admin-sidebar-link-label">Quản lý FAQ</span>
                 </a>
             <?php endif; ?>
 
