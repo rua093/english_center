@@ -105,9 +105,9 @@ $homeFormatPromotionDate = static function (?string $value): string {
 
        <div class="absolute bottom-0 left-0 right-0 translate-y-0 sm:translate-y-1/2 z-30 flex flex-col items-center px-4 sm:px-6">
     
-        <div class="w-full max-w-[1024px] bg-gradient-to-br from-red-200 via-rose-200 to-lime-200 rounded-2xl sm:rounded-[2rem] shadow-[0_15px_40px_rgba(0,0,0,0.15)] overflow-hidden border border-lime-400/35 ring-1 ring-white/20 relative">
+        <div class="w-full max-w-[1024px] bg-gradient-to-br from-lime-100 via-lime-50 to-emerald-100 rounded-2xl sm:rounded-[2rem] shadow-[0_15px_40px_rgba(132,204,22,0.18)] overflow-hidden border border-lime-300/80 ring-1 ring-white/60 relative">
 
-            <div class="h-1.5 w-full bg-gradient-to-r from-amber-400 via-cyan-300 to-sky-400"></div>
+            <div class="h-1.5 w-full bg-gradient-to-r from-lime-400 via-emerald-400 to-teal-400"></div>
 
             <div class="relative p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6 md:gap-8">
                 
@@ -127,7 +127,7 @@ $homeFormatPromotionDate = static function (?string $value): string {
                     </h3>
 
                     <p class="text-slate-700 text-xs sm:text-sm leading-relaxed font-semibold max-w-2xl mx-auto md:mx-0">
-                        <strong class="text-slate-900"><?= e(t('home.test_copy_prefix_1')); ?></strong> <?= e(t('home.test_copy_1')); ?> <strong class="text-slate-900"><?= e(t('home.test_copy_prefix_2')); ?></strong> <?= e(t('home.test_copy_2')); ?> <strong class="text-slate-900"><?= e(t('home.test_copy_prefix_3')); ?></strong><?= e(t('home.test_copy_3')); ?> <strong class="text-slate-900"><?= e(t('home.test_copy_prefix_4')); ?></strong> <?= e(t('home.test_copy_4')); ?>
+                        <strong class="text-slate-900"><?= e(t('home.test_copy_prefix_1')); ?></strong> <?= e(t('home.test_copy_1')); ?> <strong class="text-slate-900"><?= e(t('home.test_copy_prefix_2')); ?></strong> <?= e(t('home.test_copy_2')); ?> <strong class="text-slate-900"><?= e(t('home.test_copy_prefix_3')); ?></strong> <?= e(t('home.test_copy_3')); ?> <strong class="text-slate-900"><?= e(t('home.test_copy_prefix_4')); ?></strong> <?= e(t('home.test_copy_4')); ?>
                     </p>
                 </div>
 
