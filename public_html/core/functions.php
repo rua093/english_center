@@ -110,12 +110,20 @@ function ui_render_bbcode(?string $value): string
 	$text = htmlspecialchars($text, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 	$replacements = [
 		'#\[br\s*/?\]#i' => '<br>',
+		'#\[hr\s*/?\]#i' => '<hr>',
 		'#\[b\](.*?)\[/b\]#is' => '<strong>$1</strong>',
 		'#\[i\](.*?)\[/i\]#is' => '<em>$1</em>',
 		'#\[u\](.*?)\[/u\]#is' => '<u>$1</u>',
 		'#\[s\](.*?)\[/s\]#is' => '<s>$1</s>',
+		'#\[sub\](.*?)\[/sub\]#is' => '<sub>$1</sub>',
+		'#\[sup\](.*?)\[/sup\]#is' => '<sup>$1</sup>',
+		'#\[left\](.*?)\[/left\]#is' => '<div style="text-align:left;">$1</div>',
+		'#\[center\](.*?)\[/center\]#is' => '<div style="text-align:center;">$1</div>',
+		'#\[right\](.*?)\[/right\]#is' => '<div style="text-align:right;">$1</div>',
+		'#\[justify\](.*?)\[/justify\]#is' => '<div style="text-align:justify;">$1</div>',
 		'#\[quote\](.*?)\[/quote\]#is' => '<blockquote>$1</blockquote>',
 		'#\[code\](.*?)\[/code\]#is' => '<code>$1</code>',
+		'#\[font=([a-z0-9\s,-_"\']+)\](.*?)\[/font\]#is' => '<span style="font-family:$1;">$2</span>',
 	];
 
 	foreach ($replacements as $pattern => $replacement) {
@@ -123,20 +131,20 @@ function ui_render_bbcode(?string $value): string
 	}
 
 	$text = preg_replace_callback(
-		'#\[size=([1-7])\](.*?)\[/size\]#is',
+		'#\[size=([0-9]+)(?:px)?\](.*?)\[/size\]#is',
 		static function (array $matches): string {
 			$sizeMap = [
-				'1' => '0.75rem',
-				'2' => '0.875rem',
-				'3' => '1rem',
-				'4' => '1.125rem',
-				'5' => '1.25rem',
-				'6' => '1.5rem',
-				'7' => '1.875rem',
+				'1' => '10px',
+				'2' => '12px',
+				'3' => '14px',
+				'4' => '16px',
+				'5' => '18px',
+				'6' => '24px',
+				'7' => '32px',
 			];
-			$size = (string) ($matches[1] ?? '3');
+			$rawSize = (string) ($matches[1] ?? '3');
 			$content = (string) ($matches[2] ?? '');
-			$fontSize = $sizeMap[$size] ?? $sizeMap['3'];
+			$fontSize = isset($sizeMap[$rawSize]) ? $sizeMap[$rawSize] : max(8, min(72, (int) $rawSize)) . 'px';
 
 			return '<span style="font-size:' . $fontSize . ';">' . $content . '</span>';
 		},

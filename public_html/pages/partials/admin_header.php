@@ -237,9 +237,26 @@
             pointer-events: none;
         }
 
-        .bbcode-editor .sceditor-button div,
-        .bbcode-editor .sceditor-button span {
+        .bbcode-editor .sceditor-button[data-bbcode-icon-ready='1'] div,
+        .bbcode-editor .sceditor-button[data-bbcode-icon-ready='1'] span {
             display: none !important;
+        }
+
+        .sceditor-dropdown {
+            z-index: 99999 !important;
+            border-radius: 0.75rem !important;
+            border: 1px solid #cbd5e1 !important;
+            background: #ffffff !important;
+            box-shadow: 0 10px 25px rgba(15, 23, 42, 0.12) !important;
+            padding: 0.5rem !important;
+            font-family: "Manrope", ui-sans-serif, system-ui, sans-serif !important;
+            font-size: 0.88rem !important;
+        }
+
+        .sceditor-dropdown a,
+        .sceditor-dropdown div {
+            color: #0f172a !important;
+            border-radius: 0.5rem !important;
         }
 
         .bbcode-editor .sceditor-button svg {

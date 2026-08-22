@@ -178,14 +178,156 @@
             });
         }
 
+        function bindCustomBbcodeDropdowns(editor, input) {
+            if (!(editor instanceof HTMLElement) || !(input instanceof HTMLTextAreaElement)) {
+                return;
+            }
+
+            const sizeBtn = editor.querySelector('.sceditor-button-size');
+            if (sizeBtn instanceof HTMLElement && sizeBtn.dataset.customDropdownReady !== '1') {
+                sizeBtn.dataset.customDropdownReady = '1';
+                sizeBtn.addEventListener('click', function (e) {
+                    const instance = getBbcodeEditorInstance(input);
+                    if (!instance || typeof instance.createDropDown !== 'function') {
+                        return;
+                    }
+
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+
+                    const content = document.createElement('div');
+                    content.className = 'sceditor-fontsize-picker-menu';
+                    content.style.maxHeight = '260px';
+                    content.style.overflowY = 'auto';
+                    content.style.padding = '0.3rem';
+                    content.style.minWidth = '180px';
+
+                    const sizes = [
+                        { label: '10px', value: '10' },
+                        { label: '12px', value: '12' },
+                        { label: '14px', value: '14' },
+                        { label: '16px', value: '16' },
+                        { label: '18px', value: '18' },
+                        { label: '20px', value: '20' },
+                        { label: '24px', value: '24' },
+                        { label: '28px', value: '28' },
+                        { label: '32px', value: '32' },
+                        { label: '36px', value: '36' },
+                        { label: '48px', value: '48' }
+                    ];
+
+                    sizes.forEach(function (item) {
+                        const a = document.createElement('a');
+                        a.className = 'sceditor-fontsize-option';
+                        a.href = '#';
+                        a.style.display = 'block';
+                        a.style.padding = '0.45rem 0.7rem';
+                        a.style.fontSize = Math.min(22, Math.max(12, Number(item.value))) + 'px';
+                        a.style.lineHeight = '1.3';
+                        a.style.textDecoration = 'none';
+                        a.style.color = '#0f172a';
+                        a.style.borderRadius = '0.4rem';
+                        a.style.transition = 'background-color 120ms ease, color 120ms ease';
+                        a.textContent = item.label;
+
+                        a.addEventListener('mouseenter', function () {
+                            a.style.backgroundColor = '#eff6ff';
+                            a.style.color = '#1d4ed8';
+                        });
+                        a.addEventListener('mouseleave', function () {
+                            a.style.backgroundColor = 'transparent';
+                            a.style.color = '#0f172a';
+                        });
+
+                        a.addEventListener('click', function (ev) {
+                            ev.preventDefault();
+                            if (instance.inSourceMode()) {
+                                instance.insertText('[size=' + item.value + ']', '[/size]');
+                            } else {
+                                instance.execCommand('size', item.value);
+                            }
+                            instance.closeDropDown(true);
+                        });
+
+                        content.appendChild(a);
+                    });
+
+                    instance.createDropDown(sizeBtn, 'sceditor-fontsize-picker', content);
+                }, true);
+            }
+
+            const fontBtn = editor.querySelector('.sceditor-button-font');
+            if (fontBtn instanceof HTMLElement && fontBtn.dataset.customDropdownReady !== '1') {
+                fontBtn.dataset.customDropdownReady = '1';
+                fontBtn.addEventListener('click', function (e) {
+                    const instance = getBbcodeEditorInstance(input);
+                    if (!instance || typeof instance.createDropDown !== 'function') {
+                        return;
+                    }
+
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+
+                    const content = document.createElement('div');
+                    content.className = 'sceditor-font-picker-menu';
+                    content.style.maxHeight = '270px';
+                    content.style.overflowY = 'auto';
+                    content.style.padding = '0.3rem';
+                    content.style.minWidth = '180px';
+
+                    const fonts = [
+                        'Manrope', 'Sora', 'Inter', 'Roboto', 'Montserrat', 'Open Sans', 'Lato',
+                        'Segoe UI', 'Arial', 'Arial Black', 'Comic Sans MS', 'Courier New',
+                        'Georgia', 'Impact', 'Tahoma', 'Times New Roman', 'Trebuchet MS', 'Verdana'
+                    ];
+
+                    fonts.forEach(function (font) {
+                        const a = document.createElement('a');
+                        a.className = 'sceditor-font-option';
+                        a.href = '#';
+                        a.style.display = 'block';
+                        a.style.padding = '0.45rem 0.7rem';
+                        a.style.fontFamily = font + ', sans-serif';
+                        a.style.fontSize = '0.95rem';
+                        a.style.textDecoration = 'none';
+                        a.style.color = '#0f172a';
+                        a.style.borderRadius = '0.4rem';
+                        a.style.transition = 'background-color 120ms ease, color 120ms ease';
+                        a.textContent = font;
+
+                        a.addEventListener('mouseenter', function () {
+                            a.style.backgroundColor = '#eff6ff';
+                            a.style.color = '#1d4ed8';
+                        });
+                        a.addEventListener('mouseleave', function () {
+                            a.style.backgroundColor = 'transparent';
+                            a.style.color = '#0f172a';
+                        });
+
+                        a.addEventListener('click', function (ev) {
+                            ev.preventDefault();
+                            if (instance.inSourceMode()) {
+                                instance.insertText('[font=' + font + ']', '[/font]');
+                            } else {
+                                instance.execCommand('font', font);
+                            }
+                            instance.closeDropDown(true);
+                        });
+
+                        content.appendChild(a);
+                    });
+
+                    instance.createDropDown(fontBtn, 'sceditor-font-picker', content);
+                }, true);
+            }
+        }
+
         function normalizeBbcodeToolbarState(editor) {
             if (!(editor instanceof HTMLElement)) {
                 return;
             }
 
-            editor.querySelectorAll(
-                '.sceditor-button-bold, .sceditor-button-italic, .sceditor-button-underline, .sceditor-button-strike, .sceditor-button-link, .sceditor-button-image, .sceditor-button-quote, .sceditor-button-code'
-            ).forEach(function (button) {
+            editor.querySelectorAll('.sceditor-button').forEach(function (button) {
                 if (button instanceof HTMLElement) {
                     button.classList.remove('disabled');
                     button.removeAttribute('disabled');
@@ -295,7 +437,158 @@
             });
         }
 
+        function registerCustomSceditorCommands() {
+            if (typeof window.sceditor === 'undefined' || !window.sceditor) {
+                return;
+            }
+
+            var sizeCmd = {
+                exec: function (caller) {
+                    var editor = this;
+                    sizeCmd.dropDown(editor, caller, function (size) {
+                        editor.execCommand('size', size);
+                    });
+                },
+                dropDown: function (editor, caller, callback) {
+                    var content = document.createElement('div');
+                    content.className = 'sceditor-fontsize-picker-menu';
+                    content.style.maxHeight = '250px';
+                    content.style.overflowY = 'auto';
+                    content.style.padding = '0.25rem';
+
+                    var sizes = [
+                        { label: '10px', value: '10' },
+                        { label: '12px', value: '12' },
+                        { label: '14px', value: '14' },
+                        { label: '16px', value: '16' },
+                        { label: '18px', value: '18' },
+                        { label: '20px', value: '20' },
+                        { label: '24px', value: '24' },
+                        { label: '28px', value: '28' },
+                        { label: '32px', value: '32' },
+                        { label: '36px', value: '36' },
+                        { label: '48px', value: '48' }
+                    ];
+
+                    sizes.forEach(function (item) {
+                        var a = document.createElement('a');
+                        a.className = 'sceditor-fontsize-option';
+                        a.href = '#';
+                        a.style.display = 'block';
+                        a.style.padding = '0.4rem 0.65rem';
+                        a.style.fontSize = Math.min(22, Math.max(12, Number(item.value))) + 'px';
+                        a.style.lineHeight = '1.3';
+                        a.style.textDecoration = 'none';
+                        a.style.color = '#0f172a';
+                        a.style.borderRadius = '0.4rem';
+                        a.style.transition = 'background-color 120ms ease, color 120ms ease';
+                        a.textContent = item.label;
+
+                        a.addEventListener('mouseenter', function () {
+                            a.style.backgroundColor = '#eff6ff';
+                            a.style.color = '#1d4ed8';
+                        });
+                        a.addEventListener('mouseleave', function () {
+                            a.style.backgroundColor = 'transparent';
+                            a.style.color = '#0f172a';
+                        });
+
+                        a.addEventListener('click', function (e) {
+                            e.preventDefault();
+                            callback(item.value);
+                            editor.closeDropDown(true);
+                        });
+
+                        content.appendChild(a);
+                    });
+
+                    editor.createDropDown(caller, 'sceditor-fontsize-picker', content);
+                },
+                txtExec: function (caller) {
+                    var editor = this;
+                    sizeCmd.dropDown(editor, caller, function (size) {
+                        editor.insertText('[size=' + size + ']', '[/size]');
+                    });
+                },
+                tooltip: 'Cỡ chữ'
+            };
+
+            var fontCmd = {
+                exec: function (caller) {
+                    var editor = this;
+                    fontCmd.dropDown(editor, caller, function (font) {
+                        editor.execCommand('font', font);
+                    });
+                },
+                dropDown: function (editor, caller, callback) {
+                    var content = document.createElement('div');
+                    content.className = 'sceditor-font-picker-menu';
+                    content.style.maxHeight = '270px';
+                    content.style.overflowY = 'auto';
+                    content.style.padding = '0.25rem';
+
+                    var fonts = [
+                        'Manrope', 'Sora', 'Inter', 'Roboto', 'Montserrat', 'Open Sans', 'Lato',
+                        'Segoe UI', 'Arial', 'Arial Black', 'Comic Sans MS', 'Courier New',
+                        'Georgia', 'Impact', 'Tahoma', 'Times New Roman', 'Trebuchet MS', 'Verdana'
+                    ];
+
+                    fonts.forEach(function (font) {
+                        var a = document.createElement('a');
+                        a.className = 'sceditor-font-option';
+                        a.href = '#';
+                        a.style.display = 'block';
+                        a.style.padding = '0.4rem 0.65rem';
+                        a.style.fontFamily = font + ', sans-serif';
+                        a.style.fontSize = '0.94rem';
+                        a.style.textDecoration = 'none';
+                        a.style.color = '#0f172a';
+                        a.style.borderRadius = '0.4rem';
+                        a.style.transition = 'background-color 120ms ease, color 120ms ease';
+                        a.textContent = font;
+
+                        a.addEventListener('mouseenter', function () {
+                            a.style.backgroundColor = '#eff6ff';
+                            a.style.color = '#1d4ed8';
+                        });
+                        a.addEventListener('mouseleave', function () {
+                            a.style.backgroundColor = 'transparent';
+                            a.style.color = '#0f172a';
+                        });
+
+                        a.addEventListener('click', function (e) {
+                            e.preventDefault();
+                            callback(font);
+                            editor.closeDropDown(true);
+                        });
+
+                        content.appendChild(a);
+                    });
+
+                    editor.createDropDown(caller, 'sceditor-font-picker', content);
+                },
+                txtExec: function (caller) {
+                    var editor = this;
+                    fontCmd.dropDown(editor, caller, function (font) {
+                        editor.insertText('[font=' + font + ']', '[/font]');
+                    });
+                },
+                tooltip: 'Phông chữ'
+            };
+
+            if (window.sceditor.command) {
+                window.sceditor.command.set('size', sizeCmd);
+                window.sceditor.command.set('font', fontCmd);
+            }
+
+            if (window.sceditor.formats && window.sceditor.formats.bbcode && typeof window.sceditor.formats.bbcode.set === 'function') {
+                window.sceditor.formats.bbcode.set('size', sizeCmd);
+                window.sceditor.formats.bbcode.set('font', fontCmd);
+            }
+        }
+
         function initBbcodeEditors(root) {
+            registerCustomSceditorCommands();
             const scope = (root && typeof root.querySelectorAll === 'function') ? root : document;
             const editors = scope.querySelectorAll('[data-bbcode-editor="1"]');
             editors.forEach(function (editor) {
@@ -324,11 +617,14 @@
                         resizeEnabled: true,
                         width: '100%',
                         height: Math.max(260, Number(input.rows || 0) * 30),
-                        toolbar: 'bold,italic,underline,strike|link,image|quote,code|source',
+                        fonts: 'Manrope,Sora,Inter,Roboto,Montserrat,Open Sans,Lato,Arial,Arial Black,Comic Sans MS,Courier New,Georgia,Impact,Segoe UI,Tahoma,Times New Roman,Trebuchet MS,Verdana',
+                        sizes: '10px,12px,14px,16px,18px,20px,22px,24px,28px,32px,36px,48px,72px',
+                        toolbar: 'bold,italic,underline,strike,subscript,superscript|left,center,right,justify|font,size,color,removeformat|bulletlist,orderedlist|link,image,quote,code,hr|source,maximize',
                     });
                 }
 
                 decorateBbcodeToolbar(editor);
+                bindCustomBbcodeDropdowns(editor, input);
                 normalizeBbcodeToolbarState(editor);
                 syncBbcodeEditorFromTextarea(input);
                 editor.dataset.bbcodeReady = '1';

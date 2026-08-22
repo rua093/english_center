@@ -4,7 +4,7 @@ declare(strict_types=1);
 use s9e\TextFormatter\Configurator;
 
 const BBCODE_BUNDLE_CLASS = 'App\\BbcodeBundle';
-const BBCODE_BUNDLE_VERSION = 's9e-text-formatter-v5';
+const BBCODE_BUNDLE_VERSION = 's9e-text-formatter-v7';
 
 function bbcode_cache_dir(): string
 {
@@ -85,20 +85,20 @@ function bbcode_prepare_input(?string $text): string
 {
     $normalized = str_replace(["\r\n", "\r"], "\n", (string) $text);
 
-    $normalized = preg_replace_callback('~\[size=(\d+)\](.*?)\[/size\]~is', static function (array $matches): string {
+    $normalized = preg_replace_callback('~\[size=(\d+)(?:px)?\](.*?)\[/size\]~is', static function (array $matches): string {
         $rawSize = (int) ($matches[1] ?? 0);
         $content = (string) ($matches[2] ?? '');
         $sizeMap = [
-            1 => 12,
-            2 => 14,
-            3 => 16,
-            4 => 18,
-            5 => 20,
+            1 => 10,
+            2 => 12,
+            3 => 14,
+            4 => 16,
+            5 => 18,
             6 => 24,
-            7 => 30,
+            7 => 32,
         ];
 
-        $resolvedSize = $sizeMap[$rawSize] ?? max(8, min(36, $rawSize));
+        $resolvedSize = $sizeMap[$rawSize] ?? max(8, min(72, $rawSize));
 
         return '[size=' . $resolvedSize . ']' . $content . '[/size]';
     }, $normalized) ?? $normalized;
@@ -129,8 +129,18 @@ function bbcode_generate_bundle(): void
     $configurator->rendering->engine->filepath = bbcode_renderer_filepath();
     $configurator->rootRules->enableAutoLineBreaks();
 
-    foreach (['B', 'I', 'U', 'S', 'CODE', 'QUOTE', 'URL', 'IMG', 'COLOR', 'SIZE', 'UL', 'OL', 'LIST', '*'] as $tagName) {
+    foreach ([
+        'B', 'I', 'U', 'S', 'SUB', 'SUP',
+        'FONT', 'COLOR', 'SIZE',
+        'ALIGN', 'LEFT', 'CENTER', 'RIGHT', 'JUSTIFY',
+        'CODE', 'QUOTE', 'URL', 'IMG', 'HR',
+        'UL', 'OL', 'LIST', '*'
+    ] as $tagName) {
         $configurator->BBCodes->addFromRepository($tagName);
+    }
+
+    if (isset($configurator->tags['SIZE']->attributes['size']->filterChain[0]) && method_exists($configurator->tags['SIZE']->attributes['size']->filterChain[0], 'setRange')) {
+        $configurator->tags['SIZE']->attributes['size']->filterChain[0]->setRange(8, 72);
     }
 
     $configurator->tags['CODE']->template = '<pre class="bbcode-code"><code><xsl:apply-templates /></code></pre>';
